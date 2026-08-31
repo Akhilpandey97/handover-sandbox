@@ -66,13 +66,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GoKwik Onboarding Command Center" },
+      { title: "Handover — Onboarding Command Center" },
       {
         name: "description",
         content:
           "Merchant onboarding tracker for projects, checklists, risks and go-live timelines.",
       },
-      { property: "og:title", content: "GoKwik Onboarding Command Center" },
+      { property: "og:title", content: "Handover — Onboarding Command Center" },
       {
         property: "og:description",
         content:

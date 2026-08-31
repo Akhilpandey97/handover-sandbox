@@ -8,7 +8,7 @@ const DEFAULT_LABELS: Record<string, string> = {
   // General
   app_title: "Manager Dashboard",
   app_subtitle: "Project Management Hub",
-  org_name: "GoKwik",
+  org_name: "Handover",
 
   // Team labels
   team_mint: "MINT (Presales)",

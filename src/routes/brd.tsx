@@ -5,16 +5,16 @@ export const Route = createFileRoute("/brd")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Business Requirements Form | GoKwik Onboarding" },
+      { title: "Business Requirements Form | Handover" },
       {
         name: "description",
         content:
-          "Complete the guided business requirements document for your GoKwik integration and submit it to your onboarding team.",
+          "Complete the guided business requirements document for your integration and submit it to your onboarding team.",
       },
       { property: "og:title", content: "Business Requirements Form" },
       {
         property: "og:description",
-        content: "Guided BRD collection for GoKwik merchant onboarding.",
+        content: "Guided BRD collection for merchant onboarding.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

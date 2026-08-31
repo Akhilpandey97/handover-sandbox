@@ -5,13 +5,13 @@ export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "GoKwik Onboarding Command Center" },
+      { title: "Handover — Onboarding Command Center" },
       {
         name: "description",
         content:
           "Track merchant onboarding projects, checklists, risks and go-live timelines across Mint, Integration and Merchant Success teams.",
       },
-      { property: "og:title", content: "GoKwik Onboarding Command Center" },
+      { property: "og:title", content: "Handover — Onboarding Command Center" },
       {
         property: "og:description",
         content:
