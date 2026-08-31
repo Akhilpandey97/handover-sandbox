@@ -778,8 +778,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
       <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 bg-white">
         {/* RIGHT PANEL — Status & Context */}
 
-
-        {/* RIGHT PANEL — Status & Context */}
         <ScrollArea className="order-1 hidden w-[38%] min-w-[340px] max-w-[520px] shrink-0 border-r border-slate-200 bg-white lg:block">
 
           <div className="space-y-1">
