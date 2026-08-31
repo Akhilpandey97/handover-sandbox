@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,9 +8,9 @@ const corsHeaders = {
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
-function gmailHeaders() {
+function gmailHeaders(googleKey?: string | null) {
   const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-  const GOOGLE_MAIL_API_KEY = process.env['GOOGLE_MAIL_API_KEY'];
+  const GOOGLE_MAIL_API_KEY = googleKey || process.env['GOOGLE_MAIL_API_KEY'];
   if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
   if (!GOOGLE_MAIL_API_KEY) throw new Error("Gmail connector is not linked");
   return {
@@ -171,7 +172,8 @@ async function handler(req: Request): Promise<Response> {
 
     let headers: Record<string, string>;
     try {
-      headers = gmailHeaders();
+      const creds = await getTenantIntegrations(await tenantIdFromRequest(req, body.tenant_id));
+      headers = gmailHeaders(creds.google_mail_api_key);
     } catch (e) {
       return new Response(JSON.stringify({ error: (e as Error).message }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },

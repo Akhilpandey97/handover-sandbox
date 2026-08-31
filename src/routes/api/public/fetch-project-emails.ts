@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -56,7 +57,9 @@ async function handler(req: Request): Promise<Response> {
     const SUPABASE_URL = process.env['SUPABASE_URL']!;
     const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
     const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-    const GOOGLE_MAIL_API_KEY = process.env['GOOGLE_MAIL_API_KEY'];
+    const __body0 = await req.clone().json().catch(() => ({} as any));
+    const creds = await getTenantIntegrations(await tenantIdFromRequest(req, __body0.tenant_id));
+    const GOOGLE_MAIL_API_KEY = creds.google_mail_api_key || process.env['GOOGLE_MAIL_API_KEY'];
 
     if (!LOVABLE_API_KEY || !GOOGLE_MAIL_API_KEY) {
       return new Response(
