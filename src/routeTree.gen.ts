@@ -13,6 +13,37 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BrdRouteImport } from './routes/brd'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PortalMidRouteImport } from './routes/portal.$mid'
+import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-actions'
+import { Route as ApiPublicAiChatRouteImport } from './routes/api/public/ai-chat'
+import { Route as ApiPublicAiFieldMappingRouteImport } from './routes/api/public/ai-field-mapping'
+import { Route as ApiPublicAiProjectInsightsRouteImport } from './routes/api/public/ai-project-insights'
+import { Route as ApiPublicAssignShopifySmeOwnerRouteImport } from './routes/api/public/assign-shopify-sme-owner'
+import { Route as ApiPublicBackfillShopifySmeAssignmentsRouteImport } from './routes/api/public/backfill-shopify-sme-assignments'
+import { Route as ApiPublicBrdFormApiRouteImport } from './routes/api/public/brd-form-api'
+import { Route as ApiPublicCheckOverdueTasksRouteImport } from './routes/api/public/check-overdue-tasks'
+import { Route as ApiPublicCreateUserRouteImport } from './routes/api/public/create-user'
+import { Route as ApiPublicDeleteUserRouteImport } from './routes/api/public/delete-user'
+import { Route as ApiPublicEnrichGoliveTrackerRouteImport } from './routes/api/public/enrich-golive-tracker'
+import { Route as ApiPublicFetchProjectEmailsRouteImport } from './routes/api/public/fetch-project-emails'
+import { Route as ApiPublicFetchProjectJiraTicketsRouteImport } from './routes/api/public/fetch-project-jira-tickets'
+import { Route as ApiPublicGetProjectLinksRouteImport } from './routes/api/public/get-project-links'
+import { Route as ApiPublicKwikassistAiChatRouteImport } from './routes/api/public/kwikassist-ai-chat'
+import { Route as ApiPublicMerchantPortalDataRouteImport } from './routes/api/public/merchant-portal-data'
+import { Route as ApiPublicPollEmailsRouteImport } from './routes/api/public/poll-emails'
+import { Route as ApiPublicPollPlatformGoliveEmailsRouteImport } from './routes/api/public/poll-platform-golive-emails'
+import { Route as ApiPublicPollShopifySmeEmailsRouteImport } from './routes/api/public/poll-shopify-sme-emails'
+import { Route as ApiPublicSandboxTestRouteImport } from './routes/api/public/sandbox-test'
+import { Route as ApiPublicSendMovementReportRouteImport } from './routes/api/public/send-movement-report'
+import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
+import { Route as ApiPublicSendPlatformWelcomeRouteImport } from './routes/api/public/send-platform-welcome'
+import { Route as ApiPublicSendScheduledMovementReportRouteImport } from './routes/api/public/send-scheduled-movement-report'
+import { Route as ApiPublicSendScheduledReportRouteImport } from './routes/api/public/send-scheduled-report'
+import { Route as ApiPublicSendScheduledTatReportRouteImport } from './routes/api/public/send-scheduled-tat-report'
+import { Route as ApiPublicSetPasswordRouteImport } from './routes/api/public/set-password'
+import { Route as ApiPublicShopifyLtEmailCommsRouteImport } from './routes/api/public/shopify-lt-email-comms'
+import { Route as ApiPublicSlackStuckMerchantsDigestRouteImport } from './routes/api/public/slack-stuck-merchants-digest'
+import { Route as ApiPublicUpdateUserRouteImport } from './routes/api/public/update-user'
+import { Route as ApiPublicUploadProjectPdfRouteImport } from './routes/api/public/upload-project-pdf'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +65,256 @@ const PortalMidRoute = PortalMidRouteImport.update({
   path: '/$mid',
   getParentRoute: () => PortalRoute,
 } as any)
+const ApiPublicAiActionsRoute = ApiPublicAiActionsRouteImport.update({
+  id: '/api/public/ai-actions',
+  path: '/api/public/ai-actions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAiChatRoute = ApiPublicAiChatRouteImport.update({
+  id: '/api/public/ai-chat',
+  path: '/api/public/ai-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAiFieldMappingRoute = ApiPublicAiFieldMappingRouteImport.update({
+  id: '/api/public/ai-field-mapping',
+  path: '/api/public/ai-field-mapping',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicAiProjectInsightsRoute =
+  ApiPublicAiProjectInsightsRouteImport.update({
+    id: '/api/public/ai-project-insights',
+    path: '/api/public/ai-project-insights',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicAssignShopifySmeOwnerRoute =
+  ApiPublicAssignShopifySmeOwnerRouteImport.update({
+    id: '/api/public/assign-shopify-sme-owner',
+    path: '/api/public/assign-shopify-sme-owner',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicBackfillShopifySmeAssignmentsRoute =
+  ApiPublicBackfillShopifySmeAssignmentsRouteImport.update({
+    id: '/api/public/backfill-shopify-sme-assignments',
+    path: '/api/public/backfill-shopify-sme-assignments',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicBrdFormApiRoute = ApiPublicBrdFormApiRouteImport.update({
+  id: '/api/public/brd-form-api',
+  path: '/api/public/brd-form-api',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCheckOverdueTasksRoute =
+  ApiPublicCheckOverdueTasksRouteImport.update({
+    id: '/api/public/check-overdue-tasks',
+    path: '/api/public/check-overdue-tasks',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCreateUserRoute = ApiPublicCreateUserRouteImport.update({
+  id: '/api/public/create-user',
+  path: '/api/public/create-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDeleteUserRoute = ApiPublicDeleteUserRouteImport.update({
+  id: '/api/public/delete-user',
+  path: '/api/public/delete-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicEnrichGoliveTrackerRoute =
+  ApiPublicEnrichGoliveTrackerRouteImport.update({
+    id: '/api/public/enrich-golive-tracker',
+    path: '/api/public/enrich-golive-tracker',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicFetchProjectEmailsRoute =
+  ApiPublicFetchProjectEmailsRouteImport.update({
+    id: '/api/public/fetch-project-emails',
+    path: '/api/public/fetch-project-emails',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicFetchProjectJiraTicketsRoute =
+  ApiPublicFetchProjectJiraTicketsRouteImport.update({
+    id: '/api/public/fetch-project-jira-tickets',
+    path: '/api/public/fetch-project-jira-tickets',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicGetProjectLinksRoute =
+  ApiPublicGetProjectLinksRouteImport.update({
+    id: '/api/public/get-project-links',
+    path: '/api/public/get-project-links',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicKwikassistAiChatRoute =
+  ApiPublicKwikassistAiChatRouteImport.update({
+    id: '/api/public/kwikassist-ai-chat',
+    path: '/api/public/kwikassist-ai-chat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMerchantPortalDataRoute =
+  ApiPublicMerchantPortalDataRouteImport.update({
+    id: '/api/public/merchant-portal-data',
+    path: '/api/public/merchant-portal-data',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPollEmailsRoute = ApiPublicPollEmailsRouteImport.update({
+  id: '/api/public/poll-emails',
+  path: '/api/public/poll-emails',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPollPlatformGoliveEmailsRoute =
+  ApiPublicPollPlatformGoliveEmailsRouteImport.update({
+    id: '/api/public/poll-platform-golive-emails',
+    path: '/api/public/poll-platform-golive-emails',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPollShopifySmeEmailsRoute =
+  ApiPublicPollShopifySmeEmailsRouteImport.update({
+    id: '/api/public/poll-shopify-sme-emails',
+    path: '/api/public/poll-shopify-sme-emails',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSandboxTestRoute = ApiPublicSandboxTestRouteImport.update({
+  id: '/api/public/sandbox-test',
+  path: '/api/public/sandbox-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSendMovementReportRoute =
+  ApiPublicSendMovementReportRouteImport.update({
+    id: '/api/public/send-movement-report',
+    path: '/api/public/send-movement-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSendNotificationRoute =
+  ApiPublicSendNotificationRouteImport.update({
+    id: '/api/public/send-notification',
+    path: '/api/public/send-notification',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSendPlatformWelcomeRoute =
+  ApiPublicSendPlatformWelcomeRouteImport.update({
+    id: '/api/public/send-platform-welcome',
+    path: '/api/public/send-platform-welcome',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSendScheduledMovementReportRoute =
+  ApiPublicSendScheduledMovementReportRouteImport.update({
+    id: '/api/public/send-scheduled-movement-report',
+    path: '/api/public/send-scheduled-movement-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSendScheduledReportRoute =
+  ApiPublicSendScheduledReportRouteImport.update({
+    id: '/api/public/send-scheduled-report',
+    path: '/api/public/send-scheduled-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSendScheduledTatReportRoute =
+  ApiPublicSendScheduledTatReportRouteImport.update({
+    id: '/api/public/send-scheduled-tat-report',
+    path: '/api/public/send-scheduled-tat-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSetPasswordRoute = ApiPublicSetPasswordRouteImport.update({
+  id: '/api/public/set-password',
+  path: '/api/public/set-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicShopifyLtEmailCommsRoute =
+  ApiPublicShopifyLtEmailCommsRouteImport.update({
+    id: '/api/public/shopify-lt-email-comms',
+    path: '/api/public/shopify-lt-email-comms',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSlackStuckMerchantsDigestRoute =
+  ApiPublicSlackStuckMerchantsDigestRouteImport.update({
+    id: '/api/public/slack-stuck-merchants-digest',
+    path: '/api/public/slack-stuck-merchants-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicUpdateUserRoute = ApiPublicUpdateUserRouteImport.update({
+  id: '/api/public/update-user',
+  path: '/api/public/update-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicUploadProjectPdfRoute =
+  ApiPublicUploadProjectPdfRouteImport.update({
+    id: '/api/public/upload-project-pdf',
+    path: '/api/public/upload-project-pdf',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
+  '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
+  '/api/public/ai-chat': typeof ApiPublicAiChatRoute
+  '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
+  '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
+  '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
+  '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
+  '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
+  '/api/public/create-user': typeof ApiPublicCreateUserRoute
+  '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
+  '/api/public/enrich-golive-tracker': typeof ApiPublicEnrichGoliveTrackerRoute
+  '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
+  '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
+  '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
+  '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
+  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRoute
+  '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
+  '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
+  '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
+  '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
+  '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
+  '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
+  '/api/public/send-scheduled-movement-report': typeof ApiPublicSendScheduledMovementReportRoute
+  '/api/public/send-scheduled-report': typeof ApiPublicSendScheduledReportRoute
+  '/api/public/send-scheduled-tat-report': typeof ApiPublicSendScheduledTatReportRoute
+  '/api/public/set-password': typeof ApiPublicSetPasswordRoute
+  '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
+  '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
+  '/api/public/update-user': typeof ApiPublicUpdateUserRoute
+  '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
+  '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
+  '/api/public/ai-chat': typeof ApiPublicAiChatRoute
+  '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
+  '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
+  '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
+  '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
+  '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
+  '/api/public/create-user': typeof ApiPublicCreateUserRoute
+  '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
+  '/api/public/enrich-golive-tracker': typeof ApiPublicEnrichGoliveTrackerRoute
+  '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
+  '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
+  '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
+  '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
+  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRoute
+  '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
+  '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
+  '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
+  '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
+  '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
+  '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
+  '/api/public/send-scheduled-movement-report': typeof ApiPublicSendScheduledMovementReportRoute
+  '/api/public/send-scheduled-report': typeof ApiPublicSendScheduledReportRoute
+  '/api/public/send-scheduled-tat-report': typeof ApiPublicSendScheduledTatReportRoute
+  '/api/public/set-password': typeof ApiPublicSetPasswordRoute
+  '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
+  '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
+  '/api/public/update-user': typeof ApiPublicUpdateUserRoute
+  '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,19 +322,187 @@ export interface FileRoutesById {
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
+  '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
+  '/api/public/ai-chat': typeof ApiPublicAiChatRoute
+  '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
+  '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
+  '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
+  '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
+  '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
+  '/api/public/create-user': typeof ApiPublicCreateUserRoute
+  '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
+  '/api/public/enrich-golive-tracker': typeof ApiPublicEnrichGoliveTrackerRoute
+  '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
+  '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
+  '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
+  '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
+  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRoute
+  '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
+  '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
+  '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
+  '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
+  '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
+  '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
+  '/api/public/send-scheduled-movement-report': typeof ApiPublicSendScheduledMovementReportRoute
+  '/api/public/send-scheduled-report': typeof ApiPublicSendScheduledReportRoute
+  '/api/public/send-scheduled-tat-report': typeof ApiPublicSendScheduledTatReportRoute
+  '/api/public/set-password': typeof ApiPublicSetPasswordRoute
+  '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
+  '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
+  '/api/public/update-user': typeof ApiPublicUpdateUserRoute
+  '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/brd' | '/portal' | '/portal/$mid'
+  fullPaths:
+    | '/'
+    | '/brd'
+    | '/portal'
+    | '/portal/$mid'
+    | '/api/public/ai-actions'
+    | '/api/public/ai-chat'
+    | '/api/public/ai-field-mapping'
+    | '/api/public/ai-project-insights'
+    | '/api/public/assign-shopify-sme-owner'
+    | '/api/public/backfill-shopify-sme-assignments'
+    | '/api/public/brd-form-api'
+    | '/api/public/check-overdue-tasks'
+    | '/api/public/create-user'
+    | '/api/public/delete-user'
+    | '/api/public/enrich-golive-tracker'
+    | '/api/public/fetch-project-emails'
+    | '/api/public/fetch-project-jira-tickets'
+    | '/api/public/get-project-links'
+    | '/api/public/kwikassist-ai-chat'
+    | '/api/public/merchant-portal-data'
+    | '/api/public/poll-emails'
+    | '/api/public/poll-platform-golive-emails'
+    | '/api/public/poll-shopify-sme-emails'
+    | '/api/public/sandbox-test'
+    | '/api/public/send-movement-report'
+    | '/api/public/send-notification'
+    | '/api/public/send-platform-welcome'
+    | '/api/public/send-scheduled-movement-report'
+    | '/api/public/send-scheduled-report'
+    | '/api/public/send-scheduled-tat-report'
+    | '/api/public/set-password'
+    | '/api/public/shopify-lt-email-comms'
+    | '/api/public/slack-stuck-merchants-digest'
+    | '/api/public/update-user'
+    | '/api/public/upload-project-pdf'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brd' | '/portal' | '/portal/$mid'
-  id: '__root__' | '/' | '/brd' | '/portal' | '/portal/$mid'
+  to:
+    | '/'
+    | '/brd'
+    | '/portal'
+    | '/portal/$mid'
+    | '/api/public/ai-actions'
+    | '/api/public/ai-chat'
+    | '/api/public/ai-field-mapping'
+    | '/api/public/ai-project-insights'
+    | '/api/public/assign-shopify-sme-owner'
+    | '/api/public/backfill-shopify-sme-assignments'
+    | '/api/public/brd-form-api'
+    | '/api/public/check-overdue-tasks'
+    | '/api/public/create-user'
+    | '/api/public/delete-user'
+    | '/api/public/enrich-golive-tracker'
+    | '/api/public/fetch-project-emails'
+    | '/api/public/fetch-project-jira-tickets'
+    | '/api/public/get-project-links'
+    | '/api/public/kwikassist-ai-chat'
+    | '/api/public/merchant-portal-data'
+    | '/api/public/poll-emails'
+    | '/api/public/poll-platform-golive-emails'
+    | '/api/public/poll-shopify-sme-emails'
+    | '/api/public/sandbox-test'
+    | '/api/public/send-movement-report'
+    | '/api/public/send-notification'
+    | '/api/public/send-platform-welcome'
+    | '/api/public/send-scheduled-movement-report'
+    | '/api/public/send-scheduled-report'
+    | '/api/public/send-scheduled-tat-report'
+    | '/api/public/set-password'
+    | '/api/public/shopify-lt-email-comms'
+    | '/api/public/slack-stuck-merchants-digest'
+    | '/api/public/update-user'
+    | '/api/public/upload-project-pdf'
+  id:
+    | '__root__'
+    | '/'
+    | '/brd'
+    | '/portal'
+    | '/portal/$mid'
+    | '/api/public/ai-actions'
+    | '/api/public/ai-chat'
+    | '/api/public/ai-field-mapping'
+    | '/api/public/ai-project-insights'
+    | '/api/public/assign-shopify-sme-owner'
+    | '/api/public/backfill-shopify-sme-assignments'
+    | '/api/public/brd-form-api'
+    | '/api/public/check-overdue-tasks'
+    | '/api/public/create-user'
+    | '/api/public/delete-user'
+    | '/api/public/enrich-golive-tracker'
+    | '/api/public/fetch-project-emails'
+    | '/api/public/fetch-project-jira-tickets'
+    | '/api/public/get-project-links'
+    | '/api/public/kwikassist-ai-chat'
+    | '/api/public/merchant-portal-data'
+    | '/api/public/poll-emails'
+    | '/api/public/poll-platform-golive-emails'
+    | '/api/public/poll-shopify-sme-emails'
+    | '/api/public/sandbox-test'
+    | '/api/public/send-movement-report'
+    | '/api/public/send-notification'
+    | '/api/public/send-platform-welcome'
+    | '/api/public/send-scheduled-movement-report'
+    | '/api/public/send-scheduled-report'
+    | '/api/public/send-scheduled-tat-report'
+    | '/api/public/set-password'
+    | '/api/public/shopify-lt-email-comms'
+    | '/api/public/slack-stuck-merchants-digest'
+    | '/api/public/update-user'
+    | '/api/public/upload-project-pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BrdRoute: typeof BrdRoute
   PortalRoute: typeof PortalRouteWithChildren
+  ApiPublicAiActionsRoute: typeof ApiPublicAiActionsRoute
+  ApiPublicAiChatRoute: typeof ApiPublicAiChatRoute
+  ApiPublicAiFieldMappingRoute: typeof ApiPublicAiFieldMappingRoute
+  ApiPublicAiProjectInsightsRoute: typeof ApiPublicAiProjectInsightsRoute
+  ApiPublicAssignShopifySmeOwnerRoute: typeof ApiPublicAssignShopifySmeOwnerRoute
+  ApiPublicBackfillShopifySmeAssignmentsRoute: typeof ApiPublicBackfillShopifySmeAssignmentsRoute
+  ApiPublicBrdFormApiRoute: typeof ApiPublicBrdFormApiRoute
+  ApiPublicCheckOverdueTasksRoute: typeof ApiPublicCheckOverdueTasksRoute
+  ApiPublicCreateUserRoute: typeof ApiPublicCreateUserRoute
+  ApiPublicDeleteUserRoute: typeof ApiPublicDeleteUserRoute
+  ApiPublicEnrichGoliveTrackerRoute: typeof ApiPublicEnrichGoliveTrackerRoute
+  ApiPublicFetchProjectEmailsRoute: typeof ApiPublicFetchProjectEmailsRoute
+  ApiPublicFetchProjectJiraTicketsRoute: typeof ApiPublicFetchProjectJiraTicketsRoute
+  ApiPublicGetProjectLinksRoute: typeof ApiPublicGetProjectLinksRoute
+  ApiPublicKwikassistAiChatRoute: typeof ApiPublicKwikassistAiChatRoute
+  ApiPublicMerchantPortalDataRoute: typeof ApiPublicMerchantPortalDataRoute
+  ApiPublicPollEmailsRoute: typeof ApiPublicPollEmailsRoute
+  ApiPublicPollPlatformGoliveEmailsRoute: typeof ApiPublicPollPlatformGoliveEmailsRoute
+  ApiPublicPollShopifySmeEmailsRoute: typeof ApiPublicPollShopifySmeEmailsRoute
+  ApiPublicSandboxTestRoute: typeof ApiPublicSandboxTestRoute
+  ApiPublicSendMovementReportRoute: typeof ApiPublicSendMovementReportRoute
+  ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
+  ApiPublicSendPlatformWelcomeRoute: typeof ApiPublicSendPlatformWelcomeRoute
+  ApiPublicSendScheduledMovementReportRoute: typeof ApiPublicSendScheduledMovementReportRoute
+  ApiPublicSendScheduledReportRoute: typeof ApiPublicSendScheduledReportRoute
+  ApiPublicSendScheduledTatReportRoute: typeof ApiPublicSendScheduledTatReportRoute
+  ApiPublicSetPasswordRoute: typeof ApiPublicSetPasswordRoute
+  ApiPublicShopifyLtEmailCommsRoute: typeof ApiPublicShopifyLtEmailCommsRoute
+  ApiPublicSlackStuckMerchantsDigestRoute: typeof ApiPublicSlackStuckMerchantsDigestRoute
+  ApiPublicUpdateUserRoute: typeof ApiPublicUpdateUserRoute
+  ApiPublicUploadProjectPdfRoute: typeof ApiPublicUploadProjectPdfRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -98,6 +535,223 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalMidRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/api/public/ai-actions': {
+      id: '/api/public/ai-actions'
+      path: '/api/public/ai-actions'
+      fullPath: '/api/public/ai-actions'
+      preLoaderRoute: typeof ApiPublicAiActionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ai-chat': {
+      id: '/api/public/ai-chat'
+      path: '/api/public/ai-chat'
+      fullPath: '/api/public/ai-chat'
+      preLoaderRoute: typeof ApiPublicAiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ai-field-mapping': {
+      id: '/api/public/ai-field-mapping'
+      path: '/api/public/ai-field-mapping'
+      fullPath: '/api/public/ai-field-mapping'
+      preLoaderRoute: typeof ApiPublicAiFieldMappingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ai-project-insights': {
+      id: '/api/public/ai-project-insights'
+      path: '/api/public/ai-project-insights'
+      fullPath: '/api/public/ai-project-insights'
+      preLoaderRoute: typeof ApiPublicAiProjectInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/assign-shopify-sme-owner': {
+      id: '/api/public/assign-shopify-sme-owner'
+      path: '/api/public/assign-shopify-sme-owner'
+      fullPath: '/api/public/assign-shopify-sme-owner'
+      preLoaderRoute: typeof ApiPublicAssignShopifySmeOwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/backfill-shopify-sme-assignments': {
+      id: '/api/public/backfill-shopify-sme-assignments'
+      path: '/api/public/backfill-shopify-sme-assignments'
+      fullPath: '/api/public/backfill-shopify-sme-assignments'
+      preLoaderRoute: typeof ApiPublicBackfillShopifySmeAssignmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/brd-form-api': {
+      id: '/api/public/brd-form-api'
+      path: '/api/public/brd-form-api'
+      fullPath: '/api/public/brd-form-api'
+      preLoaderRoute: typeof ApiPublicBrdFormApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/check-overdue-tasks': {
+      id: '/api/public/check-overdue-tasks'
+      path: '/api/public/check-overdue-tasks'
+      fullPath: '/api/public/check-overdue-tasks'
+      preLoaderRoute: typeof ApiPublicCheckOverdueTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/create-user': {
+      id: '/api/public/create-user'
+      path: '/api/public/create-user'
+      fullPath: '/api/public/create-user'
+      preLoaderRoute: typeof ApiPublicCreateUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/delete-user': {
+      id: '/api/public/delete-user'
+      path: '/api/public/delete-user'
+      fullPath: '/api/public/delete-user'
+      preLoaderRoute: typeof ApiPublicDeleteUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/enrich-golive-tracker': {
+      id: '/api/public/enrich-golive-tracker'
+      path: '/api/public/enrich-golive-tracker'
+      fullPath: '/api/public/enrich-golive-tracker'
+      preLoaderRoute: typeof ApiPublicEnrichGoliveTrackerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/fetch-project-emails': {
+      id: '/api/public/fetch-project-emails'
+      path: '/api/public/fetch-project-emails'
+      fullPath: '/api/public/fetch-project-emails'
+      preLoaderRoute: typeof ApiPublicFetchProjectEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/fetch-project-jira-tickets': {
+      id: '/api/public/fetch-project-jira-tickets'
+      path: '/api/public/fetch-project-jira-tickets'
+      fullPath: '/api/public/fetch-project-jira-tickets'
+      preLoaderRoute: typeof ApiPublicFetchProjectJiraTicketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/get-project-links': {
+      id: '/api/public/get-project-links'
+      path: '/api/public/get-project-links'
+      fullPath: '/api/public/get-project-links'
+      preLoaderRoute: typeof ApiPublicGetProjectLinksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/kwikassist-ai-chat': {
+      id: '/api/public/kwikassist-ai-chat'
+      path: '/api/public/kwikassist-ai-chat'
+      fullPath: '/api/public/kwikassist-ai-chat'
+      preLoaderRoute: typeof ApiPublicKwikassistAiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/merchant-portal-data': {
+      id: '/api/public/merchant-portal-data'
+      path: '/api/public/merchant-portal-data'
+      fullPath: '/api/public/merchant-portal-data'
+      preLoaderRoute: typeof ApiPublicMerchantPortalDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/poll-emails': {
+      id: '/api/public/poll-emails'
+      path: '/api/public/poll-emails'
+      fullPath: '/api/public/poll-emails'
+      preLoaderRoute: typeof ApiPublicPollEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/poll-platform-golive-emails': {
+      id: '/api/public/poll-platform-golive-emails'
+      path: '/api/public/poll-platform-golive-emails'
+      fullPath: '/api/public/poll-platform-golive-emails'
+      preLoaderRoute: typeof ApiPublicPollPlatformGoliveEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/poll-shopify-sme-emails': {
+      id: '/api/public/poll-shopify-sme-emails'
+      path: '/api/public/poll-shopify-sme-emails'
+      fullPath: '/api/public/poll-shopify-sme-emails'
+      preLoaderRoute: typeof ApiPublicPollShopifySmeEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sandbox-test': {
+      id: '/api/public/sandbox-test'
+      path: '/api/public/sandbox-test'
+      fullPath: '/api/public/sandbox-test'
+      preLoaderRoute: typeof ApiPublicSandboxTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/send-movement-report': {
+      id: '/api/public/send-movement-report'
+      path: '/api/public/send-movement-report'
+      fullPath: '/api/public/send-movement-report'
+      preLoaderRoute: typeof ApiPublicSendMovementReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/send-notification': {
+      id: '/api/public/send-notification'
+      path: '/api/public/send-notification'
+      fullPath: '/api/public/send-notification'
+      preLoaderRoute: typeof ApiPublicSendNotificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/send-platform-welcome': {
+      id: '/api/public/send-platform-welcome'
+      path: '/api/public/send-platform-welcome'
+      fullPath: '/api/public/send-platform-welcome'
+      preLoaderRoute: typeof ApiPublicSendPlatformWelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/send-scheduled-movement-report': {
+      id: '/api/public/send-scheduled-movement-report'
+      path: '/api/public/send-scheduled-movement-report'
+      fullPath: '/api/public/send-scheduled-movement-report'
+      preLoaderRoute: typeof ApiPublicSendScheduledMovementReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/send-scheduled-report': {
+      id: '/api/public/send-scheduled-report'
+      path: '/api/public/send-scheduled-report'
+      fullPath: '/api/public/send-scheduled-report'
+      preLoaderRoute: typeof ApiPublicSendScheduledReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/send-scheduled-tat-report': {
+      id: '/api/public/send-scheduled-tat-report'
+      path: '/api/public/send-scheduled-tat-report'
+      fullPath: '/api/public/send-scheduled-tat-report'
+      preLoaderRoute: typeof ApiPublicSendScheduledTatReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/set-password': {
+      id: '/api/public/set-password'
+      path: '/api/public/set-password'
+      fullPath: '/api/public/set-password'
+      preLoaderRoute: typeof ApiPublicSetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/shopify-lt-email-comms': {
+      id: '/api/public/shopify-lt-email-comms'
+      path: '/api/public/shopify-lt-email-comms'
+      fullPath: '/api/public/shopify-lt-email-comms'
+      preLoaderRoute: typeof ApiPublicShopifyLtEmailCommsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/slack-stuck-merchants-digest': {
+      id: '/api/public/slack-stuck-merchants-digest'
+      path: '/api/public/slack-stuck-merchants-digest'
+      fullPath: '/api/public/slack-stuck-merchants-digest'
+      preLoaderRoute: typeof ApiPublicSlackStuckMerchantsDigestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/update-user': {
+      id: '/api/public/update-user'
+      path: '/api/public/update-user'
+      fullPath: '/api/public/update-user'
+      preLoaderRoute: typeof ApiPublicUpdateUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/upload-project-pdf': {
+      id: '/api/public/upload-project-pdf'
+      path: '/api/public/upload-project-pdf'
+      fullPath: '/api/public/upload-project-pdf'
+      preLoaderRoute: typeof ApiPublicUploadProjectPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -116,6 +770,41 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BrdRoute: BrdRoute,
   PortalRoute: PortalRouteWithChildren,
+  ApiPublicAiActionsRoute: ApiPublicAiActionsRoute,
+  ApiPublicAiChatRoute: ApiPublicAiChatRoute,
+  ApiPublicAiFieldMappingRoute: ApiPublicAiFieldMappingRoute,
+  ApiPublicAiProjectInsightsRoute: ApiPublicAiProjectInsightsRoute,
+  ApiPublicAssignShopifySmeOwnerRoute: ApiPublicAssignShopifySmeOwnerRoute,
+  ApiPublicBackfillShopifySmeAssignmentsRoute:
+    ApiPublicBackfillShopifySmeAssignmentsRoute,
+  ApiPublicBrdFormApiRoute: ApiPublicBrdFormApiRoute,
+  ApiPublicCheckOverdueTasksRoute: ApiPublicCheckOverdueTasksRoute,
+  ApiPublicCreateUserRoute: ApiPublicCreateUserRoute,
+  ApiPublicDeleteUserRoute: ApiPublicDeleteUserRoute,
+  ApiPublicEnrichGoliveTrackerRoute: ApiPublicEnrichGoliveTrackerRoute,
+  ApiPublicFetchProjectEmailsRoute: ApiPublicFetchProjectEmailsRoute,
+  ApiPublicFetchProjectJiraTicketsRoute: ApiPublicFetchProjectJiraTicketsRoute,
+  ApiPublicGetProjectLinksRoute: ApiPublicGetProjectLinksRoute,
+  ApiPublicKwikassistAiChatRoute: ApiPublicKwikassistAiChatRoute,
+  ApiPublicMerchantPortalDataRoute: ApiPublicMerchantPortalDataRoute,
+  ApiPublicPollEmailsRoute: ApiPublicPollEmailsRoute,
+  ApiPublicPollPlatformGoliveEmailsRoute:
+    ApiPublicPollPlatformGoliveEmailsRoute,
+  ApiPublicPollShopifySmeEmailsRoute: ApiPublicPollShopifySmeEmailsRoute,
+  ApiPublicSandboxTestRoute: ApiPublicSandboxTestRoute,
+  ApiPublicSendMovementReportRoute: ApiPublicSendMovementReportRoute,
+  ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
+  ApiPublicSendPlatformWelcomeRoute: ApiPublicSendPlatformWelcomeRoute,
+  ApiPublicSendScheduledMovementReportRoute:
+    ApiPublicSendScheduledMovementReportRoute,
+  ApiPublicSendScheduledReportRoute: ApiPublicSendScheduledReportRoute,
+  ApiPublicSendScheduledTatReportRoute: ApiPublicSendScheduledTatReportRoute,
+  ApiPublicSetPasswordRoute: ApiPublicSetPasswordRoute,
+  ApiPublicShopifyLtEmailCommsRoute: ApiPublicShopifyLtEmailCommsRoute,
+  ApiPublicSlackStuckMerchantsDigestRoute:
+    ApiPublicSlackStuckMerchantsDigestRoute,
+  ApiPublicUpdateUserRoute: ApiPublicUpdateUserRoute,
+  ApiPublicUploadProjectPdfRoute: ApiPublicUploadProjectPdfRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
