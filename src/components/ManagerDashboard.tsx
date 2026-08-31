@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
-import { teamLabels as defaultTeamLabels, teamColors, TeamRole } from "@/data/teams";
+import { teamLabels as defaultTeamLabels, TeamRole } from "@/data/teams";
 import { UserManagement } from "./UserManagement";
 import { TenantManagement } from "./TenantManagement";
 import { SettingsPanel } from "./SettingsPanel";
@@ -1133,13 +1133,13 @@ export const ManagerDashboard = () => {
           </div>
         ) : (
         <ScrollArea className="flex-1 app-shell-surface">
-          <div className="p-0">
+          <div className="p-4 sm:p-6">
 
 
           {/* ========= OVERVIEW TAB ========= */}
-          {activeTab === "dashboard" && <div className="space-y-6">
+          {activeTab === "dashboard" && <div className="mx-auto max-w-[1600px] space-y-5">
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               {(() => {
                 const funnelCounts = displayProjects.reduce((acc: Record<string, number>, p) => {
                   const s = getProjectFunnelStage(p) as string;
@@ -1154,7 +1154,7 @@ export const ManagerDashboard = () => {
                   { label: "Live", value: completedProjects, icon: CheckCircle2, sub: `Live ARR: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
                 ];
                 return kpiCards.map((kpi) => (
-                  <Card key={kpi.label} role="button" tabIndex={0} onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })} className="cursor-pointer hover:shadow-md transition-shadow border border-border bg-card">
+                  <Card key={kpi.label} role="button" tabIndex={0} onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })} className="min-h-[158px] cursor-pointer border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
@@ -1166,8 +1166,8 @@ export const ManagerDashboard = () => {
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">{kpi.sub}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {(["sales","pre_integration","under_integration","live","none"] as const).map(s => `${s[0].toUpperCase()}:${funnelCounts[s] || 0}`).join(" · ")}
+                      <p className="text-[11px] text-muted-foreground mt-1.5">
+                        {(["sales","pre_integration","under_integration","live","none"] as const).map(s => `${s === "pre_integration" ? "Pre" : s === "under_integration" ? "Under" : s === "none" ? "Unassigned" : s[0].toUpperCase()}: ${funnelCounts[s] || 0}`).join("  ·  ")}
                       </p>
                       {"sub2" in kpi && (
                         <p
@@ -1187,17 +1187,17 @@ export const ManagerDashboard = () => {
               })()}
             </div>
 
-            {/* Team Performance & Latest Updates */}
-            <div className="grid lg:grid-cols-2 gap-6 items-start">
-              <Card className="shadow-sm border-border">
-                <CardHeader className="border-b bg-muted/30">
+            {/* Team Performance & TAT */}
+            <div className="grid lg:grid-cols-[1.08fr_0.92fr] gap-5 items-start">
+              <Card className="h-full shadow-sm border-border">
+                <CardHeader className="border-b bg-muted/10 px-5 py-4">
                   <CardTitle className="portal-heading flex items-center gap-2">
                     <Users className="h-5 w-5 text-primary" />
                     Team Performance
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                   <div className="space-y-6">
+                 <CardContent className="p-5">
+                   <div className="divide-y divide-border">
                     {teamOwnerReport.map((team) => {
                       const teamProjects = displayProjects.filter(p => p.currentOwnerTeam === team.team);
                       const totalCount = teamProjects.length;
@@ -1209,10 +1209,10 @@ export const ManagerDashboard = () => {
                       }).length;
                       const activeCount = totalCount - pendingCount - completedCount;
                       return (
-                        <div key={team.team} className="space-y-3">
+                        <div key={team.team} className="space-y-3 py-4 first:pt-0 last:pb-0">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className={`h-10 w-10 rounded-lg ${teamColors[team.team]} flex items-center justify-center text-white font-bold`}>
+                              <div className="h-9 w-9 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-foreground font-semibold">
                                 {team.teamLabel.charAt(0)}
                               </div>
                               <div>
@@ -1222,19 +1222,15 @@ export const ManagerDashboard = () => {
                             </div>
                           </div>
                           {(() => {
-                            const tpTotal = appLabels.color_team_perf_total || "#6b7280";
-                            const tpPending = appLabels.color_team_perf_pending || "#f59e0b";
-                            const tpActive = appLabels.color_team_perf_active || "#3b82f6";
-                            const tpCompleted = appLabels.color_team_perf_completed || "#10b981";
                             const isTeamCompleted = (p: Project) => {
                               const teamItems = p.checklist.filter(c => c.ownerTeam === team.team);
                               return teamItems.length > 0 && teamItems.every(c => c.completed);
                             };
                             const miniCards = [
-                              { label: "Total", value: totalCount, color: tpTotal, list: teamProjects },
-                              { label: "Pending", value: pendingCount, color: tpPending, list: teamProjects.filter(p => p.pendingAcceptance) },
-                              { label: "Active", value: activeCount, color: tpActive, list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
-                              { label: "Completed", value: completedCount, color: tpCompleted, list: teamProjects.filter(isTeamCompleted) },
+                              { label: "Total", value: totalCount, list: teamProjects },
+                              { label: "Pending", value: pendingCount, list: teamProjects.filter(p => p.pendingAcceptance) },
+                              { label: "Active", value: activeCount, list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
+                              { label: "Completed", value: completedCount, list: teamProjects.filter(isTeamCompleted) },
                             ];
                             return (
                               <div className="grid grid-cols-4 gap-2 text-center">
@@ -1244,10 +1240,9 @@ export const ManagerDashboard = () => {
                                     role="button"
                                     tabIndex={0}
                                     onClick={() => setDrillDown({ title: `${team.teamLabel} · ${mc.label}`, projects: mc.list })}
-                                    className="rounded-lg p-2 cursor-pointer hover:ring-1 hover:ring-border transition-shadow"
-                                    style={{ backgroundColor: `${mc.color}15` }}
+                                    className="rounded-md border border-border bg-muted/20 p-2 cursor-pointer transition-colors hover:bg-muted/50"
                                   >
-                                    <p className="text-lg font-bold" style={{ color: mc.color }}>{mc.value}</p>
+                                    <p className="text-lg font-semibold text-foreground">{mc.value}</p>
                                     <p className="text-[10px] text-muted-foreground">{mc.label}</p>
                                   </div>
                                 ))}
@@ -1255,7 +1250,7 @@ export const ManagerDashboard = () => {
                             );
                           })()}
                           {team.pendingCount > 0 && (
-                            <Badge variant="outline" className="text-amber-600 border-amber-200">
+                            <Badge variant="outline" className="text-muted-foreground border-border bg-muted/20">
                               {team.pendingCount} pending acceptance
                             </Badge>
                           )}
