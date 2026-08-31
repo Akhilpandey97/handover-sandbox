@@ -22,6 +22,7 @@ import { Route as ApiPublicBackfillShopifySmeAssignmentsRouteImport } from './ro
 import { Route as ApiPublicBrdFormApiRouteImport } from './routes/api/public/brd-form-api'
 import { Route as ApiPublicCheckOverdueTasksRouteImport } from './routes/api/public/check-overdue-tasks'
 import { Route as ApiPublicCreateUserRouteImport } from './routes/api/public/create-user'
+import { Route as ApiPublicCronRouteImport } from './routes/api/public/cron'
 import { Route as ApiPublicDeleteUserRouteImport } from './routes/api/public/delete-user'
 import { Route as ApiPublicEnrichGoliveTrackerRouteImport } from './routes/api/public/enrich-golive-tracker'
 import { Route as ApiPublicFetchProjectEmailsRouteImport } from './routes/api/public/fetch-project-emails'
@@ -114,6 +115,11 @@ const ApiPublicCheckOverdueTasksRoute =
 const ApiPublicCreateUserRoute = ApiPublicCreateUserRouteImport.update({
   id: '/api/public/create-user',
   path: '/api/public/create-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCronRoute = ApiPublicCronRouteImport.update({
+  id: '/api/public/cron',
+  path: '/api/public/cron',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicDeleteUserRoute = ApiPublicDeleteUserRouteImport.update({
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
+  '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
   '/api/public/enrich-golive-tracker': typeof ApiPublicEnrichGoliveTrackerRoute
   '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
@@ -309,6 +316,7 @@ export interface FileRoutesByTo {
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
+  '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
   '/api/public/enrich-golive-tracker': typeof ApiPublicEnrichGoliveTrackerRoute
   '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
+  '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
   '/api/public/enrich-golive-tracker': typeof ApiPublicEnrichGoliveTrackerRoute
   '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-user'
+    | '/api/public/cron'
     | '/api/public/delete-user'
     | '/api/public/enrich-golive-tracker'
     | '/api/public/fetch-project-emails'
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-user'
+    | '/api/public/cron'
     | '/api/public/delete-user'
     | '/api/public/enrich-golive-tracker'
     | '/api/public/fetch-project-emails'
@@ -468,6 +479,7 @@ export interface FileRouteTypes {
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-user'
+    | '/api/public/cron'
     | '/api/public/delete-user'
     | '/api/public/enrich-golive-tracker'
     | '/api/public/fetch-project-emails'
@@ -507,6 +519,7 @@ export interface RootRouteChildren {
   ApiPublicBrdFormApiRoute: typeof ApiPublicBrdFormApiRoute
   ApiPublicCheckOverdueTasksRoute: typeof ApiPublicCheckOverdueTasksRoute
   ApiPublicCreateUserRoute: typeof ApiPublicCreateUserRoute
+  ApiPublicCronRoute: typeof ApiPublicCronRoute
   ApiPublicDeleteUserRoute: typeof ApiPublicDeleteUserRoute
   ApiPublicEnrichGoliveTrackerRoute: typeof ApiPublicEnrichGoliveTrackerRoute
   ApiPublicFetchProjectEmailsRoute: typeof ApiPublicFetchProjectEmailsRoute
@@ -623,6 +636,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/create-user'
       fullPath: '/api/public/create-user'
       preLoaderRoute: typeof ApiPublicCreateUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cron': {
+      id: '/api/public/cron'
+      path: '/api/public/cron'
+      fullPath: '/api/public/cron'
+      preLoaderRoute: typeof ApiPublicCronRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/delete-user': {
@@ -836,6 +856,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicBrdFormApiRoute: ApiPublicBrdFormApiRoute,
   ApiPublicCheckOverdueTasksRoute: ApiPublicCheckOverdueTasksRoute,
   ApiPublicCreateUserRoute: ApiPublicCreateUserRoute,
+  ApiPublicCronRoute: ApiPublicCronRoute,
   ApiPublicDeleteUserRoute: ApiPublicDeleteUserRoute,
   ApiPublicEnrichGoliveTrackerRoute: ApiPublicEnrichGoliveTrackerRoute,
   ApiPublicFetchProjectEmailsRoute: ApiPublicFetchProjectEmailsRoute,
