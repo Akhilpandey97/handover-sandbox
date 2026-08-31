@@ -124,3 +124,31 @@ export function requireCred<K extends keyof TenantIntegrations>(
   if (!value) throw new IntegrationNotConfiguredError(label);
   return value;
 }
+
+/**
+ * Best-effort resolution of the calling user's tenant from the request's
+ * bearer token, with an optional explicit override (e.g. body.tenant_id).
+ */
+export async function tenantIdFromRequest(
+  req: Request,
+  explicit?: string | null,
+): Promise<string | null> {
+  if (explicit) return explicit;
+  const auth = req.headers.get("authorization") || "";
+  const token = auth.replace(/^Bearer\s+/i, "").trim();
+  if (!token || token.split(".").length !== 3) return null;
+  try {
+    const admin = adminClient();
+    const { data } = await admin.auth.getUser(token);
+    const userId = data.user?.id;
+    if (!userId) return null;
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("tenant_id")
+      .eq("id", userId)
+      .maybeSingle();
+    return (profile as { tenant_id: string | null } | null)?.tenant_id ?? null;
+  } catch {
+    return null;
+  }
+}
