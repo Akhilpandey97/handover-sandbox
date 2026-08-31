@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useSearchParams, useParams } from "react-router-dom";
+import { useSearchParams, useParams } from "@/lib/router-compat";
 import {
   CheckCircle2, Loader2, ShieldAlert, ChevronLeft, ChevronRight,
   LayoutDashboard, FileText, HelpCircle, Moon, Sun, Lock,

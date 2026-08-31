@@ -1111,11 +1111,11 @@ export const ManagerDashboard = () => {
               <ThemeToggle />
               <div className="flex items-center gap-2 pl-2 border-l border-border/50">
                 <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
-                  {currentUser.name.charAt(0)}
+                  {currentUser?.name.charAt(0)}
                 </div>
                 <div className="hidden sm:block min-w-0">
-                  <p className="font-medium text-xs text-foreground truncate leading-tight">{currentUser.name}</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight">{teamLabels[currentUser.team] || "Manager"}</p>
+                  <p className="font-medium text-xs text-foreground truncate leading-tight">{currentUser?.name}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">{teamLabels[currentUser?.team] || "Manager"}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={logout} className="gap-1.5 h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10">

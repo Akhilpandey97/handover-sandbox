@@ -400,7 +400,7 @@ export const PlatformMerchants = () => {
         .from("platform_merchants")
         .insert({
           ...payload,
-          tenant_id: profile?.tenant_id,
+          tenant_id: profile?.tenant_id as string,
           created_by: currentUser?.id,
         })
         .select("id")

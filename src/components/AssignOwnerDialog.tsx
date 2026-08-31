@@ -129,7 +129,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
         // Bulk assign
         const { error } = await supabase
           .from("projects")
-          .update(updateData)
+          .update(updateData as never)
           .in("id", projectIds!);
 
         if (error) throw error;
@@ -153,7 +153,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
         // Single assign
         const { error } = await supabase
           .from("projects")
-          .update(updateData)
+          .update(updateData as never)
           .eq("id", project.id);
 
         if (error) throw error;

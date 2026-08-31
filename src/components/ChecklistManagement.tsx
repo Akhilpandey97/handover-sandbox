@@ -99,7 +99,7 @@ export const ChecklistManagement = () => {
 
       // Get current user's tenant_id
       const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id).single();
+      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
       const tenantId = profile?.tenant_id;
 
       const { error: templateError } = await supabase
@@ -118,7 +118,7 @@ export const ChecklistManagement = () => {
       const { data: projects, error: projectsError } = await supabase
         .from("projects")
         .select("id, tenant_id")
-        .eq("tenant_id", tenantId);
+        .eq("tenant_id", tenantId as string);
       if (projectsError) throw projectsError;
 
       const itemsToInsert = (projects || []).map((p) => ({
@@ -285,7 +285,7 @@ export const ChecklistManagement = () => {
   const bulkImportMutation = useMutation({
     mutationFn: async (items: { title: string; team: TeamRole }[]) => {
       const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id).single();
+      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
       const tenantId = profile?.tenant_id;
 
       const existingTitles = new Set(templates.map(t => `${t.ownerTeam}|${t.title}`));
@@ -315,7 +315,7 @@ export const ChecklistManagement = () => {
       if (tErr) throw tErr;
 
       // Add to all existing projects in this tenant only
-      const { data: projects } = await supabase.from("projects").select("id, tenant_id").eq("tenant_id", tenantId);
+      const { data: projects } = await supabase.from("projects").select("id, tenant_id").eq("tenant_id", tenantId as string);
       if (projects && projects.length > 0) {
         const checklistInserts = projects.flatMap(p =>
           templateInserts.map(t => ({
@@ -391,7 +391,7 @@ export const ChecklistManagement = () => {
     mutationFn: async ({ name, color }: { name: string; color: string }) => {
       const slug = name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
       const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id).single();
+      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
       const { error } = await supabase.from("teams").insert({
         name, slug, color, is_system: false, sort_order: dynamicTeams.length,
         tenant_id: profile?.tenant_id,

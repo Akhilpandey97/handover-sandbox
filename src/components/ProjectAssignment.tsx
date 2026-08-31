@@ -134,7 +134,7 @@ export const ProjectAssignment = () => {
       // Update projects
       const { error } = await supabase
         .from("projects")
-        .update(updateData)
+        .update(updateData as never)
         .in("id", projectIds);
 
       if (error) throw error;
