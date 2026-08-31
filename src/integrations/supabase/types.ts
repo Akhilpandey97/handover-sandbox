@@ -1294,7 +1294,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      role: { Args: never; Returns: string }
+      uid: { Args: never; Returns: string }
     }
     Enums: {
       project_phase: "mint" | "integration" | "ms" | "completed"
