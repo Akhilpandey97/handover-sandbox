@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BrdRouteImport } from './routes/brd'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as PortalMidRouteImport } from './routes/portal.$mid'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,43 @@ const PortalRoute = PortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalMidRoute = PortalMidRouteImport.update({
+  id: '/$mid',
+  path: '/$mid',
+  getParentRoute: () => PortalRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/brd': typeof BrdRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
+  '/portal/$mid': typeof PortalMidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/brd': typeof BrdRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
+  '/portal/$mid': typeof PortalMidRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/brd': typeof BrdRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
+  '/portal/$mid': typeof PortalMidRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/brd' | '/portal'
+  fullPaths: '/' | '/brd' | '/portal' | '/portal/$mid'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brd' | '/portal'
-  id: '__root__' | '/' | '/brd' | '/portal'
+  to: '/' | '/brd' | '/portal' | '/portal/$mid'
+  id: '__root__' | '/' | '/brd' | '/portal' | '/portal/$mid'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BrdRoute: typeof BrdRoute
-  PortalRoute: typeof PortalRoute
+  PortalRoute: typeof PortalRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -82,13 +91,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal/$mid': {
+      id: '/portal/$mid'
+      path: '/$mid'
+      fullPath: '/portal/$mid'
+      preLoaderRoute: typeof PortalMidRouteImport
+      parentRoute: typeof PortalRoute
+    }
   }
 }
+
+interface PortalRouteChildren {
+  PortalMidRoute: typeof PortalMidRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalMidRoute: PortalMidRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BrdRoute: BrdRoute,
-  PortalRoute: PortalRoute,
+  PortalRoute: PortalRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
