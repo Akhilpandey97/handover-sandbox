@@ -389,7 +389,7 @@ export const MovementReport = ({ timeframe }: Props) => {
       const merged: Record<string, AiSummary> = {};
       for (let i = 0; i < items.length; i += chunkSize) {
         const chunk = items.slice(i, i + chunkSize);
-        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-project-insights`, {
+        const res = await fetch(`/api/public/ai-project-insights`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

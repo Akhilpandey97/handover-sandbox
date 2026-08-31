@@ -91,7 +91,7 @@ export const ParsedEmailsTab = () => {
     }
     setPolling(true);
     try {
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/poll-emails`;
+      const url = `/api/public/poll-emails`;
       const res = await fetch(url, {
         method: "POST",
         headers: {

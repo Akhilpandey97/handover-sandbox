@@ -220,7 +220,7 @@ export const PlatformMerchants = () => {
         .maybeSingle();
       const { data: sess } = await supabase.auth.getSession();
       const res = await fetch(
-        `https://gzsplrzfepezcpfvuiyl.supabase.co/functions/v1/poll-platform-golive-emails`,
+        `/api/public/poll-platform-golive-emails`,
         {
           method: "POST",
           headers: {
@@ -332,7 +332,7 @@ export const PlatformMerchants = () => {
     try {
       const { data: sess } = await supabase.auth.getSession();
       const accessToken = sess?.session?.access_token;
-      const url = `https://gzsplrzfepezcpfvuiyl.supabase.co/functions/v1/send-platform-welcome`;
+      const url = `/api/public/send-platform-welcome`;
       const res = await fetch(url, {
         method: "POST",
         headers: {

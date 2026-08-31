@@ -116,7 +116,7 @@ export const useProjectJiraTickets = (projectId: string | undefined) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-project-jira-tickets`,
+        `/api/public/fetch-project-jira-tickets`,
         {
           method: "POST",
           headers: {

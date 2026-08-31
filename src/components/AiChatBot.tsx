@@ -14,8 +14,8 @@ import { logActivity } from "@/hooks/useActivityLogs";
 type Msg = { role: "user" | "assistant"; content: string; time: string; toolCalls?: ToolCall[] };
 type ToolCall = { id: string; name: string; arguments: any; status?: "pending" | "executing" | "done" | "failed"; result?: string };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
-const ACTIONS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-actions`;
+const CHAT_URL = `/api/public/ai-chat`;
+const ACTIONS_URL = `/api/public/ai-actions`;
 
 const getTime = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 

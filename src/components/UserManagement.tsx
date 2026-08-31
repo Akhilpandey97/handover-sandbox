@@ -127,7 +127,7 @@ export const UserManagement = () => {
     try {
       const token = await getAuthToken();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/create-user`, {
+      const response = await fetch(`/api/public/create-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ email, password, name, team }),
@@ -151,7 +151,7 @@ export const UserManagement = () => {
     try {
       const token = await getAuthToken();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/set-password`, {
+      const response = await fetch(`/api/public/set-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ userId: selectedUserId, newPassword }),
@@ -182,7 +182,7 @@ export const UserManagement = () => {
     try {
       const token = await getAuthToken();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/update-user`, {
+      const response = await fetch(`/api/public/update-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ userId: editUser.id, name: editName, email: editEmail, team: editTeam }),
@@ -205,7 +205,7 @@ export const UserManagement = () => {
     try {
       const token = await getAuthToken();
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
+      const response = await fetch(`/api/public/delete-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ userId: deleteUser.id }),

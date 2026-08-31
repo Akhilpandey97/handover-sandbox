@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { ShopifyLtSheetMatch } from "@/components/ShopifyLtSheetMatch";
 
-const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/shopify-lt-email-comms`;
+const FN_URL = `/api/public/shopify-lt-email-comms`;
 
 export const NEEDS_REVIEW = "Needs Review";
 

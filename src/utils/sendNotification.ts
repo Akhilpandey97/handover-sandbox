@@ -18,7 +18,7 @@ interface NotificationPayload {
 
 export const sendNotification = async (payload: NotificationPayload) => {
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-notification`, {
+    const res = await fetch(`/api/public/send-notification`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

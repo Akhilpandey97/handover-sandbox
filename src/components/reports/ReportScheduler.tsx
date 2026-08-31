@@ -165,7 +165,7 @@ export const ReportScheduler = () => {
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
       const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-scheduled-report`, {
+      const res = await fetch(`/api/public/send-scheduled-report`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

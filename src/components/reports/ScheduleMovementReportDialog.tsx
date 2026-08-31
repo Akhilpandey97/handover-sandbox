@@ -121,7 +121,7 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
     setBusyId(s.id);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-scheduled-movement-report`,
+        `/api/public/send-scheduled-movement-report`,
         {
           method: "POST",
           headers: {

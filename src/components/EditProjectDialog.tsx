@@ -116,7 +116,7 @@ export const EditProjectDialog = ({
       formData.append("field", dbField);
 
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-project-pdf`,
+        `/api/public/upload-project-pdf`,
         {
           method: "POST",
           headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },

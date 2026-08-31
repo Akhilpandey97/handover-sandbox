@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 
-const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/shopify-lt-email-comms`;
+const FN_URL = `/api/public/shopify-lt-email-comms`;
 
 interface ThreadRow {
   threadId: string;

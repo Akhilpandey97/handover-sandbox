@@ -195,7 +195,7 @@ export const TeamDashboard = () => {
     setAiAlertsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-project-insights`,
+        `/api/public/ai-project-insights`,
         {
           method: "POST",
           headers: {
