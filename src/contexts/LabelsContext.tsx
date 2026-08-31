@@ -7,7 +7,7 @@ import { useFunnelConfig } from "@/hooks/useFunnelConfig";
 const DEFAULT_LABELS: Record<string, string> = {
   // General
   app_title: "Manager Dashboard",
-  app_subtitle: "Project Management Hub",
+  app_subtitle: "Handover — Project Management Hub",
   org_name: "Handover",
 
   // Team labels
