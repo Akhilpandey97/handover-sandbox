@@ -2618,6 +2618,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cron_token_matches: { Args: { _token: string }; Returns: boolean }
       get_user_role: { Args: { _user_id: string }; Returns: string }
       get_user_tenant_id: { Args: { _user_id: string }; Returns: string }
       is_gokwik_general: { Args: { _user_id: string }; Returns: boolean }
