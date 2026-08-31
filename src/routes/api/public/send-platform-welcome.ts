@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,8 +12,8 @@ async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const RESEND_API_KEY = process.env['RESEND_API_KEY'];
-    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY is not configured");
+    const creds = await getTenantIntegrations(await tenantIdFromRequest(req));
+    const RESEND_API_KEY = requireCred(creds, "resend_api_key", "Resend email");
 
     const {
       brandName,
