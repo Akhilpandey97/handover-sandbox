@@ -42,6 +42,7 @@ import { Route as ApiPublicSendScheduledTatReportRouteImport } from './routes/ap
 import { Route as ApiPublicSetPasswordRouteImport } from './routes/api/public/set-password'
 import { Route as ApiPublicShopifyLtEmailCommsRouteImport } from './routes/api/public/shopify-lt-email-comms'
 import { Route as ApiPublicSlackStuckMerchantsDigestRouteImport } from './routes/api/public/slack-stuck-merchants-digest'
+import { Route as ApiPublicTenantIntegrationsRouteImport } from './routes/api/public/tenant-integrations'
 import { Route as ApiPublicUpdateUserRouteImport } from './routes/api/public/update-user'
 import { Route as ApiPublicUploadProjectPdfRouteImport } from './routes/api/public/upload-project-pdf'
 import { Route as ApiPublicMerchantPortalDataSplatRouteImport } from './routes/api/public/merchant-portal-data.$'
@@ -231,6 +232,12 @@ const ApiPublicSlackStuckMerchantsDigestRoute =
     path: '/api/public/slack-stuck-merchants-digest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicTenantIntegrationsRoute =
+  ApiPublicTenantIntegrationsRouteImport.update({
+    id: '/api/public/tenant-integrations',
+    path: '/api/public/tenant-integrations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicUpdateUserRoute = ApiPublicUpdateUserRouteImport.update({
   id: '/api/public/update-user',
   path: '/api/public/update-user',
@@ -283,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/api/public/set-password': typeof ApiPublicSetPasswordRoute
   '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
+  '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
@@ -321,6 +329,7 @@ export interface FileRoutesByTo {
   '/api/public/set-password': typeof ApiPublicSetPasswordRoute
   '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
+  '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
@@ -360,6 +369,7 @@ export interface FileRoutesById {
   '/api/public/set-password': typeof ApiPublicSetPasswordRoute
   '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
+  '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
@@ -400,6 +410,7 @@ export interface FileRouteTypes {
     | '/api/public/set-password'
     | '/api/public/shopify-lt-email-comms'
     | '/api/public/slack-stuck-merchants-digest'
+    | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/api/public/set-password'
     | '/api/public/shopify-lt-email-comms'
     | '/api/public/slack-stuck-merchants-digest'
+    | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
@@ -476,6 +488,7 @@ export interface FileRouteTypes {
     | '/api/public/set-password'
     | '/api/public/shopify-lt-email-comms'
     | '/api/public/slack-stuck-merchants-digest'
+    | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
@@ -514,6 +527,7 @@ export interface RootRouteChildren {
   ApiPublicSetPasswordRoute: typeof ApiPublicSetPasswordRoute
   ApiPublicShopifyLtEmailCommsRoute: typeof ApiPublicShopifyLtEmailCommsRoute
   ApiPublicSlackStuckMerchantsDigestRoute: typeof ApiPublicSlackStuckMerchantsDigestRoute
+  ApiPublicTenantIntegrationsRoute: typeof ApiPublicTenantIntegrationsRoute
   ApiPublicUpdateUserRoute: typeof ApiPublicUpdateUserRoute
   ApiPublicUploadProjectPdfRoute: typeof ApiPublicUploadProjectPdfRoute
 }
@@ -751,6 +765,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSlackStuckMerchantsDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/tenant-integrations': {
+      id: '/api/public/tenant-integrations'
+      path: '/api/public/tenant-integrations'
+      fullPath: '/api/public/tenant-integrations'
+      preLoaderRoute: typeof ApiPublicTenantIntegrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/update-user': {
       id: '/api/public/update-user'
       path: '/api/public/update-user'
@@ -839,6 +860,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicShopifyLtEmailCommsRoute: ApiPublicShopifyLtEmailCommsRoute,
   ApiPublicSlackStuckMerchantsDigestRoute:
     ApiPublicSlackStuckMerchantsDigestRoute,
+  ApiPublicTenantIntegrationsRoute: ApiPublicTenantIntegrationsRoute,
   ApiPublicUpdateUserRoute: ApiPublicUpdateUserRoute,
   ApiPublicUploadProjectPdfRoute: ApiPublicUploadProjectPdfRoute,
 }

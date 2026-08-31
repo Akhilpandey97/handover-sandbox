@@ -20,7 +20,11 @@ const json = (body: unknown, status = 200) =>
 
 const MASK = "••••••••";
 
-async function authorize(req: Request) {
+async function authorize(req: Request): Promise<{
+  error?: Response;
+  admin?: ReturnType<typeof adminClient>;
+  tenantId?: string;
+}> {
   const token = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (!token) return { error: json({ error: "Unauthorized" }, 401) };
 
@@ -53,8 +57,9 @@ async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const auth = await authorize(req);
-  if ("error" in auth) return auth.error;
-  const { admin, tenantId } = auth;
+  if (auth.error) return auth.error;
+  const admin = auth.admin!;
+  const tenantId = auth.tenantId!;
 
   try {
     if (req.method === "GET") {
