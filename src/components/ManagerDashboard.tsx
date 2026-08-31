@@ -104,6 +104,7 @@ import { MerchantResponsibility } from "./reports/MerchantResponsibility";
 import { WeeksPerChecklistReport } from "./reports/WeeksPerChecklistReport";
 import { TacticalLists } from "./reports/TacticalLists";
 import { TATReport } from "./reports/TATReport";
+import { TATDashlet } from "./TATDashlet";
 import { ReportsBuilder } from "./reports/ReportsBuilder";
 import { ReportScheduler } from "./reports/ReportScheduler";
 import { PivotTableSettings } from "./settings/PivotTableSettings";
@@ -1140,30 +1141,34 @@ export const ManagerDashboard = () => {
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {(() => {
-                const kpiColor = (key: string, fallback: string) => appLabels[key] || fallback;
-                const totalC = kpiColor("color_kpi_total", "#3b82f6");
-                const pendingC = kpiColor("color_kpi_pending", "#f59e0b");
-                const activeC = kpiColor("color_kpi_active", "#3b82f6");
-                const liveC = kpiColor("color_kpi_live", "#10b981");
+                const funnelCounts = displayProjects.reduce((acc: Record<string, number>, p) => {
+                  const s = getProjectFunnelStage(p) as string;
+                  acc[s] = (acc[s] || 0) + 1;
+                  return acc;
+                }, {} as Record<string, number>);
+
                 const kpiCards = [
-                  { label: "Total", value: totalProjects, color: totalC, icon: FolderKanban, sub: `Pipeline ARR: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
-                  { label: "On Hold + Not Started", value: pendingProjects, color: pendingC, icon: AlertCircle, sub: `Pending ARR: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
-                  { label: "In Progress", value: activeProjects, color: activeC, icon: Rocket, sub: `Active ARR: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
-                  { label: "Live", value: completedProjects, color: liveC, icon: CheckCircle2, sub: `Live ARR: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
+                  { label: "Total", value: totalProjects, icon: FolderKanban, sub: `Pipeline ARR: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
+                  { label: "Pending", value: pendingProjects, icon: AlertCircle, sub: `Pending ARR: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
+                  { label: "Active", value: activeProjects, icon: Rocket, sub: `Active ARR: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
+                  { label: "Live", value: completedProjects, icon: CheckCircle2, sub: `Live ARR: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
                 ];
                 return kpiCards.map((kpi) => (
-                  <Card key={kpi.label} role="button" tabIndex={0} onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })} className="cursor-pointer hover:shadow-md transition-shadow" style={{ background: `linear-gradient(135deg, ${kpi.color}15 0%, ${kpi.color}08 100%)`, borderColor: `${kpi.color}33` }}>
-                    <CardContent className="p-5">
+                  <Card key={kpi.label} role="button" tabIndex={0} onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })} className="cursor-pointer hover:shadow-md transition-shadow border border-border bg-card">
+                    <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="text-sm font-medium text-muted-foreground mb-1">{kpi.label}</p>
-                          <p className="text-2xl font-bold" style={{ color: kpi.color }}>{kpi.value}</p>
+                          <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
                         </div>
-                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${kpi.color}20` }}>
-                          <kpi.icon className="h-6 w-6" style={{ color: kpi.color }} />
+                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center bg-muted/20 text-muted-foreground">
+                          <kpi.icon className="h-6 w-6" />
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">{kpi.sub}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {(["sales","pre_integration","under_integration","live","none"] as const).map(s => `${s[0].toUpperCase()}:${funnelCounts[s] || 0}`).join(" · ")}
+                      </p>
                       {"sub2" in kpi && (
                         <p
                           className="text-xs text-muted-foreground mt-0.5 hover:text-foreground hover:underline"
@@ -1261,79 +1266,7 @@ export const ManagerDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-sm border-border">
-                <CardHeader className="border-b bg-muted/30">
-                  <CardTitle className="portal-heading flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5 text-primary" />
-                    Latest Updates
-                  </CardTitle>
-                  <CardDescription>Most recent update per merchant project</CardDescription>
-                </CardHeader>
-                <div className="px-4 py-2.5 border-b bg-background">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Search merchants or updates…"
-                      value={updatesSearch}
-                      onChange={e => setUpdatesSearch(e.target.value)}
-                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border bg-muted/50 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                  </div>
-                </div>
-                <CardContent className="p-0 overflow-y-auto max-h-[420px]">
-                  {(() => {
-                    const getProjectNotes = (p: Project) => {
-                      const parts: string[] = [];
-                      if (p.notes?.currentPhaseComment) parts.push(p.notes.currentPhaseComment);
-                      if (p.notes?.projectNotes) parts.push(p.notes.projectNotes);
-                      if (p.notes?.mintNotes) parts.push(p.notes.mintNotes);
-                      if (p.notes?.phase2Comment) parts.push(p.notes.phase2Comment);
-                      return parts.join(" · ");
-                    };
-                    const q = updatesSearch.toLowerCase();
-                    const filtered = displayProjects
-                      .filter(p => getProjectNotes(p).length > 0)
-                      .filter(p => {
-                        if (!q) return true;
-                        const update = getProjectNotes(p).toLowerCase();
-                        return p.merchantName.toLowerCase().includes(q) || update.includes(q);
-                      })
-                      .sort((a: Project, b: Project) => {
-                        const ta = a.updatedAt || "";
-                        const tb = b.updatedAt || "";
-                        return tb.localeCompare(ta);
-                      });
-                    if (filtered.length === 0) {
-                      return (
-                        <div className="flex items-center justify-center h-full text-sm text-muted-foreground py-12">
-                          {updatesSearch ? "No matches found" : "No updates yet"}
-                        </div>
-                      );
-                    }
-                    return filtered.map((p, idx) => {
-                      const update = getProjectNotes(p);
-                      return (
-                        <div
-                          key={p.id}
-                          title={update}
-                          onClick={() => setUpdatesSelectedProject(p)}
-                          className={cn("flex items-start gap-3 px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer", idx !== 0 && "border-t border-border/50")}
-                        >
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-primary">{p.merchantName.charAt(0)}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium leading-none truncate">{p.merchantName}</p>
-                            <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">{update}</p>
-                          </div>
-                          <Badge variant="outline" className="text-[10px] px-1.5 shrink-0 mt-0.5">{p.currentPhase}</Badge>
-                        </div>
-                      );
-                    });
-                  })()}
-                </CardContent>
-              </Card>
+              <TATDashlet projects={displayProjects} />
 
               <ProjectDetailsDialog
                 project={updatesSelectedProject}
