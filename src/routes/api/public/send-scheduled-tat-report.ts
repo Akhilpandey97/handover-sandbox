@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
 
 // Dispatches scheduled TAT (Turn-around Time) reports.
 // Triggered by pg_cron every minute, or manually with { schedule_id } to send immediately.
@@ -11,7 +12,6 @@ const corsHeaders = {
 
 const SUPABASE_URL = process.env['SUPABASE_URL']!;
 const SERVICE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-const RESEND_API_KEY = process.env['RESEND_API_KEY']!;
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 const MS_PER_DAY = 86400_000;
@@ -173,7 +173,7 @@ function renderHtml(title: string, granularity: "monthly" | "quarterly", data: R
   return html;
 }
 
-async function sendEmail(subject: string, html: string, recipients: string[]) {
+async function sendEmail(subject: string, html: string, recipients: string[], RESEND_API_KEY: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -205,7 +205,9 @@ async function runSchedule(supa: any, schedule: any) {
   const title = schedule.name || "TAT Report";
   const html = renderHtml(title, schedule.granularity, data);
   const subject = `${schedule.subject_prefix ? schedule.subject_prefix + " " : ""}${title} — ${new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })}`;
-  await sendEmail(subject, html, schedule.recipients);
+  const creds = await getTenantIntegrations(schedule.tenant_id);
+  const resendKey = requireCred(creds, "resend_api_key", "Resend email");
+  await sendEmail(subject, html, schedule.recipients, resendKey);
   await supa.from("tat_report_schedules").update({ last_sent_at: new Date().toISOString() }).eq("id", schedule.id);
 }
 

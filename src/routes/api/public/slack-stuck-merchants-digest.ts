@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -32,8 +33,6 @@ async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const RESEND_API_KEY = process.env['RESEND_API_KEY'];
-    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY not configured");
 
     const supabase = createClient(
       process.env['SUPABASE_URL']!,
@@ -90,6 +89,13 @@ async function handler(req: Request): Promise<Response> {
 
       if (stuck.length === 0 && !isTest) {
         results.push({ tenant: tenant.name, count: 0, sent: false });
+        continue;
+      }
+
+      const tenantCreds = await getTenantIntegrations(tenant.id);
+      const RESEND_API_KEY = tenantCreds.resend_api_key;
+      if (!RESEND_API_KEY) {
+        results.push({ tenant: tenant.name, skipped: "resend not configured" });
         continue;
       }
 

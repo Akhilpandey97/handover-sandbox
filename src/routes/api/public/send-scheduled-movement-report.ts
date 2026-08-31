@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
 
 // Dispatches scheduled movement reports.
 // Triggered by pg_cron every minute, or manually with { schedule_id } to send immediately.
@@ -11,7 +12,6 @@ const corsHeaders = {
 
 const SUPABASE_URL = process.env['SUPABASE_URL']!;
 const SERVICE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-const RESEND_API_KEY = process.env['RESEND_API_KEY']!;
 const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
@@ -454,6 +454,8 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
 }
 
 async function sendOne(supa: any, schedule: any): Promise<{ ok: boolean; error?: string }> {
+  const __creds = await getTenantIntegrations(schedule.tenant_id);
+  const RESEND_API_KEY = requireCred(__creds, "resend_api_key", "Resend email");
   const exec = await supa.from("movement_report_executions").insert({
     schedule_id: schedule.id,
     tenant_id: schedule.tenant_id,

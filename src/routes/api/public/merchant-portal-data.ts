@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -29,10 +30,11 @@ function extractCredentials(text: string): Record<string, string> {
   return creds;
 }
 
-async function fetchJiraCredentials(merchantName: string) {
-  const JIRA_BASE_URL = (process.env['JIRA_BASE_URL'] || "").replace(/\/+$/, "");
-  const JIRA_EMAIL = process.env['JIRA_EMAIL'];
-  const JIRA_API_TOKEN = process.env['JIRA_API_TOKEN'];
+async function fetchJiraCredentials(merchantName: string, tenantId?: string | null) {
+  const tenantCreds = await getTenantIntegrations(tenantId);
+  const JIRA_BASE_URL = (tenantCreds.jira_base_url || "").replace(/\/+$/, "");
+  const JIRA_EMAIL = tenantCreds.jira_email;
+  const JIRA_API_TOKEN = tenantCreds.jira_api_token;
   if (!JIRA_BASE_URL || !JIRA_EMAIL || !JIRA_API_TOKEN) return null;
 
   const safeName = merchantName.replace(/"/g, '\\"');
@@ -140,8 +142,8 @@ async function handler(req: Request): Promise<Response> {
       const magicUrl = `${baseUrl}/portal?token=${token}&ml=1`;
 
       // Send email via Resend
-      const RESEND_API_KEY = process.env['RESEND_API_KEY'];
-      if (!RESEND_API_KEY) return json({ error: "RESEND_API_KEY not configured" }, 500);
+      const RESEND_API_KEY = (await getTenantIntegrations(project.tenant_id)).resend_api_key;
+      if (!RESEND_API_KEY) return json({ error: "Resend email is not configured for this tenant" }, 500);
 
       const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -597,7 +599,7 @@ async function handler(req: Request): Promise<Response> {
       (settings ?? []).forEach((s: any) => { branding[s.key] = s.value; });
     }
 
-    const jiraCredentials = await fetchJiraCredentials(project.merchant_name || "");
+    const jiraCredentials = await fetchJiraCredentials(project.merchant_name || "", (project as any).tenant_id ?? tenantId);
 
     // BRD progress (best-effort, never block main response on errors)
     let brdProgress: { answered: number; total: number; percent: number; status: string | null } = {

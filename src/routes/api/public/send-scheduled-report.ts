@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -628,9 +629,6 @@ async function handler(req: Request): Promise<Response> {
   try {
     const SUPABASE_URL = process.env['SUPABASE_URL']!;
     const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-    const RESEND_API_KEY = process.env['RESEND_API_KEY'];
-
-    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY is not configured");
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -648,7 +646,7 @@ async function handler(req: Request): Promise<Response> {
 
       if (reportErr || !report) throw new Error("Report not found");
 
-      const result = await sendReportEmail(supabase, report, RESEND_API_KEY);
+      const result = await sendReportEmail(supabase, report, requireCred(await getTenantIntegrations(report.tenant_id), "resend_api_key", "Resend email"));
       return new Response(JSON.stringify({ success: result.errors.length === 0, ...result }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -680,7 +678,7 @@ async function handler(req: Request): Promise<Response> {
         continue;
       }
       console.log(`Sending report "${report.name}" to ${report.recipients.length} recipients`);
-      const result = await sendReportEmail(supabase, report, RESEND_API_KEY);
+      const result = await sendReportEmail(supabase, report, requireCred(await getTenantIntegrations(report.tenant_id), "resend_api_key", "Resend email"));
       results.push({ report_name: report.name, ...result });
     }
 
