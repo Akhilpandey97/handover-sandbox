@@ -7,13 +7,20 @@
 - [x] `tenant_integrations` table (per-tenant credentials, admin-only secrets)
 - [x] Credential resolver + all routes read tenant creds (env fallback)
 - [x] Settings → Integrations tab for tenant admins (Resend, Gmail, Jira, Slack)
+- [x] Scheduled jobs: `/api/public/cron` dispatcher (token-auth, per-tenant fan-out)
+      + 8 pg_cron schedules (3 mail pollers, 3 report senders, Slack digest, overdue tasks)
+- [x] Bootstrap: Default Organisation tenant, super-admin user, 18 starter checklist templates
+- [x] Auth flows verified: sign-in, admin create-user, delete-user, set-password,
+      tenant-integrations read/write
 
-## Remaining
+## Remaining (needs the customer, not code)
 - [ ] Tenant admins enter real credentials in Settings → Integrations
-- [ ] pg_cron schedules for: poll-emails, poll-shopify-sme-emails,
-      poll-platform-golive-emails, send-scheduled-report,
-      send-scheduled-tat-report, send-scheduled-movement-report,
-      slack-stuck-merchants-digest
-- [ ] Bootstrap: first super-admin user + tenant, checklist templates seed
-- [ ] Auth flows end-to-end check (invite, reset password, create-user)
-- [ ] MCP server function (skipped — unused by UI)
+      (Resend, Gmail, Jira, Slack). Until then those jobs return
+      "not configured" instead of running.
+- [ ] MCP server function (intentionally skipped — unused by the UI)
+
+## Notes
+- Cron dispatcher auth: `x-cron-token` header, validated against a private
+  admin-only table (`private.cron_config`) or `LOVABLE_CRON_SECRET`.
+- Roles are single-role per user (`user_roles` is read with `.single()` by the
+  ported functions) — do not add a second role row for the same user.
