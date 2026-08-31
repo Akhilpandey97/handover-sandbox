@@ -776,61 +776,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
       {/* 3-panel body */}
       <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 bg-white">
-        {/* LEFT PANEL — Actions & AI */}
-        <ScrollArea className="hidden">
-          <div className="p-3 space-y-3">
-            <div className="rounded-lg border-2 border-primary/30 bg-primary/5 p-3">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Recommended actions</p>
-              <div className="mt-2 space-y-1">
-                {actionRecommendations.map((action) =>
-                  action.href ? (
-                    <a
-                      key={action.label}
-                      href={action.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-start justify-between rounded-md border border-primary/15 bg-card/90 px-2.5 py-2 transition hover:bg-accent/60"
-                    >
-                      <div>
-                        <p className="text-xs font-semibold text-foreground">{action.label}</p>
-                        <p className="text-[11px] text-muted-foreground">{action.sublabel}</p>
-                      </div>
-                      <ExternalLink className="mt-0.5 h-3 w-3 text-muted-foreground" />
-                    </a>
-                  ) : (
-                    <button key={action.label} type="button" onClick={action.onClick} className="w-full rounded-md border border-primary/15 bg-card/90 px-2.5 py-2 text-left transition hover:bg-accent/60">
-                      <p className="text-xs font-semibold text-foreground">{action.label}</p>
-                      <p className="text-[11px] text-muted-foreground">{action.sublabel}</p>
-                    </button>
-                  ),
-                )}
-              </div>
-            </div>
-            <div className="rounded-lg border border-border/60 bg-card/80 p-3">
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                    {aiSummaryLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bot className="h-3 w-3" />}
-                  </div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Executive summary</p>
-                </div>
-                <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-[11px]" onClick={() => void handleGenerateAiSummary()} disabled={aiSummaryLoading}>
-                  {aiSummary.length > 0 ? "Refresh" : "Generate"}
-                </Button>
-              </div>
-              <div className="space-y-1.5">
-                {aiSummaryLoading ? <p className="text-xs text-muted-foreground">Generating summary...</p> : aiSummaryError ? <p className="text-xs text-warning">AI summary unavailable.</p> : aiSummary.length === 0 ? <p className="text-xs text-muted-foreground">Generate a summary when you need help assessing this project.</p> : summaryCards.map((card, index) => (
-                  <div key={card.title} className={cn("rounded-md border px-2.5 py-2", index === 0 ? "border-primary/20 bg-primary/5" : "border-border/40 bg-background/60")}>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">{card.title}</p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-foreground">{card.body}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </ScrollArea>
-
         {/* RIGHT PANEL — Status & Context */}
+
         <ScrollArea className="order-1 hidden w-[38%] min-w-[340px] max-w-[520px] shrink-0 border-r border-slate-200 bg-white lg:block">
 
           <div className="space-y-1">
@@ -903,7 +850,38 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 ))}
               </div>
             </div>
+
+            <div className="p-4">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                    {aiSummaryLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bot className="h-3 w-3" />}
+                  </div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Executive summary</p>
+                </div>
+                <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-[11px]" onClick={() => void handleGenerateAiSummary()} disabled={aiSummaryLoading}>
+                  {aiSummary.length > 0 ? "Refresh" : "Generate"}
+                </Button>
+              </div>
+              <div className="space-y-1.5">
+                {aiSummaryLoading ? (
+                  <p className="text-xs text-muted-foreground">Generating summary...</p>
+                ) : aiSummaryError ? (
+                  <p className="text-xs text-warning">AI summary unavailable.</p>
+                ) : aiSummary.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Generate a summary when you need help assessing this project.</p>
+                ) : (
+                  summaryCards.map((card, index) => (
+                    <div key={card.title} className={cn("rounded-md border px-2.5 py-2", index === 0 ? "border-primary/20 bg-primary/5" : "border-border/40 bg-background/60")}>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">{card.title}</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-foreground">{card.body}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
+
         </ScrollArea>
 
         {/* CENTER PANEL — Tabs */}
