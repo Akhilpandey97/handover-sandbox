@@ -18,6 +18,72 @@ import { projectStateLabels, ProjectState } from "@/data/projectsData";
 
 const slug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") || "stage";
 
+/** Multi-select list of the organisation's checklist item titles. */
+const ChecklistTitlePicker = ({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (titles: string[]) => void;
+}) => {
+  const { titlesToId, isLoading } = useChecklistTemplateTitles();
+  const [search, setSearch] = useState("");
+
+  const available = Object.keys(titlesToId).sort((a, b) => a.localeCompare(b));
+  const lowerAvailable = available.map((t) => t.toLowerCase());
+  // Keep previously saved values that no longer match a template title
+  const extras = selected.filter((s) => !lowerAvailable.includes(s.toLowerCase()));
+  const options = [...available, ...extras];
+  const filtered = options.filter((t) => t.toLowerCase().includes(search.toLowerCase()));
+
+  const isChecked = (title: string) => selected.some((s) => s.toLowerCase() === title.toLowerCase());
+  const toggle = (title: string) =>
+    onChange(
+      isChecked(title)
+        ? selected.filter((s) => s.toLowerCase() !== title.toLowerCase())
+        : [...selected, title]
+    );
+
+  if (isLoading) return <p className="text-xs text-muted-foreground">Loading checklist items…</p>;
+
+  return (
+    <div className="rounded-md border">
+      <div className="border-b p-2">
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search checklist items…"
+          className="h-8 text-xs"
+        />
+      </div>
+      <ScrollArea className="h-40">
+        <div className="p-2 space-y-1">
+          {filtered.length === 0 && (
+            <p className="text-xs text-muted-foreground px-1 py-2">No checklist items found.</p>
+          )}
+          {filtered.map((title) => (
+            <label
+              key={title}
+              className="flex items-start gap-2 rounded px-1 py-1 text-xs hover:bg-muted/60 cursor-pointer"
+            >
+              <Checkbox
+                checked={isChecked(title)}
+                onCheckedChange={() => toggle(title)}
+                className="mt-0.5"
+              />
+              <span className="leading-snug">{title}</span>
+            </label>
+          ))}
+        </div>
+      </ScrollArea>
+      <div className="border-t px-2 py-1.5 text-[11px] text-muted-foreground">
+        {selected.length} selected
+      </div>
+    </div>
+  );
+};
+
+
 export const FunnelStagesSettings = () => {
   const { stages, isLoading, saveStages } = useFunnelConfig();
   const [draft, setDraft] = useState<FunnelStageRule[]>(stages);
