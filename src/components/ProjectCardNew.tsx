@@ -359,58 +359,6 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 </div>
               </div>
 
-              {/* Stats Row */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {/* ARR */}
-                <div className="rounded-lg border border-sky-200/80 bg-white/45 p-2.5 dark:border-sky-800/60 dark:bg-sky-950/20">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
-                    <TrendingUp className="h-3 w-3" />
-                    {getLabel("field_arr")}
-                  </div>
-                  <p className="text-sm font-bold text-foreground">{project.arr} Cr</p>
-                </div>
-
-                {/* Pending With */}
-                <div className="rounded-lg border border-sky-200/80 bg-white/45 p-2.5 dark:border-sky-800/60 dark:bg-sky-950/20">
-                  <div className="text-[10px] text-muted-foreground mb-0.5">Pending With</div>
-                  <div className={`flex items-center gap-1 font-semibold ${responsibility.color} px-1.5 py-0.5 rounded-md w-fit`}>
-                    <responsibility.icon className="h-3.5 w-3.5" />
-                    <span className="text-sm">{responsibility.label}</span>
-                  </div>
-                </div>
-
-                {/* Time Tracked */}
-                <div className="rounded-lg border border-sky-200/80 bg-white/45 p-2.5 dark:border-sky-800/60 dark:bg-sky-950/20">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
-                    <Clock className="h-3 w-3" />
-                    Time
-                  </div>
-                  <div className="flex items-center gap-1 text-sm font-semibold">
-                    <span className="text-primary">{formatDuration(timeByParty.gokwik)}</span>
-                    <span className="text-muted-foreground">/</span>
-                    <span className="text-amber-500">{formatDuration(timeByParty.merchant)}</span>
-                  </div>
-                </div>
-
-                {/* Checklist Team-wise */}
-                <div className="rounded-lg border border-sky-200/80 bg-white/45 p-2.5 dark:border-sky-800/60 dark:bg-sky-950/20">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
-                    <ClipboardList className="h-3 w-3" />
-                    Checklist
-                  </div>
-                  <div className="flex flex-col gap-0 text-xs font-semibold">
-                    <div className="flex items-center gap-1">
-                      <span className="text-blue-600 dark:text-blue-400">{mintCompleted}/{mintChecklist.length}</span>
-                      <span className="text-muted-foreground/60 text-[10px]">{teamLabels.mint || "MINT"}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-purple-600 dark:text-purple-400">{integrationCompleted}/{integrationChecklist.length}</span>
-                      <span className="text-muted-foreground/60 text-[10px]">{teamLabels.integration || "Integration"}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
             </div>
 
             {/* Card actions */}
