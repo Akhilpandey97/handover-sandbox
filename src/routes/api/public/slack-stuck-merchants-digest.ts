@@ -226,7 +226,7 @@ async function findStuckItems(
     .select("id, merchant_name, current_phase, project_state, sales_spoc, archived")
     .in("id", projectIds);
 
-  const projectById = new Map((projects || []).map((p: any) => [p.id, p]));
+  const projectById = new Map<string, any>((projects || []).map((p: any) => [p.id, p]));
 
   const stuck: StuckItem[] = [];
   for (const itemId of stuckItems) {
