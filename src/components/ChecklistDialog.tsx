@@ -247,19 +247,22 @@ export const ChecklistDialog = ({
   return (
     <Shell>
 
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-              <ClipboardList className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <span className="text-xl">Project Checklist</span>
-              <p className="text-sm font-normal text-muted-foreground mt-0.5">
-                {project.merchantName}
-              </p>
-            </div>
-          </DialogTitle>
-        </DialogHeader>
+        {variant === "dialog" && (
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                <ClipboardList className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <span className="text-xl">Project Checklist</span>
+                <p className="text-sm font-normal text-muted-foreground mt-0.5">
+                  {project.merchantName}
+                </p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+        )}
+
 
         {/* Compact Progress Section */}
         <div className="bg-muted/30 rounded-lg p-3 space-y-2">
