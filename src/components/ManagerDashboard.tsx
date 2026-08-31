@@ -1148,20 +1148,20 @@ export const ManagerDashboard = () => {
                 }, {} as Record<string, number>);
 
                 const kpiCards = [
-                  { label: "Total", value: totalProjects, icon: FolderKanban, sub: `Pipeline ARR: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
-                  { label: "Pending", value: pendingProjects, icon: AlertCircle, sub: `Pending ARR: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
-                  { label: "Active", value: activeProjects, icon: Rocket, sub: `Active ARR: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
-                  { label: "Live", value: completedProjects, icon: CheckCircle2, sub: `Live ARR: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
+                  { label: "Total", value: totalProjects, icon: FolderKanban, accent: "border-l-sky-500 bg-sky-50/60 dark:bg-sky-950/20", iconAccent: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300", sub: `Pipeline ARR: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
+                  { label: "Pending", value: pendingProjects, icon: AlertCircle, accent: "border-l-amber-500 bg-amber-50/60 dark:bg-amber-950/20", iconAccent: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300", sub: `Pending ARR: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
+                  { label: "Active", value: activeProjects, icon: Rocket, accent: "border-l-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/20", iconAccent: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300", sub: `Active ARR: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
+                  { label: "Live", value: completedProjects, icon: CheckCircle2, accent: "border-l-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/20", iconAccent: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300", sub: `Live ARR: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
                 ];
                 return kpiCards.map((kpi) => (
-                  <Card key={kpi.label} role="button" tabIndex={0} onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })} className="min-h-[158px] cursor-pointer border border-border bg-card shadow-sm transition-shadow hover:shadow-md">
+                  <Card key={kpi.label} role="button" tabIndex={0} onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })} className={cn("min-h-[158px] cursor-pointer border border-border border-l-4 shadow-sm transition-shadow hover:shadow-md", kpi.accent)}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="text-sm font-medium text-muted-foreground mb-1">{kpi.label}</p>
                           <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
                         </div>
-                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center bg-muted/20 text-muted-foreground">
+                        <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center", kpi.iconAccent)}>
                           <kpi.icon className="h-6 w-6" />
                         </div>
                       </div>
@@ -1212,7 +1212,12 @@ export const ManagerDashboard = () => {
                         <div key={team.team} className="space-y-3 py-4 first:pt-0 last:pb-0">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="h-9 w-9 rounded-lg border border-border bg-muted/40 flex items-center justify-center text-foreground font-semibold">
+                              <div className={cn(
+                                "h-9 w-9 rounded-lg border flex items-center justify-center font-semibold",
+                                team.team === "mint" && "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300",
+                                team.team === "integration" && "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300",
+                                team.team === "ms" && "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
+                              )}>
                                 {team.teamLabel.charAt(0)}
                               </div>
                               <div>
@@ -1227,10 +1232,10 @@ export const ManagerDashboard = () => {
                               return teamItems.length > 0 && teamItems.every(c => c.completed);
                             };
                             const miniCards = [
-                              { label: "Total", value: totalCount, list: teamProjects },
-                              { label: "Pending", value: pendingCount, list: teamProjects.filter(p => p.pendingAcceptance) },
-                              { label: "Active", value: activeCount, list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
-                              { label: "Completed", value: completedCount, list: teamProjects.filter(isTeamCompleted) },
+                              { label: "Total", value: totalCount, accent: "border-t-slate-400", list: teamProjects },
+                              { label: "Pending", value: pendingCount, accent: "border-t-amber-400", list: teamProjects.filter(p => p.pendingAcceptance) },
+                              { label: "Active", value: activeCount, accent: "border-t-indigo-400", list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
+                              { label: "Completed", value: completedCount, accent: "border-t-emerald-400", list: teamProjects.filter(isTeamCompleted) },
                             ];
                             return (
                               <div className="grid grid-cols-4 gap-2 text-center">
@@ -1240,7 +1245,7 @@ export const ManagerDashboard = () => {
                                     role="button"
                                     tabIndex={0}
                                     onClick={() => setDrillDown({ title: `${team.teamLabel} · ${mc.label}`, projects: mc.list })}
-                                    className="rounded-md border border-border bg-muted/20 p-2 cursor-pointer transition-colors hover:bg-muted/50"
+                                    className={cn("rounded-md border border-border border-t-2 bg-muted/20 p-2 cursor-pointer transition-colors hover:bg-muted/50", mc.accent)}
                                   >
                                     <p className="text-lg font-semibold text-foreground">{mc.value}</p>
                                     <p className="text-[10px] text-muted-foreground">{mc.label}</p>
@@ -1250,7 +1255,7 @@ export const ManagerDashboard = () => {
                             );
                           })()}
                           {team.pendingCount > 0 && (
-                            <Badge variant="outline" className="text-muted-foreground border-border bg-muted/20">
+                            <Badge variant="outline" className="text-amber-700 border-amber-200 bg-amber-50/70 dark:text-amber-300 dark:border-amber-800 dark:bg-amber-950/30">
                               {team.pendingCount} pending acceptance
                             </Badge>
                           )}
