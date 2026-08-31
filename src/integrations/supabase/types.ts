@@ -2555,6 +2555,8 @@ export type Database = {
       is_gokwik_general: { Args: { _user_id: string }; Returns: boolean }
       is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      role: { Args: never; Returns: string }
+      uid: { Args: never; Returns: string }
     }
     Enums: {
       project_phase: "mint" | "integration" | "ms" | "completed"
