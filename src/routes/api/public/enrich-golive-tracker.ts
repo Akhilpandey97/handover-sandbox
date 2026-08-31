@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { corsHeaders } from "@supabase/supabase-js/cors";
+import { corsHeaders } from "@/lib/api-cors";
 import { createClient } from "@supabase/supabase-js";
 
 const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
