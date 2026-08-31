@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, ChevronRight, Loader2, FileText, Send, MessageCircle, Sparkles, ArrowRight, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/brd-form-api`;
+const API_URL = `/api/public/brd-form-api`;
 const API_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface FormField {

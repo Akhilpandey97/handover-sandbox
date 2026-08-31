@@ -2,7 +2,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export const fetchAiInsights = async (body: Record<string, unknown>): Promise<string> => {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-project-insights`, {
+  const res = await fetch(`/api/public/ai-project-insights`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

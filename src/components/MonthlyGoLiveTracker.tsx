@@ -206,7 +206,7 @@ export const MonthlyGoLiveTracker = () => {
     setAiLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const url = `https://gzsplrzfepezcpfvuiyl.supabase.co/functions/v1/enrich-golive-tracker`;
+      const url = `/api/public/enrich-golive-tracker`;
       const r = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token || ""}` },

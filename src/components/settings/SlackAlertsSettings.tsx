@@ -84,7 +84,7 @@ export const SlackAlertsSettings = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/slack-stuck-merchants-digest?test=true&tenant_id=${tenantId}`,
+        `/api/public/slack-stuck-merchants-digest?test=true&tenant_id=${tenantId}`,
         {
           method: "POST",
           headers: {

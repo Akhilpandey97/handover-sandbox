@@ -44,6 +44,7 @@ import { Route as ApiPublicShopifyLtEmailCommsRouteImport } from './routes/api/p
 import { Route as ApiPublicSlackStuckMerchantsDigestRouteImport } from './routes/api/public/slack-stuck-merchants-digest'
 import { Route as ApiPublicUpdateUserRouteImport } from './routes/api/public/update-user'
 import { Route as ApiPublicUploadProjectPdfRouteImport } from './routes/api/public/upload-project-pdf'
+import { Route as ApiPublicMerchantPortalDataSplatRouteImport } from './routes/api/public/merchant-portal-data.$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -241,6 +242,12 @@ const ApiPublicUploadProjectPdfRoute =
     path: '/api/public/upload-project-pdf',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMerchantPortalDataSplatRoute =
+  ApiPublicMerchantPortalDataSplatRouteImport.update({
+    id: '/$',
+    path: '/$',
+    getParentRoute: () => ApiPublicMerchantPortalDataRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -262,7 +269,7 @@ export interface FileRoutesByFullPath {
   '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
   '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
-  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRoute
+  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
@@ -278,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -299,7 +307,7 @@ export interface FileRoutesByTo {
   '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
   '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
-  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRoute
+  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
@@ -315,6 +323,7 @@ export interface FileRoutesByTo {
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -337,7 +346,7 @@ export interface FileRoutesById {
   '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
   '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
-  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRoute
+  '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
@@ -353,6 +362,7 @@ export interface FileRoutesById {
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -392,6 +402,7 @@ export interface FileRouteTypes {
     | '/api/public/slack-stuck-merchants-digest'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/api/public/merchant-portal-data/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/api/public/slack-stuck-merchants-digest'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/api/public/merchant-portal-data/$'
   id:
     | '__root__'
     | '/'
@@ -466,6 +478,7 @@ export interface FileRouteTypes {
     | '/api/public/slack-stuck-merchants-digest'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/api/public/merchant-portal-data/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -487,7 +500,7 @@ export interface RootRouteChildren {
   ApiPublicFetchProjectJiraTicketsRoute: typeof ApiPublicFetchProjectJiraTicketsRoute
   ApiPublicGetProjectLinksRoute: typeof ApiPublicGetProjectLinksRoute
   ApiPublicKwikassistAiChatRoute: typeof ApiPublicKwikassistAiChatRoute
-  ApiPublicMerchantPortalDataRoute: typeof ApiPublicMerchantPortalDataRoute
+  ApiPublicMerchantPortalDataRoute: typeof ApiPublicMerchantPortalDataRouteWithChildren
   ApiPublicPollEmailsRoute: typeof ApiPublicPollEmailsRoute
   ApiPublicPollPlatformGoliveEmailsRoute: typeof ApiPublicPollPlatformGoliveEmailsRoute
   ApiPublicPollShopifySmeEmailsRoute: typeof ApiPublicPollShopifySmeEmailsRoute
@@ -752,6 +765,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUploadProjectPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/merchant-portal-data/$': {
+      id: '/api/public/merchant-portal-data/$'
+      path: '/$'
+      fullPath: '/api/public/merchant-portal-data/$'
+      preLoaderRoute: typeof ApiPublicMerchantPortalDataSplatRouteImport
+      parentRoute: typeof ApiPublicMerchantPortalDataRoute
+    }
   }
 }
 
@@ -765,6 +785,21 @@ const PortalRouteChildren: PortalRouteChildren = {
 
 const PortalRouteWithChildren =
   PortalRoute._addFileChildren(PortalRouteChildren)
+
+interface ApiPublicMerchantPortalDataRouteChildren {
+  ApiPublicMerchantPortalDataSplatRoute: typeof ApiPublicMerchantPortalDataSplatRoute
+}
+
+const ApiPublicMerchantPortalDataRouteChildren: ApiPublicMerchantPortalDataRouteChildren =
+  {
+    ApiPublicMerchantPortalDataSplatRoute:
+      ApiPublicMerchantPortalDataSplatRoute,
+  }
+
+const ApiPublicMerchantPortalDataRouteWithChildren =
+  ApiPublicMerchantPortalDataRoute._addFileChildren(
+    ApiPublicMerchantPortalDataRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -786,7 +821,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicFetchProjectJiraTicketsRoute: ApiPublicFetchProjectJiraTicketsRoute,
   ApiPublicGetProjectLinksRoute: ApiPublicGetProjectLinksRoute,
   ApiPublicKwikassistAiChatRoute: ApiPublicKwikassistAiChatRoute,
-  ApiPublicMerchantPortalDataRoute: ApiPublicMerchantPortalDataRoute,
+  ApiPublicMerchantPortalDataRoute:
+    ApiPublicMerchantPortalDataRouteWithChildren,
   ApiPublicPollEmailsRoute: ApiPublicPollEmailsRoute,
   ApiPublicPollPlatformGoliveEmailsRoute:
     ApiPublicPollPlatformGoliveEmailsRoute,

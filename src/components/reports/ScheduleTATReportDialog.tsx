@@ -121,7 +121,7 @@ export const ScheduleTATReportDialog = ({ open, onOpenChange, defaultGranularity
     setBusyId(s.id);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-scheduled-tat-report`,
+        `/api/public/send-scheduled-tat-report`,
         {
           method: "POST",
           headers: {

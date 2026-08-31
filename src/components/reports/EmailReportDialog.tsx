@@ -45,7 +45,7 @@ export const EmailReportDialog = ({ open, onOpenChange, defaultSubject, htmlBody
     setSending(true);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-movement-report`,
+        `/api/public/send-movement-report`,
         {
           method: "POST",
           headers: {

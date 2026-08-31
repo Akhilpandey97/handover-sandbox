@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { GuidedTour, type TourStep } from "@/components/GuidedTour";
 
-const API_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/merchant-portal-data`;
+const API_URL = `/api/public/merchant-portal-data`;
 const API_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Clean, professional palette
@@ -208,7 +208,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kwikassist-ai-chat`, {
+      const res = await fetch(`/api/public/kwikassist-ai-chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

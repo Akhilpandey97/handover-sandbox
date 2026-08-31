@@ -82,7 +82,7 @@ export const ShopifySmeTab = () => {
     if (!currentUser?.tenantId) { toast.error("No tenant context available"); return; }
     setPolling(true);
     try {
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/poll-shopify-sme-emails`;
+      const url = `/api/public/poll-shopify-sme-emails`;
       const res = await fetch(url, {
         method: "POST",
         headers: {
@@ -108,7 +108,7 @@ export const ShopifySmeTab = () => {
   const handleAssign = async (id: string, owner_email: string) => {
     setAssigningId(id);
     try {
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assign-shopify-sme-owner`;
+      const url = `/api/public/assign-shopify-sme-owner`;
       const res = await fetch(url, {
         method: "POST",
         headers: {

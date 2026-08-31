@@ -104,7 +104,7 @@ export const ProjectDetailsDialog = ({
     try {
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
       const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/merchant-portal-data/send-magic-link`, {
+      const res = await fetch(`/api/public/merchant-portal-data/send-magic-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
         body: JSON.stringify({ project_id: project.id, app_url: window.location.origin }),
