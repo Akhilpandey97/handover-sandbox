@@ -5,12 +5,16 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Design system aligned with the Merchant (Customer) Portal:
-  navy brand (#003c71), sky accent (#0EA5E9), slate surfaces,
-  rounded-xl cards, soft borders and low-contrast shadows.
+  Handover design system — "Ocean Deep":
+  deep navy hero surfaces, teal/cyan accents, Outfit display + Figtree body,
+  soft layered shadows and translucent cards.
 */
 
 @theme inline {
+  --font-sans: "Figtree", system-ui, -apple-system, sans-serif;
+  --font-display: "Outfit", "Figtree", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -19,6 +23,7 @@
 
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-glow: hsl(var(--primary-glow));
   --color-primary-light: hsl(var(--primary-light));
   --color-primary-soft: hsl(var(--primary-soft));
 
@@ -37,6 +42,15 @@
 
   --color-brand: hsl(var(--brand));
   --color-brand-foreground: hsl(var(--brand-foreground));
+
+  --color-teal: hsl(var(--teal));
+  --color-teal-foreground: hsl(var(--teal-foreground));
+
+  --color-hero: hsl(var(--hero));
+  --color-hero-foreground: hsl(var(--hero-foreground));
+
+  --color-surface: hsl(var(--surface));
+  --color-surface-2: hsl(var(--surface-2));
 
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
@@ -104,123 +118,148 @@
 }
 
 :root {
-  /* Surfaces — slate-50 canvas, white cards (portal light theme) */
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
+  --background: 205 38% 98%;
+  --foreground: 212 55% 15%;
 
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
+  --card-foreground: 212 55% 15%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  --popover-foreground: 212 55% 15%;
 
-  /* Brand navy #003c71 */
-  --primary: 208 100% 22%;
-  --primary-foreground: 0 0% 100%;
-  --primary-light: 208 88% 33%;
-  --primary-soft: 216 90% 95%;
+  /* Ocean Deep */
+  --primary: 206 62% 27%;
+  --primary-foreground: 190 60% 97%;
+  --primary-glow: 190 56% 40%;
+  --primary-light: 200 55% 36%;
+  --primary-soft: 195 55% 94%;
 
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
+  --secondary: 200 32% 95%;
+  --secondary-foreground: 206 55% 20%;
 
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
+  --muted: 200 28% 96%;
+  --muted-foreground: 205 16% 45%;
 
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
-  --accent-soft: 201 94% 94%;
+  --accent: 190 45% 93%;
+  --accent-foreground: 200 60% 20%;
+  --accent-soft: 190 48% 95%;
 
-  /* Portal sky accent #0EA5E9 */
-  --brand: 199 89% 48%;
+  --brand: 190 56% 40%;
   --brand-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --success: 142 76% 36%;
+  --success: 168 62% 34%;
   --success-foreground: 0 0% 100%;
 
-  --warning: 32 95% 44%;
+  --warning: 43 89% 44%;
   --warning-foreground: 0 0% 100%;
 
-  --info: 199 89% 48%;
+  --info: 190 56% 40%;
   --info-foreground: 0 0% 100%;
 
-  --pending: 262 83% 58%;
+  --pending: 199 70% 45%;
   --pending-foreground: 0 0% 100%;
 
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 208 88% 33%;
+  --teal: 177 42% 55%;
+  --teal-foreground: 212 55% 15%;
 
-  --radius: 0.75rem;
+  --border: 202 24% 86%;
+  --input: 202 24% 86%;
+  --ring: 190 56% 40%;
 
-  --sidebar-background: 0 0% 100%;
-  --sidebar-foreground: 222 47% 11%;
-  --sidebar-primary: 208 100% 22%;
+  --radius: 0.55rem;
+
+  --sidebar-background: 212 55% 15%;
+  --sidebar-foreground: 200 30% 88%;
+  --sidebar-primary: 190 56% 42%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 216 90% 95%;
-  --sidebar-accent-foreground: 208 100% 22%;
-  --sidebar-border: 214 32% 91%;
-  --sidebar-ring: 208 88% 33%;
+  --sidebar-accent: 206 45% 22%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 206 40% 24%;
+  --sidebar-ring: 190 56% 45%;
+
+  --surface: 205 42% 99%;
+  --surface-2: 202 34% 96%;
+  --hero: 212 55% 15%;
+  --hero-foreground: 190 45% 96%;
+
+  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+  --gradient-hero: linear-gradient(150deg, hsl(212 60% 12%), hsl(200 55% 22%));
+  --shadow-soft: 0 1px 2px hsl(var(--foreground) / 0.05), 0 8px 24px -16px hsl(var(--foreground) / 0.25);
+  --shadow-lift: 0 2px 4px hsl(var(--foreground) / 0.04), 0 20px 40px -24px hsl(var(--foreground) / 0.28);
 }
 
 .dark {
-  /* Portal dark theme: #0c1220 canvas, #141e30 cards, #253553 borders */
-  --background: 222 45% 9%;
-  --foreground: 214 32% 91%;
+  --background: 212 40% 8%;
+  --foreground: 195 30% 93%;
 
-  --card: 219 41% 13%;
-  --card-foreground: 214 32% 91%;
+  --card: 210 34% 11%;
+  --card-foreground: 195 30% 93%;
 
-  --popover: 219 41% 13%;
-  --popover-foreground: 214 32% 91%;
+  --popover: 210 34% 11%;
+  --popover-foreground: 195 30% 93%;
 
-  --primary: 205 90% 52%;
-  --primary-foreground: 222 45% 9%;
-  --primary-light: 199 89% 60%;
-  --primary-soft: 219 42% 18%;
+  --primary: 190 56% 48%;
+  --primary-foreground: 212 55% 10%;
+  --primary-glow: 177 42% 58%;
+  --primary-light: 190 60% 58%;
+  --primary-soft: 205 32% 19%;
 
-  --secondary: 219 42% 18%;
-  --secondary-foreground: 214 32% 91%;
+  --secondary: 210 28% 16%;
+  --secondary-foreground: 195 30% 93%;
 
-  --muted: 219 40% 16%;
-  --muted-foreground: 215 20% 65%;
+  --muted: 210 26% 15%;
+  --muted-foreground: 200 15% 65%;
 
-  --accent: 219 42% 18%;
-  --accent-foreground: 214 32% 91%;
-  --accent-soft: 219 42% 18%;
+  --accent: 205 32% 19%;
+  --accent-foreground: 195 30% 93%;
+  --accent-soft: 205 32% 19%;
 
-  --brand: 199 89% 55%;
-  --brand-foreground: 222 45% 9%;
+  --brand: 190 60% 52%;
+  --brand-foreground: 212 55% 10%;
 
-  --destructive: 0 72% 51%;
+  --destructive: 0 70% 56%;
   --destructive-foreground: 0 0% 100%;
 
-  --success: 142 69% 45%;
-  --success-foreground: 222 45% 9%;
+  --success: 168 58% 42%;
+  --success-foreground: 212 55% 10%;
 
-  --warning: 38 92% 55%;
-  --warning-foreground: 222 45% 9%;
+  --warning: 43 90% 55%;
+  --warning-foreground: 212 55% 10%;
 
-  --info: 199 89% 55%;
-  --info-foreground: 222 45% 9%;
+  --info: 190 60% 52%;
+  --info-foreground: 212 55% 10%;
 
-  --pending: 262 83% 65%;
-  --pending-foreground: 222 45% 9%;
+  --pending: 199 70% 55%;
+  --pending-foreground: 212 55% 10%;
 
-  --border: 219 38% 24%;
-  --input: 219 38% 24%;
-  --ring: 199 89% 55%;
+  --teal: 177 42% 58%;
+  --teal-foreground: 212 55% 10%;
 
-  --sidebar-background: 221 39% 11%;
-  --sidebar-foreground: 214 32% 91%;
-  --sidebar-primary: 205 90% 52%;
-  --sidebar-primary-foreground: 222 45% 9%;
-  --sidebar-accent: 219 42% 18%;
-  --sidebar-accent-foreground: 214 32% 91%;
-  --sidebar-border: 219 38% 24%;
-  --sidebar-ring: 199 89% 55%;
+  --border: 208 24% 22%;
+  --input: 208 24% 22%;
+  --ring: 190 56% 52%;
+
+  --sidebar-background: 212 45% 10%;
+  --sidebar-foreground: 195 25% 88%;
+  --sidebar-primary: 190 56% 50%;
+  --sidebar-primary-foreground: 212 55% 10%;
+  --sidebar-accent: 208 30% 17%;
+  --sidebar-accent-foreground: 195 30% 93%;
+  --sidebar-border: 208 26% 20%;
+  --sidebar-ring: 190 56% 52%;
+
+  --surface: 212 40% 9%;
+  --surface-2: 210 30% 13%;
+  --hero: 212 45% 9%;
+  --hero-foreground: 195 30% 95%;
+
+  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+  --gradient-hero: linear-gradient(150deg, hsl(212 50% 9%), hsl(200 40% 16%));
+  --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 8px 24px -16px hsl(0 0% 0% / 0.6);
+  --shadow-lift: 0 2px 4px hsl(0 0% 0% / 0.4), 0 20px 40px -24px hsl(0 0% 0% / 0.7);
 }
 
 @layer base {
@@ -229,21 +268,33 @@
   }
 
   html {
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-family: "Figtree", system-ui, -apple-system, sans-serif;
   }
 
   body {
-    background-color: hsl(var(--background));
+    background-color: hsl(var(--surface));
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: "cv11", "ss01";
+    background-image:
+      radial-gradient(circle at 18% 0%, hsl(var(--primary) / 0.08), transparent 34%),
+      linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--background)) 46%, hsl(var(--surface-2)) 100%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Outfit", "Figtree", system-ui, sans-serif;
+    letter-spacing: -0.015em;
   }
 
   code,
   kbd,
   pre {
     font-family: "JetBrains Mono", monospace;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
   }
 }
 
@@ -256,7 +307,8 @@
 }
 
 @utility portal-card {
-  @apply rounded-xl border border-border bg-card shadow-sm;
+  @apply rounded-xl border border-border bg-card;
+  box-shadow: var(--shadow-soft);
 }
 
 @utility scrollbar-thin {
@@ -273,20 +325,56 @@
 
   &::-webkit-scrollbar-thumb {
     background: hsl(var(--border));
-    border-radius: 3px;
+    border-radius: 999px;
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.5);
+    background: hsl(var(--muted-foreground) / 0.45);
   }
 }
 
 @utility enterprise-shadow {
-  box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+  box-shadow: var(--shadow-soft);
 }
 
 @utility enterprise-shadow-md {
-  box-shadow:
-    0 4px 12px -4px rgb(15 23 42 / 0.08),
-    0 1px 2px 0 rgb(15 23 42 / 0.04);
+  box-shadow: var(--shadow-lift);
+}
+
+@utility enterprise-panel {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-soft);
+}
+
+@utility app-shell-surface {
+  background: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-2)) 100%);
+}
+
+@utility surface-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
+
+  &:hover {
+    box-shadow: var(--shadow-lift);
+    border-color: hsl(var(--primary) / 0.35);
+  }
+}
+
+@utility gradient-primary {
+  background-image: var(--gradient-primary);
+}
+
+@utility gradient-hero {
+  background-image: var(--gradient-hero);
+}
+
+@utility enterprise-grid {
+  background-image:
+    linear-gradient(to right, hsl(var(--border) / 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--border) / 0.35) 1px, transparent 1px);
+  background-size: 44px 44px;
 }
