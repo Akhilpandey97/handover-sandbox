@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BrdRouteImport } from './routes/brd'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PortalMidRouteImport } from './routes/portal.$mid'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-actions'
 import { Route as ApiPublicAiChatRouteImport } from './routes/api/public/ai-chat'
 import { Route as ApiPublicAiFieldMappingRouteImport } from './routes/api/public/ai-field-mapping'
@@ -67,6 +68,11 @@ const PortalMidRoute = PortalMidRouteImport.update({
   id: '/$mid',
   path: '/$mid',
   getParentRoute: () => PortalRoute,
+} as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicAiActionsRoute = ApiPublicAiActionsRouteImport.update({
   id: '/api/public/ai-actions',
@@ -267,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -307,6 +314,7 @@ export interface FileRoutesByTo {
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -348,6 +356,7 @@ export interface FileRoutesById {
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
     | '/brd'
     | '/portal'
     | '/portal/$mid'
+    | '/projects/$projectId'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -430,6 +440,7 @@ export interface FileRouteTypes {
     | '/brd'
     | '/portal'
     | '/portal/$mid'
+    | '/projects/$projectId'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/brd'
     | '/portal'
     | '/portal/$mid'
+    | '/projects/$projectId'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -510,6 +522,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BrdRoute: typeof BrdRoute
   PortalRoute: typeof PortalRouteWithChildren
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ApiPublicAiActionsRoute: typeof ApiPublicAiActionsRoute
   ApiPublicAiChatRoute: typeof ApiPublicAiChatRoute
   ApiPublicAiFieldMappingRoute: typeof ApiPublicAiFieldMappingRoute
@@ -574,6 +587,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/portal/$mid'
       preLoaderRoute: typeof PortalMidRouteImport
       parentRoute: typeof PortalRoute
+    }
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/ai-actions': {
       id: '/api/public/ai-actions'
@@ -846,6 +866,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BrdRoute: BrdRoute,
   PortalRoute: PortalRouteWithChildren,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ApiPublicAiActionsRoute: ApiPublicAiActionsRoute,
   ApiPublicAiChatRoute: ApiPublicAiChatRoute,
   ApiPublicAiFieldMappingRoute: ApiPublicAiFieldMappingRoute,

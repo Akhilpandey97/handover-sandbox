@@ -35,12 +35,14 @@ interface ChecklistDialogProps {
   project: Project | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  variant?: "dialog" | "inline";
 }
 
 export const ChecklistDialog = ({
   project,
   open,
   onOpenChange,
+  variant = "dialog",
 }: ChecklistDialogProps) => {
   const { updateChecklist, toggleChecklistResponsibility } = useProjects();
   const { currentUser } = useAuth();
@@ -229,9 +231,22 @@ export const ChecklistDialog = ({
     high: "text-red-600 bg-red-500/10",
   };
 
+  const Shell = ({ children }: { children: React.ReactNode }) =>
+    variant === "inline" ? (
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card p-5">
+        {children}
+      </div>
+    ) : (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="w-[95vw] max-w-[95vw] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden">
+          {children}
+        </DialogContent>
+      </Dialog>
+    );
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[95vw] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden">
+    <Shell>
+
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
@@ -684,7 +699,6 @@ export const ChecklistDialog = ({
             profiles={profiles}
           />
         )}
-      </DialogContent>
-    </Dialog>
+    </Shell>
   );
 };

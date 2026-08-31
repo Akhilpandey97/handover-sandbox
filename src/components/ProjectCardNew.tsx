@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
+import { useNavigate } from "@tanstack/react-router";
 import { ChecklistDialog } from "./ChecklistDialog";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { TransferDialog } from "./TransferDialog";
@@ -98,6 +99,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
   const { acceptProject, transferProject, updateProject, deleteProject, rejectProject } = useProjects();
   const { teamLabels, responsibilityLabels, getLabel, stateLabels } = useLabels();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const navigate = useNavigate();
   const [checklistOpen, setChecklistOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
@@ -486,7 +488,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                   variant="ghost" 
                   size="sm" 
                   className="w-full justify-start gap-2 h-9 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 border border-blue-200/60 dark:border-blue-800/40 text-blue-700 dark:text-blue-300 text-xs"
-                  onClick={() => setDetailsOpen(true)}
+                  onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
                 >
                   <FileText className="h-3.5 w-3.5" />
                   View Details
