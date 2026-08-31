@@ -238,15 +238,15 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
         className="border border-sky-200 bg-sky-50/70 shadow-sm hover:bg-sky-100/70 hover:shadow-lg transition-all duration-300 overflow-hidden dark:border-sky-800 dark:bg-sky-950/30 dark:hover:bg-sky-950/45"
       >
         <CardContent className="p-0">
-          <div className="flex items-stretch">
-            {/* Left Section - Main Info */}
-            <div className="flex-1 p-5">
+          <div>
+            {/* Main project information */}
+            <div className="p-5 pb-4">
               {/* Header Row */}
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <button
-                      className="font-bold text-lg leading-tight text-foreground dark:text-black hover:text-primary hover:underline cursor-pointer transition-colors text-left"
+                      className="font-bold text-lg leading-tight text-foreground hover:text-primary hover:underline cursor-pointer transition-colors text-left"
                       onClick={(e) => { e.stopPropagation(); setActivityHistoryOpen(true); }}
                     >
                       {project.merchantName}
@@ -360,9 +360,9 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
               </div>
 
               {/* Stats Row */}
-              <div className="grid grid-cols-4 gap-2 mb-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {/* ARR */}
-                <div className="bg-muted/50 dark:bg-[hsl(222,16%,22%)] rounded-lg p-2.5 border border-border/50 dark:border-border/30">
+                <div className="rounded-lg border border-sky-200/80 bg-white/45 p-2.5 dark:border-sky-800/60 dark:bg-sky-950/20">
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
                     <TrendingUp className="h-3 w-3" />
                     {getLabel("field_arr")}
@@ -371,7 +371,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 </div>
 
                 {/* Pending With */}
-                <div className="bg-muted/50 dark:bg-[hsl(222,16%,22%)] rounded-lg p-2.5 border border-border/50 dark:border-border/30">
+                <div className="rounded-lg border border-sky-200/80 bg-white/45 p-2.5 dark:border-sky-800/60 dark:bg-sky-950/20">
                   <div className="text-[10px] text-muted-foreground mb-0.5">Pending With</div>
                   <div className={`flex items-center gap-1 font-semibold ${responsibility.color} px-1.5 py-0.5 rounded-md w-fit`}>
                     <responsibility.icon className="h-3.5 w-3.5" />
@@ -380,7 +380,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 </div>
 
                 {/* Time Tracked */}
-                <div className="bg-muted/50 dark:bg-[hsl(222,16%,22%)] rounded-lg p-2.5 border border-border/50 dark:border-border/30">
+                <div className="rounded-lg border border-sky-200/80 bg-white/45 p-2.5 dark:border-sky-800/60 dark:bg-sky-950/20">
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
                     <Clock className="h-3 w-3" />
                     Time
@@ -393,7 +393,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 </div>
 
                 {/* Checklist Team-wise */}
-                <div className="bg-muted/50 dark:bg-[hsl(222,16%,22%)] rounded-lg p-2.5 border border-border/50 dark:border-border/30">
+                <div className="rounded-lg border border-sky-200/80 bg-white/45 p-2.5 dark:border-sky-800/60 dark:bg-sky-950/20">
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
                     <ClipboardList className="h-3 w-3" />
                     Checklist
@@ -413,13 +413,13 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
 
             </div>
 
-            {/* Right Section - Actions */}
-            <div className="border-t border-sky-200/80 bg-sky-100/40 p-3 dark:border-sky-800/60 dark:bg-sky-950/20">
+            {/* Card actions */}
+            <div className="border-t border-sky-200/80 bg-sky-100/55 p-3 dark:border-sky-800/60 dark:bg-sky-950/25">
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="w-full justify-center gap-2 h-9 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 hover:text-white text-xs"
+                  className="gradient-primary w-full justify-center gap-2 h-9 border-0 text-xs text-primary-foreground shadow-sm hover:opacity-90"
                   onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
                 >
                   <FileText className="h-3.5 w-3.5" />
@@ -428,7 +428,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="w-full justify-center gap-2 h-9 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 hover:text-white text-xs"
+                  className="gradient-primary w-full justify-center gap-2 h-9 border-0 text-xs text-primary-foreground shadow-sm hover:opacity-90"
                   onClick={() => setChecklistOpen(true)}
                 >
                   <ClipboardList className="h-3.5 w-3.5" />
@@ -437,7 +437,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="w-full justify-center gap-2 h-9 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 hover:text-white text-xs"
+                  className="gradient-primary w-full justify-center gap-2 h-9 border-0 text-xs text-primary-foreground shadow-sm hover:opacity-90"
                   onClick={() => setEditOpen(true)}
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -446,7 +446,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-center gap-2 h-9 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 hover:text-white text-xs"
+                  className="gradient-primary w-full justify-center gap-2 h-9 border-0 text-xs text-primary-foreground shadow-sm hover:opacity-90"
                   onClick={() => setActivityHistoryOpen(true)}
                 >
                   <Activity className="h-3.5 w-3.5" />
