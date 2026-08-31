@@ -235,8 +235,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
   return (
     <>
       <Card
-        className={`${hasDynamicCardBg ? '' : phaseStyle.bg} ${phaseStyle.border} border hover:shadow-lg transition-all duration-300 overflow-hidden`}
-        style={hasDynamicCardBg ? { backgroundColor: cardBgColor } : undefined}
+        className="border border-sky-200 bg-sky-50/70 shadow-sm hover:bg-sky-100/70 hover:shadow-lg transition-all duration-300 overflow-hidden dark:border-sky-800 dark:bg-sky-950/30 dark:hover:bg-sky-950/45"
       >
         <CardContent className="p-0">
           <div className="flex items-stretch">
@@ -278,20 +277,6 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                     >
                       {(teamLabels[project.currentOwnerTeam] || project.currentPhase).toUpperCase()}
                     </Badge>
-                    <Badge variant="outline" className="text-xs px-2.5 py-0.5 font-mono bg-muted/50">
-                      {project.mid}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="text-xs px-2.5 py-0.5 font-mono bg-muted/50 text-muted-foreground cursor-pointer hover:bg-muted"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigator.clipboard.writeText(project.id);
-                        toast.success("Project ID copied");
-                      }}
-                    >
-                      {project.id.slice(0, 8)}…
-                    </Badge>
                     {project.assignedOwnerName && (
                       <Badge variant="outline" className="text-xs px-2.5 py-0.5 bg-muted/50">
                         <User className="h-3 w-3 mr-1" />
@@ -321,22 +306,6 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                         </Badge>
                       </a>
                     )}
-                    <Badge
-                      variant="outline"
-                      className="text-xs px-2.5 py-0.5 bg-gradient-to-r from-violet-50 to-indigo-50 hover:from-violet-100 hover:to-indigo-100 dark:from-violet-950/40 dark:to-indigo-950/40 border-violet-200/60 dark:border-violet-800/40 text-violet-700 dark:text-violet-300 cursor-pointer"
-                      onClick={() => handleAiAction("insights")}
-                    >
-                      <Brain className="h-3 w-3 mr-1" />
-                      AI Insights
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="text-xs px-2.5 py-0.5 bg-gradient-to-r from-cyan-50 to-sky-50 hover:from-cyan-100 hover:to-sky-100 dark:from-cyan-950/40 dark:to-sky-950/40 border-cyan-200/60 dark:border-cyan-800/40 text-cyan-700 dark:text-cyan-300 cursor-pointer"
-                      onClick={() => handleAiAction("summary")}
-                    >
-                      <ListChecks className="h-3 w-3 mr-1" />
-                      AI Task Summary
-                    </Badge>
                     {(isPending || canTransfer) && (
                       isPending ? (
                         <>
