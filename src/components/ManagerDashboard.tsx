@@ -926,12 +926,12 @@ export const ManagerDashboard = () => {
           onDragOver={(e) => handleTabDragOver(e, tab)}
           onDragEnd={handleTabDragEnd}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left group",
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group",
             isActive && !isReports && !isSettings
-              ? "bg-primary text-primary-foreground shadow-sm"
+              ? "gradient-primary text-primary-foreground shadow-[var(--shadow-soft)]"
               : isParentActive
-              ? "bg-muted text-foreground font-semibold"
-              : "hover:bg-muted/60 text-foreground/60 hover:text-foreground",
+              ? "bg-primary/20 text-sidebar-foreground font-semibold"
+              : "hover:bg-sidebar-accent/60 text-sidebar-foreground",
             draggedTab === tab ? "opacity-50" : ""
           )}
         >
@@ -941,7 +941,7 @@ export const ManagerDashboard = () => {
               ? "bg-primary-foreground/20 text-primary-foreground"
               : isParentActive
               ? "bg-primary/10 text-primary"
-              : "bg-muted/80 text-foreground/50 group-hover:text-foreground"
+              : "bg-sidebar-accent text-sidebar-foreground group-hover:text-sidebar-foreground"
           )}>
             {TAB_CONFIG[tab].icon}
           </span>
@@ -965,7 +965,7 @@ export const ManagerDashboard = () => {
                   "w-full flex items-center gap-2.5 text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
                   reportSubTab === key && activeTab === "reports"
                     ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-foreground/60 hover:text-foreground hover:bg-muted/60"
+                    : "text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                 )}
               >
                 {cfg.icon && <span className="text-base">{cfg.icon}</span>}
@@ -999,26 +999,25 @@ export const ManagerDashboard = () => {
   };
 
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
+    <div className="h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground flex">
       {/* Left Sidebar — collapsible */}
       <aside className={cn(
-        "bg-card border-r border-border flex flex-col shrink-0 transition-all duration-300 relative",
-        sidebarCollapsed ? "w-16" : "w-72"
+        "bg-sidebar text-sidebar-foreground flex flex-col shrink-0 transition-all duration-300 relative",
+        sidebarCollapsed ? "w-16" : "w-[212px]"
       )}>
         {/* Logo & Title */}
-        <div className="p-5 border-b border-border">
+        <div className="px-4 py-4">
           <div className="flex items-center gap-3">
             {appLabels.org_logo_url ? (
-              <img src={appLabels.org_logo_url} alt="Logo" className={cn("rounded-xl object-contain ring-1 ring-border", sidebarCollapsed ? "h-8 w-8" : "h-12 w-12")} />
+              <img src={appLabels.org_logo_url} alt="Logo" className={cn("rounded-xl object-contain shadow-lg ring-2 ring-primary/20", sidebarCollapsed ? "h-8 w-8" : "h-12 w-12")} />
             ) : (
-              <div className={cn("rounded-xl bg-primary flex items-center justify-center shadow-sm", sidebarCollapsed ? "h-8 w-8" : "h-12 w-12")}>
-                <BarChart3 className={cn(sidebarCollapsed ? "h-4 w-4" : "h-6 w-6", "text-primary-foreground")} />
+              <div className={cn("rounded-xl gradient-primary flex items-center justify-center shadow-[var(--shadow-soft)]", sidebarCollapsed ? "h-8 w-8" : "h-11 w-11")}>
+                <BarChart3 className={cn(sidebarCollapsed ? "h-4 w-4" : "h-5 w-5", "text-primary-foreground")} />
               </div>
             )}
             {!sidebarCollapsed && (
-              <div>
-                <h1 className="font-bold text-base text-foreground">{appLabels.app_title}</h1>
-                <p className="text-xs text-muted-foreground">{appLabels.app_subtitle}</p>
+              <div className="min-w-0">
+                <h1 className="font-semibold text-[16px] leading-tight text-sidebar-foreground truncate">{appLabels.app_title}</h1>
               </div>
             )}
           </div>
@@ -1027,7 +1026,7 @@ export const ManagerDashboard = () => {
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 overflow-y-auto">
           {!sidebarCollapsed && (
-            <p className="text-[11px] font-semibold text-muted-foreground/60 uppercase tracking-widest mb-3 px-4">
+            <p className="text-[11px] font-semibold text-sidebar-foreground uppercase tracking-widest mb-3 px-4">
               Navigation
             </p>
           )}
@@ -1043,8 +1042,8 @@ export const ManagerDashboard = () => {
                 className={cn(
                   "w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200",
                   activeTab === tab
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "hover:bg-muted/60 text-foreground/60 hover:text-foreground"
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                    : "hover:bg-sidebar-accent/60 text-sidebar-foreground"
                 )}
                 title={TAB_CONFIG[tab]?.label}
               >
@@ -1064,12 +1063,12 @@ export const ManagerDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex min-h-0 flex-col min-w-0">
         {/* Header */}
-        <header className="h-14 border-b border-border bg-sidebar flex items-center justify-between px-6 shrink-0 shadow-sm">
+        <header className="h-16 border-b border-border bg-card/95 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold">{activeTabLabel}</h2>
+              <h2 className="text-xl font-bold">{activeTabLabel}</h2>
             </div>
             <span className="text-xs text-muted-foreground">
               {activeTab === "projects" ? `${filteredProjects.length} project${filteredProjects.length !== 1 ? "s" : ""} found` : appLabels.app_subtitle}
@@ -1132,7 +1131,7 @@ export const ManagerDashboard = () => {
             <KanbanBoard />
           </div>
         ) : (
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 app-shell-surface">
           <div className="p-0">
 
 
