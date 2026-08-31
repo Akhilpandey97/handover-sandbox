@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -15,9 +16,9 @@ const ALLOWED_OWNERS = [
   "deepak.sharma@gokwik.co",
 ];
 
-function gmailHeaders() {
+function gmailHeaders(googleKey?: string | null) {
   const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-  const GOOGLE_MAIL_API_KEY = process.env['GOOGLE_MAIL_API_KEY'];
+  const GOOGLE_MAIL_API_KEY = googleKey || process.env['GOOGLE_MAIL_API_KEY'];
   if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
   if (!GOOGLE_MAIL_API_KEY) throw new Error("Gmail connector not linked");
   return {
@@ -71,7 +72,8 @@ async function handler(req: Request): Promise<Response> {
       });
     }
 
-    const gHeaders = gmailHeaders();
+    const creds = await getTenantIntegrations(await tenantIdFromRequest(req));
+      const gHeaders = gmailHeaders(creds.google_mail_api_key);
 
     // Fetch original message to get thread + headers
     const msgRes = await fetch(

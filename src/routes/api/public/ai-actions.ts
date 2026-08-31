@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -252,7 +253,7 @@ async function handler(req: Request): Promise<Response> {
         const brdLink = `${appUrl}/brd?token=${session.token}`;
 
         // Send email via Resend
-        const RESEND_API_KEY = process.env['RESEND_API_KEY'];
+        const RESEND_API_KEY = (await getTenantIntegrations(tenantId)).resend_api_key;
         if (RESEND_API_KEY) {
           const emailResponse = await fetch("https://api.resend.com/emails", {
             method: "POST",

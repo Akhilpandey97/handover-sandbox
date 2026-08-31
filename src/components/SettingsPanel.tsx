@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Save, RotateCcw, Settings, Palette, Tags, Layers, Mail, FileText, Zap, Activity, Bell } from "lucide-react";
+import { Save, RotateCcw, Settings, Palette, Tags, Layers, Mail, FileText, Zap, Activity, Bell, Plug } from "lucide-react";
 import { LogoUpload } from "./LogoUpload";
 import { CustomFieldsManager } from "./settings/CustomFieldsManager";
 import { ChecklistFormsManager } from "./settings/ChecklistFormsManager";
@@ -16,6 +16,7 @@ import { WorkflowsManager } from "./settings/WorkflowsManager";
 import { ActivityLogViewer } from "./settings/ActivityLogViewer";
 import { SlackAlertsSettings } from "./settings/SlackAlertsSettings";
 import { FunnelStagesSettings } from "./settings/FunnelStagesSettings";
+import { IntegrationsSettings } from "./settings/IntegrationsSettings";
 
 interface LabelGroup {
   title: string;
@@ -360,6 +361,9 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
             <TabsTrigger value="funnel" className="gap-1.5">
               <Layers className="h-3.5 w-3.5" />Funnel Stages
             </TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-1.5">
+              <Plug className="h-3.5 w-3.5" />Integrations
+            </TabsTrigger>
             <TabsTrigger value="activity-log" className="gap-1.5">
               <Activity className="h-3.5 w-3.5" />Activity Log
             </TabsTrigger>
@@ -378,6 +382,11 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
             </CardHeader>
             <CardContent>{renderLabelGroups(GENERAL_GROUPS)}</CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Integrations Tab */}
+        <TabsContent value="integrations">
+          <IntegrationsSettings />
         </TabsContent>
 
         {/* Workflow Tab */}

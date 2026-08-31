@@ -2426,6 +2426,74 @@ export type Database = {
           },
         ]
       }
+      tenant_integrations: {
+        Row: {
+          app_base_url: string | null
+          created_at: string
+          from_email: string | null
+          from_name: string | null
+          gmail_monitor_address: string | null
+          google_mail_api_key: string | null
+          id: string
+          jira_api_token: string | null
+          jira_base_url: string | null
+          jira_email: string | null
+          reply_to: string | null
+          resend_api_key: string | null
+          slack_bot_token: string | null
+          slack_channel: string | null
+          slack_webhook_url: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          app_base_url?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          gmail_monitor_address?: string | null
+          google_mail_api_key?: string | null
+          id?: string
+          jira_api_token?: string | null
+          jira_base_url?: string | null
+          jira_email?: string | null
+          reply_to?: string | null
+          resend_api_key?: string | null
+          slack_bot_token?: string | null
+          slack_channel?: string | null
+          slack_webhook_url?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          app_base_url?: string | null
+          created_at?: string
+          from_email?: string | null
+          from_name?: string | null
+          gmail_monitor_address?: string | null
+          google_mail_api_key?: string | null
+          id?: string
+          jira_api_token?: string | null
+          jira_base_url?: string | null
+          jira_email?: string | null
+          reply_to?: string | null
+          resend_api_key?: string | null
+          slack_bot_token?: string | null
+          slack_channel?: string | null
+          slack_webhook_url?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_integrations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenants: {
         Row: {
           created_at: string

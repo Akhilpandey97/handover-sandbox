@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -28,9 +29,11 @@ async function handler(req: Request): Promise<Response> {
   try {
     const SUPABASE_URL = process.env['SUPABASE_URL']!;
     const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-    const JIRA_BASE_URL = (process.env['JIRA_BASE_URL'] || "").replace(/\/+$/, "");
-    const JIRA_EMAIL = process.env['JIRA_EMAIL'];
-    const JIRA_API_TOKEN = process.env['JIRA_API_TOKEN'];
+    const __body0 = await req.clone().json().catch(() => ({} as any));
+    const creds = await getTenantIntegrations(await tenantIdFromRequest(req, __body0.tenant_id));
+    const JIRA_BASE_URL = (creds.jira_base_url || "").replace(/\/+$/, "");
+    const JIRA_EMAIL = creds.jira_email;
+    const JIRA_API_TOKEN = creds.jira_api_token;
 
     if (!JIRA_BASE_URL || !JIRA_EMAIL || !JIRA_API_TOKEN) {
       return new Response(
