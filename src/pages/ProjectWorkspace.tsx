@@ -850,7 +850,38 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 ))}
               </div>
             </div>
+
+            <div className="p-4">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                    {aiSummaryLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Bot className="h-3 w-3" />}
+                  </div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">Executive summary</p>
+                </div>
+                <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-[11px]" onClick={() => void handleGenerateAiSummary()} disabled={aiSummaryLoading}>
+                  {aiSummary.length > 0 ? "Refresh" : "Generate"}
+                </Button>
+              </div>
+              <div className="space-y-1.5">
+                {aiSummaryLoading ? (
+                  <p className="text-xs text-muted-foreground">Generating summary...</p>
+                ) : aiSummaryError ? (
+                  <p className="text-xs text-warning">AI summary unavailable.</p>
+                ) : aiSummary.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Generate a summary when you need help assessing this project.</p>
+                ) : (
+                  summaryCards.map((card, index) => (
+                    <div key={card.title} className={cn("rounded-md border px-2.5 py-2", index === 0 ? "border-primary/20 bg-primary/5" : "border-border/40 bg-background/60")}>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">{card.title}</p>
+                      <p className="mt-0.5 text-xs leading-relaxed text-foreground">{card.body}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
+
         </ScrollArea>
 
         {/* CENTER PANEL — Tabs */}
