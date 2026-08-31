@@ -306,6 +306,18 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                         </Badge>
                       </a>
                     )}
+                    <Select value={project.projectState} onValueChange={(val) => handleStateChange(val as ProjectState)}>
+                      <SelectTrigger className="h-6 w-auto gap-1 rounded-full border border-blue-200 bg-white/70 px-2.5 py-0.5 text-xs font-medium text-slate-700 shadow-none focus:ring-0 dark:border-blue-800 dark:bg-blue-950/40 dark:text-slate-200">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(projectStateLabels).map(([key, label]) => (
+                          <SelectItem key={key} value={key} className="text-xs">
+                            {stateLabels[key] || label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {(isPending || canTransfer) && (
                       isPending ? (
                         <>
@@ -399,64 +411,15 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 </div>
               </div>
 
-              {/* Info Row */}
-              <div className="grid grid-cols-4 gap-2">
-                {/* Kick Off Date */}
-                <div className="bg-muted/50 dark:bg-[hsl(222,16%,22%)] rounded-lg p-2.5 border border-border/50 dark:border-border/30">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
-                    <Calendar className="h-3 w-3" />
-                    {getLabel("field_kick_off_date")}
-                  </div>
-                  <p className="text-sm font-semibold text-foreground">{project.dates.kickOffDate || "—"}</p>
-                </div>
-
-                {/* Expected Go Live Date */}
-                <div className="bg-muted/50 dark:bg-[hsl(222,16%,22%)] rounded-lg p-2.5 border border-border/50 dark:border-border/30">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
-                    <Calendar className="h-3 w-3" />
-                    {getLabel("field_expected_go_live_date")}
-                  </div>
-                  <p className="text-sm font-semibold text-foreground">{project.dates.expectedGoLiveDate || "—"}</p>
-                </div>
-
-                {/* Project Phase */}
-                <div className="bg-muted/50 dark:bg-[hsl(222,16%,22%)] rounded-lg p-2.5 border border-border/50 dark:border-border/30">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
-                    <Activity className="h-3 w-3" />
-                    Project Phase
-                  </div>
-                  <p className="text-sm font-semibold text-foreground truncate" title={projectPhaseDisplay}>{projectPhaseDisplay}</p>
-                </div>
-
-                {/* Project State */}
-                <div className="bg-muted/50 dark:bg-[hsl(222,16%,22%)] rounded-lg p-2.5 border border-border/50 dark:border-border/30">
-                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-0.5">
-                    <Activity className="h-3 w-3" />
-                    Project State
-                  </div>
-                  <Select value={project.projectState} onValueChange={(val) => handleStateChange(val as ProjectState)}>
-                    <SelectTrigger className="h-6 text-sm font-semibold border-0 p-0 shadow-none focus:ring-0 bg-transparent text-foreground">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(projectStateLabels).map(([key, label]) => (
-                        <SelectItem key={key} value={key} className="text-xs">
-                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${projectStateColors[key as ProjectState]}`}>{stateLabels[key] || label}</span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
             </div>
 
             {/* Right Section - Actions */}
-            <div className="w-44 border-l border-border/50 dark:border-border/30 bg-muted/30 dark:bg-[hsl(222,16%,13%)] p-3 flex flex-col">
-              <div className="flex-1 flex flex-col justify-center space-y-2.5">
+            <div className="border-t border-sky-200/80 bg-sky-100/40 p-3 dark:border-sky-800/60 dark:bg-sky-950/20">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="w-full justify-start gap-2 h-9 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 border border-blue-200/60 dark:border-blue-800/40 text-blue-700 dark:text-blue-300 text-xs"
+                  className="w-full justify-center gap-2 h-9 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 hover:text-white text-xs"
                   onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
                 >
                   <FileText className="h-3.5 w-3.5" />
@@ -465,7 +428,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="w-full justify-start gap-2 h-9 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/30 dark:hover:bg-purple-900/40 border border-purple-200/60 dark:border-purple-800/40 text-purple-700 dark:text-purple-300 text-xs"
+                  className="w-full justify-center gap-2 h-9 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 hover:text-white text-xs"
                   onClick={() => setChecklistOpen(true)}
                 >
                   <ClipboardList className="h-3.5 w-3.5" />
@@ -474,34 +437,21 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="w-full justify-start gap-2 h-9 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-900/40 border border-amber-200/60 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 text-xs"
+                  className="w-full justify-center gap-2 h-9 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 hover:text-white text-xs"
                   onClick={() => setEditOpen(true)}
                 >
                   <Pencil className="h-3.5 w-3.5" />
                   Edit Project
                 </Button>
-                {currentUser?.team === "manager" && (
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start gap-2 h-9 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/30 dark:hover:bg-teal-900/40 border border-teal-200/60 dark:border-teal-800/40 text-teal-700 dark:text-teal-300 text-xs"
-                      onClick={() => setAssignOpen(true)}
-                    >
-                      <UserPlus className="h-3.5 w-3.5" />
-                      Assign Owner
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full justify-start gap-2 h-9 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 border border-red-200/60 dark:border-red-800/40 text-red-700 dark:text-red-300 text-xs"
-                      onClick={() => setDeleteConfirmOpen(true)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Delete
-                    </Button>
-                  </>
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-center gap-2 h-9 border border-blue-700 bg-blue-700 text-white hover:bg-blue-800 hover:text-white text-xs"
+                  onClick={() => setActivityHistoryOpen(true)}
+                >
+                  <Activity className="h-3.5 w-3.5" />
+                  Activity History
+                </Button>
               </div>
             </div>
           </div>
