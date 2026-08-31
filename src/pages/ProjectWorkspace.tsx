@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
+import { useParams } from "@/lib/router-compat";
 import { LoginScreen } from "@/components/LoginScreen";
 import { AssignOwnerDialog } from "@/components/AssignOwnerDialog";
 import { ChecklistDialog } from "@/components/ChecklistDialog";
@@ -488,7 +489,7 @@ const buildActionDrivenSummary = (
 };
 
 export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false, onClose, projectIds, onNavigate }: ProjectWorkspaceProps) => {
-  const { projectId: routeProjectId } = useParams();
+  const { projectId: routeProjectId } = useParams<{ projectId?: string }>();
   const projectId = projectIdProp || routeProjectId;
   const { isAuthenticated, isLoading, currentUser } = useAuth();
   const {
