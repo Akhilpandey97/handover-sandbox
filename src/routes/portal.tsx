@@ -5,16 +5,16 @@ export const Route = createFileRoute("/portal")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Merchant Onboarding Portal | GoKwik" },
+      { title: "Merchant Onboarding Portal | Handover" },
       {
         name: "description",
         content:
-          "Track your GoKwik onboarding progress, pending actions, documents and go-live date in your merchant portal.",
+          "Track your onboarding progress, pending actions, documents and go-live date in your merchant portal.",
       },
       { property: "og:title", content: "Merchant Onboarding Portal" },
       {
         property: "og:description",
-        content: "Live view of your GoKwik onboarding progress and pending actions.",
+        content: "Live view of your onboarding progress and pending actions.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

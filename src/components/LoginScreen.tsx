@@ -67,7 +67,7 @@ export const LoginScreen = () => {
             <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
               <Shield className="h-6 w-6 text-primary-foreground" />
             </div>
-            <h1 className="text-lg font-bold tracking-tight">ProjectHub</h1>
+            <h1 className="text-lg font-bold tracking-tight">Handover</h1>
           </div>
           <div className="space-y-4">
             <h2 className="text-2xl font-bold tracking-tight leading-snug">
@@ -102,7 +102,7 @@ export const LoginScreen = () => {
               <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
                 <Shield className="h-5 w-5 text-primary-foreground" />
               </div>
-              <h1 className="text-base font-bold">ProjectHub</h1>
+              <h1 className="text-base font-bold">Handover</h1>
             </div>
             <ThemeToggle />
           </div>
