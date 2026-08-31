@@ -1115,7 +1115,7 @@ export const ManagerDashboard = () => {
                 </div>
                 <div className="hidden sm:block min-w-0">
                   <p className="font-medium text-xs text-foreground truncate leading-tight">{currentUser?.name}</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight">{teamLabels[currentUser?.team] || "Manager"}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={logout} className="gap-1.5 h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10">
