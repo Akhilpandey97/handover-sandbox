@@ -235,15 +235,15 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
   return (
     <>
       <Card
-        className="border border-sky-200 bg-sky-50/70 shadow-sm hover:bg-sky-100/70 hover:shadow-lg transition-all duration-300 overflow-hidden dark:border-sky-800 dark:bg-sky-950/30 dark:hover:bg-sky-950/45"
+        className="border border-slate-200 bg-slate-50/80 shadow-sm transition-all duration-300 overflow-hidden hover:bg-white hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-900/70"
       >
         <CardContent className="p-0">
           <div>
             {/* Main project information */}
             <div className="p-5 pb-4">
               {/* Header Row */}
-              <div className="flex items-start justify-between mb-3">
-                <div>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <button
                       className="font-bold text-lg leading-tight text-foreground hover:text-primary hover:underline cursor-pointer transition-colors text-left"
@@ -307,7 +307,14 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                       </a>
                     )}
                     <Select value={project.projectState} onValueChange={(val) => handleStateChange(val as ProjectState)}>
-                      <SelectTrigger className="h-6 w-auto gap-1 rounded-full border border-blue-200 bg-white/70 px-2.5 py-0.5 text-xs font-medium text-slate-700 shadow-none focus:ring-0 dark:border-blue-800 dark:bg-blue-950/40 dark:text-slate-200">
+                      <SelectTrigger className={cn(
+                        "h-6 w-auto gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium shadow-none focus:ring-0",
+                        project.projectState === "live" && "border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+                        project.projectState === "in_progress" && "border-blue-300 bg-blue-100 text-blue-800 dark:border-blue-700 dark:bg-blue-950/50 dark:text-blue-300",
+                        project.projectState === "on_hold" && "border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+                        project.projectState === "not_started" && "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300",
+                        project.projectState === "blocked" && "border-red-300 bg-red-100 text-red-800 dark:border-red-700 dark:bg-red-950/50 dark:text-red-300",
+                      )}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -357,51 +364,52 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                     )}
                   </div>
                 </div>
+                <div className="flex shrink-0 items-center gap-1.5 pt-0.5">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-slate-600 hover:bg-blue-100 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                    onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
+                    title="View details"
+                    aria-label="View details"
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-slate-600 hover:bg-blue-100 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                    onClick={() => setChecklistOpen(true)}
+                    title="Open checklist"
+                    aria-label="Open checklist"
+                  >
+                    <ClipboardList className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-slate-600 hover:bg-blue-100 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                    onClick={() => setEditOpen(true)}
+                    title="Edit project"
+                    aria-label="Edit project"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-slate-600 hover:bg-blue-100 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                    onClick={() => setActivityHistoryOpen(true)}
+                    title="Activity history"
+                    aria-label="Activity history"
+                  >
+                    <Activity className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
             </div>
 
-            {/* Card actions */}
-            <div className="border-t border-sky-200/80 bg-sky-100/55 p-3 dark:border-sky-800/60 dark:bg-sky-950/25">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="gradient-primary w-full justify-center gap-2 h-9 border-0 text-xs text-primary-foreground shadow-sm hover:opacity-90"
-                  onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
-                >
-                  <FileText className="h-3.5 w-3.5" />
-                  View Details
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="gradient-primary w-full justify-center gap-2 h-9 border-0 text-xs text-primary-foreground shadow-sm hover:opacity-90"
-                  onClick={() => setChecklistOpen(true)}
-                >
-                  <ClipboardList className="h-3.5 w-3.5" />
-                  Open Checklist
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="gradient-primary w-full justify-center gap-2 h-9 border-0 text-xs text-primary-foreground shadow-sm hover:opacity-90"
-                  onClick={() => setEditOpen(true)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  Edit Project
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gradient-primary w-full justify-center gap-2 h-9 border-0 text-xs text-primary-foreground shadow-sm hover:opacity-90"
-                  onClick={() => setActivityHistoryOpen(true)}
-                >
-                  <Activity className="h-3.5 w-3.5" />
-                  Activity History
-                </Button>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
