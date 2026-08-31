@@ -167,6 +167,122 @@ export type Database = {
           },
         ]
       }
+      brd_responses: {
+        Row: {
+          created_at: string
+          field_id: string
+          id: string
+          session_id: string
+          tenant_id: string | null
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          field_id: string
+          id?: string
+          session_id: string
+          tenant_id?: string | null
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          field_id?: string
+          id?: string
+          session_id?: string
+          tenant_id?: string | null
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brd_responses_field_id_fkey"
+            columns: ["field_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_form_fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brd_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "brd_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brd_responses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brd_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          csv_url: string | null
+          form_template_id: string
+          id: string
+          merchant_email: string
+          project_id: string
+          status: string
+          tenant_id: string | null
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          csv_url?: string | null
+          form_template_id: string
+          id?: string
+          merchant_email: string
+          project_id: string
+          status?: string
+          tenant_id?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          csv_url?: string | null
+          form_template_id?: string
+          id?: string
+          merchant_email?: string
+          project_id?: string
+          status?: string
+          tenant_id?: string | null
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brd_sessions_form_template_id_fkey"
+            columns: ["form_template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_form_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brd_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brd_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
