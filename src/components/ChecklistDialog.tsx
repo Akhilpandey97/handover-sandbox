@@ -35,12 +35,14 @@ interface ChecklistDialogProps {
   project: Project | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  variant?: "dialog" | "inline";
 }
 
 export const ChecklistDialog = ({
   project,
   open,
   onOpenChange,
+  variant = "dialog",
 }: ChecklistDialogProps) => {
   const { updateChecklist, toggleChecklistResponsibility } = useProjects();
   const { currentUser } = useAuth();
@@ -697,7 +699,6 @@ export const ChecklistDialog = ({
             profiles={profiles}
           />
         )}
-      </DialogContent>
-    </Dialog>
+    </Shell>
   );
 };
