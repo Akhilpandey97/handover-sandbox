@@ -673,7 +673,7 @@ async function handler(req: Request): Promise<Response> {
       });
     }
 
-    const results = [];
+    const results: any[] = [];
     for (const report of dueReports) {
       if (!report.recipients || report.recipients.length === 0) {
         console.log(`Skipping report "${report.name}" — no recipients`);

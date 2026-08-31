@@ -196,7 +196,7 @@ async function findStuckItems(
   if (!items?.length) return [];
 
   const openItemIds = items.map((i: any) => i.id);
-  const itemById = new Map(items.map((i: any) => [i.id, i]));
+  const itemById = new Map<string, any>(items.map((i: any) => [i.id, i]));
 
   // Check for newer untagged comments per item (anything after the tagged comment)
   const { data: allRecent } = await supabase
