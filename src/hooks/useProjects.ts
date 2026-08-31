@@ -99,8 +99,11 @@ const transformDbChecklistItem = (row: any): ProjectChecklist => ({
 
 // Fetch all projects with related data
 export const useProjectsQuery = () => {
+  const { currentUser } = useAuth();
+
   return useQuery({
-    queryKey: ["projects"],
+    queryKey: ["projects", currentUser?.id],
+    enabled: !!currentUser,
     staleTime: 3 * 60_000, // 3 min — this pulls 5 tables, keep DB IO low
     gcTime: 15 * 60_000,
     refetchOnWindowFocus: false,
