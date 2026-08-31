@@ -127,16 +127,14 @@ export const FunnelStagesSettings = () => {
                   </div>
                 ) : (
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Checklist item titles (one per line, partial match)</Label>
-                    <Textarea
-                      rows={4}
-                      value={(stage.titles || []).join("\n")}
-                      onChange={(e) => update(idx, { titles: e.target.value.split("\n").map((t) => t.trim()).filter(Boolean) })}
-                      placeholder="requirement gathering"
-                      className="text-xs font-mono"
+                    <Label className="text-xs">Checklist items</Label>
+                    <ChecklistTitlePicker
+                      selected={stage.titles || []}
+                      onChange={(titles) => update(idx, { titles })}
                     />
                   </div>
                 )}
+
               </div>
             </div>
           ))}
