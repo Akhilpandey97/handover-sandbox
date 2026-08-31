@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeApi } from "@/lib/api-invoke";
 
 declare const XLSX: any;
 
@@ -80,7 +81,7 @@ const DEFAULT_TESTS: Omit<ChecklistRow, "status" | "notes">[] = [
 // ─── Edge function call ──────────────────────────────────────────────────────
 
 async function runTestWithAI(config: SandboxConfig, test: ChecklistRow): Promise<{ status: ResultStatus; notes: string; recommendation: string }> {
-  const { data, error } = await supabase.functions.invoke("sandbox-test", {
+  const { data, error } = await invokeApi("sandbox-test", {
     body: { config, test },
   });
 
