@@ -8,7 +8,6 @@ import { TenantManagement } from "./TenantManagement";
 import { SettingsPanel } from "./SettingsPanel";
 import { ChecklistManagement } from "./ChecklistManagement";
 import { BulkEditDialog, BulkFieldUpdates } from "./BulkEditDialog";
-import { ProjectCalendar } from "./ProjectCalendar";
 import { ParsedEmailsTab } from "./ParsedEmailsTab";
 import { PlatformMerchants } from "./PlatformMerchants";
 import { ShopifySmeTab } from "./ShopifySmeTab";
@@ -120,7 +119,7 @@ const PREDEFINED_REPORT_TYPES = ["executive", "operational", "merchant", "tactic
 
 // All nav items that can be toggled
 const ALL_NAV_ITEMS = ["dashboard", "projects", "listview", "kanban", "calendar", "risks", "reports", "checklist", "users", "settings", "emails", "archived"];
-type ProjectView = "board" | "list" | "kanban" | "golive";
+type ProjectView = "list" | "kanban" | "golive";
 
 export const ManagerDashboard = () => {
   const { currentUser, logout } = useAuth();
@@ -131,7 +130,7 @@ export const ManagerDashboard = () => {
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("");
-  const [projectView, setProjectView] = useState<ProjectView>("board");
+  const [projectView, setProjectView] = useState<ProjectView>("kanban");
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
   const [ownerFilter, setOwnerFilter] = useState<string[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string[]>([]);
@@ -1149,10 +1148,9 @@ export const ManagerDashboard = () => {
           {activeTab === "projects" && (
             <div className="mb-4 flex items-center gap-1 overflow-x-auto border-b border-border" role="tablist" aria-label="Project views">
               {[
-                { value: "board", label: "Board", icon: <FolderKanban className="h-4 w-4" /> },
-                { value: "list", label: "List", icon: <List className="h-4 w-4" /> },
                 { value: "kanban", label: "Kanban", icon: <GripVertical className="h-4 w-4" /> },
-                { value: "golive", label: "Go-Live", icon: <CalendarDays className="h-4 w-4" /> },
+                { value: "list", label: "List", icon: <List className="h-4 w-4" /> },
+                { value: "golive", label: "Go-Live Tracker", icon: <CalendarDays className="h-4 w-4" /> },
               ].map(({ value, label, icon }) => (
                 <button
                   key={value}
@@ -2139,7 +2137,7 @@ export const ManagerDashboard = () => {
           </div>}
 
           {activeTab === "projects" && projectView === "golive" && <div className="space-y-6">
-            <ProjectCalendar />
+            <MonthlyGoLiveTracker />
           </div>}
 
           {activeTab === "projects" && projectView === "kanban" && (
