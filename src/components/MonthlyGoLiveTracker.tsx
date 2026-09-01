@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -113,7 +114,8 @@ function dateLabel(dateStr: string | null) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} · W${weekOfMonth(dateStr).replace(/[^\d]/g, "")}`;
 }
 
-export const MonthlyGoLiveTracker = ({ toolbarContainer }: { toolbarContainer?: HTMLElement | null } = {}) => {
+export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { toolbarContainer?: HTMLElement | null; searchQuery?: string } = {}) => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const now = new Date();
   const defaultYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -269,13 +271,14 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer }: { toolbarContainer?: 
   };
 
   const sortedRows = useMemo(() => {
-    return [...projects].sort((a, b) => {
+    const query = searchQuery.trim().toLowerCase();
+    return projects.filter((project) => !query || project.merchant_name.toLowerCase().includes(query)).sort((a, b) => {
       const aBlocked = a.project_state === "blocked" ? 0 : 1;
       const bBlocked = b.project_state === "blocked" ? 0 : 1;
       if (aBlocked !== bBlocked) return aBlocked - bBlocked;
       return (a.expected_go_live_date || "").localeCompare(b.expected_go_live_date || "");
     });
-  }, [projects]);
+  }, [projects, searchQuery]);
 
   const openPicker = async () => {
     const { data } = await supabase
@@ -334,7 +337,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer }: { toolbarContainer?: 
               {monthOptions.map(m => <SelectItem key={m} value={m}>{ymToLabel(m)}</SelectItem>)}
             </SelectContent>
           </Select>
-          <span className="text-sm text-muted-foreground">{projects.length} project{projects.length !== 1 ? "s" : ""}</span>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={openPicker}><Plus className="h-4 w-4 mr-1" />Manage projects</Button>
@@ -364,14 +366,12 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer }: { toolbarContainer?: 
                 <TableHead className="font-semibold whitespace-nowrap">Confidence</TableHead>
                 <TableHead className="font-semibold whitespace-nowrap min-w-[140px]">Owner</TableHead>
                 <TableHead className="font-semibold whitespace-nowrap">Expected Go-live</TableHead>
-                <TableHead className="font-semibold text-center whitespace-nowrap">PG Creds</TableHead>
-                <TableHead className="font-semibold text-center whitespace-nowrap">DB Walk</TableHead>
                 <TableHead className="font-semibold whitespace-nowrap min-w-[140px]">CSM</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading && <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>}
-              {!loading && sortedRows.length === 0 && <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">No projects for {ymToLabel(month)}. Use "Manage projects" to tag projects.</TableCell></TableRow>}
+              {loading && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>}
+              {!loading && sortedRows.length === 0 && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No projects for {ymToLabel(month)}. Use "Manage projects" to tag projects.</TableCell></TableRow>}
               {sortedRows.map(p => {
                 const i = insights[p.id];
                 const isBlocked = p.project_state === "blocked" || (i?.confidence?.toLowerCase() === "low");
@@ -380,11 +380,11 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer }: { toolbarContainer?: 
                 const isUrl = /^https?:\/\//i.test(blockerText);
                 const stage = funnelStages[p.id] || "none";
                 return (
-                  <TableRow key={p.id} className={cn("hover:bg-muted/40", isBlocked && "bg-red-50/40 dark:bg-red-500/5")}>
+                  <TableRow key={p.id} onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-red-50/40 dark:bg-red-500/5")}>
                     <TableCell className={cn("font-medium whitespace-nowrap", isBlocked && "text-red-600 dark:text-red-400")} title={p.merchant_name}>
                       <button
                         type="button"
-                        onClick={() => setEditProjectId(p.id)}
+                        onClick={(event) => { event.stopPropagation(); navigate({ to: "/projects/$projectId", params: { projectId: p.id } }); }}
                         className="max-w-[220px] truncate text-left hover:text-primary hover:underline cursor-pointer"
                       >
                         {p.merchant_name}
@@ -457,18 +457,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer }: { toolbarContainer?: 
                       <div className="max-w-[160px] truncate">{owners[p.assigned_owner || ""] || "—"}</div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap tabular-nums">{dateLabel(p.expected_go_live_date)}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <Select value={i?.pg_creds || ""} onValueChange={v => updateInsight(p.id, "pg_creds", v)}>
-                        <SelectTrigger className="h-7 border-0 bg-transparent w-[70px] px-2"><SelectValue placeholder="—" /></SelectTrigger>
-                        <SelectContent><SelectItem value="Yes">Yes</SelectItem><SelectItem value="No">No</SelectItem></SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <Select value={i?.db_walkthrough || ""} onValueChange={v => updateInsight(p.id, "db_walkthrough", v)}>
-                        <SelectTrigger className="h-7 border-0 bg-transparent w-[70px] px-2"><SelectValue placeholder="—" /></SelectTrigger>
-                        <SelectContent><SelectItem value="Yes">Yes</SelectItem><SelectItem value="No">No</SelectItem></SelectContent>
-                      </Select>
-                    </TableCell>
                     <TableCell>
                       <Input
                         value={i?.csm_alignment ?? platformCsm[p.merchant_name.toLowerCase()] ?? ""}

@@ -99,13 +99,12 @@ function getColumnStyle(value: string, field: string) {
   return FALLBACK_STYLES[hash % FALLBACK_STYLES.length];
 }
 
-export const KanbanBoard = ({ projectsOverride, toolbarContainer }: { projectsOverride?: Project[]; toolbarContainer?: HTMLElement | null } = {}) => {
+export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = "" }: { projectsOverride?: Project[]; toolbarContainer?: HTMLElement | null; searchQuery?: string } = {}) => {
   const { projects: allProjects } = useProjects();
   const projects = projectsOverride ?? allProjects;
   const labels = useLabels();
   const { fields: customFields } = useCustomFields();
   const [groupField, setGroupField] = useState("funnelStage");
-  const [search, setSearch] = useState("");
   const [funnelStageFilter, setFunnelStageFilter] = useState<string[]>([]);
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string[]>([]);
@@ -163,7 +162,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer }: { projectsOv
   }, [activeProjects, customFields, customValuesMap]);
 
   const filteredProjects = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
     const csmField = customFields.find(f => f.field_key === "custom_csm_manager");
     return activeProjects.filter(p => {
       const matchesSearch = !q || p.merchantName?.toLowerCase().includes(q) || p.mid?.toLowerCase().includes(q);
@@ -187,7 +186,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer }: { projectsOv
       const matchesGoLiveInProgress = !goLiveInProgressOnly || (pct > 0 && pct < 100);
       return matchesSearch && matchesFunnel && matchesTeam && matchesPhase && matchesState && matchesPlatform && matchesCategory && matchesResponsibility && matchesCsm && matchesOwner && matchesArrMin && matchesArrMax && matchesGoLiveMin && matchesGoLiveMax && matchesGoLiveInProgress;
     });
-  }, [activeProjects, search, funnelStageFilter, teamFilter, phaseFilter, stateFilter, platformFilter, categoryFilter, responsibilityFilter, csmFilter, ownerFilter, arrMin, arrMax, goLiveMin, goLiveMax, goLiveInProgressOnly, customFields, customValuesMap]);
+  }, [activeProjects, searchQuery, funnelStageFilter, teamFilter, phaseFilter, stateFilter, platformFilter, categoryFilter, responsibilityFilter, csmFilter, ownerFilter, arrMin, arrMax, goLiveMin, goLiveMax, goLiveInProgressOnly, customFields, customValuesMap]);
 
   const allFieldOptions = useMemo(() => {
     const customOptions = customFields.map(f => ({ key: `custom_field_${f.id}`, label: f.field_label }));
@@ -269,10 +268,9 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer }: { projectsOv
     (arrMin ? 1 : 0) + (arrMax ? 1 : 0) +
     (goLiveMin ? 1 : 0) + (goLiveMax ? 1 : 0) + (goLiveInProgressOnly ? 1 : 0);
 
-  const hasFilters = !!search || activeFilterCount > 0;
+  const hasFilters = activeFilterCount > 0;
 
   const clearAllFilters = () => {
-    setSearch("");
     setFunnelStageFilter([]);
     setTeamFilter([]);
     setPhaseFilter([]);
@@ -300,16 +298,6 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer }: { projectsOv
 
   const toolbar = (
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search projects..."
-            className="h-8 pl-8 text-xs"
-          />
-        </div>
-
         <div className="flex items-center gap-1.5">
           <Label className="text-xs text-muted-foreground whitespace-nowrap">Group By:</Label>
           <Select value={groupField} onValueChange={setGroupField}>
@@ -438,11 +426,6 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer }: { projectsOv
           </Button>
         )}
 
-
-
-        <div className="ml-auto text-xs text-muted-foreground">
-          {filteredProjects.length} project{filteredProjects.length === 1 ? "" : "s"}
-        </div>
       </div>
   );
 

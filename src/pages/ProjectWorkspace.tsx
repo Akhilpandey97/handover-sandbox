@@ -56,6 +56,7 @@ import {
   Globe,
   Loader2,
   ListTodo,
+  Mail,
   MessageSquareText,
   Pencil,
   ShieldAlert,
@@ -508,6 +509,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const [aiSummary, setAiSummary] = useState<string[]>([]);
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [aiSummaryError, setAiSummaryError] = useState<string | null>(null);
+  const [sendingMagic, setSendingMagic] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     ownership: true,
     execution: true,
@@ -667,6 +669,29 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     }
   };
 
+  const handleSendMagicLink = async () => {
+    if (!project.contactEmail) {
+      toast.error("No merchant contact email set", { description: "Add a Merchant Contact Email in Edit Project first." });
+      return;
+    }
+    setSendingMagic(true);
+    try {
+      const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const response = await fetch("/api/public/merchant-portal-data/send-magic-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: key, Authorization: `Bearer ${key}` },
+        body: JSON.stringify({ project_id: project.id, app_url: window.location.origin }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.error || "Failed");
+      toast.success("Magic link sent!", { description: `Sent to ${result.sent_to}` });
+    } catch (error: any) {
+      toast.error("Failed to send magic link", { description: error.message });
+    } finally {
+      setSendingMagic(false);
+    }
+  };
+
   const handleSaveEdit = (updatedProject: Project) => {
     updateProject(updatedProject);
     toast.success("Project updated successfully");
@@ -758,7 +783,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 Assign owner
               </Button>
             ) : null}
-            <PortalLinkButton projectId={project.id} />
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-md px-3 text-sm font-semibold" onClick={handleSendMagicLink} disabled={sendingMagic}>
+              <Mail className="h-3.5 w-3.5" />
+              {sendingMagic ? "Sending..." : "Send Magic Link"}
+            </Button>
+            <PortalLinkButton projectId={project.id} label="Share Portal Link" />
             <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-md border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50" onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" />
               Edit project

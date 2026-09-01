@@ -16,7 +16,7 @@ import { toast } from "sonner";
 /**
  * Generates (or reuses) a shareable read-only customer portal link for a project.
  */
-export const PortalLinkButton = ({ projectId }: { projectId: string }) => {
+export const PortalLinkButton = ({ projectId, label = "Portal link" }: { projectId: string; label?: string }) => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
@@ -95,7 +95,7 @@ export const PortalLinkButton = ({ projectId }: { projectId: string }) => {
         disabled={isWorking}
       >
         {isWorking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2 className="h-3.5 w-3.5" />}
-        Portal link
+        {label}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

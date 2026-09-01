@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -138,6 +139,7 @@ const ALL_NAV_ITEMS = [
 type ProjectView = "list" | "kanban" | "golive";
 
 export const ManagerDashboard = () => {
+  const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const { labels: appLabels, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels } = useLabels();
   const { projects, isLoading, addProject, deleteProject, updateProject, archiveProject } = useProjects();
@@ -181,6 +183,7 @@ export const ManagerDashboard = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [listEditProject, setListEditProject] = useState<Project | null>(null);
   const [listEditOpen, setListEditOpen] = useState(false);
+  const [listAssignProject, setListAssignProject] = useState<Project | null>(null);
   const [listViewDetailsProject, setListViewDetailsProject] = useState<Project | null>(null);
   const [listSortField, setListSortField] = useState<string>("none");
   const [listSortDir, setListSortDir] = useState<"asc" | "desc">("asc");
@@ -754,6 +757,9 @@ export const ManagerDashboard = () => {
     setLvCustomFieldFilters({});
     setLvFunnelStageFilter([]);
   };
+
+  const lvFilteredProjectIds = lvFilteredProjects.map((project) => project.id);
+  const allLvFilteredSelected = lvFilteredProjectIds.length > 0 && lvFilteredProjectIds.every((id) => selectedProjects.has(id));
 
   const lvActiveCustomFieldCount = Object.values(lvCustomFieldFilters).filter(v => v && v.length > 0).length;
   const activeCustomFieldCount = Object.values(customFieldFilters).filter(v => v && v.length > 0).length;
@@ -1726,7 +1732,7 @@ export const ManagerDashboard = () => {
           {activeTab === "projects" && projectView === "list" && <div className="space-y-4">
             <Card className="shadow-sm border-border">
               {projectToolbarHost ? createPortal(<CardHeader className="w-full border-0 bg-transparent p-0">
-                <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex items-center justify-end flex-wrap gap-3">
                   <div className="flex items-center gap-3 relative">
                     {/* Sort Dropdown - left side */}
                     <Collapsible>
@@ -1913,6 +1919,26 @@ export const ManagerDashboard = () => {
                     </Collapsible>
                   </div>
                   <div className="flex items-center gap-3">
+                    <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
+                    {selectedProjects.size > 0 && (
+                      <>
+                        <Badge variant="secondary" className="text-xs">{selectedProjects.size} selected</Badge>
+                        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setBulkAssignDialogOpen(true)}>
+                          <UserPlus className="h-3.5 w-3.5" />
+                          Assign
+                        </Button>
+                        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setBulkEditDialogOpen(true)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setBulkStateDialogOpen(true)}>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          State
+                        </Button>
+                        {isManagerOrAdmin && <Button variant="outline" size="icon" className="h-8 w-8 text-amber-600" onClick={() => setBulkArchiveDialogOpen(true)} title="Archive selected projects"><Archive className="h-3.5 w-3.5" /></Button>}
+                        <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" onClick={() => setBulkDeleteDialogOpen(true)} title="Delete selected projects"><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </>
+                    )}
                     {/* Select Columns Popover */}
                     <Popover>
                       <PopoverTrigger asChild>
@@ -1979,6 +2005,9 @@ export const ManagerDashboard = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-10">
+                          <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
+                        </TableHead>
                         {listViewColumns.map(colKey => {
                           const col = LIST_VIEW_COLUMNS.find(c => c.key === colKey);
                           let label = col?.label;
@@ -2067,7 +2096,10 @@ export const ManagerDashboard = () => {
                             project.projectState === "live" ? "text-emerald-500" :
                             project.projectState === "blocked" ? "text-destructive" : "text-muted-foreground";
                           return (
-                            <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setListViewDetailsProject(project)}>
+                            <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}>
+                              <TableCell onClick={(event) => event.stopPropagation()}>
+                                <Checkbox checked={selectedProjects.has(project.id)} onCheckedChange={() => toggleProjectSelection(project.id)} aria-label={`Select ${project.merchantName}`} />
+                              </TableCell>
                               {listViewColumns.map(colKey => (
                                 <TableCell key={colKey} className={cn("text-sm", colKey === "status" && statusColor, colKey === "recentComments" && "max-w-[200px]")}>
                                   {["mintNotes", "projectNotes", "opsComment", "phase2Comment"].includes(colKey) ? (
@@ -2103,6 +2135,9 @@ export const ManagerDashboard = () => {
                               {!isGokwikGeneral && (
                               <TableCell onClick={(e) => e.stopPropagation()}>
                                 <div className="flex gap-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Assign owner" onClick={() => setListAssignProject(project)}>
+                                    <UserPlus className="h-3.5 w-3.5" />
+                                  </Button>
                                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setListEditProject(project); setListEditOpen(true); }}>
                                     <Pencil className="h-3.5 w-3.5" />
                                   </Button>
@@ -2144,16 +2179,16 @@ export const ManagerDashboard = () => {
               </CardContent>
             </Card>
             <EditProjectDialog project={listEditProject} open={listEditOpen} onOpenChange={setListEditOpen} onSave={(p) => { updateProject(p); setListEditOpen(false); }} />
-            <ProjectDetailsDialog project={listViewDetailsProject} open={!!listViewDetailsProject} onOpenChange={(open) => { if (!open) setListViewDetailsProject(null); }} />
+            <AssignOwnerDialog project={listAssignProject || undefined} open={!!listAssignProject} onOpenChange={(open) => { if (!open) setListAssignProject(null); }} />
           </div>}
 
           {activeTab === "projects" && projectView === "golive" && <div className="space-y-6">
-            <MonthlyGoLiveTracker toolbarContainer={projectToolbarHost} />
+            <MonthlyGoLiveTracker toolbarContainer={projectToolbarHost} searchQuery={searchQuery} />
           </div>}
 
           {activeTab === "projects" && projectView === "kanban" && (
             <div className="h-[calc(100vh-11rem)] min-h-[36rem]">
-              <KanbanBoard toolbarContainer={projectToolbarHost} />
+              <KanbanBoard toolbarContainer={projectToolbarHost} searchQuery={searchQuery} />
             </div>
           )}
 

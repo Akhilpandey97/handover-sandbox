@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ListChecks, Calendar, User, Check, X, Headset, Pencil, TrendingUp, Timer, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
 import { ChecklistDialog } from "./ChecklistDialog";
@@ -22,6 +23,7 @@ const phaseLabels: Record<string, string> = {
 };
 
 export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: string }) => {
+  const navigate = useNavigate();
   const { stateLabels } = useLabels();
   const { updateProject } = useProjects();
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -83,7 +85,7 @@ export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: s
         <div className="flex items-start gap-2">
           <button
             className="font-semibold text-sm truncate text-left flex-1 min-w-0 hover:text-primary hover:underline cursor-pointer transition-colors"
-            onClick={() => setDetailsOpen(true)}
+            onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
           >
             {project.merchantName}
           </button>

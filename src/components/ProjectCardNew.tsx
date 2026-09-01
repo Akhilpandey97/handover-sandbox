@@ -249,7 +249,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                   <div className="flex items-center gap-2 mb-1">
                     <button
                       className="font-bold text-lg leading-tight text-foreground hover:text-primary hover:underline cursor-pointer transition-colors text-left"
-                      onClick={(e) => { e.stopPropagation(); setActivityHistoryOpen(true); }}
+                      onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
                     >
                       {project.merchantName}
                     </button>
