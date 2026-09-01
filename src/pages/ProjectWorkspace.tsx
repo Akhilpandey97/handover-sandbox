@@ -810,14 +810,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
         <ScrollArea className="order-1 hidden w-1/4 min-w-[300px] max-w-[420px] shrink-0 border-r border-slate-200 bg-white dark:border-border dark:bg-card lg:block">
           <div className="space-y-3 p-4">
             <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-              <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-3">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Project snapshot</p>
-                  <p className="mt-0.5 text-sm font-semibold text-foreground">Delivery status</p>
-                </div>
-                <Badge className={cn("border text-xs font-semibold", stateToneMap[project.projectState])}>
-                  {stateLabels[project.projectState] || projectStateLabels[project.projectState]}
-                </Badge>
+              <div className="border-b border-border bg-muted/50 px-4 py-3">
+                <p className="text-sm font-semibold text-foreground">Project Details</p>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
                 <div className="col-span-2 min-w-0">
@@ -843,10 +837,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   </div>
                 ))}
               </div>
-              <div className="border-t border-border bg-muted/30 px-4 py-3">
-                <div className="mb-1.5 flex items-center justify-between text-xs"><span className="font-medium text-muted-foreground">Checklist progress</span><span className="font-semibold text-foreground">{completedChecklist}/{project.checklist.length}</span></div>
-                <Progress value={project.checklist.length ? (completedChecklist / project.checklist.length) * 100 : 0} className="h-1.5" />
-              </div>
             </section>
 
             {[
@@ -855,7 +845,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               { title: "Business", rows: [["Platform", project.platform], ["Category", project.category || "—"], ["ARR", `${project.arr} Cr`], ["Transactions/day", `${project.txnsPerDay}`], ["AOV", `₹${project.aov.toLocaleString()}`], ["Integration type", project.integrationType || "—"], ["PG onboarding", project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
             ].map((section) => (
-              <details key={section.title} className="group rounded-lg border border-border bg-card" open={section.title === "Ownership"}>
+              <details key={section.title} className="group rounded-lg border border-border bg-card">
                 <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-foreground">
                   {section.title}<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
                 </summary>

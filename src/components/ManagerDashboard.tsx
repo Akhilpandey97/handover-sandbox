@@ -1919,7 +1919,6 @@ export const ManagerDashboard = () => {
                     </Collapsible>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
                     {selectedProjects.size > 0 && (
                       <>
                         <Badge variant="secondary" className="text-xs">{selectedProjects.size} selected</Badge>
