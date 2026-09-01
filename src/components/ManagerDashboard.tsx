@@ -1019,7 +1019,7 @@ export const ManagerDashboard = () => {
                   "w-full flex items-center gap-2.5 text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
                   settingsSubTab === key && activeTab === "settings"
                     ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-foreground/60 hover:text-foreground hover:bg-muted/60"
+                    : "text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                 )}
               >
                 {label}
