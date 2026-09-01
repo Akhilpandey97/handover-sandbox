@@ -128,6 +128,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
   const hasDynamicBadge = badgeColor.startsWith("#");
   const hasDynamicCardBg = cardBgColor.startsWith("#");
   const phaseStyle = defaultPhaseConfig[project.currentPhase] || defaultPhaseConfig.completed;
+  const teamDisplayLabel = teamLabels[project.currentOwnerTeam] || project.currentPhase || "Project";
 
   // Find next incomplete checklist item title (Project Phase display)
   // First try to find next incomplete item from the current owner team, then fallback to any team
@@ -263,7 +264,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                         REJECTED — Action Needed
                       </Badge>
                     )}
-                    {!project.assignedOwner && project.notes.currentPhaseComment?.includes("needs manager review") && (
+                    {!project.assignedOwner && project.notes?.currentPhaseComment?.includes("needs manager review") && (
                       <Badge className="bg-orange-500 text-white px-2 py-0.5 text-xs font-semibold animate-pulse">
                         <UserPlus className="h-3 w-3 mr-1" />
                         NEEDS ASSIGNMENT
@@ -275,7 +276,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                       className={`${hasDynamicBadge ? '' : phaseStyle.badge} text-white text-xs px-2.5 py-0.5`}
                       style={hasDynamicBadge ? { backgroundColor: badgeColor } : undefined}
                     >
-                      {(teamLabels[project.currentOwnerTeam] || project.currentPhase).toUpperCase()}
+                      {teamDisplayLabel.toUpperCase()}
                     </Badge>
                     {project.assignedOwnerName && (
                       <Badge variant="outline" className="text-xs px-2.5 py-0.5 bg-muted/50">
