@@ -2492,7 +2492,6 @@ export const ManagerDashboard = () => {
             ) : (
               <SettingsPanel activeSubTab={settingsSubTab} />
             )}
-            {currentUser?.team === "super_admin" && <TenantManagement />}
           </div>}
 
           {/* Risks Tab */}
