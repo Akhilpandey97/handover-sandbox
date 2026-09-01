@@ -120,6 +120,7 @@ const PREDEFINED_REPORT_TYPES = ["executive", "operational", "merchant", "tactic
 
 // All nav items that can be toggled
 const ALL_NAV_ITEMS = ["dashboard", "projects", "listview", "kanban", "calendar", "risks", "reports", "checklist", "users", "settings", "emails", "archived"];
+type ProjectView = "board" | "list" | "kanban" | "golive";
 
 export const ManagerDashboard = () => {
   const { currentUser, logout } = useAuth();
@@ -130,6 +131,7 @@ export const ManagerDashboard = () => {
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("");
+  const [projectView, setProjectView] = useState<ProjectView>("board");
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
   const [ownerFilter, setOwnerFilter] = useState<string[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string[]>([]);
@@ -292,6 +294,19 @@ export const ManagerDashboard = () => {
     }
   }, []);
   const TAB_CONFIG_KEYS = ["dashboard", "projects", "listview", "calendar", "risks", "reports", "checklist", "users", "settings", "kanban", "emails", "tenants", "archived"];
+
+  useEffect(() => {
+    const legacyViews: Record<string, ProjectView> = {
+      listview: "list",
+      kanban: "kanban",
+      calendar: "golive",
+    };
+    const view = legacyViews[activeTab];
+    if (view) {
+      setProjectView(view);
+      setActiveTab("projects");
+    }
+  }, [activeTab]);
 
   // Calculate project time stats helper - FIXED: uses checklist-level time
   const calculateProjectStats = (project: Project) => {
@@ -889,6 +904,7 @@ export const ManagerDashboard = () => {
     ...(!tabOrder.includes("shopify-sme") ? ["shopify-sme"] : []),
     ...(!tabOrder.includes("shopify-lt-emails") ? ["shopify-lt-emails"] : []),
   ]
+    .filter(tab => !["listview", "kanban", "calendar"].includes(tab))
     .filter(tab => tab !== "tenants" || currentUser?.team === "super_admin")
     .filter(tab => tab !== "archived" || isManagerOrAdmin)
     .filter(tab => TAB_CONFIG[tab])
@@ -1127,13 +1143,36 @@ export const ManagerDashboard = () => {
         </header>
 
         {/* Content Area */}
-        {activeTab === "kanban" ? (
-          <div className="flex-1 min-h-0 overflow-hidden p-3">
-            <KanbanBoard />
-          </div>
-        ) : (
         <ScrollArea className="flex-1 app-shell-surface">
           <div className="p-4 sm:p-6">
+
+          {activeTab === "projects" && (
+            <div className="mb-4 flex items-center gap-1 overflow-x-auto border-b border-border" role="tablist" aria-label="Project views">
+              {[
+                { value: "board", label: "Board", icon: <FolderKanban className="h-4 w-4" /> },
+                { value: "list", label: "List", icon: <List className="h-4 w-4" /> },
+                { value: "kanban", label: "Kanban", icon: <GripVertical className="h-4 w-4" /> },
+                { value: "golive", label: "Go-Live", icon: <CalendarDays className="h-4 w-4" /> },
+              ].map(({ value, label, icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={projectView === value}
+                  onClick={() => setProjectView(value as ProjectView)}
+                  className={cn(
+                    "flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-medium transition-colors",
+                    projectView === value
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {icon}
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
 
 
           {/* ========= OVERVIEW TAB ========= */}
@@ -1365,7 +1404,7 @@ export const ManagerDashboard = () => {
           </div>}
 
           {/* ========= PROJECTS TAB ========= */}
-          {activeTab === "projects" && <div className="space-y-6">
+          {activeTab === "projects" && projectView === "board" && <div className="space-y-6">
             <Card className="shadow-sm border-border">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex items-center justify-between flex-wrap gap-3">
@@ -1668,7 +1707,7 @@ export const ManagerDashboard = () => {
           </div>}
 
           {/* ========= LIST VIEW TAB ========= */}
-          {activeTab === "listview" && <div className="space-y-4">
+          {activeTab === "projects" && projectView === "list" && <div className="space-y-4">
             <Card className="shadow-sm border-border">
               <CardHeader className="border-b bg-muted/30">
                 <div className="flex items-center justify-between flex-wrap gap-3">
@@ -2099,9 +2138,15 @@ export const ManagerDashboard = () => {
             <ProjectDetailsDialog project={listViewDetailsProject} open={!!listViewDetailsProject} onOpenChange={(open) => { if (!open) setListViewDetailsProject(null); }} />
           </div>}
 
-          {activeTab === "calendar" && <div className="space-y-6">
+          {activeTab === "projects" && projectView === "golive" && <div className="space-y-6">
             <ProjectCalendar />
           </div>}
+
+          {activeTab === "projects" && projectView === "kanban" && (
+            <div className="h-[calc(100vh-11rem)] min-h-[36rem]">
+              <KanbanBoard />
+            </div>
+          )}
 
           {/* ========= REPORTS TAB ========= */}
           {activeTab === "reports" && <div className="space-y-6">
@@ -2533,7 +2578,6 @@ export const ManagerDashboard = () => {
 
           </div>
         </ScrollArea>
-        )}
       </main>
 
 
