@@ -18,6 +18,7 @@ export const useFunnelConfig = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ["funnel_stages_config", tenantId],
+    enabled: !!currentUser,
     queryFn: async (): Promise<FunnelStageRule[]> => {
       let query = supabase.from("app_settings").select("value").eq("key", FUNNEL_SETTINGS_KEY);
       query = tenantId ? query.eq("tenant_id", tenantId) : query.is("tenant_id", null);

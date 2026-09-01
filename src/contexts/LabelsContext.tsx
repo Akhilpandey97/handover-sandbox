@@ -126,6 +126,12 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!currentUser) {
+      setLabels(DEFAULT_LABELS);
+      setIsLoading(false);
+      return;
+    }
+
     const fetchLabels = async () => {
       try {
         let query = supabase.from("app_settings").select("key, value");
