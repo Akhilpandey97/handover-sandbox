@@ -127,7 +127,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
   const cardBgColor = getLabel(`color_card_${project.currentPhase}_bg`);
   const hasDynamicBadge = badgeColor.startsWith("#");
   const hasDynamicCardBg = cardBgColor.startsWith("#");
-  const phaseStyle = defaultPhaseConfig[project.currentPhase];
+  const phaseStyle = defaultPhaseConfig[project.currentPhase] || defaultPhaseConfig.completed;
 
   // Find next incomplete checklist item title (Project Phase display)
   // First try to find next incomplete item from the current owner team, then fallback to any team
