@@ -35,6 +35,7 @@ import {
   calculateTimeFromChecklist,
   formatDuration,
   getProjectFunnelStage,
+  funnelStageLabels,
   projectStateLabels,
 } from "@/data/projectsData";
 import { fetchAiInsights } from "@/utils/aiInsights";
@@ -806,22 +807,45 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
       <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 bg-white dark:bg-card">
         {/* RIGHT PANEL — Status & Context */}
 
-        <ScrollArea className="order-1 hidden w-[38%] min-w-[340px] max-w-[520px] shrink-0 border-r border-slate-200 bg-white dark:border-border dark:bg-card lg:block">
+        <ScrollArea className="order-1 hidden w-1/4 min-w-[300px] max-w-[420px] shrink-0 border-r border-slate-200 bg-white dark:border-border dark:bg-card lg:block">
           <div className="space-y-3 p-4">
-            <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+              <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Project snapshot</p>
+                  <p className="mt-0.5 text-sm font-semibold text-foreground">Delivery status</p>
+                </div>
+                <Badge className={cn("border text-xs font-semibold", stateToneMap[project.projectState])}>
+                  {stateLabels[project.projectState] || projectStateLabels[project.projectState]}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
+                <div className="col-span-2 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Project state</p>
+                  <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
+                    <SelectTrigger className={cn("mt-1 h-9 w-full text-sm font-semibold", stateSelectToneMap[project.projectState])}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROJECT_STATES.map((state) => <SelectItem key={state} value={state}>{stateLabels[state] || projectStateLabels[state]}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
                 {[
-                  ["Project state", stateLabels[project.projectState] || projectStateLabels[project.projectState]],
-                  ["Funnel stage", getProjectFunnelStage(project)],
+                  ["Funnel stage", funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)],
                   ["Expected go-live", project.dates.expectedGoLiveDate || "Not set"],
                   ["Project owner", project.assignedOwnerName || "Unassigned"],
                   ["MRR / ARR", `${project.arr} Cr`],
                 ].map(([label, value]) => (
                   <div key={label} className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
-                    <p className="mt-0.5 truncate text-sm font-semibold text-foreground" title={value}>{value}</p>
+                    <p className="mt-1 truncate text-sm font-semibold text-foreground" title={value}>{value}</p>
                   </div>
                 ))}
+              </div>
+              <div className="border-t border-border bg-muted/30 px-4 py-3">
+                <div className="mb-1.5 flex items-center justify-between text-xs"><span className="font-medium text-muted-foreground">Checklist progress</span><span className="font-semibold text-foreground">{completedChecklist}/{project.checklist.length}</span></div>
+                <Progress value={project.checklist.length ? (completedChecklist / project.checklist.length) * 100 : 0} className="h-1.5" />
               </div>
             </section>
 
