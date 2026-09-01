@@ -125,8 +125,6 @@ const ALL_NAV_ITEMS = [
   "projects",
   "risks",
   "reports",
-  "checklist",
-  "users",
   "settings",
   "emails",
   "archived",
@@ -793,6 +791,8 @@ export const ManagerDashboard = () => {
     fields: { label: "Field Labels" },
     "custom-fields": { label: "Custom Fields" },
     "checklist-forms": { label: "Checklist Forms" },
+    checklist: { label: "Checklist" },
+    users: { label: "Users" },
     colours: { label: "Colours" },
     email: { label: "Add New Projects" },
     workflows: { label: "AI Workflows" },
@@ -926,7 +926,7 @@ export const ManagerDashboard = () => {
     ...(!tabOrder.includes("shopify-sme") ? ["shopify-sme"] : []),
     ...(!tabOrder.includes("shopify-lt-emails") ? ["shopify-lt-emails"] : []),
   ]
-    .filter(tab => !["listview", "kanban", "calendar"].includes(tab))
+    .filter(tab => !["listview", "kanban", "calendar", "checklist", "users"].includes(tab))
     .filter(tab => tab !== "tenants" || currentUser?.team === "super_admin")
     .filter(tab => tab !== "archived" || isManagerOrAdmin)
     .filter(tab => TAB_CONFIG[tab])
@@ -2485,15 +2485,13 @@ export const ManagerDashboard = () => {
             </Card>
           </div>}
 
-          {/* Checklist Tab */}
-          {activeTab === "checklist" && <ChecklistManagement />}
-
-          {/* Users Tab */}
-          {activeTab === "users" && <UserManagement />}
-
           {/* Settings Tab */}
           {activeTab === "settings" && <div className="space-y-6">
-            {settingsSubTab === "navigation" ? (
+            {settingsSubTab === "checklist" ? (
+              <ChecklistManagement />
+            ) : settingsSubTab === "users" ? (
+              <UserManagement />
+            ) : settingsSubTab === "navigation" ? (
               <Card className="shadow-sm border-border">
                 <CardHeader className="border-b bg-muted/30">
                   <CardTitle className="portal-heading flex items-center gap-2">
