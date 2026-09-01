@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -131,6 +132,7 @@ export const ManagerDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("");
   const [projectView, setProjectView] = useState<ProjectView>("kanban");
+  const [projectToolbarHost, setProjectToolbarHost] = useState<HTMLDivElement | null>(null);
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
   const [ownerFilter, setOwnerFilter] = useState<string[]>([]);
   const [phaseFilter, setPhaseFilter] = useState<string[]>([]);
@@ -1146,29 +1148,32 @@ export const ManagerDashboard = () => {
           <div className="p-4 sm:p-6">
 
           {activeTab === "projects" && (
-            <div className="mb-4 flex items-center gap-1 overflow-x-auto border-b border-border" role="tablist" aria-label="Project views">
-              {[
-                { value: "kanban", label: "Kanban", icon: <GripVertical className="h-4 w-4" /> },
-                { value: "list", label: "List", icon: <List className="h-4 w-4" /> },
-                { value: "golive", label: "Go-Live Tracker", icon: <CalendarDays className="h-4 w-4" /> },
-              ].map(({ value, label, icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  role="tab"
-                  aria-selected={projectView === value}
-                  onClick={() => setProjectView(value as ProjectView)}
-                  className={cn(
-                    "flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-medium transition-colors",
-                    projectView === value
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {icon}
-                  {label}
-                </button>
-              ))}
+            <div className="mb-4 flex min-h-10 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border">
+              <div className="flex items-center gap-1" role="tablist" aria-label="Project views">
+                {[
+                  { value: "kanban", label: "Kanban", icon: <GripVertical className="h-4 w-4" /> },
+                  { value: "list", label: "List", icon: <List className="h-4 w-4" /> },
+                  { value: "golive", label: "Go-Live Tracker", icon: <CalendarDays className="h-4 w-4" /> },
+                ].map(({ value, label, icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    aria-selected={projectView === value}
+                    onClick={() => setProjectView(value as ProjectView)}
+                    className={cn(
+                      "flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-medium transition-colors",
+                      projectView === value
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {icon}
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div ref={setProjectToolbarHost} className="flex min-w-0 flex-1 items-center justify-end" />
             </div>
           )}
 
@@ -1707,13 +1712,9 @@ export const ManagerDashboard = () => {
           {/* ========= LIST VIEW TAB ========= */}
           {activeTab === "projects" && projectView === "list" && <div className="space-y-4">
             <Card className="shadow-sm border-border">
-              <CardHeader className="border-b bg-muted/30">
+              {projectToolbarHost ? createPortal(<CardHeader className="w-full border-0 bg-transparent p-0">
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-3 relative">
-                    <CardTitle className="portal-heading flex items-center gap-2">
-                      <List className="h-5 w-5 text-primary" />
-                      List View
-                    </CardTitle>
                     {/* Sort Dropdown - left side */}
                     <Collapsible>
                       <CollapsibleTrigger asChild>
@@ -1949,9 +1950,6 @@ export const ManagerDashboard = () => {
                       </PopoverContent>
                     </Popover>
 
-                    <span className="text-xs text-muted-foreground">
-                      {lvFilteredProjects.length} project{lvFilteredProjects.length !== 1 ? "s" : ""}
-                    </span>
                     <Select value={String(listViewPageSize)} onValueChange={(v) => { setListViewPageSize(Number(v)); setListViewPage(1); }}>
                       <SelectTrigger className="w-[100px] h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -1962,7 +1960,7 @@ export const ManagerDashboard = () => {
                     </Select>
                   </div>
                 </div>
-              </CardHeader>
+              </CardHeader>, projectToolbarHost) : null}
               <CardContent className="p-0">
                 <div className="overflow-auto">
                   <Table>
@@ -2137,12 +2135,12 @@ export const ManagerDashboard = () => {
           </div>}
 
           {activeTab === "projects" && projectView === "golive" && <div className="space-y-6">
-            <MonthlyGoLiveTracker />
+            <MonthlyGoLiveTracker toolbarContainer={projectToolbarHost} />
           </div>}
 
           {activeTab === "projects" && projectView === "kanban" && (
             <div className="h-[calc(100vh-11rem)] min-h-[36rem]">
-              <KanbanBoard />
+              <KanbanBoard toolbarContainer={projectToolbarHost} />
             </div>
           )}
 

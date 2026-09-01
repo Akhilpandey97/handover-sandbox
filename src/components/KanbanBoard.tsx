@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
@@ -98,7 +99,7 @@ function getColumnStyle(value: string, field: string) {
   return FALLBACK_STYLES[hash % FALLBACK_STYLES.length];
 }
 
-export const KanbanBoard = ({ projectsOverride }: { projectsOverride?: Project[] } = {}) => {
+export const KanbanBoard = ({ projectsOverride, toolbarContainer }: { projectsOverride?: Project[]; toolbarContainer?: HTMLElement | null } = {}) => {
   const { projects: allProjects } = useProjects();
   const projects = projectsOverride ?? allProjects;
   const labels = useLabels();
@@ -297,10 +298,8 @@ export const KanbanBoard = ({ projectsOverride }: { projectsOverride?: Project[]
   };
 
 
-  return (
-    <div className="flex flex-col h-full w-full gap-4 min-h-0">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-card p-3 shadow-sm">
+  const toolbar = (
+      <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
@@ -445,7 +444,11 @@ export const KanbanBoard = ({ projectsOverride }: { projectsOverride?: Project[]
           {filteredProjects.length} project{filteredProjects.length === 1 ? "" : "s"}
         </div>
       </div>
+  );
 
+  return (
+    <div className="flex flex-col h-full w-full gap-4 min-h-0">
+      {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       {/* Board */}
       <div className="flex gap-3 w-full flex-1 min-h-0 overflow-x-auto pb-2">
         {columns.map((col) => (

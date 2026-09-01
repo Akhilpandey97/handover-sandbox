@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -112,7 +113,7 @@ function dateLabel(dateStr: string | null) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} · W${weekOfMonth(dateStr).replace(/[^\d]/g, "")}`;
 }
 
-export const MonthlyGoLiveTracker = () => {
+export const MonthlyGoLiveTracker = ({ toolbarContainer }: { toolbarContainer?: HTMLElement | null } = {}) => {
   const { currentUser } = useAuth();
   const now = new Date();
   const defaultYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -324,11 +325,9 @@ export const MonthlyGoLiveTracker = () => {
     return opts;
   }, []);
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+  const toolbar = (
+      <div className="flex w-full flex-wrap items-center justify-end gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold">Go-Live Tracker</h2>
           <Select value={month} onValueChange={setMonth}>
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -346,7 +345,11 @@ export const MonthlyGoLiveTracker = () => {
           <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
         </div>
       </div>
+  );
 
+  return (
+    <div className="space-y-4">
+      {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       <Card className="w-full">
         <CardContent className="p-0 overflow-auto">
           <Table className="text-sm w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
