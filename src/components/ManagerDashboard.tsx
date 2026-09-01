@@ -119,7 +119,22 @@ const SETTINGS_SUB_TABS = ["general", "workflow", "fields", "custom-fields", "ch
 const PREDEFINED_REPORT_TYPES = ["executive", "operational", "merchant", "tactical", "project", "team"];
 
 // All nav items that can be toggled
-const ALL_NAV_ITEMS = ["dashboard", "projects", "listview", "kanban", "calendar", "risks", "reports", "checklist", "users", "settings", "emails", "archived"];
+const ALL_NAV_ITEMS = [
+  "dashboard",
+  "projects",
+  "risks",
+  "reports",
+  "checklist",
+  "users",
+  "settings",
+  "emails",
+  "archived",
+  "platforms",
+  "golive",
+  "shopify-sme",
+  "shopify-lt-emails",
+  "tenants",
+];
 type ProjectView = "list" | "kanban" | "golive";
 
 export const ManagerDashboard = () => {
@@ -1088,9 +1103,7 @@ export const ManagerDashboard = () => {
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-bold">{activeTabLabel}</h2>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {activeTab === "projects" ? `${filteredProjects.length} project${filteredProjects.length !== 1 ? "s" : ""} found` : appLabels.app_subtitle}
-            </span>
+            {activeTab !== "projects" && <span className="text-xs text-muted-foreground">{appLabels.app_subtitle}</span>}
           </div>
 
           <div className="flex items-center gap-3">
