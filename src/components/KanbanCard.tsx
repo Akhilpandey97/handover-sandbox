@@ -81,7 +81,14 @@ export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: s
 
   return (
     <>
-      <div className="rounded-md border bg-card p-3 space-y-2 shadow-sm text-xs">
+      <div
+        className="rounded-md border bg-card p-3 space-y-2 shadow-sm text-xs cursor-pointer transition-colors hover:border-primary/40"
+        onClick={(e) => {
+          const el = e.target as HTMLElement;
+          if (el.closest("button,a,input,label,[role='menuitem']")) return;
+          navigate({ to: "/projects/$projectId", params: { projectId: project.id } });
+        }}
+      >
         <div className="flex items-start gap-2">
           <button
             className="font-semibold text-sm truncate text-left flex-1 min-w-0 hover:text-primary hover:underline cursor-pointer transition-colors"

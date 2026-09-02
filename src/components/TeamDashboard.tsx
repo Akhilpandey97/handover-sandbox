@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { teamColors } from "@/data/teams";
@@ -71,6 +72,8 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ];
 
 export const TeamDashboard = () => {
+  const navigate = useNavigate();
+  const [kanbanToolbar, setKanbanToolbar] = useState<HTMLDivElement | null>(null);
   const { currentUser, logout } = useAuth();
   const { getPendingProjects, getActiveProjects, projects, isLoading } = useProjects();
   const { teamLabels, labels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
@@ -251,8 +254,8 @@ export const TeamDashboard = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Sidebar */}
-      <aside className="w-64 border-r bg-card flex flex-col">
-        <div className="p-4 border-b">
+      <aside className="w-64 border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col">
+        <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2.5">
             {labels.org_logo_url ? (
               <img src={labels.org_logo_url} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
@@ -262,14 +265,14 @@ export const TeamDashboard = () => {
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="font-semibold text-sm truncate">{teamLabels[currentUser.team]}</h1>
-              <p className="text-xs text-muted-foreground">Team Dashboard</p>
+              <h1 className="font-semibold text-sm truncate text-sidebar-foreground">{teamLabels[currentUser.team]}</h1>
+              <p className="text-xs text-sidebar-foreground/60">Team Dashboard</p>
             </div>
           </div>
         </div>
 
         <nav className="flex-1 p-3">
-          <p className="portal-label mb-2 px-2">Projects</p>
+          <p className="portal-label mb-2 px-2 text-sidebar-foreground/70">Projects</p>
           <div className="space-y-1">
             {sidebarItems.map((item) => (
               <button
@@ -278,19 +281,21 @@ export const TeamDashboard = () => {
                 className={cn(
                   "w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-sm",
                   activeTab === item.key
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                    ? "bg-primary/20 text-sidebar-foreground font-semibold"
+                    : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
                 )}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className={activeTab === item.key ? "text-primary-foreground" : item.color}>{item.icon}</span>
+                  <span className={activeTab === item.key ? "text-primary" : item.color}>{item.icon}</span>
                   <span className="font-medium">{item.label}</span>
                 </div>
                 <Badge
                   variant={activeTab === item.key ? "secondary" : "outline"}
                   className={cn(
                     "text-xs font-semibold min-w-[24px] justify-center",
-                    activeTab === item.key && "bg-white/20 text-primary-foreground border-0"
+                    activeTab === item.key
+                      ? "bg-primary/25 text-sidebar-foreground border-0"
+                      : "bg-transparent text-sidebar-foreground/70 border-sidebar-border"
                   )}
                 >
                   {item.count}
@@ -302,11 +307,11 @@ export const TeamDashboard = () => {
           {/* AI Alerts Section */}
           <div className="mt-5">
             <div className="flex items-center justify-between mb-2 px-2">
-              <p className="portal-label">AI Alerts</p>
+              <p className="portal-label text-sidebar-foreground/70">AI Alerts</p>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 text-xs gap-1 px-2"
+                className="h-6 text-xs gap-1 px-2 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                 onClick={handleGenerateAiAlerts}
                 disabled={aiAlertsLoading}
               >
@@ -316,14 +321,14 @@ export const TeamDashboard = () => {
             </div>
 
             {aiAlertsLoading && (
-              <div className="flex items-center justify-center py-3 text-xs text-muted-foreground gap-2">
+              <div className="flex items-center justify-center py-3 text-xs text-sidebar-foreground/60 gap-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 Analyzing projects...
               </div>
             )}
 
             {!aiAlertsLoading && aiAlertsLoaded && aiAlerts.length === 0 && (
-              <p className="text-xs text-muted-foreground px-2">No alerts found.</p>
+              <p className="text-xs text-sidebar-foreground/60 px-2">No alerts found.</p>
             )}
 
             {!aiAlertsLoading && aiAlerts.length > 0 && (
@@ -338,7 +343,7 @@ export const TeamDashboard = () => {
                           ? "bg-destructive/10 border-destructive/30"
                           : alert.priority === "medium"
                           ? "bg-amber-500/10 border-amber-200 dark:border-amber-800"
-                          : "bg-muted/50 border-border"
+                          : "bg-sidebar-accent/50 border-sidebar-border"
                       )}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
@@ -349,7 +354,7 @@ export const TeamDashboard = () => {
                         )}
                         <span className="font-semibold truncate">{alert.project}</span>
                       </div>
-                      <p className="text-muted-foreground leading-relaxed">{alert.action}</p>
+                      <p className="text-sidebar-foreground/70 leading-relaxed">{alert.action}</p>
                       {alert.alert && <p className="mt-1 font-medium text-destructive">{alert.alert}</p>}
                     </div>
                   ))}
@@ -358,7 +363,7 @@ export const TeamDashboard = () => {
             )}
 
             {!aiAlertsLoaded && !aiAlertsLoading && (
-              <p className="text-xs text-muted-foreground px-2">Click Generate for AI-powered next actions.</p>
+              <p className="text-xs text-sidebar-foreground/60 px-2">Click Generate for AI-powered next actions.</p>
             )}
           </div>
         </nav>
@@ -429,6 +434,10 @@ export const TeamDashboard = () => {
             ))}
           </div>
 
+          {view === "kanban" && (
+            <div ref={setKanbanToolbar} className="ml-auto flex items-center gap-2" />
+          )}
+
           {view !== "kanban" && (
             <>
               <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
@@ -491,8 +500,12 @@ export const TeamDashboard = () => {
 
         {/* Content */}
         {view === "kanban" ? (
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <KanbanBoard projectsOverride={applyFilters(baseProjects)} />
+          <div className="flex-1 min-h-0 overflow-hidden px-6 py-4">
+            <KanbanBoard
+              projectsOverride={applyFilters(baseProjects)}
+              toolbarContainer={kanbanToolbar}
+              searchQuery={searchQuery}
+            />
           </div>
         ) : (
           <ScrollArea className="flex-1">
@@ -536,7 +549,7 @@ export const TeamDashboard = () => {
                         <TableRow
                           key={p.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => setDetailsProject(p)}
+                          onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
                         >
                           <TableCell className="text-xs font-medium">{p.merchantName}</TableCell>
                           <TableCell className="text-xs font-mono text-muted-foreground">{p.mid}</TableCell>
