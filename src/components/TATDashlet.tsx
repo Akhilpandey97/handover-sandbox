@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Project } from "@/data/projectsData";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
 import { Timer } from "lucide-react";
 
 const diffDays = (from: string, to: string) => {
