@@ -81,7 +81,6 @@ import {
   CalendarDays,
   Mail,
   GripVertical,
-  LayoutGrid,
   List,
   X,
   Archive,
