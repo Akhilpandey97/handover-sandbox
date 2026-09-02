@@ -269,7 +269,7 @@ export const TeamDashboard = () => {
         </div>
 
         <nav className="flex-1 p-3">
-          <p className="portal-label mb-2 px-2">Projects</p>
+          <p className="portal-label mb-2 px-2 text-sidebar-foreground/70">Projects</p>
           <div className="space-y-1">
             {sidebarItems.map((item) => (
               <button
