@@ -2497,6 +2497,7 @@ export type Database = {
           jira_api_token: string | null
           jira_base_url: string | null
           jira_email: string | null
+          jira_project_key: string | null
           reply_to: string | null
           resend_api_key: string | null
           slack_bot_token: string | null
@@ -2516,6 +2517,7 @@ export type Database = {
           jira_api_token?: string | null
           jira_base_url?: string | null
           jira_email?: string | null
+          jira_project_key?: string | null
           reply_to?: string | null
           resend_api_key?: string | null
           slack_bot_token?: string | null
@@ -2535,6 +2537,7 @@ export type Database = {
           jira_api_token?: string | null
           jira_base_url?: string | null
           jira_email?: string | null
+          jira_project_key?: string | null
           reply_to?: string | null
           resend_api_key?: string | null
           slack_bot_token?: string | null

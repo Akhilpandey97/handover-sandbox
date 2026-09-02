@@ -1,0 +1,1 @@
+ALTER TABLE public.tenant_integrations ADD COLUMN IF NOT EXISTS jira_project_key text;
