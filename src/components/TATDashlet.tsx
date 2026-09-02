@@ -3,6 +3,15 @@ import { Project } from "@/data/projectsData";
 
 import { Timer } from "lucide-react";
 
+// ARR is stored in rupees for imported data but some rows are already in Cr.
+// Normalise to crores so the tile never renders a raw 8-digit number.
+const toCrore = (value: number) => (Math.abs(value) >= 100000 ? value / 1e7 : value);
+
+const formatCr = (value: number) => {
+  const cr = toCrore(value);
+  return cr >= 100 ? cr.toFixed(0) : cr.toFixed(2);
+};
+
 const diffDays = (from: string, to: string) => {
   const a = new Date(from).getTime();
   const b = new Date(to).getTime();
@@ -45,9 +54,9 @@ export const TATDashlet = ({ projects }: Props) => {
             <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-sky-900 dark:text-sky-200">{overall.count}</p>
             <p className="mt-0.5 text-[10px] text-sky-700 dark:text-sky-300">tracked</p>
           </div>
-          <div className="rounded-md bg-muted p-3">
+          <div className="min-w-0 rounded-md bg-muted p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Total ARR</p>
-            <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-foreground">{overall.totalArr.toFixed(2)}</p>
+            <p className="mt-1 truncate text-2xl font-semibold tracking-tight tabular-nums text-foreground">{formatCr(overall.totalArr)}</p>
             <p className="mt-0.5 text-[10px] text-muted-foreground">Cr</p>
           </div>
           <div className="rounded-md bg-emerald-50 p-3 dark:bg-emerald-950/40">
@@ -65,7 +74,7 @@ export const TATDashlet = ({ projects }: Props) => {
                 <div key={r.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2">
                   <div className="min-w-0">
                     <p className="truncate text-xs font-semibold text-foreground">{r.merchant}</p>
-                    <p className="text-[10px] text-muted-foreground">ARR: {r.arr.toFixed(2)} Cr</p>
+                    <p className="text-[10px] text-muted-foreground">ARR: {formatCr(r.arr)} Cr</p>
                   </div>
                   <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">{r.tat}d</span>
                 </div>
