@@ -278,12 +278,12 @@ export const TeamDashboard = () => {
                 className={cn(
                   "w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-sm",
                   activeTab === item.key
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                    ? "bg-primary/20 text-sidebar-foreground font-semibold"
+                    : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
                 )}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className={activeTab === item.key ? "text-primary-foreground" : item.color}>{item.icon}</span>
+                  <span className={activeTab === item.key ? "text-primary" : item.color}>{item.icon}</span>
                   <span className="font-medium">{item.label}</span>
                 </div>
                 <Badge
