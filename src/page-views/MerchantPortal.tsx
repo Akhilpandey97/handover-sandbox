@@ -816,11 +816,11 @@ export default function MerchantPortal() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR */}
-        <aside className="w-56 flex flex-col flex-shrink-0 hidden md:flex border-r border-slate-200 dark:border-[#253553] bg-white dark:bg-[#111827]">
-          <div className="px-4 pt-5 pb-2">
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-3">Navigation</p>
+        <aside className="w-60 flex flex-col flex-shrink-0 hidden md:flex border-r border-[#25405f] bg-[#1E3355]">
+          <div className="px-4 pt-6 pb-2">
+            <p className="text-[10px] font-bold text-white/55 uppercase tracking-[0.2em] mb-3">Navigation</p>
           </div>
-          <nav className="px-2 space-y-0.5 flex-1">
+          <nav className="px-3 space-y-1.5 flex-1">
             <SidebarItem icon={LayoutDashboard} label="My Integration" active={activePage === "integration"} onClick={() => setActivePage("integration")} dataTour="tour-integration" />
             <SidebarItem icon={Lock} label="Credentials" active={activePage === "credentials"} onClick={() => setActivePage("credentials")} dataTour="tour-credentials" />
             <SidebarItem icon={FileText} label="Documents" active={activePage === "documents"} onClick={() => setActivePage("documents")} dataTour="tour-documents" />
@@ -888,17 +888,19 @@ function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour }: {
       onClick={onClick}
       data-tour={dataTour}
       className={cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all text-left border-l-[3px]",
+        "w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-[15px] transition-all text-left text-white/90",
         active
-          ? "font-semibold shadow-sm"
-          : "border-l-transparent text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-[#1a2740]"
+          ? "font-semibold text-white ring-2 ring-white/70 shadow-md"
+          : "hover:bg-white/10"
       )}
-      style={active ? { color: "#ffffff", borderLeftColor: BRAND.primary, background: BRAND.primary } : {}}
+      style={active ? { background: `linear-gradient(90deg, ${BRAND.primary}, ${BRAND.primaryLight})` } : {}}
     >
-      <Icon className={cn("w-4 h-4 flex-shrink-0")} />
+      <span className={cn("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg", active ? "bg-white/25" : "bg-white/10")}>
+        <Icon className="w-[18px] h-[18px]" />
+      </span>
       <span className="flex-1">{label}</span>
       {badge !== undefined && (
-        <span className={cn("text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold", active ? "bg-white text-slate-900" : "text-white")} style={!active ? { background: BRAND.primary } : {}}>{badge}</span>
+        <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold bg-white/25 text-white">{badge}</span>
       )}
     </button>
   );
