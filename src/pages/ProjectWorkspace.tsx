@@ -833,13 +833,13 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
         <ScrollArea className="order-1 hidden w-1/4 min-w-[300px] max-w-[420px] shrink-0 border-r border-slate-200 bg-white dark:border-border dark:bg-card lg:block">
           <div className="space-y-3 p-4">
-            <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-              <div className="border-b border-border bg-muted/50 px-4 py-3">
-                <p className="text-sm font-semibold text-foreground">Project Details</p>
+            <section className="overflow-hidden rounded-lg border border-sidebar-border bg-sidebar shadow-sm">
+              <div className="border-b border-sidebar-border bg-sidebar-accent/50 px-4 py-3">
+                <p className="text-sm font-semibold text-sidebar-foreground">Project Details</p>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
                 <div className="col-span-2 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Project state</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-sidebar-foreground/70">Project state</p>
                   <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
                     <SelectTrigger className={cn("mt-1 h-9 w-full text-sm font-semibold", stateSelectToneMap[project.projectState])}>
                       <SelectValue />
@@ -856,8 +856,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   ["MRR / ARR", `${project.arr} Cr`],
                 ].map(([label, value]) => (
                   <div key={label} className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
-                    <p className="mt-1 truncate text-sm font-semibold text-foreground" title={value}>{value}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-sidebar-foreground/70">{label}</p>
+                    <p className="mt-1 truncate text-sm font-semibold text-sidebar-foreground" title={value}>{value}</p>
                   </div>
                 ))}
               </div>
@@ -869,12 +869,12 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               { title: "Business", rows: [["Platform", project.platform], ["Category", project.category || "—"], ["ARR", `${project.arr} Cr`], ["Transactions/day", `${project.txnsPerDay}`], ["AOV", `₹${project.aov.toLocaleString()}`], ["Integration type", project.integrationType || "—"], ["PG onboarding", project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
             ].map((section) => (
-              <details key={section.title} className="group rounded-lg border border-border bg-card">
-                <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-foreground">
-                  {section.title}<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
+              <details key={section.title} className="group rounded-lg border border-sidebar-border bg-sidebar">
+                <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-sidebar-foreground">
+                  {section.title}<ChevronDown className="h-4 w-4 text-sidebar-foreground/70 transition-transform group-open:rotate-180" />
                 </summary>
-                <div className="border-t border-border px-4 py-3 space-y-2">
-                  {section.rows.map(([label, value]) => <div key={label} className="flex items-start justify-between gap-4 text-sm"><span className="text-muted-foreground">{label}</span><span className="max-w-[62%] text-right font-medium text-foreground">{value}</span></div>)}
+                <div className="border-t border-sidebar-border px-4 py-3 space-y-2">
+                  {section.rows.map(([label, value]) => <div key={label} className="flex items-start justify-between gap-4 text-sm"><span className="text-sidebar-foreground/70">{label}</span><span className="max-w-[62%] text-right font-medium text-sidebar-foreground">{value}</span></div>)}
                 </div>
               </details>
             ))}
