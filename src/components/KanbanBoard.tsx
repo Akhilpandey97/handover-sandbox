@@ -468,7 +468,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                   {(["in_progress","on_hold","blocked","not_started","live"] as const).map(st => {
                     const amt = col.arrByState[st];
                     if (!amt) return null;
-                    const s = STATE_STYLES[st];
+                    const s = STATE_ARR_STYLES[st];
                     return (
                       <span
                         key={st}
