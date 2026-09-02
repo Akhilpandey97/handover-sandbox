@@ -502,6 +502,30 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const { teamLabels, stateLabels, phaseLabels, responsibilityLabels, getLabel } = useLabels();
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("checklists");
+
+  // Deep-link support: /projects/:id?tab=checklists&item=<checklistItemId>
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    const itemId = params.get("item");
+    if (tab) setActiveTab(tab as WorkspaceTab);
+    if (!itemId) return;
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      const el = document.getElementById(`checklist-item-${itemId}`);
+      attempts += 1;
+      if (el) {
+        window.clearInterval(timer);
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-primary", "ring-offset-2");
+        window.setTimeout(() => el.classList.remove("ring-2", "ring-primary", "ring-offset-2"), 4000);
+      } else if (attempts > 30) {
+        window.clearInterval(timer);
+      }
+    }, 200);
+    return () => window.clearInterval(timer);
+  }, [projectId]);
   const [editOpen, setEditOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
