@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamRole } from "@/data/teams";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useTeams } from "@/hooks/useTeams";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,9 +52,9 @@ interface ChecklistTemplate {
 }
 
 // Fetch checklist templates from dedicated table
-const useChecklistTemplates = () => {
+const useChecklistTemplates = (isSuperAdmin: boolean) => {
   return useQuery({
-    queryKey: ["checklist-templates"],
+    queryKey: ["checklist-templates", isSuperAdmin],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("checklist_templates")
@@ -62,7 +63,7 @@ const useChecklistTemplates = () => {
 
       if (error) throw error;
 
-      return (data || []).map((item) => ({
+      const mapped = (data || []).map((item) => ({
         id: item.id,
         title: item.title,
         ownerTeam: item.owner_team as TeamRole,
@@ -70,14 +71,41 @@ const useChecklistTemplates = () => {
         sortOrder: item.sort_order ?? 0,
         standardDuration: item.standard_duration ?? null,
       }));
+
+      // Super admins see templates across every tenant — collapse duplicates
+      // (same team + title) so edits apply once and propagate everywhere.
+      if (!isSuperAdmin) return mapped;
+      const seen = new Set<string>();
+      return mapped.filter((t) => {
+        const key = `${t.ownerTeam}|${t.title}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     },
   });
 };
 
+
 export const ChecklistManagement = () => {
   const queryClient = useQueryClient();
-  const { data: templates = [], isLoading } = useChecklistTemplates();
+  const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.team === "super_admin";
+  const { data: templates = [], isLoading } = useChecklistTemplates(isSuperAdmin);
   const { teamLabels } = useLabels();
+
+  // Tenants this admin may write to: all tenants for super admins, own tenant otherwise.
+  const resolveTargetTenantIds = async (): Promise<string[]> => {
+    if (isSuperAdmin) {
+      const { data } = await supabase.from("tenants").select("id");
+      const ids = (data || []).map((t) => t.id);
+      return ids.length > 0 ? ids : (currentUser?.tenantId ? [currentUser.tenantId] : []);
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
+    return profile?.tenant_id ? [profile.tenant_id] : [];
+  };
+
   const [activeTeam, setActiveTeam] = useState<TeamRole>("mint");
   const [editingItem, setEditingItem] = useState<ChecklistTemplate | null>(null);
   const [newItemTitle, setNewItemTitle] = useState("");
@@ -97,29 +125,28 @@ export const ChecklistManagement = () => {
       const maxOrder = teamTemplates.reduce((max, t) => Math.max(max, t.sortOrder), -1) + 1;
       const phase = team === "manager" ? "ms" : team;
 
-      // Get current user's tenant_id
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
-      const tenantId = profile?.tenant_id;
+      // Target tenants (all tenants when super admin)
+      const tenantIds = await resolveTargetTenantIds();
 
       const { error: templateError } = await supabase
         .from("checklist_templates")
-        .insert({
+        .insert(tenantIds.map((tenantId) => ({
           title,
           owner_team: team,
           phase: phase as "mint" | "integration" | "ms",
           sort_order: maxOrder,
           tenant_id: tenantId,
           standard_duration: standardDuration,
-        });
+        })));
       if (templateError) throw templateError;
 
-      // Also add to all existing projects in this tenant only
+      // Also add to all existing projects in the target tenants
       const { data: projects, error: projectsError } = await supabase
         .from("projects")
         .select("id, tenant_id")
-        .eq("tenant_id", tenantId as string);
+        .in("tenant_id", tenantIds);
       if (projectsError) throw projectsError;
+
 
       const itemsToInsert = (projects || []).map((p) => ({
         project_id: p.id,
@@ -159,8 +186,13 @@ export const ChecklistManagement = () => {
       if (templateId) {
         const updateData: any = { title: newTitle };
         if (standardDuration !== undefined) updateData.standard_duration = standardDuration;
-        await supabase.from("checklist_templates").update(updateData).eq("id", templateId);
+        // Super admin edits apply to the matching template in every tenant
+        const tq = supabase.from("checklist_templates").update(updateData);
+        await (isSuperAdmin
+          ? tq.eq("title", oldTitle).eq("owner_team", team)
+          : tq.eq("id", templateId));
       }
+
       const { error } = await supabase
         .from("checklist_items")
         .update({ title: newTitle })
@@ -185,8 +217,12 @@ export const ChecklistManagement = () => {
   const deleteItemMutation = useMutation({
     mutationFn: async ({ title, team, templateId }: { title: string; team: TeamRole; templateId?: string }) => {
       if (templateId) {
-        await supabase.from("checklist_templates").delete().eq("id", templateId);
+        const dq = supabase.from("checklist_templates").delete();
+        await (isSuperAdmin
+          ? dq.eq("title", title).eq("owner_team", team)
+          : dq.eq("id", templateId));
       }
+
       const { error } = await supabase
         .from("checklist_items")
         .delete()
@@ -221,9 +257,12 @@ export const ChecklistManagement = () => {
       const currentItem = currentItems[currentIndex];
       const swapItem = currentItems[swapIndex];
 
-      // Swap sort orders in templates table
-      await supabase.from("checklist_templates").update({ sort_order: swapItem.sortOrder }).eq("id", currentItem.id);
-      await supabase.from("checklist_templates").update({ sort_order: currentItem.sortOrder }).eq("id", swapItem.id);
+      // Swap sort orders in templates table (all tenants for super admins)
+      const tmplMatch = (q: any, item: typeof currentItem) =>
+        isSuperAdmin ? q.eq("title", item.title).eq("owner_team", team) : q.eq("id", item.id);
+      await tmplMatch(supabase.from("checklist_templates").update({ sort_order: swapItem.sortOrder }), currentItem);
+      await tmplMatch(supabase.from("checklist_templates").update({ sort_order: currentItem.sortOrder }), swapItem);
+
 
       // Also swap in checklist_items
       await supabase
@@ -284,9 +323,7 @@ export const ChecklistManagement = () => {
 
   const bulkImportMutation = useMutation({
     mutationFn: async (items: { title: string; team: TeamRole }[]) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
-      const tenantId = profile?.tenant_id;
+      const tenantIds = await resolveTargetTenantIds();
 
       const existingTitles = new Set(templates.map(t => `${t.ownerTeam}|${t.title}`));
       const newItems = items.filter(i => !existingTitles.has(`${i.team}|${i.title}`));
@@ -299,7 +336,7 @@ export const ChecklistManagement = () => {
         teamMaxOrders[t.ownerTeam] = Math.max(teamMaxOrders[t.ownerTeam] ?? -1, t.sortOrder);
       });
 
-      const templateInserts = newItems.map((item, idx) => {
+      const templateInserts = newItems.map((item) => {
         const phase = item.team === "manager" ? "ms" : item.team;
         teamMaxOrders[item.team] = (teamMaxOrders[item.team] ?? -1) + 1;
         return {
@@ -307,15 +344,17 @@ export const ChecklistManagement = () => {
           owner_team: item.team,
           phase: phase as "mint" | "integration" | "ms",
           sort_order: teamMaxOrders[item.team],
-          tenant_id: tenantId,
         };
       });
 
-      const { error: tErr } = await supabase.from("checklist_templates").insert(templateInserts);
+      const { error: tErr } = await supabase
+        .from("checklist_templates")
+        .insert(tenantIds.flatMap((tenantId) => templateInserts.map((t) => ({ ...t, tenant_id: tenantId }))));
       if (tErr) throw tErr;
 
-      // Add to all existing projects in this tenant only
-      const { data: projects } = await supabase.from("projects").select("id, tenant_id").eq("tenant_id", tenantId as string);
+      // Add to all existing projects in the target tenants
+      const { data: projects } = await supabase.from("projects").select("id, tenant_id").in("tenant_id", tenantIds);
+
       if (projects && projects.length > 0) {
         const checklistInserts = projects.flatMap(p =>
           templateInserts.map(t => ({
