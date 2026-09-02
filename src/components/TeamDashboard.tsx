@@ -304,11 +304,11 @@ export const TeamDashboard = () => {
           {/* AI Alerts Section */}
           <div className="mt-5">
             <div className="flex items-center justify-between mb-2 px-2">
-              <p className="portal-label">AI Alerts</p>
+              <p className="portal-label text-sidebar-foreground/70">AI Alerts</p>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 text-xs gap-1 px-2"
+                className="h-6 text-xs gap-1 px-2 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
                 onClick={handleGenerateAiAlerts}
                 disabled={aiAlertsLoading}
               >
@@ -318,14 +318,14 @@ export const TeamDashboard = () => {
             </div>
 
             {aiAlertsLoading && (
-              <div className="flex items-center justify-center py-3 text-xs text-muted-foreground gap-2">
+              <div className="flex items-center justify-center py-3 text-xs text-sidebar-foreground/60 gap-2">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 Analyzing projects...
               </div>
             )}
 
             {!aiAlertsLoading && aiAlertsLoaded && aiAlerts.length === 0 && (
-              <p className="text-xs text-muted-foreground px-2">No alerts found.</p>
+              <p className="text-xs text-sidebar-foreground/60 px-2">No alerts found.</p>
             )}
 
             {!aiAlertsLoading && aiAlerts.length > 0 && (
@@ -340,7 +340,7 @@ export const TeamDashboard = () => {
                           ? "bg-destructive/10 border-destructive/30"
                           : alert.priority === "medium"
                           ? "bg-amber-500/10 border-amber-200 dark:border-amber-800"
-                          : "bg-muted/50 border-border"
+                          : "bg-sidebar-accent/50 border-sidebar-border"
                       )}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
@@ -351,7 +351,7 @@ export const TeamDashboard = () => {
                         )}
                         <span className="font-semibold truncate">{alert.project}</span>
                       </div>
-                      <p className="text-muted-foreground leading-relaxed">{alert.action}</p>
+                      <p className="text-sidebar-foreground/70 leading-relaxed">{alert.action}</p>
                       {alert.alert && <p className="mt-1 font-medium text-destructive">{alert.alert}</p>}
                     </div>
                   ))}
@@ -360,7 +360,7 @@ export const TeamDashboard = () => {
             )}
 
             {!aiAlertsLoaded && !aiAlertsLoading && (
-              <p className="text-xs text-muted-foreground px-2">Click Generate for AI-powered next actions.</p>
+              <p className="text-xs text-sidebar-foreground/60 px-2">Click Generate for AI-powered next actions.</p>
             )}
           </div>
         </nav>
