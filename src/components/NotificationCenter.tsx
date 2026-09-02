@@ -104,14 +104,12 @@ export const NotificationCenter = () => {
             <div className="divide-y divide-border/60">
               {grouped.map((project) => (
                 <div key={project.projectId || "none"} className="py-3">
-                  {project.projectName && (
-                    <div className="flex items-center gap-2 px-5 pb-2 pt-1">
-                      <Folder className="h-4 w-4 text-primary" />
-                      <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">
-                        {project.projectName}
-                      </p>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 px-5 pb-1.5 pt-0.5">
+                    <Folder className="h-3.5 w-3.5 text-primary" />
+                    <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">
+                      {project.projectName || "Project updates"}
+                    </p>
+                  </div>
                   <div className="px-3">
                     {project.rows.map((n) => (
                       <button
@@ -119,7 +117,7 @@ export const NotificationCenter = () => {
                         type="button"
                         onClick={() => handleClick(n)}
                         className={cn(
-                          "flex w-full gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-muted/60",
+                          "flex w-full gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/60",
                           !n.read_at && "bg-primary/5",
                         )}
                       >
@@ -130,15 +128,15 @@ export const NotificationCenter = () => {
                             {!n.read_at && <Badge className="h-4 px-1.5 text-[9px]">New</Badge>}
                           </span>
                           {n.checklist_item_title && (
-                            <span className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                            <span className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                               <FileCheck className="h-3 w-3" />
                               {n.checklist_item_title}
                             </span>
                           )}
                           {n.body && (
-                            <span className="mt-1 block line-clamp-2 text-xs text-muted-foreground">{n.body}</span>
+                            <span className="mt-0.5 block line-clamp-1 text-xs text-muted-foreground">{n.body}</span>
                           )}
-                          <span className="mt-1 block text-[11px] text-muted-foreground">
+                          <span className="mt-0.5 block text-[11px] text-muted-foreground">
                             {n.actor_name ? `${n.actor_name} · ` : ""}
                             {timeAgo(n.created_at)}
                           </span>
