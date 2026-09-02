@@ -8,7 +8,7 @@ export interface ActivityEntry {
   userName: string | null;
   timestamp: string;
   metadata?: any;
-  source: "activity_log" | "comment_log" | "checklist_comment";
+  source: "activity_log" | "comment_log" | "checklist_comment" | "portal_visit";
 }
 
 export const useProjectActivityHistory = (projectId: string | undefined) => {
@@ -53,6 +53,14 @@ export const useProjectActivityHistory = (projectId: string | undefined) => {
         checklistComments = data ?? [];
       }
 
+      // 4. Merchant portal visits (customer portal activity)
+      const { data: portalVisits } = await supabase
+        .from("merchant_portal_visits")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("visited_at", { ascending: false })
+        .limit(500);
+
       // Merge into unified entries
       const entries: ActivityEntry[] = [];
 
@@ -89,6 +97,18 @@ export const useProjectActivityHistory = (projectId: string | undefined) => {
           timestamp: cc.created_at,
           metadata: cc.attachment_url ? { attachment: cc.attachment_url } : undefined,
           source: "checklist_comment",
+        });
+      }
+
+      for (const pv of portalVisits ?? []) {
+        entries.push({
+          id: pv.id,
+          category: "portal",
+          description: `Customer viewed the portal${pv.page ? ` — ${pv.page}` : ""}`,
+          userName: pv.email || "Customer",
+          timestamp: pv.visited_at,
+          metadata: { page: pv.page, sessionId: pv.session_id },
+          source: "portal_visit",
         });
       }
 

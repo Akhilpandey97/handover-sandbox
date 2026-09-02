@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Ticket,
   User,
+  Globe,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 
@@ -36,6 +37,7 @@ const CATEGORY_FILTERS = [
   { key: "risk", label: "Risks" },
   { key: "email", label: "Emails" },
   { key: "jira", label: "Jira" },
+  { key: "portal", label: "Portal Visits" },
 ];
 
 const getCategoryIcon = (category: string) => {
@@ -47,6 +49,7 @@ const getCategoryIcon = (category: string) => {
     case "risk": return ShieldAlert;
     case "email": return Mail;
     case "jira": return Ticket;
+    case "portal": return Globe;
     default: return Activity;
   }
 };
@@ -60,6 +63,7 @@ const getCategoryColor = (category: string) => {
     case "risk": return "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300";
     case "email": return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300";
     case "jira": return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300";
+    case "portal": return "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300";
     default: return "bg-muted text-muted-foreground";
   }
 };
@@ -73,6 +77,7 @@ const getTimelineColor = (category: string) => {
     case "risk": return "bg-red-500";
     case "email": return "bg-cyan-500";
     case "jira": return "bg-indigo-500";
+    case "portal": return "bg-teal-500";
     default: return "bg-muted-foreground";
   }
 };
