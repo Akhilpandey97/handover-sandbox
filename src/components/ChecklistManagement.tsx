@@ -185,8 +185,13 @@ export const ChecklistManagement = () => {
       if (templateId) {
         const updateData: any = { title: newTitle };
         if (standardDuration !== undefined) updateData.standard_duration = standardDuration;
-        await supabase.from("checklist_templates").update(updateData).eq("id", templateId);
+        // Super admin edits apply to the matching template in every tenant
+        const tq = supabase.from("checklist_templates").update(updateData);
+        await (isSuperAdmin
+          ? tq.eq("title", oldTitle).eq("owner_team", team)
+          : tq.eq("id", templateId));
       }
+
       const { error } = await supabase
         .from("checklist_items")
         .update({ title: newTitle })
