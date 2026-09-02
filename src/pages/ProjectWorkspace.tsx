@@ -70,7 +70,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-type WorkspaceTab = "activity" | "checklists";
+type WorkspaceTab = "activity" | "checklists" | "jira";
 type ActivityKind = "user" | "system" | "handoff" | "milestone";
 
 const PROJECT_STATES: ProjectState[] = ["not_started", "on_hold", "in_progress", "live", "blocked"];
