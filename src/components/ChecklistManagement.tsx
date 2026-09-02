@@ -51,9 +51,9 @@ interface ChecklistTemplate {
 }
 
 // Fetch checklist templates from dedicated table
-const useChecklistTemplates = () => {
+const useChecklistTemplates = (isSuperAdmin: boolean) => {
   return useQuery({
-    queryKey: ["checklist-templates"],
+    queryKey: ["checklist-templates", isSuperAdmin],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("checklist_templates")
@@ -62,7 +62,7 @@ const useChecklistTemplates = () => {
 
       if (error) throw error;
 
-      return (data || []).map((item) => ({
+      const mapped = (data || []).map((item) => ({
         id: item.id,
         title: item.title,
         ownerTeam: item.owner_team as TeamRole,
@@ -70,9 +70,21 @@ const useChecklistTemplates = () => {
         sortOrder: item.sort_order ?? 0,
         standardDuration: item.standard_duration ?? null,
       }));
+
+      // Super admins see templates across every tenant — collapse duplicates
+      // (same team + title) so edits apply once and propagate everywhere.
+      if (!isSuperAdmin) return mapped;
+      const seen = new Set<string>();
+      return mapped.filter((t) => {
+        const key = `${t.ownerTeam}|${t.title}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
     },
   });
 };
+
 
 export const ChecklistManagement = () => {
   const queryClient = useQueryClient();
