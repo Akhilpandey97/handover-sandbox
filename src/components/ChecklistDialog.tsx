@@ -338,7 +338,8 @@ export const ChecklistDialog = ({
                       return (
                         <div
                           key={item.id}
-                           className={`p-4 rounded-xl border transition-all ${
+                          id={`checklist-item-${item.id}`}
+                           className={`p-4 rounded-xl border transition-all scroll-mt-24 ${
                             item.completed 
                               ? "bg-emerald-500/5 border-emerald-200 dark:border-emerald-800" 
                               : "bg-card border-border hover:border-primary/30 hover:shadow-md"
@@ -480,7 +481,12 @@ export const ChecklistDialog = ({
                               </div>
 
                               {/* Comment Thread */}
-                              <ChecklistCommentThread checklistItemId={item.id} />
+                              <ChecklistCommentThread
+                                checklistItemId={item.id}
+                                checklistItemTitle={item.title}
+                                projectId={project.id}
+                                projectName={project.merchantName}
+                              />
                             </div>
 
                             {/* Responsibility Toggle */}

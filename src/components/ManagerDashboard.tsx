@@ -95,6 +95,7 @@ import { exportProjectsToCSV } from "@/utils/exportProjects";
 import { exportProjectChecklistCSV, exportTeamOwnerCSV } from "@/utils/reportExportCSV";
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationCenter } from "./NotificationCenter";
 import { toast } from "sonner";
 import { fetchAiInsights } from "@/utils/aiInsights";
 import { cn } from "@/lib/utils";
@@ -1145,6 +1146,7 @@ export const ManagerDashboard = () => {
             )}
 
             <div className="flex items-center gap-2 pl-3 border-l border-border/50">
+              <NotificationCenter />
               <ThemeToggle />
               <div className="flex items-center gap-2 pl-2 border-l border-border/50">
                 <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
