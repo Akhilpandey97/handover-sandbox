@@ -88,8 +88,23 @@ const useChecklistTemplates = (isSuperAdmin: boolean) => {
 
 export const ChecklistManagement = () => {
   const queryClient = useQueryClient();
-  const { data: templates = [], isLoading } = useChecklistTemplates();
+  const { currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.team === "super_admin";
+  const { data: templates = [], isLoading } = useChecklistTemplates(isSuperAdmin);
   const { teamLabels } = useLabels();
+
+  // Tenants this admin may write to: all tenants for super admins, own tenant otherwise.
+  const resolveTargetTenantIds = async (): Promise<string[]> => {
+    if (isSuperAdmin) {
+      const { data } = await supabase.from("tenants").select("id");
+      const ids = (data || []).map((t) => t.id);
+      return ids.length > 0 ? ids : (currentUser?.tenantId ? [currentUser.tenantId] : []);
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
+    return profile?.tenant_id ? [profile.tenant_id] : [];
+  };
+
   const [activeTeam, setActiveTeam] = useState<TeamRole>("mint");
   const [editingItem, setEditingItem] = useState<ChecklistTemplate | null>(null);
   const [newItemTitle, setNewItemTitle] = useState("");
