@@ -42,6 +42,7 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationCenter } from "./NotificationCenter";
 
 type TabType = "pending" | "active" | "all";
 type ViewType = "cards" | "kanban" | "list";
@@ -390,6 +391,7 @@ export const TeamDashboard = () => {
             </div>
 
             <div className="flex items-center gap-2.5 pl-3 border-l">
+              <NotificationCenter />
               <ThemeToggle />
               <div className="text-right hidden md:block">
                 <p className="font-medium text-xs">{currentUser.name}</p>
