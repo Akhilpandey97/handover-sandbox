@@ -122,7 +122,7 @@ export const NotificationCenter = () => {
                         type="button"
                         onClick={() => handleClick(n)}
                         className={cn(
-                          "flex w-full gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-muted/60",
+                          "flex w-full gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/60",
                           !n.read_at && "bg-primary/5",
                         )}
                       >
