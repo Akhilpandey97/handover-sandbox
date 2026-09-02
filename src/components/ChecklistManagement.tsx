@@ -323,9 +323,7 @@ export const ChecklistManagement = () => {
 
   const bulkImportMutation = useMutation({
     mutationFn: async (items: { title: string; team: TeamRole }[]) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
-      const tenantId = profile?.tenant_id;
+      const tenantIds = await resolveTargetTenantIds();
 
       const existingTitles = new Set(templates.map(t => `${t.ownerTeam}|${t.title}`));
       const newItems = items.filter(i => !existingTitles.has(`${i.team}|${i.title}`));
@@ -338,7 +336,7 @@ export const ChecklistManagement = () => {
         teamMaxOrders[t.ownerTeam] = Math.max(teamMaxOrders[t.ownerTeam] ?? -1, t.sortOrder);
       });
 
-      const templateInserts = newItems.map((item, idx) => {
+      const templateInserts = newItems.map((item) => {
         const phase = item.team === "manager" ? "ms" : item.team;
         teamMaxOrders[item.team] = (teamMaxOrders[item.team] ?? -1) + 1;
         return {
@@ -346,15 +344,17 @@ export const ChecklistManagement = () => {
           owner_team: item.team,
           phase: phase as "mint" | "integration" | "ms",
           sort_order: teamMaxOrders[item.team],
-          tenant_id: tenantId,
         };
       });
 
-      const { error: tErr } = await supabase.from("checklist_templates").insert(templateInserts);
+      const { error: tErr } = await supabase
+        .from("checklist_templates")
+        .insert(tenantIds.flatMap((tenantId) => templateInserts.map((t) => ({ ...t, tenant_id: tenantId }))));
       if (tErr) throw tErr;
 
-      // Add to all existing projects in this tenant only
-      const { data: projects } = await supabase.from("projects").select("id, tenant_id").eq("tenant_id", tenantId as string);
+      // Add to all existing projects in the target tenants
+      const { data: projects } = await supabase.from("projects").select("id, tenant_id").in("tenant_id", tenantIds);
+
       if (projects && projects.length > 0) {
         const checklistInserts = projects.flatMap(p =>
           templateInserts.map(t => ({
