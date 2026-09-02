@@ -1,0 +1,153 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { Bell, AtSign, ListTodo, CheckCheck, Folder } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useNotifications, useMarkNotificationRead, type AppNotification } from "@/hooks/useNotifications";
+import { cn } from "@/lib/utils";
+
+const typeIcon = (type: string) => {
+  if (type === "mention") return <AtSign className="h-3.5 w-3.5" />;
+  return <ListTodo className="h-3.5 w-3.5" />;
+};
+
+const timeAgo = (iso: string) => {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
+};
+
+export const NotificationCenter = () => {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const { data: notifications = [] } = useNotifications();
+  const markRead = useMarkNotificationRead();
+
+  const unread = notifications.filter((n) => !n.read_at);
+
+  // Group project → checklist item
+  const grouped = useMemo(() => {
+    const projects = new Map<
+      string,
+      { projectId: string | null; projectName: string; items: Map<string, { title: string; rows: AppNotification[] }> }
+    >();
+    for (const n of notifications) {
+      const pKey = n.project_id || "none";
+      if (!projects.has(pKey)) {
+        projects.set(pKey, {
+          projectId: n.project_id,
+          projectName: n.project_name || "General",
+          items: new Map(),
+        });
+      }
+      const project = projects.get(pKey)!;
+      const iKey = n.checklist_item_id || "none";
+      if (!project.items.has(iKey)) {
+        project.items.set(iKey, { title: n.checklist_item_title || "Other updates", rows: [] });
+      }
+      project.items.get(iKey)!.rows.push(n);
+    }
+    return Array.from(projects.values()).map((p) => ({ ...p, items: Array.from(p.items.values()) }));
+  }, [notifications]);
+
+  const handleClick = (n: AppNotification) => {
+    if (!n.read_at) markRead.mutate([n.id]);
+    setOpen(false);
+    if (!n.project_id) return;
+    navigate({
+      to: "/projects/$projectId",
+      params: { projectId: n.project_id },
+      search: {
+        tab: "checklists",
+        ...(n.checklist_item_id ? { item: n.checklist_item_id } : {}),
+        ...(n.task_id ? { task: n.task_id } : {}),
+      } as never,
+    });
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+          <Bell className="h-5 w-5" />
+          {unread.length > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+              {unread.length > 99 ? "99+" : unread.length}
+            </span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[380px] p-0">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold">Notifications</p>
+            <p className="text-xs text-muted-foreground">{unread.length} unread</p>
+          </div>
+          {unread.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => markRead.mutate(unread.map((n) => n.id))}
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              Mark all read
+            </Button>
+          )}
+        </div>
+
+        <ScrollArea className="max-h-[420px] overflow-y-auto">
+          {notifications.length === 0 ? (
+            <p className="px-4 py-10 text-center text-sm text-muted-foreground">You're all caught up.</p>
+          ) : (
+            <div className="divide-y divide-border/60">
+              {grouped.map((project) => (
+                <div key={project.projectId || "none"} className="py-2">
+                  <div className="flex items-center gap-2 px-4 py-1.5">
+                    <Folder className="h-3.5 w-3.5 text-primary" />
+                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">{project.projectName}</p>
+                  </div>
+                  {project.items.map((item) => (
+                    <div key={item.title} className="px-2">
+                      <p className="px-2 pb-1 pt-1.5 text-[11px] font-medium text-muted-foreground">{item.title}</p>
+                      {item.rows.map((n) => (
+                        <button
+                          key={n.id}
+                          type="button"
+                          onClick={() => handleClick(n)}
+                          className={cn(
+                            "flex w-full gap-2 rounded-lg px-2 py-2 text-left transition-colors hover:bg-muted/60",
+                            !n.read_at && "bg-primary/5",
+                          )}
+                        >
+                          <span className="mt-0.5 text-primary">{typeIcon(n.type)}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-2">
+                              <span className="truncate text-xs font-semibold text-foreground">{n.title}</span>
+                              {!n.read_at && <Badge className="h-4 px-1.5 text-[9px]">New</Badge>}
+                            </span>
+                            {n.body && <span className="mt-0.5 block line-clamp-2 text-xs text-muted-foreground">{n.body}</span>}
+                            <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                              {n.actor_name ? `${n.actor_name} · ` : ""}
+                              {timeAgo(n.created_at)}
+                            </span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
+  );
+};

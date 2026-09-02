@@ -1123,6 +1123,65 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          actor_name: string | null
+          body: string | null
+          checklist_item_id: string | null
+          checklist_item_title: string | null
+          created_at: string
+          id: string
+          project_id: string | null
+          project_name: string | null
+          read_at: string | null
+          task_id: string | null
+          tenant_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_name?: string | null
+          body?: string | null
+          checklist_item_id?: string | null
+          checklist_item_title?: string | null
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          project_name?: string | null
+          read_at?: string | null
+          task_id?: string | null
+          tenant_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_name?: string | null
+          body?: string | null
+          checklist_item_id?: string | null
+          checklist_item_title?: string | null
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          project_name?: string | null
+          read_at?: string | null
+          task_id?: string | null
+          tenant_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parsed_emails: {
         Row: {
           aov: number | null
