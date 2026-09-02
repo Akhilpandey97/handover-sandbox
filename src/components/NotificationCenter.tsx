@@ -35,22 +35,25 @@ export const NotificationCenter = () => {
 
   // Group project → notification rows
   const grouped = useMemo(() => {
-    const projects = new Map<
+    const groups = new Map<
       string,
       { projectId: string | null; projectName: string | null; rows: AppNotification[] }
     >();
     for (const n of notifications) {
       const pKey = n.project_id || "none";
-      if (!projects.has(pKey)) {
-        projects.set(pKey, {
+      if (!groups.has(pKey)) {
+        groups.set(pKey, {
           projectId: n.project_id,
-          projectName: n.project_name || projects.find((project) => project.id === n.project_id)?.merchantName || null,
+          projectName:
+            n.project_name ||
+            (projects || []).find((project) => project.id === n.project_id)?.merchantName ||
+            null,
           rows: [],
         });
       }
-      projects.get(pKey)!.rows.push(n);
+      groups.get(pKey)!.rows.push(n);
     }
-    return Array.from(projects.values());
+    return Array.from(groups.values());
   }, [notifications, projects]);
 
   const handleClick = (n: AppNotification) => {
