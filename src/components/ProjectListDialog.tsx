@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { Project } from "@/data/projectsData";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ProjectDetailsDialog } from "@/components/ProjectDetailsDialog";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useNavigate } from "@tanstack/react-router";
 
 interface Props {
   title: string;
@@ -17,7 +16,7 @@ interface Props {
 
 export const ProjectListDialog = ({ title, description, projects, open, onOpenChange }: Props) => {
   const { teamLabels, stateLabels, phaseLabels } = useLabels();
-  const [selected, setSelected] = useState<Project | null>(null);
+  const navigate = useNavigate();
   const list = projects || [];
   const totalArr = list.reduce((s, p) => s + (p.arr || 0), 0);
 
@@ -50,7 +49,7 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
                 </TableHeader>
                 <TableBody>
                   {list.map((p) => (
-                    <TableRow key={p.id} className="cursor-pointer" onClick={() => setSelected(p)}>
+                    <TableRow key={p.id} className="cursor-pointer" onClick={() => { onOpenChange(false); navigate({ to: "/projects/$projectId", params: { projectId: p.id } }); }}>
                       <TableCell className="font-medium">{p.merchantName}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{p.mid}</TableCell>
                       <TableCell>
@@ -70,12 +69,6 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
           </ScrollArea>
         </DialogContent>
       </Dialog>
-
-      <ProjectDetailsDialog
-        project={selected}
-        open={!!selected}
-        onOpenChange={(o) => { if (!o) setSelected(null); }}
-      />
     </>
   );
 };
