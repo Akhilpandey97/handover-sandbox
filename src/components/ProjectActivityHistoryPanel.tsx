@@ -114,14 +114,6 @@ export const ProjectActivityHistoryPanel = ({
   return (
     <div className="flex flex-col rounded-xl border border-border/60 bg-card/80 overflow-hidden">
       <div className="px-4 pt-3 pb-3 border-b border-border/60 space-y-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-primary" />
-            <p className="text-sm font-semibold text-foreground">Activity History</p>
-          </div>
-          <Badge variant="outline" className="text-[11px]">{filtered.length} entries</Badge>
-        </div>
-
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
