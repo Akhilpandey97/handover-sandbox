@@ -1237,21 +1237,6 @@ export const ManagerDashboard = () => {
                       </div>
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">{kpi.sub}</p>
-                    <p className="mt-1 text-[11px] text-muted-foreground/80">
-                      {(["sales","pre_integration","under_integration","live","none"] as const).map(s => `${s === "pre_integration" ? "Pre" : s === "under_integration" ? "Under" : s === "none" ? "Unassigned" : s[0].toUpperCase()}: ${funnelCounts[s] || 0}`).join("  ·  ")}
-                    </p>
-                    {"sub2" in kpi && (
-                      <p
-                        className="mt-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
-                        onClick={(e) => { e.stopPropagation(); setDrillDown({ title: "Under Integration", projects: displayProjects.filter(p => isProjectUnderIntegration(p)) }); }}
-                      >{kpi.sub2}</p>
-                    )}
-                    {"sub3" in kpi && (
-                      <p
-                        className="mt-0.5 text-xs text-muted-foreground hover:text-foreground hover:underline"
-                        onClick={(e) => { e.stopPropagation(); setDrillDown({ title: "In Progress without expected go-live", projects: displayProjects.filter(p => p.projectState === "in_progress" && !p.dates.expectedGoLiveDate) }); }}
-                      >{(kpi as any).sub3}</p>
-                    )}
                   </div>
                 ));
               })()}
