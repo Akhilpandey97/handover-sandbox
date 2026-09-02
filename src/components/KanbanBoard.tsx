@@ -39,11 +39,11 @@ const FUNNEL_STAGE_STYLES: Record<FunnelStage, { text: string; bar: string; bg: 
 };
 
 const STATE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
-  not_started: { text: "text-muted-foreground", bar: "bg-muted-foreground/40", bg: "bg-muted/40", ring: "ring-border" },
-  in_progress: { text: "text-blue-700 dark:text-blue-300", bar: "bg-blue-500", bg: "bg-blue-500/5", ring: "ring-blue-500/20" },
-  on_hold: { text: "text-amber-700 dark:text-amber-300", bar: "bg-amber-500", bg: "bg-amber-500/5", ring: "ring-amber-500/20" },
-  blocked: { text: "text-destructive", bar: "bg-destructive", bg: "bg-destructive/5", ring: "ring-destructive/20" },
-  live: { text: "text-emerald-700 dark:text-emerald-300", bar: "bg-emerald-500", bg: "bg-emerald-500/5", ring: "ring-emerald-500/20" },
+  not_started: { text: "text-navy", bar: "bg-muted-foreground/40", bg: "bg-muted/40", ring: "ring-border" },
+  in_progress: { text: "text-navy", bar: "bg-blue-500", bg: "bg-blue-500/5", ring: "ring-blue-500/20" },
+  on_hold: { text: "text-navy", bar: "bg-amber-500", bg: "bg-amber-500/5", ring: "ring-amber-500/20" },
+  blocked: { text: "text-navy", bar: "bg-destructive", bg: "bg-destructive/5", ring: "ring-destructive/20" },
+  live: { text: "text-navy", bar: "bg-emerald-500", bg: "bg-emerald-500/5", ring: "ring-emerald-500/20" },
 };
 
 const PHASE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
