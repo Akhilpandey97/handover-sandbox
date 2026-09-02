@@ -16,13 +16,13 @@ const API_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Clean, professional palette
 const BRAND = {
-  primary: "#003c71",
-  primaryLight: "#0a5a9e",
-  primarySoft: "#e8f0fe",
-  accent: "#0EA5E9",
-  accentLight: "#bae6fd",
-  logoKwik: "#003c71",
-  logoAssist: "#efae2e",
+  primary: "#30658F",
+  primaryLight: "#3f7fb0",
+  primarySoft: "#e8f1f7",
+  accent: "#3f7fb0",
+  accentLight: "#cfe1ee",
+  logoKwik: "#30658F",
+  logoAssist: "#30658F",
   green: "#16a34a",
   greenLight: "#dcfce7",
   red: "#dc2626",
@@ -155,7 +155,7 @@ function deriveCurrentStage(data: PortalData): number {
   return firstIncomplete + 1;
 }
 
-type NavPage = "integration" | "credentials" | "documents" | "faq" | "validator" | "simulator" | "kwikpass" | "mcp" | "mandatoryApis" | "brd";
+type NavPage = "integration" | "credentials" | "documents" | "faq" | "simulator" | "kwikpass" | "mcp" | "mandatoryApis" | "brd";
 
 // ========== COPY BUTTON ==========
 function CopyButton({ text }: { text: string }) {
@@ -178,9 +178,8 @@ function KwikAssistLogo({ size = "md", onClick }: { size?: "sm" | "md" | "lg"; o
   const sizes = { sm: "text-sm", md: "text-lg", lg: "text-2xl" };
   return (
     <button onClick={onClick} className={cn("font-bold tracking-tight", sizes[size])}>
-      <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Kwik</span>
-      <span style={{ color: BRAND.logoAssist }}>Assist</span>
-      <span className="text-[10px] text-slate-400 ml-0.5 font-medium">AI</span>
+      <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
+      <span className="text-[10px] text-slate-400 ml-1 font-medium">PORTAL</span>
     </button>
   );
 }
@@ -189,7 +188,7 @@ function KwikAssistLogo({ size = "md", onClick }: { size?: "sm" | "md" | "lg"; o
 function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string; token: string; faqs?: PortalFaq[] }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
-    { role: "assistant", content: `Hi! I'm KwikAssist AI 🤖\n\nI can help you with:\n• API integration questions\n• Debugging common errors\n• Validator guidance\n• Setup & configuration\n\nHow can I help you today?` },
+    { role: "assistant", content: `Hi! I'm Handover Assist 🤖\n\nI can help you with:\n• API integration questions\n• Debugging common errors\n• Validator guidance\n• Setup & configuration\n\nHow can I help you today?` },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -245,7 +244,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
         data-tour="tour-ai"
         className="fixed bottom-5 left-5 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
         style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.accent})` }}
-        title="KwikAssist AI Chat"
+        title="Handover Assist Chat"
       >
         <MessageCircle className="w-6 h-6" />
       </button>
@@ -260,7 +259,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
           <Bot className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-bold text-white">KwikAssist AI</p>
+          <p className="text-sm font-bold text-white">Handover Assist</p>
           <p className="text-[10px] text-white/70">Integration Support</p>
         </div>
         <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
@@ -465,13 +464,13 @@ export default function MerchantPortal() {
     const proj = data?.project;
     const steps: TourStep[] = [
       {
-        title: `Welcome to KwikAssist${proj ? `, ${proj.merchant_name}` : ""}`,
+        title: `Welcome to Handover Assist${proj ? `, ${proj.merchant_name}` : ""}`,
         body: "Your one-stop workspace to go live faster. This quick tour shows what each section does — takes under a minute.",
       },
       {
         target: '[data-tour="tour-integration"]',
         title: "My Integration",
-        body: "Your live integration status: current stage, owner, milestones, and next steps — always in sync with your GoKwik team.",
+        body: "Your live integration status: current stage, owner, milestones, and next steps — always in sync with your Handover team.",
         placement: "right",
       },
       {
@@ -492,12 +491,6 @@ export default function MerchantPortal() {
         body: "Common questions answered. Check here first before reaching out — most blockers have a known fix.",
         placement: "right",
       },
-      {
-        target: '[data-tour="tour-validator"]',
-        title: "Merchant Validator",
-        body: "Run end-to-end integration checks yourself. No need to wait on your CE for basic validation.",
-        placement: "right",
-      },
     ];
     if (proj?.payment_simulator_link) {
       steps.push({
@@ -508,14 +501,8 @@ export default function MerchantPortal() {
       });
     }
     steps.push({
-      target: '[data-tour="tour-side-panel"]',
-      title: "Page guidance",
-      body: "Every page has a side panel like this with quick tips and definitions for what's on screen.",
-      placement: "left",
-    });
-    steps.push({
       target: '[data-tour="tour-ai"]',
-      title: "KwikAssist AI",
+      title: "Handover Assist",
       body: "Stuck? Ask the AI anything about your integration — it's trained on your project's context and the FAQs.",
       placement: "top",
     });
@@ -637,7 +624,7 @@ export default function MerchantPortal() {
   useEffect(() => { refreshData(); }, [refreshData]);
 
   const currentStage = useMemo(() => (data ? deriveCurrentStage(data) : 1), [data]);
-  const orgName = data?.branding?.org_name || "GoKwik";
+  const orgName = data?.branding?.org_name || "Handover";
 
   // ===== NO TOKEN =====
   if (!token) {
@@ -680,7 +667,7 @@ export default function MerchantPortal() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-[#0c1220] dark:via-[#101b2e] dark:to-[#0c1220]">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #003c71 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #30658F 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         <div className="w-full max-w-md relative z-10">
           <div className="bg-white dark:bg-[#141e30] rounded-2xl shadow-xl shadow-slate-200/60 dark:shadow-black/40 p-8 border border-slate-200 dark:border-[#253553]">
             <div className="text-center mb-8">
@@ -688,9 +675,8 @@ export default function MerchantPortal() {
                 <Zap className="w-7 h-7 text-white" fill="white" />
               </div>
               <h1 className="text-2xl font-bold tracking-tight">
-                <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Kwik</span>
-                <span style={{ color: BRAND.logoAssist }}>Assist</span>
-                <span className="text-xs font-medium text-slate-400 ml-1">AI</span>
+                <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
+                <span className="text-xs font-medium text-slate-400 ml-1">PORTAL</span>
               </h1>
               <p className="text-slate-500 dark:text-slate-300 text-sm mt-2 font-medium">
                 Your Complete Merchant Integration Workspace
@@ -756,12 +742,12 @@ export default function MerchantPortal() {
 
             <div className="mt-6 pt-5 border-t border-slate-100 dark:border-[#253553]">
               <p className="text-center text-[11px] text-slate-400 dark:text-slate-400">
-                Your APP ID was shared by your GoKwik integration team.
+                Your APP ID was shared by your Handover integration team.
                 <br />Contact your project manager if you need assistance.
               </p>
             </div>
           </div>
-          <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-4">Powered by GoKwik · KwikAssist AI</p>
+          <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-4">Powered by Handover</p>
         </div>
       </div>
     );
@@ -846,27 +832,10 @@ export default function MerchantPortal() {
               dataTour="tour-brd"
             />
             <SidebarItem icon={HelpCircle} label="FAQ & Help" active={activePage === "faq"} onClick={() => setActivePage("faq")} dataTour="tour-faq" />
-            <div className="pt-4 pb-2 px-2">
-              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">Developer Tools</p>
-            </div>
-            <SidebarItem icon={Search} label="Merchant Validator" active={activePage === "validator"} onClick={() => setActivePage("validator")} dataTour="tour-validator" />
             {project.payment_simulator_link && (
               <SidebarItem icon={Zap} label="Payment Simulator" active={activePage === "simulator"} onClick={() => setActivePage("simulator")} dataTour="tour-simulator" />
             )}
           </nav>
-          <div className="px-4 py-4 border-t border-slate-100 dark:border-[#253553]">
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-2">Environment</p>
-            <div className="space-y-1.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-300">Sandbox</span>
-                <span className="text-[10px] font-bold bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-2 py-0.5 rounded">ACTIVE</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-300">Production</span>
-                <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded">PENDING</span>
-              </div>
-            </div>
-          </div>
         </aside>
 
         {/* MAIN CONTENT */}
@@ -888,17 +857,11 @@ export default function MerchantPortal() {
           {activePage === "mcp" && project.enable_mcp_document && <MCPPage project={project} credentials={data.credentials} onBack={() => setActivePage("documents")} />}
           {activePage === "mandatoryApis" && <MandatoryApisPage project={project} onBack={() => setActivePage("documents")} />}
           {activePage === "faq" && <FAQPage faqs={project.faq_help} />}
-          {activePage === "validator" && (
-            <MerchantValidatorPage project={project} credentials={data.credentials}
-              uploads={data.uploads || []} token={token!} onRefresh={refreshData} />
-          )}
           {activePage === "simulator" && project.payment_simulator_link && (
             <PaymentSimulatorPage link={project.payment_simulator_link} />
           )}
         </main>
 
-        {/* RIGHT SIDE EXPLAINER PANEL */}
-        <SideExplainerPanel activePage={activePage} />
       </div>
 
       {/* First-visit Guided Tour */}
@@ -1157,6 +1120,41 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         </div>
       </Card>
 
+      {/* Full checklist with due dates */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">Checklist</h2>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
+            {checklist_progress.completed} of {checklist_progress.total} complete
+          </span>
+        </div>
+        <div className="divide-y divide-slate-100 dark:divide-[#253553]">
+          {data.checklist.map((item, i) => {
+            const overdue = !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
+            return (
+              <div key={`${item.title}-${i}`} className="flex items-center justify-between gap-4 py-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0"
+                    style={{ color: item.completed ? BRAND.green : "#cbd5e1" }} />
+                  <span className={cn("text-sm truncate", item.completed
+                    ? "text-slate-500 dark:text-slate-400"
+                    : "text-slate-800 dark:text-slate-100 font-medium")}>
+                    {item.title}
+                  </span>
+                </div>
+                <span className={cn("text-xs whitespace-nowrap font-semibold",
+                  overdue ? "text-red-600 dark:text-red-400" : "text-slate-400 dark:text-slate-400")}>
+                  {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
+                </span>
+              </div>
+            );
+          })}
+          {data.checklist.length === 0 && (
+            <p className="text-sm text-slate-400 py-3">No checklist items yet.</p>
+          )}
+        </div>
+      </Card>
+
       {/* Project Overview + Notes side-by-side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
@@ -1207,7 +1205,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <Card className="px-5 py-3 flex items-center gap-3" style={{ borderLeft: `3px solid ${BRAND.accent}` }}>
         <Zap className="w-4 h-4 flex-shrink-0" style={{ color: BRAND.accent }} />
         <p className="text-sm text-slate-500 dark:text-slate-300">
-          Your {orgName} SE will advance your stage once milestones are complete. Use <span className="font-bold text-slate-700 dark:text-white">KwikAssist AI</span> for help.
+          Your {orgName} SE will advance your stage once milestones are complete. Use <span className="font-bold text-slate-700 dark:text-white">Handover Assist</span> for help.
         </p>
       </Card>
     </div>
@@ -1359,7 +1357,7 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
     title: "Mandatory APIs & Postman Collection",
     desc: mandatoryCount > 0
       ? `${mandatoryCount} mandatory API${mandatoryCount === 1 ? "" : "s"} marked by your CE — click to view the list & Postman collection`
-      : "GoKwik API Postman workspace and collections — click to view",
+      : "Handover API Postman workspace and collections — click to view",
     badge: "View List",
     onClick: () => setActivePage("mandatoryApis"),
     badgeColor: "blue",
@@ -1369,7 +1367,7 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
     docs.push({
       icon: <Code className="w-5 h-5" style={{ color: BRAND.primary }} />,
       title: "MCP Server Setup Guide",
-      desc: "Setup guide for connecting GoKwik MCP Server to Claude Desktop / Code",
+      desc: "Setup guide for connecting Handover MCP Server to Claude Desktop / Code",
       badge: "Setup Guide",
       onClick: () => setActivePage("mcp"),
       badgeColor: "blue",
@@ -1515,7 +1513,7 @@ __KP_LOGIN_SDK_INSTANCE__.handleKPLogout();
     },
     {
       title: "6. SSO Button (Optional)",
-      desc: "Add the KwikPass SSO container for one-click login for returning users who have shopped at any GoKwik merchant before.",
+      desc: "Add the KwikPass SSO container for one-click login for returning users who have shopped at any Handover merchant before.",
       code: `<!-- 6a — Add the SSO container where the button should appear -->
 <div
   id="kwikpass-sso-container"
@@ -1598,7 +1596,7 @@ console.log(payload);
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: "Phone OTP Login", desc: "Users log in via phone number with 4-digit OTP — no email/password", icon: "🔐" },
-            { label: "Single Sign-On (SSO)", desc: "Auto-login for users who shopped at any GoKwik merchant before", icon: "🔑" },
+            { label: "Single Sign-On (SSO)", desc: "Auto-login for users who shopped at any Handover merchant before", icon: "🔑" },
             { label: "PageView Tracking", desc: "Capture Product/Collection IDs for logged-in user retargeting", icon: "📊" },
             { label: "User Cohorts", desc: "Via KwikChat based on captured events — boosts repeat purchase rate", icon: "🎯" },
           ].map((f, i) => (
@@ -1817,8 +1815,8 @@ console.log(payload);
         <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Testing Guide</h3>
         <div className="space-y-3">
           {[
-            { title: "Test OTP Flow", desc: "Go to profile/account section → Enter mobile number → Receive GoKwik OTP → Verify OTP → You're logged in!", icon: "📱" },
-            { title: "Test SSO Flow", desc: "Login to GoKwik test environment → Visit your store → SSO button appears with masked number → Click to login", icon: "⚡" },
+            { title: "Test OTP Flow", desc: "Go to profile/account section → Enter mobile number → Receive Handover OTP → Verify OTP → You're logged in!", icon: "📱" },
+            { title: "Test SSO Flow", desc: "Login to Handover test environment → Visit your store → SSO button appears with masked number → Click to login", icon: "⚡" },
             { title: "Test Token Decryption", desc: "Use the JWE secret key to decrypt kpToken → Verify phone number and email in payload", icon: "🔑" },
             { title: "Test Logout", desc: "Logout → Verify handleKPLogout() clears session → Login again via OTP to confirm flow resets", icon: "🔄" },
           ].map((t, i) => (
@@ -1882,339 +1880,45 @@ function PaymentSimulatorPage({ link }: { link: string }) {
 
 /* ===================== MERCHANT VALIDATOR PAGE ===================== */
 
-function MerchantValidatorPage({ project, credentials, uploads, token, onRefresh }: {
-  project: PortalData["project"]; credentials: PortalData["credentials"];
-  uploads: PortalUpload[]; token: string; onRefresh: () => void;
-}) {
-  const configId = project.config_id || credentials?.sandbox?.config_id || credentials?.production?.config_id || "";
-  const hasConfigId = configId && configId.toUpperCase() !== "NA" && configId.length >= 4;
-
-  const postmanUploads = uploads.filter(u => u.upload_type === "postman_collection");
-  const screenshotUploads = uploads.filter(u => u.upload_type === "api_screenshot");
-
-  const [uploading, setUploading] = useState<string | null>(null);
-
-  const handleFileUpload = async (file: File, type: "postman_collection" | "api_screenshot") => {
-    setUploading(type);
-    try {
-      const formData = new FormData();
-      formData.append("token", token);
-      formData.append("upload_type", type);
-      formData.append("file", file);
-
-      const res = await fetch(`${API_URL}/upload`, {
-        method: "POST",
-        headers: { apikey: API_KEY },
-        body: formData,
-      });
-      if (res.ok) onRefresh();
-      else console.error("Upload failed:", await res.text());
-    } catch (err) {
-      console.error("Upload error:", err);
-    } finally {
-      setUploading(null);
-    }
-  };
-
-  const handleDeleteUpload = async (uploadId: string, fileName: string) => {
-    if (!confirm(`Delete "${fileName}"? This cannot be undone.`)) return;
-    try {
-      const res = await fetch(`${API_URL}/delete-upload`, {
-        method: "POST",
-        headers: { apikey: API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ token, upload_id: uploadId }),
-      });
-      if (res.ok) onRefresh();
-      else console.error("Delete failed:", await res.text());
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
-  };
-
-  return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Merchant Validator</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-300">Test your GoKwik integration at checkout-validator.gokwik.co</p>
-      </div>
-
-      <div className="rounded-xl p-6" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
-        <div className="flex items-center gap-3 mb-1">
-          <Search className="w-5 h-5 text-white" />
-          <h2 className="text-lg font-bold text-white">GoKwik Merchant Config Viewer</h2>
-        </div>
-        <p className="text-sm text-white/70">View your API setup and test your checkout endpoints</p>
-      </div>
-
-      <Card className="p-5">
-        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2">Your Config ID</p>
-        {hasConfigId ? (
-          <div className="bg-slate-50 dark:bg-[#1a2740] border border-slate-200 dark:border-[#253553] rounded-lg px-4 py-3.5 flex items-center justify-between">
-            <span className="text-base font-mono text-slate-800 dark:text-slate-100">{configId}</span>
-            <CopyButton text={configId} />
-          </div>
-        ) : (
-          <div className="bg-amber-50 dark:bg-amber-500/15 border border-amber-200 dark:border-amber-500/30 rounded-lg px-4 py-3.5 flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Config ID not configured yet</p>
-              <p className="text-xs text-amber-600/70 dark:text-slate-400">Your CE team will configure this during onboarding.</p>
-            </div>
-          </div>
-        )}
-      </Card>
-
-      <a
-        href={hasConfigId ? `https://checkout-validator.gokwik.co/?mid=${encodeURIComponent(configId)}` : "https://checkout-validator.gokwik.co/"}
-        target="_blank" rel="noopener noreferrer"
-        className="block w-full text-white text-center font-bold py-4 rounded-xl transition-all text-base shadow-lg hover:shadow-xl"
-        style={{ background: BRAND.primary }}
-      >
-        <Search className="w-4 h-4 inline-block mr-2 -mt-0.5" />
-        Open Validator {!hasConfigId && "(enter ID manually)"}
-      </a>
-
-
-
-      <Card className="p-6">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-5">How to Use</h3>
-        <div className="space-y-5">
-          {[
-            { num: 1, title: "Open Validator", desc: 'Click the "Open Validator" button above' },
-            { num: 2, title: "Enter Config ID", desc: "Paste your Config ID in the field on the validator page" },
-            { num: 3, title: "View Configuration", desc: "Validator loads your full API setup and endpoint config" },
-            { num: 4, title: "Test Endpoints", desc: "Run test orders and verify your checkout flow end-to-end" },
-          ].map((step) => (
-            <div key={step.num} className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                style={{ background: BRAND.primary }}>
-                {step.num}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white">{step.title}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">{step.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-
-      {/* Mandatory APIs marked by CE */}
-      <Card className="p-6">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: BRAND.primarySoft }}>
-            <CheckCircle2 className="w-5 h-5" style={{ color: BRAND.primary }} />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Mandatory APIs</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-300">
-              These APIs have been marked as mandatory by your Customer Engineer. Please ensure all are integrated and validated.
-            </p>
-          </div>
-          <a
-            href={POSTMAN_COLLECTION_URL}
-            target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-white"
-            style={{ background: BRAND.primary }}
-          >
-            <ExternalLink className="w-3 h-3" /> Postman
-          </a>
-        </div>
-        {(project.mandatory_apis ?? []).length === 0 ? (
-          <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg px-4 py-3 text-xs text-amber-700 dark:text-amber-300">
-            Your CE hasn't marked any mandatory APIs yet. They will appear here once selected from the Project Management tool.
-          </div>
-        ) : (
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {(project.mandatory_apis ?? []).map((api) => (
-              <li key={api} className="flex items-center gap-2 px-3 py-2 rounded-md bg-slate-50 dark:bg-[#1a2740] border border-slate-200 dark:border-[#253553]">
-                <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{api}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      <Card className="p-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: BRAND.primarySoft }}>
-            <FileText className="w-5 h-5" style={{ color: BRAND.primary }} />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Submit Postman Collection</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-300">Upload your exported JSON — CE will download and validate from their end</p>
-          </div>
-        </div>
-
-        {postmanUploads.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {postmanUploads.map(u => (
-              <div key={u.id} className="bg-slate-50 dark:bg-[#1a2740] border border-slate-200 dark:border-[#253553] rounded-lg px-4 py-3 flex items-center gap-3">
-                <FileText className="w-5 h-5 text-slate-400 dark:text-slate-400" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{u.file_name}</p>
-                  <p className="text-xs text-green-600 dark:text-green-300">✓ Ready for CE download</p>
-                </div>
-                <a href={u.file_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-white transition-colors"
-                  style={{ background: BRAND.primary }}>
-                  <Download className="w-3 h-3" /> Download
-                </a>
-                <button
-                  onClick={() => handleDeleteUpload(u.id, u.file_name)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/15 transition-colors"
-                  title="Delete this collection"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <FileUploadArea
-          label="Drop your Postman JSON here or click to browse"
-          accept=".json"
-          uploading={uploading === "postman_collection"}
-          onFile={(f) => handleFileUpload(f, "postman_collection")}
-        />
-      </Card>
-
-      <Card className="p-6">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-slate-100 dark:bg-[#1a2740]">
-            <Image className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">API Validation Screenshots</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-300">Screenshots from the validator — proof that each API passed</p>
-          </div>
-          {screenshotUploads.length > 0 && (
-            <span className="w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center" style={{ background: BRAND.green }}>
-              {screenshotUploads.length}
-            </span>
-          )}
-        </div>
-
-        {screenshotUploads.length > 0 && (
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {screenshotUploads.map(u => (
-              <div key={u.id} className="group relative rounded-lg overflow-hidden border border-slate-200 dark:border-[#253553] bg-slate-50 dark:bg-[#1a2740]">
-                <a href={u.file_url} target="_blank" rel="noopener noreferrer" className="block">
-                  <img src={u.file_url} alt={u.file_name} className="w-full h-28 object-cover" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center pointer-events-none">
-                    <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </a>
-                <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteUpload(u.id, u.file_name); }}
-                  className="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-white/90 dark:bg-[#0c1220]/90 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/30 opacity-0 group-hover:opacity-100 transition-opacity shadow"
-                  title="Delete screenshot"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 p-1.5 truncate">{u.file_name}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <FileUploadArea
-          label="Add screenshots — PNG, JPG supported — multiple at once"
-          accept="image/*"
-          multiple
-          uploading={uploading === "api_screenshot"}
-          onFile={(f) => handleFileUpload(f, "api_screenshot")}
-        />
-      </Card>
-    </div>
-  );
-}
-
-/* ===================== FILE UPLOAD AREA ===================== */
-function FileUploadArea({ label, accept, multiple, uploading, onFile }: {
-  label: string; accept: string; multiple?: boolean; uploading: boolean;
-  onFile: (file: File) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    for (let i = 0; i < files.length; i++) {
-      onFile(files[i]);
-    }
-    e.target.value = "";
-  };
-
-  return (
-    <div
-      onClick={() => !uploading && inputRef.current?.click()}
-      className={cn(
-        "mt-4 border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition-colors",
-        uploading
-          ? "border-blue-300/30 bg-blue-50 dark:bg-blue-500/10"
-          : "border-slate-200 dark:border-[#253553] hover:border-slate-400 dark:hover:border-[#354565] bg-slate-50/50 dark:bg-[#1a2740]/50"
-      )}
-    >
-      {uploading ? (
-        <div className="flex items-center justify-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-          <span className="text-sm text-blue-500">Uploading...</span>
-        </div>
-      ) : (
-        <div className="flex items-center justify-center gap-2">
-          <Upload className="w-4 h-4 text-slate-400 dark:text-slate-400" />
-          <span className="text-sm text-slate-500 dark:text-slate-300">{label}</span>
-        </div>
-      )}
-      <input ref={inputRef} type="file" accept={accept} multiple={multiple} className="hidden" onChange={handleChange} />
-    </div>
-  );
-}
-
-/* ===================== FAQ PAGE ===================== */
 function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const defaultFaqs: { q: string; a: string }[] = [
-    { q: "What is a BRD and why is a sign-off required?", a: "The Business Requirement Document (BRD) outlines all essential business requirements for the Kwik Checkout integration. Sign-off is crucial to ensure alignment between GoKwik and the merchant on expectations and deliverables before commencing integration." },
-    { q: "Why is pre-GoKwik data and GA access required?", a: "Pre-GoKwik data is essential for benchmarking value delivery (VD) metrics, while Google Analytics (GA) access enables progress tracking from Day 0." },
-    { q: "What integrations must be completed on the merchant's end alongside GoKwik integration?", a: "The merchant must integrate the GoKwik SDK, Update Order API (including automatic refund handling), and mandatory frontend events critical to the functionality of Kwik Checkout." },
-    { q: "What parameters must be passed in the GoKwik SDK to invoke Kwik Checkout?", a: "• merchant_id: Provided by GoKwik for sandbox and production environments\n• phone_number: For logged-in user flow (optional for guest users)\n• merchant_checkout_id: Cart ID of the current transaction\n• customer_token: Access/Bearer token for registered users (optional)\n• utm_params: For lead source-level analysis (optional)" },
-    { q: "Why is it necessary to share UAT test cases with GoKwik?", a: "Sharing test cases ensures comprehensive validation of user flows and merchant-specific scenarios prior to sandbox readiness." },
-    { q: "What is the recommended method for conducting production testing without going live?", a: "Switching from sandbox MID/API URL to production MID/API URL while pointing the sandbox store to GoKwik's production environment." },
+    { q: "What is a BRD and why is a sign-off required?", a: "The Business Requirement Document (BRD) outlines all essential business requirements for the Kwik Checkout integration. Sign-off is crucial to ensure alignment between Handover and the merchant on expectations and deliverables before commencing integration." },
+    { q: "Why is pre-Handover data and GA access required?", a: "Pre-Handover data is essential for benchmarking value delivery (VD) metrics, while Google Analytics (GA) access enables progress tracking from Day 0." },
+    { q: "What integrations must be completed on the merchant's end alongside Handover integration?", a: "The merchant must integrate the Handover SDK, Update Order API (including automatic refund handling), and mandatory frontend events critical to the functionality of Kwik Checkout." },
+    { q: "What parameters must be passed in the Handover SDK to invoke Kwik Checkout?", a: "• merchant_id: Provided by Handover for sandbox and production environments\n• phone_number: For logged-in user flow (optional for guest users)\n• merchant_checkout_id: Cart ID of the current transaction\n• customer_token: Access/Bearer token for registered users (optional)\n• utm_params: For lead source-level analysis (optional)" },
+    { q: "Why is it necessary to share UAT test cases with Handover?", a: "Sharing test cases ensures comprehensive validation of user flows and merchant-specific scenarios prior to sandbox readiness." },
+    { q: "What is the recommended method for conducting production testing without going live?", a: "Switching from sandbox MID/API URL to production MID/API URL while pointing the sandbox store to Handover's production environment." },
     { q: "How can a manual refund be initiated?", a: "Manual refunds can be initiated through the Merchant Dashboard with admin-level access." },
     { q: "What distinguishes Sandbox UAT from Production UAT?", a: "Sandbox UAT involves full integration testing across all flows. Production UAT primarily verifies payment method functionality, dashboard data reflection, and refund/return workflows." },
     { q: "What is the acceptable API response time for merchants?", a: "Response time under 250ms is considered acceptable; exceeding this indicates suboptimal performance." },
-    { q: "Why does the error \"Merchant Data Not Found\" occur?", a: "This error typically results from misconfigured credentials, such as an incorrect MID or API URL on either GoKwik or merchant side." },
-    { q: "What are the mandatory frontend events for Go Live?", a: "• order-complete: Redirect from GoKwik's \"Congratulations\" page to Merchant's \"Thank You\" page\n• checkout-close: Return to source if checkout is closed\n• checkout-initiation-failure: Fallback to native checkout if the GoKwik Checkout fails to load." },
+    { q: "Why does the error \"Merchant Data Not Found\" occur?", a: "This error typically results from misconfigured credentials, such as an incorrect MID or API URL on either Handover or merchant side." },
+    { q: "What are the mandatory frontend events for Go Live?", a: "• order-complete: Redirect from Handover's \"Congratulations\" page to Merchant's \"Thank You\" page\n• checkout-close: Return to source if checkout is closed\n• checkout-initiation-failure: Fallback to native checkout if the Handover Checkout fails to load." },
     { q: "How is wallet functionality handled on Kwik Checkout?", a: "Wallet functionality is supported via merchant-provided APIs for wallet balance, apply, and remove actions. Details are available in the integration document." },
-    { q: "How is \"Out of Stock\" condition managed during checkout?", a: "The handling mechanism must be implemented using merchant APIs and event triggers; refer to GoKwik's documentation for integration steps." },
-    { q: "Can an order be created before payment and updated post confirmation?", a: "Yes, merchants can create an order on initiation and update it post successful payment. GoKwik supports retries and provides webhook support for transaction failures." },
-    { q: "Can GoKwik SDK be integrated in a local environment?", a: "No, Kwik Checkout must be deployed on a server; local integration is not supported." },
+    { q: "How is \"Out of Stock\" condition managed during checkout?", a: "The handling mechanism must be implemented using merchant APIs and event triggers; refer to Handover's documentation for integration steps." },
+    { q: "Can an order be created before payment and updated post confirmation?", a: "Yes, merchants can create an order on initiation and update it post successful payment. Handover supports retries and provides webhook support for transaction failures." },
+    { q: "Can Handover SDK be integrated in a local environment?", a: "No, Kwik Checkout must be deployed on a server; local integration is not supported." },
     { q: "What causes the error \"Cart is Inactive\" during multiple tab access?", a: "This error arises from parallel checkout attempts. Use the \"checkout-close\" event to gracefully handle this scenario." },
     { q: "Why can't merchants place orders using card/net banking on sandbox?", a: "Only Freecharge is enabled for prepaid simulation in the sandbox. Full payment gateway options are available in the production environment." },
-    { q: "What payment methods are available in the GoKwik sandbox?", a: "Cash on Delivery and Wallet-Freecharge (simulation only for prepaid flow)." },
+    { q: "What payment methods are available in the Handover sandbox?", a: "Cash on Delivery and Wallet-Freecharge (simulation only for prepaid flow)." },
     { q: "Why do card transactions below INR 5 fail on a sandbox?", a: "Most banks reject low-value transactions. Use a cart value above INR 5 to test successfully." },
     { q: "Can customers edit wallet amounts on checkout?", a: "Currently, wallet amounts cannot be manually edited by customers." },
-    { q: "Why does the cart page refresh when the GoKwik popup is triggered?", a: "The cart page refreshes to fetch updated details from all active carts." },
-    { q: "What payment methods are supported by GoKwik?", a: "• Cash On Delivery\n• UPI (e.g., Google Pay, PhonePe)\n• Credit/Debit Cards\n• Net Banking\n• Wallets (e.g., Amazon Pay, Airtel Money)\n• NCEMI" },
+    { q: "Why does the cart page refresh when the Handover popup is triggered?", a: "The cart page refreshes to fetch updated details from all active carts." },
+    { q: "What payment methods are supported by Handover?", a: "• Cash On Delivery\n• UPI (e.g., Google Pay, PhonePe)\n• Credit/Debit Cards\n• Net Banking\n• Wallets (e.g., Amazon Pay, Airtel Money)\n• NCEMI" },
     { q: "Do we offer no cost EMI? How does it work?", a: "Yes we offer no cost EMI. We allow creation of payment offers on EMI which allows merchants to offer instant discounts equivalent to interest charged by the bank, thereby making the effective interest 0.\n\nFor example, if the cart value is 100 and interest charged is 10 then an upfront discount of 10 is given to cover the interest charged. The bank would continue to charge the interest on each EMI but interest + principal would be equal to the cart value.\n\nNote: Any additional charges like EMI processing fee/GST are not covered by this discount. For more details reach out to your Program Manager/Customer Success Manager." },
     { q: "Does the address list show duplicates?", a: "Yes, if duplicate checks aren't implemented by the merchant. Use a unique `address_id` to avoid this." },
     { q: "Does the checkout show only the shipping address?", a: "Yes, only the shipping address is shown during checkout." },
-    { q: "Can users change countries in the shipping address?", a: "No, GoKwik currently supports only domestic checkouts within India." },
+    { q: "Can users change countries in the shipping address?", a: "No, Handover currently supports only domestic checkouts within India." },
     { q: "Can customers select existing shipping addresses during checkout?", a: "Yes, users can switch between existing addresses or add new ones." },
     { q: "Is the 'Deliver To' option visible on the payment page?", a: "It depends on the chosen flow:\n• Regular Flow: Address verification before payment (no 'Deliver To' option)\n• Click to Payment Flow: 'Deliver To' shown on payment page for verification" },
-    { q: "Does GoKwik send refund webhook responses?", a: "Yes, for successful, failed, and initiated refunds, upon merchant request." },
-    { q: "Does GoKwik send webhook responses for transactions?", a: "Yes, for both successful and failed transactions, on merchant request." },
+    { q: "Does Handover send refund webhook responses?", a: "Yes, for successful, failed, and initiated refunds, upon merchant request." },
+    { q: "Does Handover send webhook responses for transactions?", a: "Yes, for both successful and failed transactions, on merchant request." },
     { q: "What validations are in place for addresses?", a: "• Gibberish content is flagged\n• First names are mandatory; last names default to '.' if absent\n• Minimum 12 characters required\n• Warnings issued for poor input before proceeding\n• Mandatory fields are enforced\n• Email id is mandatory\n• Language should be English" },
     { q: "Are house number and area fields mandatory in addresses?", a: "Yes, to prevent invalid or insufficient address entries that could lead to high RTO rates." },
     { q: "Are UPI options visible on the Instagram browser?", a: "Yes, UPI methods are accessible even via Instagram in-app browsers." },
     { q: "When does Truecaller trigger during checkout?", a: "If Truecaller is active, it will auto-fill the mobile number during checkout." },
     { q: "What is the role of the 'Order Complete' event?", a: "It redirects users to the Thank You page after successful payment completion." },
-    { q: "Can GoKwik access addresses tied to merchant platform login numbers?", a: "No, address visibility is limited to the number used for GoKwik login." },
+    { q: "Can Handover access addresses tied to merchant platform login numbers?", a: "No, address visibility is limited to the number used for Handover login." },
     { q: "What is the field that merchants can use for the authentication of the Payment details?", a: "The \"hmac\" field is the one you can use for the authentication of the payment details. Please find the code for decrypting the hmac and verifying:\n\nexport const generateHMACForTransactionWebhook = (payload: IComputeTransactionWebhookHMACPayload): string => {\n  const hashPayload = `${payload.merchantReferenceId}|${payload.paymentId}|${payload.amount}`;\n  const hashGen = createHash('sha512');\n  return hashGen.update(hashPayload).digest('hex');\n};" },
   ];
   const managed = managedFaqs
@@ -2226,7 +1930,7 @@ function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">FAQ & Help</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-300">Common questions about GoKwik API integration.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-300">Common questions about Handover API integration.</p>
       </div>
       <div className="space-y-2">
         {faqs.map((faq, i) => (
@@ -2265,7 +1969,7 @@ function MCPPage({ project, credentials, onBack }: { project: PortalData["projec
   const steps = [
     {
       title: "1. Get your API Key",
-      desc: "You'll need an X-API-Key to authenticate with the GoKwik MCP server. Find it in the Credentials tab — App Secret value.",
+      desc: "You'll need an X-API-Key to authenticate with the Handover MCP server. Find it in the Credentials tab — App Secret value.",
       code: `# Your X-API-Key (from Credentials tab):
 ${apiKey}
 
@@ -2404,7 +2108,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
           </p>
         </div>
         <a
-          href="/GoKwik_MCP_Setup_Prompt.docx"
+          href="/Handover_MCP_Setup_Prompt.docx"
           download
           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white shadow-sm transition-colors"
           style={{ background: BRAND.primary }}
@@ -2418,7 +2122,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
         <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Your API Key</h3>
         <CredentialField label="X-API-KEY" value={apiKey} masked sensitive={apiKey !== "<USER_API_KEY>"} />
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Same value as the Validator's <span className="font-semibold">Config ID</span>. If empty, request it from your GoKwik onboarding manager.
+          Same value as the Validator's <span className="font-semibold">Config ID</span>. If empty, request it from your Handover onboarding manager.
         </p>
       </Card>
 
@@ -2648,105 +2352,6 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
 }
 
 /* ===================== SIDE EXPLAINER PANEL ===================== */
-const PAGE_EXPLAINERS: Record<string, { title: string; lines: string[] }> = {
-  integration: {
-    title: "About this view",
-    lines: [
-      "Track your live integration status, current phase, and what's pending from each side.",
-      "Use Notes to capture questions for your CE — they're saved automatically.",
-      "Tasks shown here are aligned with the standard GoKwik onboarding checklist.",
-    ],
-  },
-  credentials: {
-    title: "Secure credentials",
-    lines: [
-      "Credentials are hidden by default. Click the eye icon to reveal.",
-      "Use Sandbox keys for testing, Production keys only after sign-off.",
-      "Never share Production secrets over chat or unencrypted email.",
-    ],
-  },
-  documents: {
-    title: "Integration documents",
-    lines: [
-      "Your BRD, SOW, and mandatory APIs live here — always the latest version.",
-      "Click any document tile to open it in a new tab.",
-      "If a document is missing, ping your CE — they can attach it from the PM tool.",
-    ],
-  },
-  faq: {
-    title: "FAQ & Help",
-    lines: [
-      "Common merchant questions answered. Search using the AI chatbot for anything not listed.",
-      "Updated continuously by the GoKwik integration team.",
-    ],
-  },
-  validator: {
-    title: "Merchant Validator",
-    lines: [
-      "End-to-end automated check of your sandbox integration.",
-      "Fix any failed checks before requesting production approval.",
-      "Results are visible to your CE in real time.",
-    ],
-  },
-  simulator: {
-    title: "Payment Simulator",
-    lines: [
-      "Run safe test transactions without using a real card.",
-      "Useful for validating webhooks, callbacks, and order flow.",
-    ],
-  },
-  kwikpass: {
-    title: "KwikPass setup",
-    lines: [
-      "One-tap login/checkout SDK. Follow the steps in order; sandbox first, then production.",
-      "JWE keys are unique per environment — never mix them.",
-    ],
-  },
-  mcp: {
-    title: "MCP Server",
-    lines: [
-      "Connect GoKwik's MCP server to Claude / Cursor for AI-assisted integration.",
-      "Use the Config ID shown to authenticate your client.",
-    ],
-  },
-  mandatoryApis: {
-    title: "Mandatory APIs",
-    lines: [
-      "These APIs must be integrated for go-live approval.",
-      "Click any API to open its Postman collection.",
-    ],
-  },
-};
-
-function SideExplainerPanel({ activePage }: { activePage: NavPage }) {
-  const e = PAGE_EXPLAINERS[activePage];
-  if (!e) return null;
-  return (
-    <aside data-tour="tour-side-panel" className="hidden xl:flex flex-col w-72 flex-shrink-0 border-l border-slate-200 dark:border-[#253553] bg-slate-50/60 dark:bg-[#0f1729] p-5 overflow-y-auto">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: BRAND.primarySoft }}>
-          <HelpCircle className="w-4 h-4" style={{ color: BRAND.primary }} />
-        </div>
-        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">{e.title}</h4>
-      </div>
-      <ul className="space-y-2.5">
-        {e.lines.map((line, i) => (
-          <li key={i} className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 flex gap-2">
-            <span className="text-blue-500 mt-0.5">•</span>
-            <span>{line}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-6 p-3 rounded-lg bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20">
-        <p className="text-[11px] text-blue-700 dark:text-blue-300 leading-relaxed">
-          <strong>Need help?</strong> Use the AI assistant at the bottom-right, or contact your GoKwik CE directly.
-        </p>
-      </div>
-    </aside>
-  );
-}
-
-/* ===================== INTRO ONE-PAGER MODAL ===================== */
 function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
@@ -2755,7 +2360,7 @@ function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; o
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Zap className="w-5 h-5 text-white" fill="white" />
-              <h2 className="text-xl font-bold text-white">Welcome to KwikAssist</h2>
+              <h2 className="text-xl font-bold text-white">Welcome to Handover Assist</h2>
             </div>
             <p className="text-sm text-white/80">Hi <strong>{merchantName}</strong> — here's how this portal helps you go live faster.</p>
           </div>
@@ -2765,13 +2370,13 @@ function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; o
           <div>
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-2">🎯 What problem does this solve?</h3>
             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              Merchant integrations often stall because credentials, documents, status updates, and validations live across emails, Jira, Slack, and spreadsheets. <strong>KwikAssist consolidates everything you need to go live into one secure workspace</strong> — eliminating back-and-forth and accelerating time-to-launch.
+              Merchant integrations often stall because credentials, documents, status updates, and validations live across emails, Jira, Slack, and spreadsheets. <strong>Handover Assist consolidates everything you need to go live into one secure workspace</strong> — eliminating back-and-forth and accelerating time-to-launch.
             </p>
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-2">⚡ How are we solving it?</h3>
             <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-              <li className="flex gap-2"><span className="text-blue-500">1.</span><span><strong>Single source of truth</strong> — Live integration status, owner, and next steps, always in sync with your GoKwik CE.</span></li>
+              <li className="flex gap-2"><span className="text-blue-500">1.</span><span><strong>Single source of truth</strong> — Live integration status, owner, and next steps, always in sync with your Handover CE.</span></li>
               <li className="flex gap-2"><span className="text-blue-500">2.</span><span><strong>Secure credentials vault</strong> — Sandbox & production keys hidden by default, with copy + reveal controls.</span></li>
               <li className="flex gap-2"><span className="text-blue-500">3.</span><span><strong>Self-service validation</strong> — Run the Merchant Validator and Payment Simulator without waiting on CE bandwidth.</span></li>
               <li className="flex gap-2"><span className="text-blue-500">4.</span><span><strong>Documents on demand</strong> — BRD, SOW, mandatory APIs, KwikPass & MCP guides, all linked from one place.</span></li>
