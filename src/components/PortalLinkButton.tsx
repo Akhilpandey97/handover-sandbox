@@ -16,7 +16,7 @@ import { toast } from "sonner";
 /**
  * Generates (or reuses) a shareable read-only customer portal link for a project.
  */
-export const PortalLinkButton = ({ projectId, label = "Portal link" }: { projectId: string; label?: string }) => {
+export const PortalLinkButton = ({ projectId, label = "Portal link", className }: { projectId: string; label?: string; className?: string }) => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
@@ -90,7 +90,7 @@ export const PortalLinkButton = ({ projectId, label = "Portal link" }: { project
       <Button
         variant="outline"
         size="sm"
-        className="h-9 gap-1.5 rounded-md px-3 text-sm font-semibold"
+        className={`h-9 gap-1.5 rounded-md px-3 text-sm font-semibold ${className || ""}`}
         onClick={generate}
         disabled={isWorking}
       >

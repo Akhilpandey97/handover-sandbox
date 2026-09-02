@@ -56,6 +56,7 @@ const GROUPS: Group[] = [
       { key: "jira_base_url", label: "Jira Base URL", placeholder: "https://yourcompany.atlassian.net" },
       { key: "jira_email", label: "Jira Account Email", placeholder: "automation@yourdomain.com" },
       { key: "jira_api_token", label: "Jira API Token", placeholder: "ATATT3xFfGF0...", secret: true, help: "id.atlassian.com → API tokens" },
+      { key: "jira_project_key", label: "Default Project Key", placeholder: "ONB", help: "Used when creating tickets from a project" },
     ],
   },
   {
