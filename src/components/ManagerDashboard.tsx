@@ -1173,7 +1173,6 @@ export const ManagerDashboard = () => {
             <div className="mb-4 flex min-h-10 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border">
               <div className="flex items-center gap-1" role="tablist" aria-label="Project views">
                 {[
-                  { value: "board", label: "Cards", icon: <LayoutGrid className="h-4 w-4" /> },
                   { value: "kanban", label: "Kanban", icon: <GripVertical className="h-4 w-4" /> },
                   { value: "list", label: "List", icon: <List className="h-4 w-4" /> },
                   { value: "golive", label: "Go-Live Tracker", icon: <CalendarDays className="h-4 w-4" /> },
@@ -1988,9 +1987,9 @@ export const ManagerDashboard = () => {
               <CardContent className="p-0">
                 <div className="overflow-auto">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-10">
+                    <TableHeader className="bg-sidebar">
+                      <TableRow className="hover:bg-sidebar">
+                        <TableHead className="w-10 text-sidebar-foreground">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
                         </TableHead>
                         {listViewColumns.map(colKey => {
@@ -2008,13 +2007,13 @@ export const ManagerDashboard = () => {
                               onDragStart={() => handleColDragStart(colKey)}
                               onDragOver={(e) => { e.preventDefault(); handleColDragOver(colKey); }}
                               onDragEnd={() => handleColDragEnd(listViewColumns)}
-                              className={cn("whitespace-nowrap text-xs uppercase tracking-wider cursor-grab select-none", draggedCol === colKey && "opacity-40")}
+                              className={cn("whitespace-nowrap text-xs uppercase tracking-wider cursor-grab select-none text-sidebar-foreground", draggedCol === colKey && "opacity-40")}
                             >
                               {label}
                             </TableHead>
                           );
                         })}
-                        {!isGokwikGeneral && <TableHead className="w-20 text-xs uppercase tracking-wider">Action</TableHead>}
+                        {!isGokwikGeneral && <TableHead className="w-20 text-xs uppercase tracking-wider text-sidebar-foreground">Action</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>

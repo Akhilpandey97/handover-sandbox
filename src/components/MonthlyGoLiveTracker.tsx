@@ -354,21 +354,21 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       <Card className="w-full">
         <CardContent className="p-0 overflow-auto">
-          <Table className="text-sm w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
-            <TableHeader className="sticky top-0 bg-muted/50 z-10">
-              <TableRow>
-                <TableHead className="font-semibold whitespace-nowrap min-w-[180px]">Opportunity</TableHead>
-                <TableHead className="font-semibold text-right whitespace-nowrap">ARR Cr.</TableHead>
-                <TableHead className="font-semibold whitespace-nowrap">Stage</TableHead>
-                <TableHead className="font-semibold min-w-[200px]">Blocker</TableHead>
-                <TableHead className="font-semibold min-w-[120px]">Blocked On</TableHead>
-                <TableHead className="font-semibold min-w-[100px]">Deadline</TableHead>
-                <TableHead className="font-semibold whitespace-nowrap">Confidence</TableHead>
-                <TableHead className="font-semibold whitespace-nowrap min-w-[140px]">Owner</TableHead>
-                <TableHead className="font-semibold whitespace-nowrap">Expected Go-live</TableHead>
-                <TableHead className="font-semibold whitespace-nowrap min-w-[140px]">CSM</TableHead>
-              </TableRow>
-            </TableHeader>
+            <Table className="text-sm w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
+              <TableHeader className="sticky top-0 bg-sidebar z-10">
+                <TableRow className="hover:bg-sidebar">
+                  <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-sidebar-foreground">Opportunity</TableHead>
+                  <TableHead className="font-semibold text-right whitespace-nowrap text-sidebar-foreground">ARR Cr.</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap text-sidebar-foreground">Stage</TableHead>
+                  <TableHead className="font-semibold min-w-[200px] text-sidebar-foreground">Blocker</TableHead>
+                  <TableHead className="font-semibold min-w-[120px] text-sidebar-foreground">Blocked On</TableHead>
+                  <TableHead className="font-semibold min-w-[100px] text-sidebar-foreground">Deadline</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap text-sidebar-foreground">Confidence</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-sidebar-foreground">Owner</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap text-sidebar-foreground">Expected Go-live</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-sidebar-foreground">CSM</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {loading && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>}
               {!loading && sortedRows.length === 0 && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No projects for {ymToLabel(month)}. Use "Manage projects" to tag projects.</TableCell></TableRow>}
@@ -479,7 +479,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
           <Input placeholder="Search…" value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} />
           <div className="max-h-[50vh] overflow-auto border rounded">
             <Table>
-              <TableHeader><TableRow><TableHead className="w-10"></TableHead><TableHead>Merchant</TableHead><TableHead>Phase</TableHead><TableHead>Expected</TableHead></TableRow></TableHeader>
+              <TableHeader className="bg-sidebar"><TableRow className="hover:bg-sidebar"><TableHead className="w-10 text-sidebar-foreground"></TableHead><TableHead className="text-sidebar-foreground">Merchant</TableHead><TableHead className="text-sidebar-foreground">Phase</TableHead><TableHead className="text-sidebar-foreground">Expected</TableHead></TableRow></TableHeader>
               <TableBody>
                 {allProjects.filter(p => p.merchant_name.toLowerCase().includes(pickerSearch.toLowerCase())).map(p => (
                   <TableRow key={p.id}>
