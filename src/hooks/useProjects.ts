@@ -228,9 +228,18 @@ export const useProjectsQuery = () => {
       // Transform and combine
       return (projects || []).map((project) => {
         const checklistForProject = checklistByProject.get(project.id) || [];
+        const items = checklistForProject.map(transformDbChecklistItem);
+        // Auto-calculate Expected Go-Live from the latest checklist due date
+        // when it has not been set manually on the project.
+        const derivedExpectedGoLive = items
+          .filter((i) => !i.isTask && i.dueDate)
+          .map((i) => i.dueDate as string)
+          .sort()
+          .pop();
         return transformDbProject({
           ...project,
-          checklist_items: checklistForProject.map(transformDbChecklistItem),
+          expected_go_live_date: project.expected_go_live_date || derivedExpectedGoLive || null,
+          checklist_items: items,
           responsibility_logs: logsByProject.get(project.id) || [],
           transfer_history: transfersByProject.get(project.id) || [],
           assigned_owner_name: project.assigned_owner ? profileMap.get(project.assigned_owner) : undefined,
