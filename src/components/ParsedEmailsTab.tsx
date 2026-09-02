@@ -220,7 +220,7 @@ export const ParsedEmailsTab = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm">
-                        {email.arr ? `₹${(email.arr / 100000).toFixed(1)}L` : "—"}
+                        {email.arr ? `₹${(Math.abs(email.arr) >= 100000 ? email.arr / 1e7 : email.arr).toFixed(2)} Cr` : "—"}
                       </TableCell>
                       <TableCell className="text-right">{email.txns_per_day || "—"}</TableCell>
                       <TableCell className="text-right font-mono text-sm">

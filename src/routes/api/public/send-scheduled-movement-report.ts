@@ -38,7 +38,9 @@ const escapeHtml = (s: string) =>
 
 const formatArr = (arr: number | null | undefined) => {
   if (arr == null || isNaN(Number(arr)) || Number(arr) === 0) return "TBD";
-  return `${Number(arr).toFixed(2)} Cr`;
+  const n = Number(arr);
+  const cr = Math.abs(n) >= 100000 ? n / 1e7 : n;
+  return `${cr.toFixed(2)} Cr`;
 };
 const formatEgl = (d: string | null | undefined) => {
   if (!d) return "TBD";
