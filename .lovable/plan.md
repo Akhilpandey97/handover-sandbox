@@ -1,35 +1,28 @@
-# Project Phases logic — no code changes
+# UI Polish: Hide Cards Tab + Navy Headers
 
 ## Goal
-Answer the user's question about how Project Phases work in Handover. No implementation is required.
+Tidy the Projects tab switcher and unify Kanban, List view, and Go-Live Tracker headers with the same navy sidebar tone used in the main navigation.
 
-## Current logic
+## Changes
 
-1. **Data model**
-   - `ProjectPhase` is a hard-coded enum in `src/data/projectsData.ts`: `mint | integration | ms | completed`.
-   - Each project stores its phase in `projects.current_phase` (mapped to `project.currentPhase`).
+1. **Hide the "Cards" sub-tab**
+   - File: `src/components/ManagerDashboard.tsx`
+   - Remove the `{ value: "board", label: "Cards", ... }` entry from the Projects view switcher (around line 1176).
+   - Keep Kanban, List, and Go-Live Tracker visible.
 
-2. **Display labels**
-   - The names shown in the UI come from `LabelsContext` (`src/contexts/LabelsContext.tsx`):
-     - `phase_mint` → "MINT"
-     - `phase_integration` → "Integration"
-     - `phase_ms` → "MS"
-     - `phase_completed` → "Completed"
-   - These can be renamed per tenant in **Settings → Workflow → Project Phases** (`src/components/SettingsPanel.tsx`).
+2. **Navy header styling**
+   - **Kanban columns**: `src/components/KanbanBoard.tsx`
+     - Replace the column header background (`col.bg`) on the `border-b` header row with `bg-sidebar` and use `text-sidebar-foreground` for the title/count text.
+   - **List view table**: `src/components/ManagerDashboard.tsx`
+     - Apply `bg-sidebar text-sidebar-foreground` to the `TableHeader` / `TableRow` used in the List view (around line 1991).
+   - **Go-Live Tracker table**: `src/components/MonthlyGoLiveTracker.tsx`
+     - Apply `bg-sidebar text-sidebar-foreground` to both `TableHeader` instances (around lines 358 and 482).
 
-3. **Phase transitions**
-   - Phases advance automatically when a project is transferred to the next owning team (`src/hooks/useProjects.ts`, `useTransferProject`):
-     - `mint` → `integration`
-     - `integration` → `ms`
-   - Rejecting a transfer moves the project back (`useRejectProject`):
-     - `ms` → `integration`
-     - `integration` → `mint`
-   - `completed` is a terminal phase used for filtering and reporting; it is not set automatically by transfer.
+## Out of scope
+- No data, filters, sorting, or navigation behavior changes.
+- No other tabs or dashboards touched.
 
-4. **Relation to other concepts**
-   - **Team ownership:** `currentOwnerTeam` mirrors the phase (`mint`, `integration`, `ms`).
-   - **Checklists:** Default checklist items are grouped by phase in `createDefaultChecklist()` — MINT items first, then Integration items.
-   - **Funnel stages:** The Sales / Pre Integration / Under Integration / Live funnel is computed separately in `src/data/funnelConfig.ts` from checklist completion and project state. It is not the same as `currentPhase`.
-
-## Outcome
-No code changes. The user now has a map of where phases are defined, how they move, and how they differ from funnel stages.
+## Verification
+- TypeScript typecheck passes.
+- App root returns HTTP 200.
+- UI review confirms the Cards tab is gone and the three views show navy headers with readable text.
