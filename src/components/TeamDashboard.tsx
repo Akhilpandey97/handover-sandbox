@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { teamColors } from "@/data/teams";
@@ -71,6 +72,8 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ];
 
 export const TeamDashboard = () => {
+  const navigate = useNavigate();
+  const [kanbanToolbar, setKanbanToolbar] = useState<HTMLDivElement | null>(null);
   const { currentUser, logout } = useAuth();
   const { getPendingProjects, getActiveProjects, projects, isLoading } = useProjects();
   const { teamLabels, labels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
@@ -431,6 +434,10 @@ export const TeamDashboard = () => {
             ))}
           </div>
 
+          {view === "kanban" && (
+            <div ref={setKanbanToolbar} className="ml-auto flex items-center gap-2" />
+          )}
+
           {view !== "kanban" && (
             <>
               <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
@@ -493,8 +500,12 @@ export const TeamDashboard = () => {
 
         {/* Content */}
         {view === "kanban" ? (
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <KanbanBoard projectsOverride={applyFilters(baseProjects)} />
+          <div className="flex-1 min-h-0 overflow-hidden px-6 py-4">
+            <KanbanBoard
+              projectsOverride={applyFilters(baseProjects)}
+              toolbarContainer={kanbanToolbar}
+              searchQuery={searchQuery}
+            />
           </div>
         ) : (
           <ScrollArea className="flex-1">
@@ -538,7 +549,7 @@ export const TeamDashboard = () => {
                         <TableRow
                           key={p.id}
                           className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => setDetailsProject(p)}
+                          onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
                         >
                           <TableCell className="text-xs font-medium">{p.merchantName}</TableCell>
                           <TableCell className="text-xs font-mono text-muted-foreground">{p.mid}</TableCell>
