@@ -124,29 +124,28 @@ export const ChecklistManagement = () => {
       const maxOrder = teamTemplates.reduce((max, t) => Math.max(max, t.sortOrder), -1) + 1;
       const phase = team === "manager" ? "ms" : team;
 
-      // Get current user's tenant_id
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
-      const tenantId = profile?.tenant_id;
+      // Target tenants (all tenants when super admin)
+      const tenantIds = await resolveTargetTenantIds();
 
       const { error: templateError } = await supabase
         .from("checklist_templates")
-        .insert({
+        .insert(tenantIds.map((tenantId) => ({
           title,
           owner_team: team,
           phase: phase as "mint" | "integration" | "ms",
           sort_order: maxOrder,
           tenant_id: tenantId,
           standard_duration: standardDuration,
-        });
+        })));
       if (templateError) throw templateError;
 
-      // Also add to all existing projects in this tenant only
+      // Also add to all existing projects in the target tenants
       const { data: projects, error: projectsError } = await supabase
         .from("projects")
         .select("id, tenant_id")
-        .eq("tenant_id", tenantId as string);
+        .in("tenant_id", tenantIds);
       if (projectsError) throw projectsError;
+
 
       const itemsToInsert = (projects || []).map((p) => ({
         project_id: p.id,
