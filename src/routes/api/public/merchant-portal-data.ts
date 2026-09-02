@@ -576,15 +576,14 @@ async function handler(req: Request): Promise<Response> {
       key: f.field_key, label: f.field_label, type: f.field_type, value: valMap.get(f.id) ?? null,
     }));
 
-    // Only show the 9 standard MINT integration checklist items in merchant portal
-    const standardMintTitles = [
-      "requirement gathering", "api walkthrough", "api build & sdk integration",
-      "api validation", "under integration", "sandbox testing",
-      "production testing", "dashboard walkthrough", "go-live"
-    ];
-    const checklist = (checklistRes.data ?? []).filter((c: any) =>
-      standardMintTitles.some(t => c.title.toLowerCase().includes(t))
-    );
+    // Show every checklist item (non-task) for the project
+    const phaseOrder: Record<string, number> = { mint: 0, integration: 1, ms: 2, completed: 3 };
+    const checklist = [...(checklistRes.data ?? [])].sort((a: any, b: any) => {
+      const pa = phaseOrder[a.phase] ?? 99;
+      const pb = phaseOrder[b.phase] ?? 99;
+      if (pa !== pb) return pa - pb;
+      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    });
     const completedCount = checklist.filter((c: any) => c.completed).length;
 
     const { data: activityLogs } = await supabase

@@ -1120,6 +1120,41 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         </div>
       </Card>
 
+      {/* Full checklist with due dates */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">Checklist</h2>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
+            {checklist_progress.completed} of {checklist_progress.total} complete
+          </span>
+        </div>
+        <div className="divide-y divide-slate-100 dark:divide-[#253553]">
+          {data.checklist.map((item, i) => {
+            const overdue = !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
+            return (
+              <div key={`${item.title}-${i}`} className="flex items-center justify-between gap-4 py-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <CheckCircle2 className="w-4 h-4 flex-shrink-0"
+                    style={{ color: item.completed ? BRAND.green : "#cbd5e1" }} />
+                  <span className={cn("text-sm truncate", item.completed
+                    ? "text-slate-500 dark:text-slate-400"
+                    : "text-slate-800 dark:text-slate-100 font-medium")}>
+                    {item.title}
+                  </span>
+                </div>
+                <span className={cn("text-xs whitespace-nowrap font-semibold",
+                  overdue ? "text-red-600 dark:text-red-400" : "text-slate-400 dark:text-slate-400")}>
+                  {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
+                </span>
+              </div>
+            );
+          })}
+          {data.checklist.length === 0 && (
+            <p className="text-sm text-slate-400 py-3">No checklist items yet.</p>
+          )}
+        </div>
+      </Card>
+
       {/* Project Overview + Notes side-by-side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
