@@ -439,9 +439,9 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
             <div className={cn("rounded-lg border bg-card shadow-sm flex flex-col h-full overflow-hidden ring-1", col.ring)}>
 
               <div className={cn("h-1 w-full", col.bar)} />
-              <div className={cn("flex items-center justify-between gap-2 px-3 py-2.5 border-b bg-sidebar")}>
+              <div className={cn("flex items-center justify-between gap-2 px-3 py-2.5 border-b", col.bg)}>
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className={cn("font-semibold text-sm tracking-tight truncate min-w-0 text-sidebar-foreground")}>
+                  <span className={cn("font-semibold text-sm tracking-tight truncate min-w-0", col.text)}>
                     {col.label}
                   </span>
                   {col.key === "live" && (
