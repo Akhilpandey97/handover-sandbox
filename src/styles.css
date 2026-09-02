@@ -15,6 +15,9 @@
   --font-display: "Outfit", "Figtree", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
+  --color-navy: #1E3C5D;
+  --color-navy-foreground: #ffffff;
+
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
