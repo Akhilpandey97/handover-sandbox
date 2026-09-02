@@ -999,7 +999,7 @@ export const ManagerDashboard = () => {
         {/* Reports sub-menu */}
         {isReports && reportsExpanded && (
           <div className="ml-6 mt-1 mb-1 space-y-1 pl-4">
-            {Object.entries(REPORTS_SUB_CONFIG).map(([key, cfg]) => (
+            {Object.entries(REPORTS_SUB_CONFIG).filter(([key]) => navVisibility[`reports:${key}`] !== false).map(([key, cfg]) => (
               <button
                 key={key}
                 onClick={() => { setActiveTab("reports"); setReportSubTab(key); }}
@@ -1020,7 +1020,7 @@ export const ManagerDashboard = () => {
         {/* Settings sub-menu */}
         {isSettings && settingsExpanded && (
           <div className="ml-6 mt-1 mb-1 space-y-1 pl-4">
-            {Object.entries(SETTINGS_SUB_CONFIG).map(([key, { label }]) => (
+            {Object.entries(SETTINGS_SUB_CONFIG).filter(([key]) => key === "navigation" || navVisibility[`settings:${key}`] !== false).map(([key, { label }]) => (
               <button
                 key={key}
                 onClick={() => { setActiveTab("settings"); setSettingsSubTab(key); }}
@@ -2490,6 +2490,49 @@ export const ManagerDashboard = () => {
                         </div>
                       );
                     })}
+                  </div>
+
+                  <div className="mt-8">
+                    <h4 className="text-sm font-semibold mb-1">Reports Sub-tabs</h4>
+                    <p className="text-xs text-muted-foreground mb-3">Show or hide sub-navigation items under Reports</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {Object.entries(REPORTS_SUB_CONFIG).map(([key, cfg]) => {
+                        const navKey = `reports:${key}`;
+                        return (
+                          <div key={navKey} className="flex items-center justify-between p-3 border rounded-lg">
+                            <span className="text-sm font-medium">{cfg.label}</span>
+                            <Checkbox
+                              checked={navVisibility[navKey] !== false}
+                              onCheckedChange={(checked) => handleNavToggle(navKey, !!checked)}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-8">
+                    <h4 className="text-sm font-semibold mb-1">Settings Sub-tabs</h4>
+                    <p className="text-xs text-muted-foreground mb-3">Show or hide sub-navigation items under Settings</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {Object.entries(SETTINGS_SUB_CONFIG).map(([key, { label }]) => {
+                        const navKey = `settings:${key}`;
+                        const isLocked = key === "navigation";
+                        return (
+                          <div key={navKey} className={cn("flex items-center justify-between p-3 border rounded-lg", isLocked && "bg-muted/40")}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{label}</span>
+                              {isLocked && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Always Visible</Badge>}
+                            </div>
+                            <Checkbox
+                              checked={isLocked ? true : navVisibility[navKey] !== false}
+                              onCheckedChange={(checked) => !isLocked && handleNavToggle(navKey, !!checked)}
+                              disabled={isLocked}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
