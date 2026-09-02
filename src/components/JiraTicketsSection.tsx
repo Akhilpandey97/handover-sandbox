@@ -20,6 +20,13 @@ import {
   GitBranch,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Plus, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Props {
   projectId: string | undefined;
@@ -236,6 +243,121 @@ const CountBadge = ({ icon, label, value }: { icon: React.ReactNode; label: stri
   </div>
 );
 
+const CreateTicketDialog = ({
+  projectId,
+  merchantName,
+  onCreated,
+}: { projectId: string | undefined; merchantName?: string; onCreated: () => void }) => {
+  const { currentUser } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [summary, setSummary] = useState("");
+  const [description, setDescription] = useState("");
+  const [issueType, setIssueType] = useState("Task");
+  const [priority, setPriority] = useState("");
+  const [projectKey, setProjectKey] = useState("");
+
+  const submit = async () => {
+    if (!summary.trim()) {
+      toast.error("Summary is required");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/public/create-jira-ticket", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          tenant_id: currentUser?.tenantId,
+          project_id: projectId,
+          summary: summary.trim(),
+          description: description.trim(),
+          issue_type: issueType,
+          priority,
+          project_key: projectKey.trim(),
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Could not create the ticket");
+      toast.success(`Created ${body.key || "ticket"}`);
+      setOpen(false);
+      setSummary("");
+      setDescription("");
+      setPriority("");
+      onCreated();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <Button
+        size="sm"
+        className="h-9 gap-2 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent"
+        onClick={() => {
+          setSummary(merchantName ? `${merchantName} — ` : "");
+          setOpen(true);
+        }}
+      >
+        <Plus className="h-4 w-4" />
+        Create ticket
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Jira ticket</DialogTitle>
+            <DialogDescription>
+              Creates an issue in your workspace's Jira project{merchantName ? ` for ${merchantName}` : ""}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="jira-summary">Summary</Label>
+              <Input id="jira-summary" value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Short title" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="jira-desc">Description</Label>
+              <Textarea id="jira-desc" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What needs to be done?" />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="jira-type">Issue type</Label>
+                <Input id="jira-type" value={issueType} onChange={(e) => setIssueType(e.target.value)} placeholder="Task" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="jira-priority">Priority</Label>
+                <Input id="jira-priority" value={priority} onChange={(e) => setPriority(e.target.value)} placeholder="Medium" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="jira-key">Project key</Label>
+                <Input id="jira-key" value={projectKey} onChange={(e) => setProjectKey(e.target.value)} placeholder="Default" />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Leave the project key empty to use the default set in Settings → Integrations.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={submit} disabled={saving} className="gap-2">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 export const JiraTicketsSection = ({ projectId, merchantName }: Props) => {
   const { tickets, isLoading, isRefreshing, refreshTickets } = useProjectJiraTickets(projectId);
 
@@ -247,10 +369,13 @@ export const JiraTicketsSection = ({ projectId, merchantName }: Props) => {
           <h3 className="text-lg font-semibold">Jira Tickets</h3>
           <Badge variant="secondary">{tickets.length}</Badge>
         </div>
-        <Button size="sm" variant="outline" onClick={refreshTickets} disabled={isRefreshing} className="gap-2">
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          {isRefreshing ? "Refreshing…" : "Refresh"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={refreshTickets} disabled={isRefreshing} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            {isRefreshing ? "Refreshing…" : "Refresh"}
+          </Button>
+          <CreateTicketDialog projectId={projectId} merchantName={merchantName} onCreated={refreshTickets} />
+        </div>
       </div>
 
       {isLoading && tickets.length === 0 ? (

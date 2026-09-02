@@ -42,6 +42,7 @@ import { fetchAiInsights } from "@/utils/aiInsights";
 import { cn } from "@/lib/utils";
 import { WorkspaceSkeleton } from "@/components/skeletons/WorkspaceSkeleton";
 import { ProjectActivityHistoryPanel } from "@/components/ProjectActivityHistoryPanel";
+import { JiraTicketsSection } from "@/components/JiraTicketsSection";
 import {
   ArrowLeft,
   ArrowRight,
@@ -69,7 +70,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-type WorkspaceTab = "activity" | "checklists";
+type WorkspaceTab = "activity" | "checklists" | "jira";
 type ActivityKind = "user" | "system" | "handoff" | "milestone";
 
 const PROJECT_STATES: ProjectState[] = ["not_started", "on_hold", "in_progress", "live", "blocked"];
@@ -109,6 +110,7 @@ interface RiskAssessment {
 const tabOptions: Array<{ value: WorkspaceTab; label: string }> = [
   { value: "checklists", label: "Checklist" },
   { value: "activity", label: "Activity" },
+  { value: "jira", label: "Jira" },
 ];
 
 const stateToneMap: Record<ProjectState, string> = {
@@ -808,12 +810,12 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 Assign owner
               </Button>
             ) : null}
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-md px-3 text-sm font-semibold" onClick={handleSendMagicLink} disabled={sendingMagic}>
+            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent" onClick={handleSendMagicLink} disabled={sendingMagic}>
               <Mail className="h-3.5 w-3.5" />
               {sendingMagic ? "Sending..." : "Send Magic Link"}
             </Button>
-            <PortalLinkButton projectId={project.id} label="Share Portal Link" />
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-md border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-border dark:bg-card dark:text-foreground dark:hover:bg-accent" onClick={() => setEditOpen(true)}>
+            <PortalLinkButton projectId={project.id} label="Share Portal Link" className="border-transparent bg-sidebar text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground" />
+            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" />
               Edit project
             </Button>
@@ -1001,6 +1003,12 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
               <TabsContent value="activity" className="m-0">
                 <ProjectActivityHistoryPanel projectId={project.id} />
+              </TabsContent>
+
+              <TabsContent value="jira" className="m-0">
+                <div className="rounded-xl border border-border/60 bg-card/80 p-4">
+                  <JiraTicketsSection projectId={project.id} merchantName={project.merchantName} />
+                </div>
               </TabsContent>
 
 

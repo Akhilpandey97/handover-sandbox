@@ -120,7 +120,7 @@ export const ProjectActivityHistoryPanel = ({
             placeholder="Search activity..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 text-sm"
+            className="w-full pl-9 h-11 text-sm"
           />
         </div>
 

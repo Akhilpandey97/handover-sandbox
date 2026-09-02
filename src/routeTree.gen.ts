@@ -22,6 +22,7 @@ import { Route as ApiPublicAssignShopifySmeOwnerRouteImport } from './routes/api
 import { Route as ApiPublicBackfillShopifySmeAssignmentsRouteImport } from './routes/api/public/backfill-shopify-sme-assignments'
 import { Route as ApiPublicBrdFormApiRouteImport } from './routes/api/public/brd-form-api'
 import { Route as ApiPublicCheckOverdueTasksRouteImport } from './routes/api/public/check-overdue-tasks'
+import { Route as ApiPublicCreateJiraTicketRouteImport } from './routes/api/public/create-jira-ticket'
 import { Route as ApiPublicCreateUserRouteImport } from './routes/api/public/create-user'
 import { Route as ApiPublicCronRouteImport } from './routes/api/public/cron'
 import { Route as ApiPublicDeleteUserRouteImport } from './routes/api/public/delete-user'
@@ -116,6 +117,12 @@ const ApiPublicCheckOverdueTasksRoute =
   ApiPublicCheckOverdueTasksRouteImport.update({
     id: '/api/public/check-overdue-tasks',
     path: '/api/public/check-overdue-tasks',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCreateJiraTicketRoute =
+  ApiPublicCreateJiraTicketRouteImport.update({
+    id: '/api/public/create-jira-ticket',
+    path: '/api/public/create-jira-ticket',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicCreateUserRoute = ApiPublicCreateUserRouteImport.update({
@@ -282,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
+  '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
   '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
@@ -323,6 +331,7 @@ export interface FileRoutesByTo {
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
+  '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
   '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
@@ -365,6 +374,7 @@ export interface FileRoutesById {
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
+  '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
   '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
@@ -408,6 +418,7 @@ export interface FileRouteTypes {
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
+    | '/api/public/create-jira-ticket'
     | '/api/public/create-user'
     | '/api/public/cron'
     | '/api/public/delete-user'
@@ -449,6 +460,7 @@ export interface FileRouteTypes {
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
+    | '/api/public/create-jira-ticket'
     | '/api/public/create-user'
     | '/api/public/cron'
     | '/api/public/delete-user'
@@ -490,6 +502,7 @@ export interface FileRouteTypes {
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
+    | '/api/public/create-jira-ticket'
     | '/api/public/create-user'
     | '/api/public/cron'
     | '/api/public/delete-user'
@@ -531,6 +544,7 @@ export interface RootRouteChildren {
   ApiPublicBackfillShopifySmeAssignmentsRoute: typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   ApiPublicBrdFormApiRoute: typeof ApiPublicBrdFormApiRoute
   ApiPublicCheckOverdueTasksRoute: typeof ApiPublicCheckOverdueTasksRoute
+  ApiPublicCreateJiraTicketRoute: typeof ApiPublicCreateJiraTicketRoute
   ApiPublicCreateUserRoute: typeof ApiPublicCreateUserRoute
   ApiPublicCronRoute: typeof ApiPublicCronRoute
   ApiPublicDeleteUserRoute: typeof ApiPublicDeleteUserRoute
@@ -649,6 +663,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/check-overdue-tasks'
       fullPath: '/api/public/check-overdue-tasks'
       preLoaderRoute: typeof ApiPublicCheckOverdueTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/create-jira-ticket': {
+      id: '/api/public/create-jira-ticket'
+      path: '/api/public/create-jira-ticket'
+      fullPath: '/api/public/create-jira-ticket'
+      preLoaderRoute: typeof ApiPublicCreateJiraTicketRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/create-user': {
@@ -876,6 +897,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicBackfillShopifySmeAssignmentsRoute,
   ApiPublicBrdFormApiRoute: ApiPublicBrdFormApiRoute,
   ApiPublicCheckOverdueTasksRoute: ApiPublicCheckOverdueTasksRoute,
+  ApiPublicCreateJiraTicketRoute: ApiPublicCreateJiraTicketRoute,
   ApiPublicCreateUserRoute: ApiPublicCreateUserRoute,
   ApiPublicCronRoute: ApiPublicCronRoute,
   ApiPublicDeleteUserRoute: ApiPublicDeleteUserRoute,

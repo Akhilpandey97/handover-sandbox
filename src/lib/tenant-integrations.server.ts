@@ -10,6 +10,7 @@ export interface TenantIntegrations {
   jira_base_url: string | null;
   jira_email: string | null;
   jira_api_token: string | null;
+  jira_project_key: string | null;
   slack_webhook_url: string | null;
   slack_bot_token: string | null;
   slack_channel: string | null;
@@ -26,6 +27,7 @@ const EMPTY: TenantIntegrations = {
   jira_base_url: null,
   jira_email: null,
   jira_api_token: null,
+  jira_project_key: null,
   slack_webhook_url: null,
   slack_bot_token: null,
   slack_channel: null,
@@ -50,6 +52,7 @@ function envFallbacks(): TenantIntegrations {
     jira_base_url: process.env["JIRA_BASE_URL"] ?? null,
     jira_email: process.env["JIRA_EMAIL"] ?? null,
     jira_api_token: process.env["JIRA_API_TOKEN"] ?? null,
+    jira_project_key: process.env["JIRA_PROJECT_KEY"] ?? null,
     slack_webhook_url: process.env["SLACK_WEBHOOK_URL"] ?? null,
     slack_bot_token: process.env["SLACK_BOT_TOKEN"] ?? null,
     app_base_url: process.env["APP_BASE_URL"] ?? process.env["APP_URL"] ?? null,
