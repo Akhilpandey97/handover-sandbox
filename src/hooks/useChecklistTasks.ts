@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { logActivity } from "@/hooks/useActivityLogs";
+import { createNotifications } from "@/hooks/useNotifications";
 
 export interface ChecklistTask {
   id: string;
@@ -65,11 +66,14 @@ export const useAddChecklistTask = () => {
       priority?: string;
       assigned_to?: string;
       due_date?: string;
+      project_name?: string;
+      checklist_item_title?: string;
     }) => {
+      const { project_name, checklist_item_title, ...payload } = task;
       const { data, error } = await supabase
         .from("checklist_tasks")
         .insert({
-          ...task,
+          ...payload,
           status: "open",
           priority: task.priority || "medium",
           created_by: currentUser?.name || "Unknown",
@@ -78,6 +82,25 @@ export const useAddChecklistTask = () => {
         .select()
         .single();
       if (error) throw error;
+
+      if (task.assigned_to && task.assigned_to !== currentUser?.id) {
+        await createNotifications([
+          {
+            user_id: task.assigned_to,
+            type: "task_assigned",
+            title: `New task assigned: ${task.title}`,
+            body: task.due_date ? `Due ${task.due_date}` : task.description || null,
+            actor_name: currentUser?.name || null,
+            project_id: task.project_id,
+            project_name: project_name || null,
+            checklist_item_id: task.checklist_item_id,
+            checklist_item_title: checklist_item_title || null,
+            task_id: (data as { id: string }).id,
+            tenant_id: currentUser?.tenantId || null,
+          },
+        ]);
+      }
+
       return data;
     },
     onSuccess: (data, variables) => {
@@ -92,14 +115,45 @@ export const useAddChecklistTask = () => {
 
 export const useUpdateChecklistTask = () => {
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<ChecklistTask> & { id: string }) => {
+    mutationFn: async ({
+      id,
+      project_name,
+      checklist_item_title,
+      ...updates
+    }: Partial<ChecklistTask> & { id: string; project_name?: string; checklist_item_title?: string }) => {
+      const { data: existing } = await supabase
+        .from("checklist_tasks")
+        .select("assigned_to, title, project_id, checklist_item_id")
+        .eq("id", id)
+        .maybeSingle();
+
       const { error } = await supabase
         .from("checklist_tasks")
         .update(updates)
         .eq("id", id);
       if (error) throw error;
+
+      const newAssignee = updates.assigned_to;
+      if (newAssignee && newAssignee !== existing?.assigned_to && newAssignee !== currentUser?.id) {
+        await createNotifications([
+          {
+            user_id: newAssignee,
+            type: "task_assigned",
+            title: `Task assigned to you: ${updates.title || existing?.title || "Task"}`,
+            body: updates.due_date ? `Due ${updates.due_date}` : null,
+            actor_name: currentUser?.name || null,
+            project_id: existing?.project_id || null,
+            project_name: project_name || null,
+            checklist_item_id: existing?.checklist_item_id || null,
+            checklist_item_title: checklist_item_title || null,
+            task_id: id,
+            tenant_id: currentUser?.tenantId || null,
+          },
+        ]);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["checklist-tasks"] });
