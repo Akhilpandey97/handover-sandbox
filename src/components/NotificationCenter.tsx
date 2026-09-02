@@ -83,7 +83,7 @@ export const NotificationCenter = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[760px] p-0">
+      <PopoverContent align="end" className="w-[440px] p-0">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <p className="text-base font-semibold">Notifications</p>
@@ -102,7 +102,7 @@ export const NotificationCenter = () => {
           )}
         </div>
 
-        <ScrollArea className="max-h-[760px] overflow-y-auto">
+        <ScrollArea className="max-h-[520px] overflow-y-auto">
           {notifications.length === 0 ? (
             <p className="px-5 py-12 text-center text-sm text-muted-foreground">You're all caught up.</p>
           ) : (
