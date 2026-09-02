@@ -109,9 +109,9 @@ export const NotificationCenter = () => {
             <div className="divide-y divide-border/60">
               {grouped.map((project) => (
                 <div key={project.projectId || "none"} className="py-3">
-                  <div className="flex items-center gap-2 px-5 pb-1.5 pt-0.5">
-                    <Folder className="h-3.5 w-3.5 text-primary" />
-                    <p className="text-xs font-bold uppercase tracking-[0.1em] text-primary">
+                  <div className="flex items-center gap-2 px-5 pb-2 pt-1">
+                    <Folder className="h-4 w-4 text-primary" />
+                    <p className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
                       {project.projectName || "Project updates"}
                     </p>
                   </div>
