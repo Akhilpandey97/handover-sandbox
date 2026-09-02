@@ -279,7 +279,7 @@ const CreateTicketButton = ({
   return (
     <Button
       size="sm"
-      className="h-9 gap-2 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent"
+      className="h-9 gap-2 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90"
       onClick={handleClick}
       disabled={loading}
     >
