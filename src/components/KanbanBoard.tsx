@@ -31,34 +31,34 @@ const KANBAN_FIELD_OPTIONS = [
 
 const FUNNEL_ORDER: FunnelStage[] = ["sales", "pre_integration", "under_integration", "live"];
 const FUNNEL_STAGE_STYLES: Record<FunnelStage, { text: string; bar: string; bg: string; ring: string }> = {
-  sales: { text: "text-violet-700 dark:text-violet-300", bar: "bg-violet-500", bg: "bg-violet-500/5", ring: "ring-violet-500/20" },
-  pre_integration: { text: "text-sky-700 dark:text-sky-300", bar: "bg-sky-500", bg: "bg-sky-500/5", ring: "ring-sky-500/20" },
-  under_integration: { text: "text-amber-700 dark:text-amber-300", bar: "bg-amber-500", bg: "bg-amber-500/5", ring: "ring-amber-500/20" },
-  live: { text: "text-emerald-700 dark:text-emerald-300", bar: "bg-emerald-500", bg: "bg-emerald-500/5", ring: "ring-emerald-500/20" },
-  none: { text: "text-muted-foreground", bar: "bg-muted-foreground/40", bg: "bg-muted/40", ring: "ring-border" },
+  sales: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  pre_integration: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  under_integration: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  live: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  none: { text: "text-navy", bar: "bg-navy/40", bg: "bg-navy/5", ring: "ring-navy/20" },
 };
 
 const STATE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
-  not_started: { text: "text-navy", bar: "bg-muted-foreground/40", bg: "bg-muted/40", ring: "ring-border" },
-  in_progress: { text: "text-navy", bar: "bg-blue-500", bg: "bg-blue-500/5", ring: "ring-blue-500/20" },
-  on_hold: { text: "text-navy", bar: "bg-amber-500", bg: "bg-amber-500/5", ring: "ring-amber-500/20" },
-  blocked: { text: "text-navy", bar: "bg-destructive", bg: "bg-destructive/5", ring: "ring-destructive/20" },
-  live: { text: "text-navy", bar: "bg-emerald-500", bg: "bg-emerald-500/5", ring: "ring-emerald-500/20" },
+  not_started: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  in_progress: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  on_hold: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  blocked: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  live: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
 };
 
 const PHASE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
-  mint: { text: "text-purple-700 dark:text-purple-300", bar: "bg-purple-500", bg: "bg-purple-500/5", ring: "ring-purple-500/20" },
-  integration: { text: "text-blue-700 dark:text-blue-300", bar: "bg-blue-500", bg: "bg-blue-500/5", ring: "ring-blue-500/20" },
-  ms: { text: "text-amber-700 dark:text-amber-300", bar: "bg-amber-500", bg: "bg-amber-500/5", ring: "ring-amber-500/20" },
-  completed: { text: "text-emerald-700 dark:text-emerald-300", bar: "bg-emerald-500", bg: "bg-emerald-500/5", ring: "ring-emerald-500/20" },
+  mint: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  integration: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  ms: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  completed: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
 };
 
 const FALLBACK_STYLES = [
-  { text: "text-blue-700 dark:text-blue-300", bar: "bg-blue-500", bg: "bg-blue-500/5", ring: "ring-blue-500/20" },
-  { text: "text-emerald-700 dark:text-emerald-300", bar: "bg-emerald-500", bg: "bg-emerald-500/5", ring: "ring-emerald-500/20" },
-  { text: "text-amber-700 dark:text-amber-300", bar: "bg-amber-500", bg: "bg-amber-500/5", ring: "ring-amber-500/20" },
-  { text: "text-purple-700 dark:text-purple-300", bar: "bg-purple-500", bg: "bg-purple-500/5", ring: "ring-purple-500/20" },
-  { text: "text-rose-700 dark:text-rose-300", bar: "bg-rose-500", bg: "bg-rose-500/5", ring: "ring-rose-500/20" },
+  { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
+  { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
 ];
 
 function getFieldValue(project: Project, field: string, customValuesMap?: Record<string, Record<string, string>>): string {
