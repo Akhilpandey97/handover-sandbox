@@ -531,17 +531,17 @@ export const TeamDashboard = () => {
               ) : (
                 <div className="rounded-xl border bg-card overflow-hidden">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">Merchant</TableHead>
-                        <TableHead className="text-xs">MID</TableHead>
-                        <TableHead className="text-xs">Platform</TableHead>
-                        <TableHead className="text-xs">State</TableHead>
-                        <TableHead className="text-xs">Funnel Stage</TableHead>
-                        <TableHead className="text-xs">Responsibility</TableHead>
-                        <TableHead className="text-xs text-right">ARR</TableHead>
-                        <TableHead className="text-xs text-right">Go-Live %</TableHead>
-                        <TableHead className="text-xs">Expected Go-Live</TableHead>
+                    <TableHeader className="bg-sidebar">
+                      <TableRow className="hover:bg-sidebar">
+                        <TableHead className="text-xs text-sidebar-foreground">Merchant</TableHead>
+                        <TableHead className="text-xs text-sidebar-foreground">MID</TableHead>
+                        <TableHead className="text-xs text-sidebar-foreground">Platform</TableHead>
+                        <TableHead className="text-xs text-sidebar-foreground">State</TableHead>
+                        <TableHead className="text-xs text-sidebar-foreground">Funnel Stage</TableHead>
+                        <TableHead className="text-xs text-sidebar-foreground">Responsibility</TableHead>
+                        <TableHead className="text-xs text-right text-sidebar-foreground">ARR</TableHead>
+                        <TableHead className="text-xs text-right text-sidebar-foreground">Go-Live %</TableHead>
+                        <TableHead className="text-xs text-sidebar-foreground">Expected Go-Live</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
