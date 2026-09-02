@@ -267,7 +267,7 @@ async function handler(req: Request): Promise<Response> {
     try {
       const body = await req.json();
       const { token, mid, email } = body;
-      if (!token || !mid) return json({ error: "Token and MID are required" }, 400);
+      if (!token) return json({ error: "Token is required" }, 400);
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) {
         return json({ error: "A valid email address is required" }, 400);
       }
@@ -286,14 +286,9 @@ async function handler(req: Request): Promise<Response> {
       const projectMid = (project.mid || "").trim().toLowerCase();
       const projectSandboxMid = (project.sandbox_mid || "").trim().toLowerCase();
       const projectSandboxAppId = (project.sandbox_app_id || "").trim().toLowerCase();
-      const inputMid = mid.trim().toLowerCase();
-      const isMaster = inputMid === MASTER_MID.toLowerCase();
-      const isProjectMid = projectMid && projectMid === inputMid;
-      const isSandboxMid = projectSandboxMid && projectSandboxMid === inputMid;
-      const isSandboxAppId = projectSandboxAppId && projectSandboxAppId === inputMid;
-      if (!isMaster && !isProjectMid && !isSandboxMid && !isSandboxAppId) {
-        return json({ error: "Invalid APP ID. Please check your APP ID and try again." }, 401);
-      }
+      const inputMid = (mid ? String(mid) : "").trim().toLowerCase();
+      // APP ID check disabled for now — email + valid token is sufficient.
+      void MASTER_MID; void projectMid; void projectSandboxMid; void projectSandboxAppId;
 
       // MID matches — log login as a visit + return session token
       const cleanEmail = String(email).trim().toLowerCase();
