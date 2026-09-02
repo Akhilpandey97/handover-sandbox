@@ -237,7 +237,12 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
   return (
     <>
       <Card
-        className="border border-slate-200 bg-slate-50/80 shadow-sm transition-all duration-300 overflow-hidden hover:bg-white hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-900/70"
+        className="border border-slate-200 bg-slate-50/80 shadow-sm transition-all duration-300 overflow-hidden cursor-pointer hover:bg-white hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-900/70"
+        onClick={(e) => {
+          const el = e.target as HTMLElement;
+          if (el.closest("button,a,input,label,select,textarea,[role='menuitem'],[role='dialog'],[data-radix-popper-content-wrapper]")) return;
+          navigate({ to: "/projects/$projectId", params: { projectId: project.id } });
+        }}
       >
         <CardContent className="p-0">
           <div>
