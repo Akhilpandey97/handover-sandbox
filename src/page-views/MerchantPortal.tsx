@@ -337,6 +337,13 @@ export default function MerchantPortal() {
   useEffect(() => {
     if (tokenFromQuery) { setResolvedToken(tokenFromQuery); return; }
     if (!midFromPath) return;
+    // Shared portal links use a 64-char hex token in the path; treat those as tokens.
+    if (/^[a-f0-9]{64}$/i.test(midFromPath)) {
+      setResolvedToken(midFromPath);
+      setResolvingMid(false);
+      setResolveError(null);
+      return;
+    }
     setResolvedToken(null); // force data refetch for the new merchant
     setResolvingMid(true);
     setResolveError(null);
