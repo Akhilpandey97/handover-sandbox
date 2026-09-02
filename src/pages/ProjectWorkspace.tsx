@@ -41,6 +41,7 @@ import {
 import { fetchAiInsights } from "@/utils/aiInsights";
 import { cn } from "@/lib/utils";
 import { WorkspaceSkeleton } from "@/components/skeletons/WorkspaceSkeleton";
+import { ProjectActivityHistoryPanel } from "@/components/ProjectActivityHistoryPanel";
 import {
   ArrowLeft,
   ArrowRight,
@@ -999,60 +1000,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               </TabsContent>
 
               <TabsContent value="activity" className="m-0">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 bg-card/80 px-3 py-2">
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Activity timeline</p>
-                      <p className="text-sm font-semibold text-foreground">Execution history and delivery updates</p>
-                    </div>
-                    <Badge variant="outline" className="text-[11px]">{activityFeed.length} events</Badge>
-                  </div>
-
-                  {Object.entries(groupedActivity).map(([dateLabel, items]) => (
-                    <div key={dateLabel}>
-                      <div className="mb-1.5 flex items-center gap-3">
-                        <div className="h-px flex-1 bg-border/50" />
-                        <Badge variant="outline" className="px-2 py-0.5 text-[11px]">{dateLabel}</Badge>
-                        <div className="h-px flex-1 bg-border/50" />
-                      </div>
-
-                      <div className="space-y-1.5">
-                        {items.map((item) => (
-                          <div key={item.id} className="rounded-lg border border-border/60 bg-card/80 px-3 py-2.5">
-                            <div className="flex items-start gap-2.5">
-                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary">
-                                {item.actor.slice(0, 2).toUpperCase()}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-1.5">
-                                  <p className="text-xs font-semibold text-foreground">{item.title}</p>
-                                  <span className={cn("rounded-full border px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider", activityBadgeToneMap[item.kind])}>
-                                    {item.kind}
-                                  </span>
-                                </div>
-                                <p className="text-[11px] text-muted-foreground">{item.actor} · {item.timestampLabel}</p>
-                                {item.description ? <p className="mt-1 text-sm leading-relaxed text-foreground">{item.description}</p> : null}
-                                <div className="mt-1.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                                  <span>{item.source}</span>
-                                </div>
-                              </div>
-                              <span className={cn("mt-1 h-2 w-2 shrink-0 rounded-full", activityToneMap[item.kind])} />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-
-                  {activityFeed.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border/60 px-4 py-6 text-center">
-                      <MessageSquareText className="mx-auto h-5 w-5 text-muted-foreground" />
-                      <p className="mt-1.5 text-xs font-semibold text-foreground">No activity recorded yet</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">Handoffs, checklist updates, and milestones will appear here.</p>
-                    </div>
-                  ) : null}
-                </div>
+                <ProjectActivityHistoryPanel projectId={project.id} />
               </TabsContent>
+
 
               <TabsContent value="checklists" className="m-0 h-full">
                 <div className="h-full min-h-[500px]">
