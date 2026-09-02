@@ -217,8 +217,12 @@ export const ChecklistManagement = () => {
   const deleteItemMutation = useMutation({
     mutationFn: async ({ title, team, templateId }: { title: string; team: TeamRole; templateId?: string }) => {
       if (templateId) {
-        await supabase.from("checklist_templates").delete().eq("id", templateId);
+        const dq = supabase.from("checklist_templates").delete();
+        await (isSuperAdmin
+          ? dq.eq("title", title).eq("owner_team", team)
+          : dq.eq("id", templateId));
       }
+
       const { error } = await supabase
         .from("checklist_items")
         .delete()
