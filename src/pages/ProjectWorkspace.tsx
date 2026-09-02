@@ -834,8 +834,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
         <ScrollArea className="order-1 hidden w-1/4 min-w-[300px] max-w-[420px] shrink-0 border-r border-slate-200 bg-white dark:border-border dark:bg-card lg:block">
           <div className="space-y-3 p-4">
             <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-              <div className="border-b border-border bg-muted/50 px-4 py-3">
-                <p className="text-sm font-semibold text-foreground">Project Details</p>
+              <div className="border-b border-sidebar-border bg-sidebar-accent/50 px-4 py-3">
+                <p className="text-sm font-semibold text-sidebar-foreground">Project Details</p>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
                 <div className="col-span-2 min-w-0">
