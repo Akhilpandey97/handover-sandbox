@@ -2454,9 +2454,6 @@ export const ManagerDashboard = () => {
                   {reportSubTab === "weekly-report" && (
                     <MovementReport timeframe="weekly" />
                   )}
-                </div>
-              </CardContent>
-            </Card>
           </div>}
 
           {/* Settings Tab */}
