@@ -23,7 +23,7 @@ export const PortalLinkButton = ({ projectId, label = "Portal link", className }
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const buildLink = (token: string) => `${window.location.origin}/portal/${token}`;
+  const buildLink = (token: string) => `${window.location.origin}/portal?token=${token}`;
 
   const generate = async () => {
     setIsWorking(true);
