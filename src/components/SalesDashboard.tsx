@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationCenter } from "./NotificationCenter";
 import {
   BarChart3,
   LogOut,
@@ -105,7 +106,8 @@ export const SalesDashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <ThemeToggle />
+            <NotificationCenter />
+              <ThemeToggle />
             <Button variant="outline" size="sm" onClick={logout} className="gap-2">
               <LogOut className="h-4 w-4" /> Logout
             </Button>
