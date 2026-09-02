@@ -108,10 +108,10 @@ export const NotificationCenter = () => {
           ) : (
             <div className="divide-y divide-border/60">
               {grouped.map((project) => (
-                <div key={project.projectId || "none"} className="py-2">
-                  <div className="flex items-center gap-2 px-5 pb-1.5 pt-0.5">
+                <div key={project.projectId || "none"} className="py-3">
+                  <div className="flex items-center gap-2 px-5 pb-2 pt-1">
                     <Folder className="h-4 w-4 text-primary" />
-                    <p className="rounded-md bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-primary">
+                    <p className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
                       {project.projectName || "Project updates"}
                     </p>
                   </div>
@@ -122,7 +122,7 @@ export const NotificationCenter = () => {
                         type="button"
                         onClick={() => handleClick(n)}
                         className={cn(
-                          "flex w-full gap-2 rounded-lg px-2.5 py-1.5 text-left transition-colors hover:bg-muted/60",
+                          "flex w-full gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/60",
                           !n.read_at && "bg-primary/5",
                         )}
                       >
