@@ -88,7 +88,6 @@ export const PortalLinkButton = ({ projectId, label = "Portal link", className }
   return (
     <>
       <Button
-        variant="outline"
         size="sm"
         className={`h-9 gap-1.5 rounded-md px-3 text-sm font-semibold ${className || ""}`}
         onClick={generate}

@@ -819,8 +819,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               <Pencil className="h-3.5 w-3.5" />
               Edit project
             </Button>
-            <Button size="sm" className="h-9 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => isTransferReady && setTransferOpen(true)} disabled={!isTransferReady}>
-              <ArrowRight className="h-3 w-3 mr-1" />
+            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => isTransferReady && setTransferOpen(true)} disabled={!isTransferReady}>
+              <ArrowRight className="h-3.5 w-3.5" />
               Transfer
             </Button>
           </div>
