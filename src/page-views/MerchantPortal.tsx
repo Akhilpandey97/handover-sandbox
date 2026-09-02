@@ -572,10 +572,7 @@ export default function MerchantPortal() {
   };
 
   const handleMidLogin = async () => {
-    if (!token || !midInput.trim()) {
-      setLoginError("Please enter your APP ID");
-      return;
-    }
+    if (!token) return;
     const cleanEmail = emailInput.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       setLoginError("Please enter a valid work email address");
@@ -686,21 +683,6 @@ export default function MerchantPortal() {
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                  <Lock className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />
-                  APP ID
-                </label>
-                <input
-                  type="text"
-                  value={midInput}
-                  onChange={(e) => { setMidInput(e.target.value); setLoginError(null); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleMidLogin(); }}
-                  placeholder="Enter your APP ID"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[#253553] bg-slate-50 dark:bg-[#1a2740] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 transition-all text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                   Work Email
                 </label>
                 <input
@@ -723,7 +705,7 @@ export default function MerchantPortal() {
 
               <button
                 onClick={handleMidLogin}
-                disabled={loginLoading || !midInput.trim() || !emailInput.trim()}
+                disabled={loginLoading || !emailInput.trim()}
                 className="w-full py-3 px-4 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] shadow-lg hover:shadow-xl"
                 style={{ background: BRAND.primary, boxShadow: `0 8px 24px -4px ${BRAND.primary}40` }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = BRAND.primaryLight)}
@@ -742,7 +724,7 @@ export default function MerchantPortal() {
 
             <div className="mt-6 pt-5 border-t border-slate-100 dark:border-[#253553]">
               <p className="text-center text-[11px] text-slate-400 dark:text-slate-400">
-                Your APP ID was shared by your Handover integration team.
+                Use the work email shared with your Handover integration team.
                 <br />Contact your project manager if you need assistance.
               </p>
             </div>
