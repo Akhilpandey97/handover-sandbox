@@ -235,7 +235,8 @@ export const useProjectsQuery = () => {
           .filter((i) => !i.isTask && i.dueDate)
           .map((i) => i.dueDate as string)
           .sort()
-          .pop();
+          .pop()
+          ?.slice(0, 10);
         return transformDbProject({
           ...project,
           expected_go_live_date: project.expected_go_live_date || derivedExpectedGoLive || null,
