@@ -1203,8 +1203,9 @@ export const ManagerDashboard = () => {
 
           {/* ========= OVERVIEW TAB ========= */}
           {activeTab === "dashboard" && <div className="mx-auto max-w-[1600px] space-y-5">
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {/* KPI strip */}
+            <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+              <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">
               {(() => {
                 const funnelCounts = displayProjects.reduce((acc: Record<string, number>, p) => {
                   const s = getProjectFunnelStage(p) as string;
@@ -1213,123 +1214,121 @@ export const ManagerDashboard = () => {
                 }, {} as Record<string, number>);
 
                 const kpiCards = [
-                  { label: "Total", value: totalProjects, icon: FolderKanban, accent: "border-l-sky-500 bg-sky-50/60 dark:bg-sky-950/20", iconAccent: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300", sub: `Pipeline ARR: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
-                  { label: "Pending", value: pendingProjects, icon: AlertCircle, accent: "border-l-amber-500 bg-amber-50/60 dark:bg-amber-950/20", iconAccent: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300", sub: `Pending ARR: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
-                  { label: "Active", value: activeProjects, icon: Rocket, accent: "border-l-indigo-500 bg-indigo-50/60 dark:bg-indigo-950/20", iconAccent: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300", sub: `Active ARR: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
-                  { label: "Live", value: completedProjects, icon: CheckCircle2, accent: "border-l-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/20", iconAccent: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300", sub: `Live ARR: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
+                  { label: "All projects", value: totalProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `Pipeline ARR: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
+                  { label: "Pending", value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ARR: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
+                  { label: "In delivery", value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ARR: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
+                  { label: "Live", value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ARR: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
                 ];
                 return kpiCards.map((kpi) => (
-                  <Card key={kpi.label} role="button" tabIndex={0} onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })} className={cn("min-h-[158px] cursor-pointer border border-border border-l-4 shadow-sm transition-shadow hover:shadow-md", kpi.accent)}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground mb-1">{kpi.label}</p>
-                          <p className="text-2xl font-bold text-foreground">{kpi.value}</p>
-                        </div>
-                        <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center", kpi.iconAccent)}>
-                          <kpi.icon className="h-6 w-6" />
-                        </div>
+                  <div
+                    key={kpi.label}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })}
+                    className="group min-h-[136px] cursor-pointer bg-card p-5 transition-colors hover:bg-muted/40"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
+                        <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground">{kpi.value}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-2">{kpi.sub}</p>
-                      <p className="text-[11px] text-muted-foreground mt-1.5">
-                        {(["sales","pre_integration","under_integration","live","none"] as const).map(s => `${s === "pre_integration" ? "Pre" : s === "under_integration" ? "Under" : s === "none" ? "Unassigned" : s[0].toUpperCase()}: ${funnelCounts[s] || 0}`).join("  ·  ")}
-                      </p>
-                      {"sub2" in kpi && (
-                        <p
-                          className="text-xs text-muted-foreground mt-0.5 hover:text-foreground hover:underline"
-                          onClick={(e) => { e.stopPropagation(); setDrillDown({ title: "Under Integration", projects: displayProjects.filter(p => isProjectUnderIntegration(p)) }); }}
-                        >{kpi.sub2}</p>
-                      )}
-                      {"sub3" in kpi && (
-                        <p
-                          className="text-xs text-muted-foreground mt-0.5 hover:text-foreground hover:underline"
-                          onClick={(e) => { e.stopPropagation(); setDrillDown({ title: "In Progress without expected go-live", projects: displayProjects.filter(p => p.projectState === "in_progress" && !p.dates.expectedGoLiveDate) }); }}
-                        >{(kpi as any).sub3}</p>
-                      )}
-                    </CardContent>
-                  </Card>
+                      <div className={cn("flex h-9 w-9 items-center justify-center rounded-md", kpi.tone)}>
+                        <kpi.icon className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <p className="mt-3 text-xs text-muted-foreground">{kpi.sub}</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground/80">
+                      {(["sales","pre_integration","under_integration","live","none"] as const).map(s => `${s === "pre_integration" ? "Pre" : s === "under_integration" ? "Under" : s === "none" ? "Unassigned" : s[0].toUpperCase()}: ${funnelCounts[s] || 0}`).join("  ·  ")}
+                    </p>
+                    {"sub2" in kpi && (
+                      <p
+                        className="mt-1 text-xs text-muted-foreground hover:text-foreground hover:underline"
+                        onClick={(e) => { e.stopPropagation(); setDrillDown({ title: "Under Integration", projects: displayProjects.filter(p => isProjectUnderIntegration(p)) }); }}
+                      >{kpi.sub2}</p>
+                    )}
+                    {"sub3" in kpi && (
+                      <p
+                        className="mt-0.5 text-xs text-muted-foreground hover:text-foreground hover:underline"
+                        onClick={(e) => { e.stopPropagation(); setDrillDown({ title: "In Progress without expected go-live", projects: displayProjects.filter(p => p.projectState === "in_progress" && !p.dates.expectedGoLiveDate) }); }}
+                      >{(kpi as any).sub3}</p>
+                    )}
+                  </div>
                 ));
               })()}
-            </div>
+              </div>
+            </section>
 
-            {/* Team Performance & TAT */}
-            <div className="grid lg:grid-cols-[1.08fr_0.92fr] gap-5 items-start">
-              <Card className="h-full shadow-sm border-border">
-                <CardHeader className="border-b bg-muted/10 px-5 py-4">
-                  <CardTitle className="portal-heading flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    Team Performance
-                  </CardTitle>
-                </CardHeader>
-                 <CardContent className="p-5">
-                   <div className="divide-y divide-border">
+            {/* Team workload & TAT */}
+            <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
+              <section className="rounded-lg border border-border bg-card shadow-sm">
+                <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Team workload</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Current project ownership and completion status</p>
+                  </div>
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div className="divide-y divide-border">
                     {teamOwnerReport.map((team) => {
                       const teamProjects = displayProjects.filter(p => p.currentOwnerTeam === team.team);
                       const totalCount = teamProjects.length;
                       const pendingCount = teamProjects.filter(p => p.pendingAcceptance).length;
-                      // A project is "completed" for a team if ALL that team's checklist items are done
-                      const completedCount = teamProjects.filter(p => {
+                      const isTeamCompleted = (p: Project) => {
                         const teamItems = p.checklist.filter(c => c.ownerTeam === team.team);
                         return teamItems.length > 0 && teamItems.every(c => c.completed);
-                      }).length;
+                      };
+                      const completedCount = teamProjects.filter(isTeamCompleted).length;
                       const activeCount = totalCount - pendingCount - completedCount;
+                      const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                      const miniCards = [
+                        { label: "active", value: activeCount, tone: "bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300", list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
+                        { label: "pending", value: pendingCount, tone: "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300", list: teamProjects.filter(p => p.pendingAcceptance) },
+                        { label: "complete", value: completedCount, tone: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300", list: teamProjects.filter(isTeamCompleted) },
+                      ];
                       return (
-                        <div key={team.team} className="space-y-3 py-4 first:pt-0 last:pb-0">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className={cn(
-                                "h-9 w-9 rounded-lg border flex items-center justify-center font-semibold",
-                                team.team === "mint" && "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300",
-                                team.team === "integration" && "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-800 dark:bg-violet-950/40 dark:text-violet-300",
-                                team.team === "ms" && "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
-                              )}>
-                                {team.teamLabel.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="font-semibold">{team.teamLabel}</p>
-                                <p className="text-xs text-muted-foreground">{totalCount} projects</p>
-                              </div>
+                        <div key={team.team} className="grid gap-4 px-5 py-4 md:grid-cols-[minmax(170px,0.8fr)_minmax(260px,1.2fr)_120px] md:items-center">
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              "flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-sm font-bold",
+                              team.team === "mint" && "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300",
+                              team.team === "integration" && "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
+                              team.team === "ms" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300",
+                            )}>
+                              {team.teamLabel.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">{team.teamLabel}</p>
+                              <p className="text-xs text-muted-foreground">{totalCount} owned projects</p>
                             </div>
                           </div>
-                          {(() => {
-                            const isTeamCompleted = (p: Project) => {
-                              const teamItems = p.checklist.filter(c => c.ownerTeam === team.team);
-                              return teamItems.length > 0 && teamItems.every(c => c.completed);
-                            };
-                            const miniCards = [
-                              { label: "Total", value: totalCount, accent: "border-t-slate-400", list: teamProjects },
-                              { label: "Pending", value: pendingCount, accent: "border-t-amber-400", list: teamProjects.filter(p => p.pendingAcceptance) },
-                              { label: "Active", value: activeCount, accent: "border-t-indigo-400", list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
-                              { label: "Completed", value: completedCount, accent: "border-t-emerald-400", list: teamProjects.filter(isTeamCompleted) },
-                            ];
-                            return (
-                              <div className="grid grid-cols-4 gap-2 text-center">
-                                {miniCards.map(mc => (
-                                  <div
-                                    key={mc.label}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => setDrillDown({ title: `${team.teamLabel} · ${mc.label}`, projects: mc.list })}
-                                    className={cn("rounded-md border border-border border-t-2 bg-muted/20 p-2 cursor-pointer transition-colors hover:bg-muted/50", mc.accent)}
-                                  >
-                                    <p className="text-lg font-semibold text-foreground">{mc.value}</p>
-                                    <p className="text-[10px] text-muted-foreground">{mc.label}</p>
-                                  </div>
-                                ))}
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            {miniCards.map(mc => (
+                              <div
+                                key={mc.label}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => setDrillDown({ title: `${team.teamLabel} · ${mc.label}`, projects: mc.list })}
+                                className={cn("cursor-pointer rounded-md px-2 py-2 transition-opacity hover:opacity-80", mc.tone)}
+                              >
+                                <p className="text-base font-semibold">{mc.value}</p>
+                                <p className="text-[10px] opacity-80">{mc.label}</p>
                               </div>
-                            );
-                          })()}
-                          {team.pendingCount > 0 && (
-                            <Badge variant="outline" className="text-amber-700 border-amber-200 bg-amber-50/70 dark:text-amber-300 dark:border-amber-800 dark:bg-amber-950/30">
-                              {team.pendingCount} pending acceptance
-                            </Badge>
-                          )}
+                            ))}
+                          </div>
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setDrillDown({ title: `${team.teamLabel} · all`, projects: teamProjects })}
+                            className="cursor-pointer md:text-right"
+                          >
+                            <p className="text-lg font-semibold text-foreground">{completionRate}%</p>
+                            <p className="text-xs text-muted-foreground">completion</p>
+                          </div>
                         </div>
                       );
                     })}
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </section>
 
               <TATDashlet projects={displayProjects} />
 
@@ -1340,17 +1339,17 @@ export const ManagerDashboard = () => {
               />
             </div>
 
-            {/* Phase Distribution & State Distribution */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="shadow-sm border-border">
-                <CardHeader className="border-b bg-muted/30">
-                   <CardTitle className="portal-heading flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    Project Phase Distribution
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
+            {/* Delivery stages & health */}
+            <div className="grid items-stretch gap-5 lg:grid-cols-2">
+              <section className="rounded-lg border border-border bg-card shadow-sm">
+                <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Delivery stages</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Where active project work is concentrated</p>
+                  </div>
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-4 p-5">
                     {(() => {
                       // Group projects by next incomplete checklist item title (from current owner team first)
                       const phaseGroups: Record<string, Project[]> = {};
@@ -1360,7 +1359,6 @@ export const ManagerDashboard = () => {
                         const label = nextItem ? nextItem.title : "All Complete";
                         (phaseGroups[label] = phaseGroups[label] || []).push(p);
                       });
-                      // Sort by count descending
                       const sorted = Object.entries(phaseGroups).sort((a, b) => b[1].length - a[1].length);
                       return sorted.map(([label, list]) => {
                         const count = list.length;
@@ -1371,30 +1369,29 @@ export const ManagerDashboard = () => {
                             role="button"
                             tabIndex={0}
                             onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })}
-                            className="space-y-1 cursor-pointer rounded-md hover:bg-muted/50 p-1 -m-1"
+                            className="-m-1 cursor-pointer space-y-1.5 rounded-md p-1 hover:bg-muted/50"
                           >
                             <div className="flex items-center justify-between text-sm">
-                              <span className="font-medium truncate max-w-[70%]" title={label}>{label}</span>
-                              <span className="font-bold whitespace-nowrap">{count} ({pct}%)</span>
+                              <span className="max-w-[70%] truncate font-medium text-foreground/80" title={label}>{label}</span>
+                              <span className="whitespace-nowrap text-xs font-semibold text-foreground">{count} · {pct}%</span>
                             </div>
-                            <Progress value={pct} className="h-2" />
+                            <Progress value={pct} className="h-1.5" />
                           </div>
                         );
                       });
                     })()}
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </section>
 
-              <Card className="shadow-sm border-border">
-                <CardHeader className="border-b bg-muted/30">
-                  <CardTitle className="portal-heading flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-primary" />
-                    State Distribution
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
+              <section className="rounded-lg border border-border bg-card shadow-sm">
+                <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Delivery health</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Project state distribution across the portfolio</p>
+                  </div>
+                  <Settings className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-4 p-5">
                     {(Object.keys(projectStateLabels) as ProjectState[]).map(state => {
                       const stateList = displayProjects.filter(p => p.projectState === state);
                       const count = stateList.length;
@@ -1405,19 +1402,19 @@ export const ManagerDashboard = () => {
                           role="button"
                           tabIndex={0}
                           onClick={() => setDrillDown({ title: stateLabelsFromCtx[state] || projectStateLabels[state], description: "Project state", projects: stateList })}
-                          className="space-y-1 cursor-pointer rounded-md hover:bg-muted/50 p-1 -m-1"
+                          className="-m-1 cursor-pointer space-y-1.5 rounded-md p-1 hover:bg-muted/50"
                         >
                           <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium">{stateLabelsFromCtx[state] || projectStateLabels[state]}</span>
-                            <span className="font-bold">{count} ({pct}%)</span>
+                            <span className="font-medium text-foreground/80">{stateLabelsFromCtx[state] || projectStateLabels[state]}</span>
+                            <span className="text-xs font-semibold text-foreground">{count} · {pct}%</span>
                           </div>
-                          <Progress value={pct} className="h-2" />
+                          <Progress value={pct} className="h-1.5" />
                         </div>
                       );
                     })}
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </section>
+
             </div>
 
             <ProjectListDialog

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Project } from "@/data/projectsData";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
 import { Timer } from "lucide-react";
 
 const diffDays = (from: string, to: string) => {
@@ -30,53 +30,54 @@ export const TATDashlet = ({ projects }: Props) => {
   }, [rows]);
 
   return (
-    <Card className="h-full shadow-sm border-border">
-      <CardHeader className="border-b bg-muted/10 px-5 py-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-              <Timer className="h-4 w-4 text-muted-foreground" />
-              TAT Summary
-            </CardTitle>
-            <CardDescription className="text-xs">Turn-around time summary for live merchants</CardDescription>
+    <section className="flex h-full flex-col rounded-lg border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div>
+          <p className="text-sm font-semibold text-foreground">TAT booklet</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Turnaround from kick-off to go-live</p>
+        </div>
+        <Timer className="h-5 w-5 text-primary" />
+      </div>
+      <div className="space-y-4 p-5">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-md bg-sky-50 p-3 dark:bg-sky-950/40">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Merchants</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-sky-900 dark:text-sky-200">{overall.count}</p>
+            <p className="mt-0.5 text-[10px] text-sky-700 dark:text-sky-300">tracked</p>
           </div>
-          <div className="grid grid-cols-3 gap-4 sm:gap-6">
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">Merchants</div>
-              <div className="text-lg font-semibold tabular-nums">{overall.count}</div>
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">Total ARR (Cr)</div>
-              <div className="text-lg font-semibold tabular-nums">{overall.totalArr.toFixed(2)}</div>
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">Avg TAT (days)</div>
-              <div className="text-lg font-semibold tabular-nums">{overall.avgTat.toFixed(1)}</div>
-            </div>
+          <div className="rounded-md bg-muted p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Total ARR</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-foreground">{overall.totalArr.toFixed(2)}</p>
+            <p className="mt-0.5 text-[10px] text-muted-foreground">Cr</p>
+          </div>
+          <div className="rounded-md bg-emerald-50 p-3 dark:bg-emerald-950/40">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Avg TAT</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-emerald-900 dark:text-emerald-200">{overall.avgTat.toFixed(1)}</p>
+            <p className="mt-0.5 text-[10px] text-emerald-700 dark:text-emerald-300">days</p>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-0 max-h-[420px] overflow-y-auto">
         {rows.length === 0 ? (
-          <div className="p-6 text-sm text-muted-foreground">No projects with both Kickoff and Actual Go-Live dates.</div>
+          <p className="text-xs text-muted-foreground">No projects with both Kickoff and Actual Go-Live dates.</p>
         ) : (
-          <div className="space-y-0 px-5 py-2">
-            {rows.slice(0, 8).map(r => (
-              <div key={r.id} className="flex items-center justify-between gap-3 border-b py-3 last:border-b-0">
-                <div className="min-w-0">
-                  <div className="font-medium text-sm truncate">{r.merchant}</div>
-                  <div className="text-xs text-muted-foreground">ARR: {r.arr.toFixed(2)} Cr</div>
+          <>
+            <div className="divide-y divide-border rounded-md border border-border">
+              {rows.slice(0, 8).map(r => (
+                <div key={r.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold text-foreground">{r.merchant}</p>
+                    <p className="text-[10px] text-muted-foreground">ARR: {r.arr.toFixed(2)} Cr</p>
+                  </div>
+                  <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">{r.tat}d</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-semibold tabular-nums">{r.tat} days</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">Based on {overall.count} project{overall.count === 1 ? "" : "s"} with kick-off and go-live dates.</p>
+          </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
+
 };
 
 export default TATDashlet;
