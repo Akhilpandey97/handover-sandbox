@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, AlertCircle, Trophy, Sparkles, Loader2 } from "lucide-react";
 import { fetchAiInsights } from "@/utils/aiInsights";
+import { arrCroreValue } from "@/lib/arr";
 
 interface Props {
   projects: Project[];
@@ -160,7 +161,7 @@ export const TacticalLists = ({ projects }: Props) => {
                         <TableCell>{phaseLabels[p.currentPhase] || p.currentPhase}</TableCell>
                         <TableCell>{stateLabels[p.projectState] || projectStateLabels[p.projectState]}</TableCell>
                         <TableCell>{p.assignedOwnerName || "Unassigned"}</TableCell>
-                        <TableCell>{p.arr}</TableCell>
+                        <TableCell>{arrCroreValue(p.arr)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -13,6 +13,7 @@ import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
 import { ChecklistDialog } from "./ChecklistDialog";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
 import { EditProjectDialog } from "./EditProjectDialog";
+import { formatArrCr } from "@/lib/arr";
 
 
 const phaseLabels: Record<string, string> = {
@@ -39,12 +40,7 @@ export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: s
 
   const phaseLabel = phaseLabels[project.currentPhase] || project.currentPhase;
 
-  const arrDisplay =
-    project.arr >= 10000000
-      ? `${(project.arr / 10000000).toFixed(1)} Cr`
-      : project.arr >= 100000
-        ? `${(project.arr / 100000).toFixed(1)} L`
-        : project.arr.toLocaleString();
+  const arrDisplay = formatArrCr(project.arr);
 
   const completedChecklist = project.checklist.filter(c => c.completed).length;
   const totalChecklist = project.checklist.length;

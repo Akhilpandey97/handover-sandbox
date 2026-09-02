@@ -15,6 +15,7 @@ import { Plus, Trash2, Pencil, Server, Upload, Download, FileSpreadsheet, Mail, 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
+import { arrToCrore, arrCroreValue } from "@/lib/arr";
 
 const PLATFORMS = ["Aasaan", "Zoho", "Shoppachino", "Shoopy", "Zen Zen", "Tradexa"] as const;
 type Platform = typeof PLATFORMS[number];
@@ -519,7 +520,7 @@ export const PlatformMerchants = () => {
       "Status": STATUS_OPTIONS.find(s => s.value === m.status)?.label || m.status,
       "Owner": users.find(u => u.id === m.owner_id)?.name || "",
       "CSM": users.find(u => u.id === m.csm_id)?.name || "",
-      "ARR (Cr)": m.arr != null ? m.arr : "",
+      "ARR (Cr)": m.arr != null ? arrCroreValue(m.arr) : "",
       "Go-Live Date": m.go_live_date || "",
       "Notes": m.notes || "",
     }));
@@ -596,7 +597,7 @@ export const PlatformMerchants = () => {
         {PLATFORMS.map(p => {
           const list = grouped[p] || [];
           const liveList = list.filter(m => m.status === "live");
-          const liveArr = liveList.reduce((sum, m) => sum + (Number(m.arr) || 0), 0);
+          const liveArr = liveList.reduce((sum, m) => sum + arrToCrore(Number(m.arr) || 0), 0);
           return (
             <Card key={p} className="cursor-pointer hover:border-primary/40" onClick={() => setActivePlatform(p)}>
               <CardContent className="p-4">
@@ -661,7 +662,7 @@ export const PlatformMerchants = () => {
                     <TableCell>
                       {users.find(u => u.id === m.csm_id)?.name || "—"}
                     </TableCell>
-                    <TableCell>{m.arr != null ? m.arr.toFixed(2) : "—"}</TableCell>
+                    <TableCell>{m.arr != null ? arrCroreValue(m.arr) : "—"}</TableCell>
                     <TableCell>{m.go_live_date || "—"}</TableCell>
                     <TableCell className="max-w-[300px] truncate text-sm text-muted-foreground">{m.notes || "—"}</TableCell>
                     {!isReadOnly && (

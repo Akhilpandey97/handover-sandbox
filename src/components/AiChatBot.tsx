@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/hooks/useActivityLogs";
+import { arrCroreValue } from "@/lib/arr";
 
 type Msg = { role: "user" | "assistant"; content: string; time: string; toolCalls?: ToolCall[] };
 type ToolCall = { id: string; name: string; arguments: any; status?: "pending" | "executing" | "done" | "failed"; result?: string };
@@ -191,7 +192,7 @@ export const AiChatBot = () => {
       const time = calculateTimeFromChecklist(p.checklist);
       const completed = p.checklist.filter(c => c.completed).length;
       const total = p.checklist.length;
-      return `- ${p.merchantName} (${p.mid}, ID=${p.id}): Phase=${p.currentPhase}, State=${p.projectState}, Team=${teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}, Owner=${p.assignedOwnerName || "Unassigned"}, OwnerID=${p.assignedOwner || "none"}, Tasks=${completed}/${total}, ${responsibilityLabels.gokwik}Time=${formatDuration(time.gokwik)}, ${responsibilityLabels.merchant}Time=${formatDuration(time.merchant)}, ARR=${p.arr}Cr`;
+      return `- ${p.merchantName} (${p.mid}, ID=${p.id}): Phase=${p.currentPhase}, State=${p.projectState}, Team=${teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}, Owner=${p.assignedOwnerName || "Unassigned"}, OwnerID=${p.assignedOwner || "none"}, Tasks=${completed}/${total}, ${responsibilityLabels.gokwik}Time=${formatDuration(time.gokwik)}, ${responsibilityLabels.merchant}Time=${formatDuration(time.merchant)}, ARR=${arrCroreValue(p.arr)}Cr`;
     }).join("\n");
     return `Total projects: ${projects.length}\n${summary}`;
   }, [projects, teamLabels, responsibilityLabels]);
