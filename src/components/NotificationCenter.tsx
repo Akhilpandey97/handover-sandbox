@@ -102,7 +102,7 @@ export const NotificationCenter = () => {
           )}
         </div>
 
-        <ScrollArea className="max-h-[680px] overflow-y-auto">
+        <ScrollArea className="max-h-[760px] overflow-y-auto">
           {notifications.length === 0 ? (
             <p className="px-5 py-12 text-center text-sm text-muted-foreground">You're all caught up.</p>
           ) : (
