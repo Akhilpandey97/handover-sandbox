@@ -30,6 +30,7 @@ import { Route as ApiPublicEnrichGoliveTrackerRouteImport } from './routes/api/p
 import { Route as ApiPublicFetchProjectEmailsRouteImport } from './routes/api/public/fetch-project-emails'
 import { Route as ApiPublicFetchProjectJiraTicketsRouteImport } from './routes/api/public/fetch-project-jira-tickets'
 import { Route as ApiPublicGetProjectLinksRouteImport } from './routes/api/public/get-project-links'
+import { Route as ApiPublicJiraCreateUrlRouteImport } from './routes/api/public/jira-create-url'
 import { Route as ApiPublicKwikassistAiChatRouteImport } from './routes/api/public/kwikassist-ai-chat'
 import { Route as ApiPublicMerchantPortalDataRouteImport } from './routes/api/public/merchant-portal-data'
 import { Route as ApiPublicPollEmailsRouteImport } from './routes/api/public/poll-emails'
@@ -164,6 +165,11 @@ const ApiPublicGetProjectLinksRoute =
     path: '/api/public/get-project-links',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicJiraCreateUrlRoute = ApiPublicJiraCreateUrlRouteImport.update({
+  id: '/api/public/jira-create-url',
+  path: '/api/public/jira-create-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicKwikassistAiChatRoute =
   ApiPublicKwikassistAiChatRouteImport.update({
     id: '/api/public/kwikassist-ai-chat',
@@ -297,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
   '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
   '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
+  '/api/public/jira-create-url': typeof ApiPublicJiraCreateUrlRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
   '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
   '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
+  '/api/public/jira-create-url': typeof ApiPublicJiraCreateUrlRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
@@ -382,6 +390,7 @@ export interface FileRoutesById {
   '/api/public/fetch-project-emails': typeof ApiPublicFetchProjectEmailsRoute
   '/api/public/fetch-project-jira-tickets': typeof ApiPublicFetchProjectJiraTicketsRoute
   '/api/public/get-project-links': typeof ApiPublicGetProjectLinksRoute
+  '/api/public/jira-create-url': typeof ApiPublicJiraCreateUrlRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
@@ -426,6 +435,7 @@ export interface FileRouteTypes {
     | '/api/public/fetch-project-emails'
     | '/api/public/fetch-project-jira-tickets'
     | '/api/public/get-project-links'
+    | '/api/public/jira-create-url'
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
     | '/api/public/poll-emails'
@@ -468,6 +478,7 @@ export interface FileRouteTypes {
     | '/api/public/fetch-project-emails'
     | '/api/public/fetch-project-jira-tickets'
     | '/api/public/get-project-links'
+    | '/api/public/jira-create-url'
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
     | '/api/public/poll-emails'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/api/public/fetch-project-emails'
     | '/api/public/fetch-project-jira-tickets'
     | '/api/public/get-project-links'
+    | '/api/public/jira-create-url'
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
     | '/api/public/poll-emails'
@@ -552,6 +564,7 @@ export interface RootRouteChildren {
   ApiPublicFetchProjectEmailsRoute: typeof ApiPublicFetchProjectEmailsRoute
   ApiPublicFetchProjectJiraTicketsRoute: typeof ApiPublicFetchProjectJiraTicketsRoute
   ApiPublicGetProjectLinksRoute: typeof ApiPublicGetProjectLinksRoute
+  ApiPublicJiraCreateUrlRoute: typeof ApiPublicJiraCreateUrlRoute
   ApiPublicKwikassistAiChatRoute: typeof ApiPublicKwikassistAiChatRoute
   ApiPublicMerchantPortalDataRoute: typeof ApiPublicMerchantPortalDataRouteWithChildren
   ApiPublicPollEmailsRoute: typeof ApiPublicPollEmailsRoute
@@ -719,6 +732,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/get-project-links'
       fullPath: '/api/public/get-project-links'
       preLoaderRoute: typeof ApiPublicGetProjectLinksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/jira-create-url': {
+      id: '/api/public/jira-create-url'
+      path: '/api/public/jira-create-url'
+      fullPath: '/api/public/jira-create-url'
+      preLoaderRoute: typeof ApiPublicJiraCreateUrlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/kwikassist-ai-chat': {
@@ -905,6 +925,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicFetchProjectEmailsRoute: ApiPublicFetchProjectEmailsRoute,
   ApiPublicFetchProjectJiraTicketsRoute: ApiPublicFetchProjectJiraTicketsRoute,
   ApiPublicGetProjectLinksRoute: ApiPublicGetProjectLinksRoute,
+  ApiPublicJiraCreateUrlRoute: ApiPublicJiraCreateUrlRoute,
   ApiPublicKwikassistAiChatRoute: ApiPublicKwikassistAiChatRoute,
   ApiPublicMerchantPortalDataRoute:
     ApiPublicMerchantPortalDataRouteWithChildren,
