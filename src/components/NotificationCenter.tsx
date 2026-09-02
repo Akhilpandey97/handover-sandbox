@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNotifications, useMarkNotificationRead, type AppNotification } from "@/hooks/useNotifications";
+import { useProjects } from "@/contexts/ProjectContext";
 import { cn } from "@/lib/utils";
 
 const typeIcon = (type: string) => {
@@ -28,6 +29,7 @@ export const NotificationCenter = () => {
   const navigate = useNavigate();
   const { data: notifications = [] } = useNotifications();
   const markRead = useMarkNotificationRead();
+  const { projects } = useProjects();
 
   const unread = notifications.filter((n) => !n.read_at);
 
@@ -42,14 +44,14 @@ export const NotificationCenter = () => {
       if (!projects.has(pKey)) {
         projects.set(pKey, {
           projectId: n.project_id,
-          projectName: n.project_name,
+          projectName: n.project_name || projects.find((project) => project.id === n.project_id)?.merchantName || null,
           rows: [],
         });
       }
       projects.get(pKey)!.rows.push(n);
     }
     return Array.from(projects.values());
-  }, [notifications]);
+  }, [notifications, projects]);
 
   const handleClick = (n: AppNotification) => {
     if (!n.read_at) markRead.mutate([n.id]);

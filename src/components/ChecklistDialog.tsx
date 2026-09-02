@@ -205,9 +205,12 @@ export const ChecklistDialog = ({
 
   const handleAddSubTask = (checklistItemId: string) => {
     if (!newSubTaskTitle.trim() || !project) return;
+    const checklistItem = project.checklist.find((item) => item.id === checklistItemId);
     addTaskMutation.mutate({
       checklist_item_id: checklistItemId,
       project_id: project.id,
+      project_name: project.merchantName,
+      checklist_item_title: checklistItem?.title,
       title: newSubTaskTitle.trim(),
       priority: newSubTaskPriority,
       assigned_to: newSubTaskAssignee || undefined,

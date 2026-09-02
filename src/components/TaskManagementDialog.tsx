@@ -27,6 +27,7 @@ interface TaskManagementDialogProps {
   checklistItemId: string;
   checklistItemTitle: string;
   projectId: string;
+  projectName?: string;
   profiles?: { id: string; name: string }[];
 }
 
@@ -48,6 +49,7 @@ export const TaskManagementDialog = ({
   checklistItemId,
   checklistItemTitle,
   projectId,
+  projectName,
   profiles = [],
 }: TaskManagementDialogProps) => {
   const { data: tasks = [], isLoading } = useChecklistTasksByItem(checklistItemId);
@@ -68,6 +70,8 @@ export const TaskManagementDialog = ({
       {
         checklist_item_id: checklistItemId,
         project_id: projectId,
+        project_name: projectName,
+        checklist_item_title: checklistItemTitle,
         title: newTitle.trim(),
         description: newDescription.trim() || undefined,
         priority: newPriority,
