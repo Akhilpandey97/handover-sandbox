@@ -869,12 +869,12 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               { title: "Business", rows: [["Platform", project.platform], ["Category", project.category || "—"], ["ARR", `${project.arr} Cr`], ["Transactions/day", `${project.txnsPerDay}`], ["AOV", `₹${project.aov.toLocaleString()}`], ["Integration type", project.integrationType || "—"], ["PG onboarding", project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
             ].map((section) => (
-              <details key={section.title} className="group rounded-lg border border-border bg-card">
-                <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-foreground">
-                  {section.title}<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
+              <details key={section.title} className="group rounded-lg border border-sidebar-border bg-sidebar">
+                <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-sidebar-foreground">
+                  {section.title}<ChevronDown className="h-4 w-4 text-sidebar-foreground/70 transition-transform group-open:rotate-180" />
                 </summary>
-                <div className="border-t border-border px-4 py-3 space-y-2">
-                  {section.rows.map(([label, value]) => <div key={label} className="flex items-start justify-between gap-4 text-sm"><span className="text-muted-foreground">{label}</span><span className="max-w-[62%] text-right font-medium text-foreground">{value}</span></div>)}
+                <div className="border-t border-sidebar-border px-4 py-3 space-y-2">
+                  {section.rows.map(([label, value]) => <div key={label} className="flex items-start justify-between gap-4 text-sm"><span className="text-sidebar-foreground/70">{label}</span><span className="max-w-[62%] text-right font-medium text-sidebar-foreground">{value}</span></div>)}
                 </div>
               </details>
             ))}
