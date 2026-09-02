@@ -186,7 +186,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
         </Card>
       </Collapsible>
 
-      {/* Pipeline Funnel */}
+      {/* Pipeline by Project Stage */}
       <Collapsible open={expandedSection === "funnel"} onOpenChange={() => setExpandedSection(expandedSection === "funnel" ? null : "funnel")}>
         <Card>
           <CollapsibleTrigger asChild>
@@ -194,7 +194,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-blue-500" />
-                  Project Pipeline Funnel
+                  Project Pipeline by Stage
                 </CardTitle>
                 {expandedSection === "funnel" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </div>

@@ -479,7 +479,7 @@ export const TeamDashboard = () => {
                   <ScrollArea className="max-h-[380px] pr-2">
                     <div className="space-y-3">
                       {filterGroup("Project State", filterOptions.states, stateFilter, setStateFilter, (v) => stateLabels?.[v] || projectStateLabels[v as keyof typeof projectStateLabels] || v)}
-                      {filterGroup("Funnel Stage", filterOptions.funnels, funnelFilter, setFunnelFilter, (v) => funnelStageLabels[v] || v)}
+                      {filterGroup("Project Stage", filterOptions.funnels, funnelFilter, setFunnelFilter, (v) => funnelStageLabels[v] || v)}
                       {filterGroup("Phase", filterOptions.phases, phaseFilter, setPhaseFilter, (v) => phaseLabels?.[v] || v)}
                       {filterGroup("Responsibility", filterOptions.resps, respFilter, setRespFilter, (v) => responsibilityLabels?.[v] || v)}
                       {filterGroup("Platform", filterOptions.platforms, platformFilter, setPlatformFilter, (v) => v)}
@@ -537,7 +537,7 @@ export const TeamDashboard = () => {
                         <TableHead className="text-xs text-navy-foreground">MID</TableHead>
                         <TableHead className="text-xs text-navy-foreground">Platform</TableHead>
                         <TableHead className="text-xs text-navy-foreground">State</TableHead>
-                        <TableHead className="text-xs text-navy-foreground">Funnel Stage</TableHead>
+                        <TableHead className="text-xs text-navy-foreground">Project Stage</TableHead>
                         <TableHead className="text-xs text-navy-foreground">Responsibility</TableHead>
                         <TableHead className="text-xs text-right text-navy-foreground">ARR</TableHead>
                         <TableHead className="text-xs text-right text-navy-foreground">Go-Live %</TableHead>

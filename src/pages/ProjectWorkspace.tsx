@@ -853,7 +853,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   </Select>
                 </div>
                 {[
-                  ["Funnel stage", funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)],
+                  ["Project stage", funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)],
                   ["Expected go-live", project.dates.expectedGoLiveDate || "Not set"],
                   ["Project owner", project.assignedOwnerName || "Unassigned"],
                   ["MRR / ARR", `${project.arr} Cr`],

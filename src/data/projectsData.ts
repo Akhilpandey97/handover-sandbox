@@ -237,7 +237,7 @@ const DEFAULT_FUNNEL_LABELS: Record<string, string> = {
   none: "None",
 };
 
-// Labels resolve against the tenant's configured funnel stages (Settings -> Funnel Stages),
+// Labels resolve against the tenant's configured project stages (Settings -> Project Stages),
 // falling back to the built-in defaults.
 export const funnelStageLabels: Record<string, string> = new Proxy(
   {},

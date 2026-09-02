@@ -142,7 +142,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
     "hsl(180 60% 45%)",
   ];
 
-  // Group projects (rows) by funnel stage
+  // Group projects (rows) by project stage
   const projectStageById = useMemo(() => {
     const m = new Map<string, FunnelStage>();
     projects.forEach((p) => m.set(p.id, getProjectFunnelStage(p)));
@@ -197,7 +197,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
       <CardContent>
         {data.length === 0 ? (
           <div className="text-sm text-muted-foreground py-8 text-center">
-            No merchants in this funnel stage.
+            No merchants in this project stage.
           </div>
         ) : (
           <div style={{ width: "100%", height: Math.max(320, Math.min(600, data.length * 26 + 120)) }}>
@@ -251,7 +251,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <BarChart3 className="h-4 w-4 text-primary" />
-        Weeks per Merchant — split by funnel stage
+        Weeks per Merchant — split by project stage
       </div>
       {chartByStage.map((c) => renderChart(c.label, c.stage, c.data))}
 

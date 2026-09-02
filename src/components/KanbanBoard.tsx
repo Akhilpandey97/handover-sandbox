@@ -19,7 +19,7 @@ import { Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const KANBAN_FIELD_OPTIONS = [
-  { key: "funnelStage", label: "Funnel Stage" },
+  { key: "funnelStage", label: "Project Stage" },
   { key: "projectState", label: "Project State" },
   { key: "currentPhase", label: "Current Phase" },
   { key: "currentOwnerTeam", label: "Current Team" },
@@ -400,7 +400,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                 </div>
               </div>
               <div className="pt-2 border-t space-y-1.5">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Funnel Stage</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Project Stage</p>
                 <div className="flex flex-wrap gap-x-3 gap-y-1.5">
                   {(["sales","pre_integration","under_integration","live","none"] as const).map(stage => (
                     <label key={stage} className="flex items-center gap-1.5 cursor-pointer">

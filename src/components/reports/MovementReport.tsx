@@ -457,7 +457,7 @@ export const MovementReport = ({ timeframe }: Props) => {
                       <CheckRow label="Active" checked={statusFilter.includes("active")} onChange={() => toggle(setStatusFilter, "active")} />
                       <CheckRow label="Inactive" checked={statusFilter.includes("inactive")} onChange={() => toggle(setStatusFilter, "inactive")} />
                     </FilterGroup>
-                    <FilterGroup title="Funnel">
+                    <FilterGroup title="Project Stage">
                       {FUNNEL_ORDER.map(s => (
                         <CheckRow key={s} label={funnelStageLabels[s]} checked={funnelFilter.includes(s)} onChange={() => toggle(setFunnelFilter, s)} />
                       ))}
