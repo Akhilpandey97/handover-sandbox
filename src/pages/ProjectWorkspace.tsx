@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useParams } from "@/lib/router-compat";
 import { LoginScreen } from "@/components/LoginScreen";
