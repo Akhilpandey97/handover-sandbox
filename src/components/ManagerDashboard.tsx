@@ -798,7 +798,7 @@ export const ManagerDashboard = () => {
     email: { label: "Add New Projects" },
     workflows: { label: "AI Workflows" },
     "pivot-table": { label: "Pivot Table" },
-    funnel: { label: "Funnel Stages" },
+    funnel: { label: "Project Stages" },
     "activity-log": { label: "Activity Log" },
     "slack-alerts": { label: "Slack Alerts" },
     navigation: { label: "Navigation" },
@@ -1563,7 +1563,7 @@ export const ManagerDashboard = () => {
                           </label>
                         </div>
                         <div className="pt-2 border-t space-y-1.5">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Funnel Stage</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Project Stage</p>
                           <div className="flex flex-wrap gap-x-3 gap-y-1.5">
                             {(["sales","pre_integration","under_integration","live","none"] as const).map(stage => (
                               <label key={stage} className="flex items-center gap-1.5 cursor-pointer">
@@ -1793,7 +1793,7 @@ export const ManagerDashboard = () => {
                             { label: "Platform", values: lvPlatformFilter, setter: setLvPlatformFilter, options: uniquePlatforms.map(p => ({ value: p, label: p })) },
                             { label: "Category", values: lvCategoryFilter, setter: setLvCategoryFilter, options: uniqueCategories.map(c => ({ value: c, label: c })) },
                             { label: "Responsibility", values: lvResponsibilityFilter, setter: setLvResponsibilityFilter, options: [{ value: "gokwik", label: responsibilityLabels.gokwik }, { value: "merchant", label: responsibilityLabels.merchant }, { value: "neutral", label: "Neutral" }] },
-                            { label: "Funnel Stage", values: lvFunnelStageFilter, setter: setLvFunnelStageFilter, options: (["sales","pre_integration","under_integration","live","none"] as FunnelStage[]).map(s => ({ value: s, label: funnelStageLabels[s] })) },
+                            { label: "Project Stage", values: lvFunnelStageFilter, setter: setLvFunnelStageFilter, options: (["sales","pre_integration","under_integration","live","none"] as FunnelStage[]).map(s => ({ value: s, label: funnelStageLabels[s] })) },
                           ].map(({ label, values, setter, options }) => (
                             <div key={label} className="space-y-1">
                               <label className="text-xs text-muted-foreground font-medium">{label}</label>
