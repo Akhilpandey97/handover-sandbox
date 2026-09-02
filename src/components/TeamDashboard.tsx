@@ -531,17 +531,17 @@ export const TeamDashboard = () => {
               ) : (
                 <div className="rounded-xl border bg-card overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-sidebar">
-                      <TableRow className="hover:bg-sidebar">
-                        <TableHead className="text-xs text-sidebar-foreground">Merchant</TableHead>
-                        <TableHead className="text-xs text-sidebar-foreground">MID</TableHead>
-                        <TableHead className="text-xs text-sidebar-foreground">Platform</TableHead>
-                        <TableHead className="text-xs text-sidebar-foreground">State</TableHead>
-                        <TableHead className="text-xs text-sidebar-foreground">Funnel Stage</TableHead>
-                        <TableHead className="text-xs text-sidebar-foreground">Responsibility</TableHead>
-                        <TableHead className="text-xs text-right text-sidebar-foreground">ARR</TableHead>
-                        <TableHead className="text-xs text-right text-sidebar-foreground">Go-Live %</TableHead>
-                        <TableHead className="text-xs text-sidebar-foreground">Expected Go-Live</TableHead>
+                    <TableHeader className="bg-navy">
+                      <TableRow className="hover:bg-navy">
+                        <TableHead className="text-xs text-navy-foreground">Merchant</TableHead>
+                        <TableHead className="text-xs text-navy-foreground">MID</TableHead>
+                        <TableHead className="text-xs text-navy-foreground">Platform</TableHead>
+                        <TableHead className="text-xs text-navy-foreground">State</TableHead>
+                        <TableHead className="text-xs text-navy-foreground">Funnel Stage</TableHead>
+                        <TableHead className="text-xs text-navy-foreground">Responsibility</TableHead>
+                        <TableHead className="text-xs text-right text-navy-foreground">ARR</TableHead>
+                        <TableHead className="text-xs text-right text-navy-foreground">Go-Live %</TableHead>
+                        <TableHead className="text-xs text-navy-foreground">Expected Go-Live</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

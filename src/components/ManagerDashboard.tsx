@@ -1986,9 +1986,9 @@ export const ManagerDashboard = () => {
               <CardContent className="p-0">
                 <div className="overflow-auto">
                   <Table>
-                    <TableHeader className="bg-sidebar">
-                      <TableRow className="hover:bg-sidebar">
-                        <TableHead className="w-10 text-sidebar-foreground">
+                    <TableHeader className="bg-navy">
+                      <TableRow className="hover:bg-navy">
+                        <TableHead className="w-10 text-navy-foreground">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
                         </TableHead>
                         {listViewColumns.map(colKey => {

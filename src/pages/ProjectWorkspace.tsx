@@ -810,16 +810,16 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 Assign owner
               </Button>
             ) : null}
-            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent" onClick={handleSendMagicLink} disabled={sendingMagic}>
+            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90" onClick={handleSendMagicLink} disabled={sendingMagic}>
               <Mail className="h-3.5 w-3.5" />
               {sendingMagic ? "Sending..." : "Send Magic Link"}
             </Button>
-            <PortalLinkButton projectId={project.id} label="Share Portal Link" className="border-transparent bg-sidebar text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground" />
-            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => setEditOpen(true)}>
+            <PortalLinkButton projectId={project.id} label="Share Portal Link" className="border-transparent bg-navy text-navy-foreground hover:bg-navy/90 hover:text-navy-foreground" />
+            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90" onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" />
               Edit project
             </Button>
-            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-sidebar px-3 text-sm font-semibold text-sidebar-foreground hover:bg-sidebar-accent" onClick={() => isTransferReady && setTransferOpen(true)} disabled={!isTransferReady}>
+            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90" onClick={() => isTransferReady && setTransferOpen(true)} disabled={!isTransferReady}>
               <ArrowRight className="h-3.5 w-3.5" />
               Transfer
             </Button>
@@ -837,8 +837,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
         <ScrollArea className="order-1 hidden w-1/4 min-w-[300px] max-w-[420px] shrink-0 border-r border-slate-200 bg-white dark:border-border dark:bg-card lg:block">
           <div className="space-y-3 p-4">
             <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-              <div className="border-b border-sidebar-border bg-sidebar px-4 py-3">
-                <p className="text-sm font-semibold text-sidebar-foreground">Project Details</p>
+              <div className="border-b border-navy/40 bg-navy px-4 py-3">
+                <p className="text-sm font-semibold text-navy-foreground">Project Details</p>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
                 <div className="col-span-2 min-w-0">
