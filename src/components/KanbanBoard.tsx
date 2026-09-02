@@ -46,6 +46,14 @@ const STATE_STYLES: Record<string, { text: string; bar: string; bg: string; ring
   live: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
 };
 
+const STATE_ARR_STYLES: Record<string, { text: string; bg: string; ring: string }> = {
+  not_started: { text: "text-slate-700 dark:text-slate-300", bg: "bg-slate-100 dark:bg-slate-800", ring: "ring-slate-300 dark:ring-slate-600" },
+  in_progress: { text: "text-blue-700 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900/40", ring: "ring-blue-300 dark:ring-blue-700" },
+  on_hold: { text: "text-amber-700 dark:text-amber-400", bg: "bg-amber-100 dark:bg-amber-900/40", ring: "ring-amber-300 dark:ring-amber-700" },
+  blocked: { text: "text-red-700 dark:text-red-400", bg: "bg-red-100 dark:bg-red-900/40", ring: "ring-red-300 dark:ring-red-700" },
+  live: { text: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/40", ring: "ring-emerald-300 dark:ring-emerald-700" },
+};
+
 const PHASE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
   mint: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
   integration: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
@@ -460,7 +468,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                   {(["in_progress","on_hold","blocked","not_started","live"] as const).map(st => {
                     const amt = col.arrByState[st];
                     if (!amt) return null;
-                    const s = STATE_STYLES[st];
+                    const s = STATE_ARR_STYLES[st];
                     return (
                       <span
                         key={st}
