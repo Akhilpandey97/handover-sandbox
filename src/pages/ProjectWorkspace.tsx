@@ -41,6 +41,7 @@ import {
 import { fetchAiInsights } from "@/utils/aiInsights";
 import { cn } from "@/lib/utils";
 import { WorkspaceSkeleton } from "@/components/skeletons/WorkspaceSkeleton";
+import { ProjectActivityHistoryPanel } from "@/components/ProjectActivityHistoryPanel";
 import {
   ArrowLeft,
   ArrowRight,
