@@ -257,9 +257,12 @@ export const ChecklistManagement = () => {
       const currentItem = currentItems[currentIndex];
       const swapItem = currentItems[swapIndex];
 
-      // Swap sort orders in templates table
-      await supabase.from("checklist_templates").update({ sort_order: swapItem.sortOrder }).eq("id", currentItem.id);
-      await supabase.from("checklist_templates").update({ sort_order: currentItem.sortOrder }).eq("id", swapItem.id);
+      // Swap sort orders in templates table (all tenants for super admins)
+      const tmplMatch = (q: any, item: typeof currentItem) =>
+        isSuperAdmin ? q.eq("title", item.title).eq("owner_team", team) : q.eq("id", item.id);
+      await tmplMatch(supabase.from("checklist_templates").update({ sort_order: swapItem.sortOrder }), currentItem);
+      await tmplMatch(supabase.from("checklist_templates").update({ sort_order: currentItem.sortOrder }), swapItem);
+
 
       // Also swap in checklist_items
       await supabase
