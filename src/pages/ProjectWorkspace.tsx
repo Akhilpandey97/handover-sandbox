@@ -838,7 +838,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
           <div className="space-y-3 p-4">
             <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
               <div className="border-b border-navy/40 bg-navy px-4 py-3">
-                <p className="text-sm font-semibold text-sidebar-foreground">Project Details</p>
+                <p className="text-sm font-semibold text-navy-foreground">Project Details</p>
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
                 <div className="col-span-2 min-w-0">
