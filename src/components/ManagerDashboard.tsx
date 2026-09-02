@@ -1988,7 +1988,7 @@ export const ManagerDashboard = () => {
                   <Table>
                     <TableHeader className="bg-navy">
                       <TableRow className="hover:bg-navy">
-                        <TableHead className="w-10 text-navy-foreground">
+                        <TableHead className="w-10 text-white">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
                         </TableHead>
                         {listViewColumns.map(colKey => {
