@@ -262,6 +262,77 @@ async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // ---- Merchant note posted from the portal (POST /note) ----
+  if (req.method === "POST" && url.pathname.endsWith("/note")) {
+    try {
+      const body = await req.json();
+      const { token, email, note } = body;
+      if (!token || !note || !String(note).trim()) return json({ error: "token and note required" }, 400);
+
+      const { data: tokenRow } = await supabase
+        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+      if (!tokenRow) return json({ error: "Invalid token" }, 403);
+
+      const { data: project } = await supabase
+        .from("projects")
+        .select("id, tenant_id, merchant_name, assigned_owner, created_by")
+        .eq("id", tokenRow.project_id)
+        .maybeSingle();
+      if (!project) return json({ error: "Project not found" }, 404);
+
+      const text = String(note).trim().slice(0, 4000);
+      const authorName = email ? String(email).trim().toLowerCase() : "Merchant";
+
+      await supabase.from("activity_logs").insert({
+        tenant_id: project.tenant_id,
+        user_name: authorName,
+        action_type: "merchant_note",
+        category: "portal",
+        description: `Merchant note: ${text}`,
+        entity_type: "project",
+        entity_id: project.id,
+        metadata: { note: text, email: authorName },
+        status: "success",
+      });
+
+      await supabase.from("project_comment_logs").insert({
+        project_id: project.id,
+        tenant_id: project.tenant_id,
+        author_name: authorName,
+        author_type: "merchant",
+        field_name: "Customer Portal Note",
+        content: text,
+      });
+
+      // Notify relevant internal users
+      const recipients = new Set<string>();
+      for (const id of [project.assigned_owner, project.created_by]) if (id) recipients.add(id as string);
+      if (recipients.size === 0 && project.tenant_id) {
+        const { data: profiles } = await supabase
+          .from("profiles").select("id").eq("tenant_id", project.tenant_id).limit(50);
+        for (const p of profiles ?? []) recipients.add(p.id);
+      }
+      if (recipients.size > 0) {
+        await supabase.from("notifications").insert(
+          Array.from(recipients).map((userId) => ({
+            tenant_id: project.tenant_id,
+            user_id: userId,
+            type: "merchant_note",
+            title: `Merchant messaged on ${project.merchant_name}`,
+            body: text.slice(0, 240),
+            actor_name: authorName,
+            project_id: project.id,
+            project_name: project.merchant_name,
+          }))
+        );
+      }
+
+      return json({ success: true });
+    } catch (err) {
+      return json({ error: (err as Error).message }, 500);
+    }
+  }
+
   // ---- Handle MID verification (POST /verify) ----
   if (req.method === "POST" && url.pathname.endsWith("/verify")) {
     try {
