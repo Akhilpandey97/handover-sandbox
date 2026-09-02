@@ -111,7 +111,7 @@ export const FunnelStagesSettings = () => {
     try {
       const normalized = draft.map((s) => ({ ...s, id: s.id || slug(s.label) }));
       await saveStages(normalized);
-      toast.success("Funnel stages saved for this organisation");
+      toast.success("Project stages saved for this organisation");
     } catch (e: any) {
       toast.error(`Could not save: ${e.message}`);
     } finally {
@@ -119,13 +119,13 @@ export const FunnelStagesSettings = () => {
     }
   };
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading funnel configuration…</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading project stage configuration…</p>;
 
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="portal-heading">Funnel Stages</CardTitle>
+          <CardTitle className="portal-heading">Project Stages</CardTitle>
           <CardDescription>
             Stages are evaluated top to bottom — the first matching rule wins. Projects that match nothing show as “None”.
           </CardDescription>
@@ -221,7 +221,7 @@ export const FunnelStagesSettings = () => {
               <RotateCcw className="h-3.5 w-3.5" /> Reset to defaults
             </Button>
             <Button size="sm" onClick={save} disabled={saving} className="gap-1.5 ml-auto">
-              <Save className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save funnel stages"}
+              <Save className="h-3.5 w-3.5" /> {saving ? "Saving…" : "Save project stages"}
             </Button>
           </div>
         </CardContent>
