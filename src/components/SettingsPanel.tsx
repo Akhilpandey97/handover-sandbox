@@ -359,7 +359,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
               <Bell className="h-3.5 w-3.5" />Slack Alerts
             </TabsTrigger>
             <TabsTrigger value="funnel" className="gap-1.5">
-              <Layers className="h-3.5 w-3.5" />Funnel Stages
+              <Layers className="h-3.5 w-3.5" />Project Stages
             </TabsTrigger>
             <TabsTrigger value="integrations" className="gap-1.5">
               <Plug className="h-3.5 w-3.5" />Integrations
@@ -471,7 +471,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
           <SlackAlertsSettings />
         </TabsContent>
 
-        {/* Funnel Stages Tab */}
+        {/* Project Stages Tab */}
         <TabsContent value="funnel">
           <FunnelStagesSettings />
         </TabsContent>
