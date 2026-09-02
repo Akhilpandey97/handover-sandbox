@@ -778,7 +778,6 @@ export default function MerchantPortal() {
           <Zap className="w-4 h-4 text-white" fill="white" />
         </div>
         <KwikAssistLogo size="sm" onClick={() => setActivePage("integration")} />
-        <span className="text-[10px] text-white px-2 py-0.5 rounded font-bold uppercase" style={{ background: BRAND.primary }}>Merchant</span>
         <div className="flex-1" />
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: BRAND.primary }}>
@@ -805,7 +804,7 @@ export default function MerchantPortal() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR */}
-        <aside className="w-60 flex flex-col flex-shrink-0 hidden md:flex border-r border-[#25405f] bg-[#1E3355]">
+        <aside className="w-64 flex flex-col flex-shrink-0 hidden md:flex border-r border-[#25405f] bg-[#1E3355]">
           <div className="px-4 pt-6 pb-2">
             <p className="text-[10px] font-bold text-white/55 uppercase tracking-[0.2em] mb-3">Navigation</p>
           </div>
@@ -828,7 +827,7 @@ export default function MerchantPortal() {
         </aside>
 
         {/* MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto min-w-0">
           {activePage === "integration" && (
             <IntegrationPage data={data} project={project} owner={owner}
               checklist_progress={checklist_progress} currentStage={currentStage}
@@ -1017,7 +1016,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
   const totalStages = stages.length;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-5">
+    <div className="px-8 py-7 max-w-6xl mx-auto space-y-6">
       <div>
         <div className="flex items-start justify-between">
           <div>
@@ -1147,7 +1146,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       </Card>
 
       {/* Project Overview + Notes side-by-side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         <Card className="p-5">
           <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Project Overview</h3>
