@@ -262,8 +262,8 @@ export const TeamDashboard = () => {
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="font-semibold text-sm truncate">{teamLabels[currentUser.team]}</h1>
-              <p className="text-xs text-muted-foreground">Team Dashboard</p>
+              <h1 className="font-semibold text-sm truncate text-sidebar-foreground">{teamLabels[currentUser.team]}</h1>
+              <p className="text-xs text-sidebar-foreground/60">Team Dashboard</p>
             </div>
           </div>
         </div>
