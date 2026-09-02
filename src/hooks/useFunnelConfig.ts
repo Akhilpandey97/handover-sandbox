@@ -10,7 +10,7 @@ import {
   setActiveFunnelStages,
 } from "@/data/funnelConfig";
 
-/** Tenant-scoped funnel stage configuration stored in app_settings. */
+/** Tenant-scoped project stage configuration stored in app_settings. */
 export const useFunnelConfig = () => {
   const { currentUser } = useAuth();
   const tenantId = currentUser?.tenantId || null;

@@ -120,7 +120,7 @@ export const useLabels = () => {
 
 export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
-  // Loads tenant funnel stages into the runtime registry used across the app
+  // Loads tenant project stages into the runtime registry used across the app
   useFunnelConfig();
   const [labels, setLabels] = useState<Record<string, string>>(DEFAULT_LABELS);
   const [isLoading, setIsLoading] = useState(true);
