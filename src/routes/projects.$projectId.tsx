@@ -1,12 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import ProjectWorkspace from "@/pages/ProjectWorkspace";
 
+type ProjectSearch = { tab?: string; item?: string; task?: string };
+
 export const Route = createFileRoute("/projects/$projectId")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    tab: typeof search['tab'] === "string" ? search['tab'] : undefined,
-    item: typeof search['item'] === "string" ? search['item'] : undefined,
-    task: typeof search['task'] === "string" ? search['task'] : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): ProjectSearch => {
+    const out: ProjectSearch = {};
+    if (typeof search['tab'] === "string") out.tab = search['tab'];
+    if (typeof search['item'] === "string") out.item = search['item'];
+    if (typeof search['task'] === "string") out.task = search['task'];
+    return out;
+  },
   head: () => ({
     meta: [
       { title: "Project Details — Handover" },
