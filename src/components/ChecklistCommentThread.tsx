@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useChecklistComments, useAddChecklistComment } from "@/hooks/useChecklistComments";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfilesLookup } from "@/hooks/useLookups";
+import { createNotifications } from "@/hooks/useNotifications";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   MessageSquare,
@@ -14,34 +15,90 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  AtSign,
 } from "lucide-react";
 
 interface ChecklistCommentThreadProps {
   checklistItemId: string;
+  checklistItemTitle?: string;
+  projectId?: string;
+  projectName?: string;
 }
 
-export const ChecklistCommentThread = ({ checklistItemId }: ChecklistCommentThreadProps) => {
+export const ChecklistCommentThread = ({
+  checklistItemId,
+  checklistItemTitle,
+  projectId,
+  projectName,
+}: ChecklistCommentThreadProps) => {
   const { currentUser } = useAuth();
   const { data: comments = [], isLoading } = useChecklistComments(checklistItemId);
+  const { profiles } = useProfilesLookup();
   const addComment = useAddChecklistComment();
   const [isExpanded, setIsExpanded] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const mentionCandidates = useMemo(() => {
+    if (mentionQuery === null) return [];
+    const q = mentionQuery.toLowerCase();
+    return profiles
+      .filter((p) => p.id !== currentUser?.id && (q === "" || p.name.toLowerCase().includes(q)))
+      .slice(0, 6);
+  }, [mentionQuery, profiles, currentUser?.id]);
+
+  const detectMention = (value: string) => {
+    const match = /(?:^|\s)@([\w.\- ]{0,30})$/.exec(value);
+    setMentionQuery(match ? match[1] : null);
+  };
+
+  const insertMention = (name: string) => {
+    const next = commentText.replace(/(?:^|\s)@([\w.\- ]{0,30})$/, (m) => `${m.startsWith("@") ? "" : " "}@${name} `);
+    setCommentText(next);
+    setMentionQuery(null);
+    textareaRef.current?.focus();
+  };
+
+  const notifyMentions = (text: string) => {
+    const mentioned = profiles.filter(
+      (p) => p.id !== currentUser?.id && text.toLowerCase().includes(`@${p.name.toLowerCase()}`),
+    );
+    if (mentioned.length === 0) return;
+    void createNotifications(
+      mentioned.map((p) => ({
+        user_id: p.id,
+        type: "mention",
+        title: `${currentUser?.name || "Someone"} mentioned you in a comment`,
+        body: text.slice(0, 280),
+        actor_name: currentUser?.name || null,
+        project_id: projectId || null,
+        project_name: projectName || null,
+        checklist_item_id: checklistItemId,
+        checklist_item_title: checklistItemTitle || null,
+        tenant_id: currentUser?.tenantId || null,
+      })),
+    );
+  };
 
   const handleSubmit = () => {
     if (!commentText.trim() && !selectedFile) return;
+    const text = commentText.trim() || (selectedFile ? `Attached: ${selectedFile.name}` : "");
 
     addComment.mutate(
       {
         checklistItemId,
-        comment: commentText.trim() || (selectedFile ? `Attached: ${selectedFile.name}` : ""),
+        comment: text,
         file: selectedFile || undefined,
       },
       {
         onSuccess: () => {
+          notifyMentions(text);
           setCommentText("");
           setSelectedFile(null);
+          setMentionQuery(null);
           setIsExpanded(true);
         },
       }
@@ -61,6 +118,11 @@ export const ChecklistCommentThread = ({ checklistItemId }: ChecklistCommentThre
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" && mentionQuery !== null) {
+      e.preventDefault();
+      setMentionQuery(null);
+      return;
+    }
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       handleSubmit();
     }
@@ -99,15 +161,38 @@ export const ChecklistCommentThread = ({ checklistItemId }: ChecklistCommentThre
 
       {/* Add comment form */}
       <div className="flex gap-2">
-        <div className="flex-1 space-y-2">
+        <div className="relative flex-1 space-y-2">
           <Textarea
+            ref={textareaRef}
             value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
+            onChange={(e) => {
+              setCommentText(e.target.value);
+              detectMention(e.target.value);
+            }}
             onKeyDown={handleKeyDown}
-            placeholder="Add a comment... (Ctrl+Enter to send)"
+            placeholder="Add a comment... Use @ to tag a teammate (Ctrl+Enter to send)"
             className="min-h-[40px] text-xs resize-none"
             rows={1}
           />
+
+          {mentionQuery !== null && mentionCandidates.length > 0 && (
+            <div className="absolute bottom-full left-0 z-50 mb-1 w-64 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
+              <p className="flex items-center gap-1 border-b border-border/60 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <AtSign className="h-3 w-3" /> Tag a teammate
+              </p>
+              {mentionCandidates.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => insertMention(p.name)}
+                  className="block w-full px-2 py-1.5 text-left text-xs hover:bg-muted"
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          )}
+
           {selectedFile && (
             <div className="flex items-center gap-2 text-xs bg-muted/50 rounded-md px-2 py-1">
               <FileText className="h-3 w-3 text-muted-foreground" />
@@ -185,7 +270,15 @@ const CommentBubble = ({
         <span>{new Date(comment.created_at).toLocaleDateString()}</span>
         <span>{new Date(comment.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
       </div>
-      <p className="text-foreground whitespace-pre-wrap">{comment.comment}</p>
+      <p className="text-foreground whitespace-pre-wrap">
+        {comment.comment.split(/(@[\w.\-]+(?:\s[\w.\-]+)?)/g).map((part, i) =>
+          part.startsWith("@") ? (
+            <span key={i} className="font-semibold text-primary">{part}</span>
+          ) : (
+            <span key={i}>{part}</span>
+          ),
+        )}
+      </p>
       {comment.attachment_url && (
         <a
           href={comment.attachment_url}
