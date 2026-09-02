@@ -134,7 +134,7 @@ const ALL_NAV_ITEMS = [
   "shopify-lt-emails",
   "tenants",
 ];
-type ProjectView = "list" | "kanban" | "golive";
+type ProjectView = "board" | "list" | "kanban" | "golive";
 
 export const ManagerDashboard = () => {
   const navigate = useNavigate();
@@ -1170,6 +1170,7 @@ export const ManagerDashboard = () => {
             <div className="mb-4 flex min-h-10 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border">
               <div className="flex items-center gap-1" role="tablist" aria-label="Project views">
                 {[
+                  { value: "board", label: "Cards", icon: <LayoutGrid className="h-4 w-4" /> },
                   { value: "kanban", label: "Kanban", icon: <GripVertical className="h-4 w-4" /> },
                   { value: "list", label: "List", icon: <List className="h-4 w-4" /> },
                   { value: "golive", label: "Go-Live Tracker", icon: <CalendarDays className="h-4 w-4" /> },
