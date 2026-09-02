@@ -290,7 +290,9 @@ export const TeamDashboard = () => {
                   variant={activeTab === item.key ? "secondary" : "outline"}
                   className={cn(
                     "text-xs font-semibold min-w-[24px] justify-center",
-                    activeTab === item.key && "bg-white/20 text-primary-foreground border-0"
+                    activeTab === item.key
+                      ? "bg-primary/25 text-sidebar-foreground border-0"
+                      : "bg-transparent text-sidebar-foreground/70 border-sidebar-border"
                   )}
                 >
                   {item.count}
