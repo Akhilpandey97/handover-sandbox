@@ -251,8 +251,8 @@ export const TeamDashboard = () => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left Sidebar */}
-      <aside className="w-64 border-r bg-card flex flex-col">
-        <div className="p-4 border-b">
+      <aside className="w-64 border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col">
+        <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center gap-2.5">
             {labels.org_logo_url ? (
               <img src={labels.org_logo_url} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
