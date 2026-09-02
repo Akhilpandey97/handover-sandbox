@@ -801,6 +801,7 @@ export const ManagerDashboard = () => {
     funnel: { label: "Project Stages" },
     "activity-log": { label: "Activity Log" },
     "slack-alerts": { label: "Slack Alerts" },
+    integrations: { label: "Integrations" },
     navigation: { label: "Navigation" },
   };
 
