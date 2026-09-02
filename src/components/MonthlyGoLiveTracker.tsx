@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { useProjects } from "@/contexts/ProjectContext";
+import { arrCroreValue } from "@/lib/arr";
 
 type Project = {
   id: string;
@@ -390,7 +391,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                         {p.merchant_name}
                       </button>
                     </TableCell>
-                    <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? Number(p.arr).toFixed(2) : "—"}</TableCell>
+                    <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>
                     <TableCell className="whitespace-nowrap">
                       <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", FUNNEL_BADGE[stage])}>{FUNNEL_LABEL[stage]}</span>
                     </TableCell>

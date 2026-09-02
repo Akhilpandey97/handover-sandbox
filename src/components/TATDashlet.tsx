@@ -2,10 +2,11 @@ import { useMemo } from "react";
 import { Project } from "@/data/projectsData";
 
 import { Timer } from "lucide-react";
+import { arrToCrore } from "@/lib/arr";
 
 // ARR is stored in rupees for imported data but some rows are already in Cr.
 // Normalise to crores so the tile never renders a raw 8-digit number.
-const toCrore = (value: number) => (Math.abs(value) >= 100000 ? value / 1e7 : value);
+const toCrore = arrToCrore;
 
 const formatCr = (value: number) => {
   const cr = toCrore(value);

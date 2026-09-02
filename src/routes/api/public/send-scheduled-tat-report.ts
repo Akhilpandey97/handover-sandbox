@@ -82,7 +82,7 @@ function buildReport(projects: any[], granularity: "monthly" | "quarterly") {
       id: p.id,
       merchant: p.merchant_name,
       platform: p.platform || "—",
-      arr: Number(p.arr) || 0,
+      arr: (() => { const n = Number(p.arr) || 0; return Math.abs(n) >= 100000 ? n / 1e7 : n; })(),
       kickOff: kick,
       goLive: live,
       tat: diffDays(kick, live),

@@ -357,7 +357,7 @@ ${jiraSummary}`;
 Project: ${project.merchantName} (MID: ${project.mid})
 Phase: ${project.currentPhase}
 State: ${project.projectState || "not_started"}
-ARR: ${project.arr} Cr
+ARR: ${(Math.abs(Number(project.arr) || 0) >= 100000 ? (Number(project.arr) || 0) / 1e7 : Number(project.arr) || 0).toFixed(2)} Cr
 Platform: ${project.platform}
 Start Date (Kick Off): ${project.dates?.kickOffDate || "N/A"}
 Go Live: ${project.dates?.goLiveDate || project.dates?.expectedGoLiveDate || "Not set"}

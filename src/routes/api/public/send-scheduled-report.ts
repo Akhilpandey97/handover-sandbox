@@ -98,7 +98,7 @@ function computeAgg(values: number[], type: string): number {
 
 function formatAggVal(key: string, val: number, aggType: string): string {
   if (aggType === "count") return String(Math.round(val));
-  if (key === "arr") return val.toFixed(2);
+  if (key === "arr") return (Math.abs(val) >= 100000 ? val / 1e7 : val).toFixed(2);
   if (key === "goLivePercent") return `${val.toFixed(0)}%`;
   return val.toFixed(1);
 }

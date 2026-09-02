@@ -114,6 +114,7 @@ import { SandboxTesting } from "./reports/SandboxTesting";
 import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
+import { arrToCrore, formatArrCr } from "@/lib/arr";
 
 // Sub-tab keys for reports and settings
 const REPORTS_SUB_TABS = ["predefined", "builder", "scheduler", "pivot-table", "sandbox", "daily-report", "weekly-report"];
@@ -631,8 +632,8 @@ export const ManagerDashboard = () => {
     const matchesPlatform = platformFilter.length === 0 || platformFilter.includes(p.platform || "");
     const matchesCategory = categoryFilter.length === 0 || categoryFilter.includes(p.category || "");
     const matchesResponsibility = responsibilityFilter.length === 0 || responsibilityFilter.includes(p.currentResponsibility || "");
-    const matchesArrMin = !arrMin || p.arr >= parseFloat(arrMin);
-    const matchesArrMax = !arrMax || p.arr <= parseFloat(arrMax);
+    const matchesArrMin = !arrMin || arrToCrore(p.arr) >= parseFloat(arrMin);
+    const matchesArrMax = !arrMax || arrToCrore(p.arr) <= parseFloat(arrMax);
     const matchesKickOffFrom = !kickOffFrom || p.dates.kickOffDate >= kickOffFrom;
     const matchesKickOffTo = !kickOffTo || p.dates.kickOffDate <= kickOffTo;
     const matchesGoLiveFrom = !goLiveFrom || (p.dates.goLiveDate && p.dates.goLiveDate >= goLiveFrom) || (p.dates.expectedGoLiveDate && p.dates.expectedGoLiveDate >= goLiveFrom);
@@ -668,10 +669,10 @@ export const ManagerDashboard = () => {
   });
 
   // Pipeline stats for overview
-  const totalArr = displayProjects.reduce((s, p) => s + p.arr, 0);
-  const liveArr = displayProjects.filter(p => p.projectState === "live").reduce((s, p) => s + p.arr, 0);
-  const pendingArr = displayProjects.filter((p: Project) => p.projectState === "on_hold" || p.projectState === "not_started").reduce((s: number, p: Project) => s + p.arr, 0);
-  const activeArr = displayProjects.filter((p: Project) => p.projectState === "in_progress").reduce((s: number, p: Project) => s + p.arr, 0);
+  const totalArr = displayProjects.reduce((s, p) => s + arrToCrore(p.arr), 0);
+  const liveArr = displayProjects.filter(p => p.projectState === "live").reduce((s, p) => s + arrToCrore(p.arr), 0);
+  const pendingArr = displayProjects.filter((p: Project) => p.projectState === "on_hold" || p.projectState === "not_started").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
+  const activeArr = displayProjects.filter((p: Project) => p.projectState === "in_progress").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
   const blockedProjects = displayProjects.filter(p => p.projectState === "blocked").length;
   const onHoldProjects = displayProjects.filter(p => p.projectState === "on_hold").length;
   const inProgressNoExpectedGoLive = displayProjects.filter((p: Project) => p.projectState === "in_progress" && !p.dates.expectedGoLiveDate).length;
@@ -2566,7 +2567,7 @@ export const ManagerDashboard = () => {
                                 <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{project.projectState}</Badge>
                               </div>
                               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                <span>ARR: {project.arr} Cr</span>
+                                <span>ARR: {formatArrCr(project.arr)}</span>
                                 {project.assignedOwnerName && <span>Owner: {project.assignedOwnerName}</span>}
                                 {project.archivedAt && <span>Archived: {new Date(project.archivedAt).toLocaleDateString()}</span>}
                               </div>

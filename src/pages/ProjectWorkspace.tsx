@@ -69,6 +69,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatArrCr } from "@/lib/arr";
 
 type WorkspaceTab = "activity" | "checklists" | "jira";
 type ActivityKind = "user" | "system" | "handoff" | "milestone";
@@ -613,7 +614,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     [getLabel("field_mid"), project.mid],
     [getLabel("field_platform"), project.platform],
     [getLabel("field_category"), project.category || "—"],
-    [getLabel("field_arr"), `${project.arr} Cr`],
+    [getLabel("field_arr"), formatArrCr(project.arr)],
     [getLabel("field_txns_per_day"), `${project.txnsPerDay}`],
     [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`],
     [getLabel("field_sales_spoc"), project.salesSpoc || "—"],
@@ -635,7 +636,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     ["Original estimate", formatDuration(timeByParty.gokwik + timeByParty.merchant)],
     ["Merchant time", formatDuration(timeByParty.merchant)],
     ["Internal time", formatDuration(timeByParty.gokwik)],
-    [getLabel("field_arr"), `${project.arr} Cr`],
+    [getLabel("field_arr"), formatArrCr(project.arr)],
     [getLabel("field_platform"), project.platform],
     [getLabel("field_expected_go_live_date"), project.dates.expectedGoLiveDate || "—"],
   ];
@@ -856,7 +857,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   ["Project stage", funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)],
                   ["Expected go-live", project.dates.expectedGoLiveDate || "Not set"],
                   ["Project owner", project.assignedOwnerName || "Unassigned"],
-                  ["MRR / ARR", `${project.arr} Cr`],
+                  ["MRR / ARR", formatArrCr(project.arr)],
                 ].map(([label, value]) => (
                   <div key={label} className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
@@ -869,7 +870,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             {[
               { title: "Ownership", rows: [["Owner", project.assignedOwnerName || "Unassigned"], ["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], ["Phase", phaseLabels[project.currentPhase] || project.currentPhase], ["Sales SPOC", project.salesSpoc || "—"]] },
               { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], ["Kick-off", project.dates.kickOffDate || "—"], ["Expected go-live", project.dates.expectedGoLiveDate || "—"], ["Actual go-live", project.dates.goLiveDate || "—"], ["Internal time", formatDuration(timeByParty.gokwik)], ["Merchant time", formatDuration(timeByParty.merchant)]] },
-              { title: "Business", rows: [["Platform", project.platform], ["Category", project.category || "—"], ["ARR", `${project.arr} Cr`], ["Transactions/day", `${project.txnsPerDay}`], ["AOV", `₹${project.aov.toLocaleString()}`], ["Integration type", project.integrationType || "—"], ["PG onboarding", project.pgOnboarding || "—"]] },
+              { title: "Business", rows: [["Platform", project.platform], ["Category", project.category || "—"], ["ARR", formatArrCr(project.arr)], ["Transactions/day", `${project.txnsPerDay}`], ["AOV", `₹${project.aov.toLocaleString()}`], ["Integration type", project.integrationType || "—"], ["PG onboarding", project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
             ].map((section) => (
               <details key={section.title} className="group rounded-lg border border-border bg-card">
@@ -1138,7 +1139,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           {[
                             [getLabel("field_platform"), project.platform],
                             [getLabel("field_category"), project.category || "—"],
-                            [getLabel("field_arr"), `${project.arr} Cr`],
+                            [getLabel("field_arr"), formatArrCr(project.arr)],
                             [getLabel("field_txns_per_day"), `${project.txnsPerDay}`],
                             [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`],
                             [getLabel("field_integration_type"), project.integrationType || "—"],

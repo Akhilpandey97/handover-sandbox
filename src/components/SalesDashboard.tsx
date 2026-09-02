@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { arrToCrore, formatArrCr } from "@/lib/arr";
 
 interface TaskStats {
   open: number;
@@ -124,7 +125,7 @@ export const SalesDashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total ARR</span>
                 <TrendingUp className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-2xl font-bold text-foreground">₹{(totalArr / 100000).toFixed(1)}L</p>
+              <p className="text-2xl font-bold text-foreground">₹{formatArrCr(totalArr)}</p>
               <p className="text-xs text-muted-foreground mt-1">{totalProjects} projects</p>
             </CardContent>
           </Card>
@@ -134,7 +135,7 @@ export const SalesDashboard = () => {
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Live ARR</span>
                 <Rocket className="h-4 w-4 text-emerald-500" />
               </div>
-              <p className="text-2xl font-bold text-emerald-600">₹{(liveArr / 100000).toFixed(1)}L</p>
+              <p className="text-2xl font-bold text-emerald-600">₹{formatArrCr(liveArr)}</p>
               <p className="text-xs text-muted-foreground mt-1">{liveProjects} live</p>
             </CardContent>
           </Card>
