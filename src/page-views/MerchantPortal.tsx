@@ -528,11 +528,18 @@ export default function MerchantPortal() {
 
   const saveNote = () => {
     if (!noteText.trim() || !token) return;
-    const newNote: MerchantNote = { text: noteText.trim(), timestamp: new Date().toISOString() };
+    const text = noteText.trim();
+    const newNote: MerchantNote = { text, timestamp: new Date().toISOString() };
     const updated = [newNote, ...savedNotes];
     setSavedNotes(updated);
     localStorage.setItem(`portal_notes_${token}`, JSON.stringify(updated));
     setNoteText("");
+    // Log to project activity history and notify the internal team
+    fetch(`${API_URL}/note`, {
+      method: "POST",
+      headers: { apikey: API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ token, email: merchantEmail, note: text }),
+    }).catch(() => {});
   };
 
   const editNote = (idx: number, newText: string) => {
