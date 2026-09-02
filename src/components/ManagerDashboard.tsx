@@ -2179,18 +2179,7 @@ export const ManagerDashboard = () => {
 
           {/* ========= REPORTS TAB ========= */}
           {activeTab === "reports" && <div className="space-y-6">
-            <Card className="shadow-sm border-border">
-              <CardHeader className="border-b bg-muted/30">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <CardTitle className="portal-heading flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    Reports
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="p-6">
-                  {/* Sub-tab: Pre Defined */}
+            {/* Sub-tab: Pre Defined */}
                   {reportSubTab === "predefined" && (
                     <div className="space-y-4">
                       <div className="flex gap-2 flex-wrap">
@@ -2465,9 +2454,6 @@ export const ManagerDashboard = () => {
                   {reportSubTab === "weekly-report" && (
                     <MovementReport timeframe="weekly" />
                   )}
-                </div>
-              </CardContent>
-            </Card>
           </div>}
 
           {/* Settings Tab */}
