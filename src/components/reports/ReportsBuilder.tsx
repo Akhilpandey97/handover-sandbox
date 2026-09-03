@@ -157,7 +157,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   const { currentUser } = useAuth();
   const labels = { teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap };
 
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(["merchantName", "projectState", "arr", "currentPhase", "goLivePercent"]);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(["merchantName", "projectState", "arr", "goLivePercent"]);
   const [reportAggType, setReportAggType] = useState<AggType>("sum");
 
   // Pivot

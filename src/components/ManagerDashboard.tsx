@@ -2275,7 +2275,6 @@ export const ManagerDashboard = () => {
                                     <TableHeader>
                                       <TableRow>
                                         <TableHead>Checklist Item</TableHead>
-                                        <TableHead>Phase</TableHead>
                                         <TableHead>Team</TableHead>
                                         <TableHead>Responsibility</TableHead>
                                         <TableHead>{responsibilityLabels.gokwik} Time</TableHead>
@@ -2287,7 +2286,6 @@ export const ManagerDashboard = () => {
                                       {project.checklistItems.map((item) => (
                                         <TableRow key={item.id}>
                                           <TableCell className="font-medium">{item.checklistTitle}</TableCell>
-                                          <TableCell>{phaseLabels[item.phase] || item.phase}</TableCell>
                                           <TableCell><Badge variant="outline">{teamLabels[item.team] || item.team}</Badge></TableCell>
                                           <TableCell>{responsibilityLabels[item.responsibility] || item.responsibility}</TableCell>
                                           <TableCell>{formatDuration(item.gokwikTime)}</TableCell>
