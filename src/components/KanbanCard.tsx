@@ -16,13 +16,6 @@ import { EditProjectDialog } from "./EditProjectDialog";
 import { formatArrCr } from "@/lib/arr";
 
 
-const phaseLabels: Record<string, string> = {
-  mint: "MINT",
-  integration: "Integration",
-  ms: "Merchant Success",
-  completed: "Completed",
-};
-
 export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: string }) => {
   const navigate = useNavigate();
   const { stateLabels } = useLabels();
@@ -37,8 +30,6 @@ export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: s
     stateLabels[project.projectState] ||
     projectStateLabels[project.projectState] ||
     project.projectState;
-
-  const phaseLabel = phaseLabels[project.currentPhase] || project.currentPhase;
 
   const arrDisplay = formatArrCr(project.arr);
 
@@ -140,9 +131,6 @@ export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: s
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-            {phaseLabel}
-          </Badge>
         </div>
 
         <div className="text-muted-foreground">

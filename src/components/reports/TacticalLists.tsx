@@ -144,7 +144,6 @@ export const TacticalLists = ({ projects }: Props) => {
                       <TableHead>{getLabel("field_merchant_name")}</TableHead>
                       <TableHead>{getLabel("field_expected_go_live_date")}</TableHead>
                       <TableHead>Days Overdue</TableHead>
-                      <TableHead>Phase</TableHead>
                       <TableHead>State</TableHead>
                       <TableHead>{getLabel("field_assigned_owner")}</TableHead>
                       <TableHead>{getLabel("field_arr")} (Cr)</TableHead>
@@ -158,7 +157,6 @@ export const TacticalLists = ({ projects }: Props) => {
                         <TableCell>
                           <Badge variant="destructive">{p.daysOverdue}d overdue</Badge>
                         </TableCell>
-                        <TableCell>{phaseLabels[p.currentPhase] || p.currentPhase}</TableCell>
                         <TableCell>{stateLabels[p.projectState] || projectStateLabels[p.projectState]}</TableCell>
                         <TableCell>{p.assignedOwnerName || "Unassigned"}</TableCell>
                         <TableCell>{arrCroreValue(p.arr)}</TableCell>
@@ -194,7 +192,6 @@ export const TacticalLists = ({ projects }: Props) => {
                   <TableRow>
                     <TableHead>{getLabel("field_merchant_name")}</TableHead>
                     <TableHead>{getLabel("field_assigned_owner")}</TableHead>
-                    <TableHead>Phase</TableHead>
                     <TableHead>{teamLabels.mint} Tasks</TableHead>
                     <TableHead>{teamLabels.integration} Tasks</TableHead>
                     <TableHead>Overall</TableHead>
@@ -206,7 +203,6 @@ export const TacticalLists = ({ projects }: Props) => {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.name}</TableCell>
                       <TableCell>{p.owner}</TableCell>
-                      <TableCell>{phaseLabels[p.phase] || p.phase}</TableCell>
                       <TableCell>{p.mintProgress}</TableCell>
                       <TableCell>{p.intProgress}</TableCell>
                       <TableCell>{p.overallProgress}</TableCell>

@@ -29,7 +29,6 @@ const AVAILABLE_COLUMNS: { key: string; label: string; group: string }[] = [
   { key: "txnsPerDay", label: "Txns/Day", group: "Financial" },
   { key: "aov", label: "AOV", group: "Financial" },
   { key: "projectState", label: "Project State", group: "Status" },
-  { key: "currentPhase", label: "Current Phase", group: "Status" },
   { key: "currentOwnerTeam", label: "Current Team", group: "Status" },
   { key: "assignedOwnerName", label: "Assigned Owner", group: "Status" },
   { key: "currentResponsibility", label: "Responsibility", group: "Status" },
@@ -53,7 +52,7 @@ const AVAILABLE_COLUMNS: { key: string; label: string; group: string }[] = [
   { key: "transferCount", label: "Transfer Count", group: "Metrics" },
 ];
 
-const BASE_GROUPABLE_COLUMNS = ["projectState", "currentPhase", "currentOwnerTeam", "platform", "category", "assignedOwnerName", "currentResponsibility", "integrationType", "pgOnboarding", "salesSpoc"];
+const BASE_GROUPABLE_COLUMNS = ["projectState", "currentOwnerTeam", "platform", "category", "assignedOwnerName", "currentResponsibility", "integrationType", "pgOnboarding", "salesSpoc"];
 const NUMERIC_COLUMNS = ["arr", "txnsPerDay", "aov", "goLivePercent", "transferCount"];
 
 const DEFAULT_GROUP_ORDER = ["Basic", "Financial", "Status", "Dates", "Details", "Links", "Notes", "Metrics", "Custom Fields"];
