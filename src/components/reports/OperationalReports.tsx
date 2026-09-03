@@ -157,7 +157,6 @@ export const OperationalReports = ({ projects }: Props) => {
                       <div key={i} className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="capitalize text-xs">{stage.phase}</Badge>
                             <span className="font-medium">{stage.title}</span>
                           </div>
                           <div className="flex items-center gap-3">

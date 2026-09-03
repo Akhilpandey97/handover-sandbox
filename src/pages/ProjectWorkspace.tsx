@@ -629,7 +629,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     [getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"],
     ["Reporter", project.salesSpoc || currentUser?.name || "—"],
     ["Current team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam],
-    [getLabel("field_current_phase"), phaseLabels[project.currentPhase] || project.currentPhase],
     ["Risk", risk.label],
     ["Last update", getLastUpdated(project)],
     [getLabel("field_current_responsibility"), responsibilityLabels[pendingOn] || pendingOn],
@@ -868,7 +867,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             </section>
 
             {[
-              { title: "Ownership", rows: [["Owner", project.assignedOwnerName || "Unassigned"], ["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], ["Phase", phaseLabels[project.currentPhase] || project.currentPhase], ["Sales SPOC", project.salesSpoc || "—"]] },
+              { title: "Ownership", rows: [["Owner", project.assignedOwnerName || "Unassigned"], ["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], ["Sales SPOC", project.salesSpoc || "—"]] },
               { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], ["Kick-off", project.dates.kickOffDate || "—"], ["Expected go-live", project.dates.expectedGoLiveDate || "—"], ["Actual go-live", project.dates.goLiveDate || "—"], ["Internal time", formatDuration(timeByParty.gokwik)], ["Merchant time", formatDuration(timeByParty.merchant)]] },
               { title: "Business", rows: [["Platform", project.platform], ["Category", project.category || "—"], ["ARR", formatArrCr(project.arr)], ["Transactions/day", `${project.txnsPerDay}`], ["AOV", `₹${project.aov.toLocaleString()}`], ["Integration type", project.integrationType || "—"], ["PG onboarding", project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
@@ -1071,7 +1070,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           {[
                             ["Owner", project.assignedOwnerName || "Unassigned"],
                             ["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam],
-                            [getLabel("field_current_phase"), phaseLabels[project.currentPhase] || project.currentPhase],
                             [getLabel("field_sales_spoc"), project.salesSpoc || "—"],
                           ].map(([label, value]) => (
                             <div key={label} className="flex items-baseline justify-between gap-2">

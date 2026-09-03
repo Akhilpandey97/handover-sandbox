@@ -27,14 +27,13 @@ const AVAILABLE_COLUMNS: { key: string; label: string; group: string }[] = [
   { key: "txnsPerDay", label: "Txns/Day", group: "Financial" },
   { key: "aov", label: "AOV", group: "Financial" },
   { key: "projectState", label: "Project State", group: "Status" },
-  { key: "currentPhase", label: "Current Phase", group: "Status" },
   { key: "currentOwnerTeam", label: "Current Team", group: "Status" },
   { key: "assignedOwnerName", label: "Assigned Owner", group: "Status" },
   { key: "currentResponsibility", label: "Responsibility", group: "Status" },
   { key: "goLivePercent", label: "Go Live %", group: "Status" },
 ];
 
-const BASE_GROUPABLE_COLUMNS = ["projectState", "currentPhase", "currentOwnerTeam", "platform", "category", "assignedOwnerName", "currentResponsibility", "integrationType", "pgOnboarding", "salesSpoc"];
+const BASE_GROUPABLE_COLUMNS = ["projectState", "currentOwnerTeam", "platform", "category", "assignedOwnerName", "currentResponsibility", "integrationType", "pgOnboarding", "salesSpoc"];
 const NUMERIC_COLUMNS = ["arr", "txnsPerDay", "aov", "goLivePercent", "transferCount"];
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

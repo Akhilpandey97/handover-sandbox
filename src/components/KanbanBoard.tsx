@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 const KANBAN_FIELD_OPTIONS = [
   { key: "funnelStage", label: "Project Stage" },
   { key: "projectState", label: "Project State" },
-  { key: "currentPhase", label: "Current Phase" },
   { key: "currentOwnerTeam", label: "Current Team" },
   { key: "platform", label: "Platform" },
   { key: "category", label: "Category" },
@@ -352,7 +351,6 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: "Team", values: teamFilter, setter: setTeamFilter, options: filterOptions.teams.map(v => ({ value: v, label: labelize(v, "team") })) },
-                  { label: "Phase", values: phaseFilter, setter: setPhaseFilter, options: filterOptions.phases.map(v => ({ value: v, label: labelize(v, "phase") })) },
                   { label: "State", values: stateFilter, setter: setStateFilter, options: filterOptions.states.map(v => ({ value: v, label: labelize(v, "state") })) },
                   { label: "Platform", values: platformFilter, setter: setPlatformFilter, options: filterOptions.platforms.map(v => ({ value: v, label: v })) },
                   { label: "Category", values: categoryFilter, setter: setCategoryFilter, options: filterOptions.categories.map(v => ({ value: v, label: v })) },

@@ -480,7 +480,6 @@ export const TeamDashboard = () => {
                     <div className="space-y-3">
                       {filterGroup("Project State", filterOptions.states, stateFilter, setStateFilter, (v) => stateLabels?.[v] || projectStateLabels[v as keyof typeof projectStateLabels] || v)}
                       {filterGroup("Project Stage", filterOptions.funnels, funnelFilter, setFunnelFilter, (v) => funnelStageLabels[v] || v)}
-                      {filterGroup("Phase", filterOptions.phases, phaseFilter, setPhaseFilter, (v) => phaseLabels?.[v] || v)}
                       {filterGroup("Responsibility", filterOptions.resps, respFilter, setRespFilter, (v) => responsibilityLabels?.[v] || v)}
                       {filterGroup("Platform", filterOptions.platforms, platformFilter, setPlatformFilter, (v) => v)}
                     </div>

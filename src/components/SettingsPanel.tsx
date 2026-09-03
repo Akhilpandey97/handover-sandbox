@@ -57,16 +57,6 @@ const GENERAL_GROUPS: LabelGroup[] = [
 
 const WORKFLOW_GROUPS: LabelGroup[] = [
   {
-    title: "Project Phases",
-    description: "Names for each workflow phase",
-    keys: [
-      { key: "phase_mint", label: "Phase 1" },
-      { key: "phase_integration", label: "Phase 2" },
-      { key: "phase_ms", label: "Phase 3" },
-      { key: "phase_completed", label: "Phase 4 (Final)" },
-    ],
-  },
-  {
     title: "Project States",
     description: "Status labels for projects",
     keys: [
@@ -394,9 +384,9 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Tags className="h-5 w-5" />Phases & States
+                <Tags className="h-5 w-5" />Project States
               </CardTitle>
-              <CardDescription>Configure project phase and state labels</CardDescription>
+              <CardDescription>Configure project state labels</CardDescription>
             </CardHeader>
             <CardContent>{renderLabelGroups(WORKFLOW_GROUPS)}</CardContent>
           </Card>

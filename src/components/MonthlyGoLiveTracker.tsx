@@ -480,7 +480,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
           <Input placeholder="Search…" value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} />
           <div className="max-h-[50vh] overflow-auto border rounded">
             <Table>
-              <TableHeader className="bg-navy"><TableRow className="hover:bg-navy"><TableHead className="w-10 text-navy-foreground"></TableHead><TableHead className="text-navy-foreground">Merchant</TableHead><TableHead className="text-navy-foreground">Phase</TableHead><TableHead className="text-navy-foreground">Expected</TableHead></TableRow></TableHeader>
+              <TableHeader className="bg-navy"><TableRow className="hover:bg-navy"><TableHead className="w-10 text-navy-foreground"></TableHead><TableHead className="text-navy-foreground">Merchant</TableHead><TableHead className="text-navy-foreground">Stage</TableHead><TableHead className="text-navy-foreground">Expected</TableHead></TableRow></TableHeader>
               <TableBody>
                 {allProjects.filter(p => p.merchant_name.toLowerCase().includes(pickerSearch.toLowerCase())).map(p => (
                   <TableRow key={p.id}>

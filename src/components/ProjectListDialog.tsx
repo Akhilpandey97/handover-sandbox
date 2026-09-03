@@ -15,7 +15,7 @@ interface Props {
 }
 
 export const ProjectListDialog = ({ title, description, projects, open, onOpenChange }: Props) => {
-  const { teamLabels, stateLabels, phaseLabels } = useLabels();
+  const { teamLabels, stateLabels } = useLabels();
   const navigate = useNavigate();
   const list = projects || [];
   const totalArr = list.reduce((s, p) => s + (p.arr || 0), 0);
@@ -40,7 +40,6 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
                   <TableRow>
                     <TableHead>Merchant</TableHead>
                     <TableHead>MID</TableHead>
-                    <TableHead>Phase</TableHead>
                     <TableHead>State</TableHead>
                     <TableHead>Owner Team</TableHead>
                     <TableHead className="text-right">ARR (Cr)</TableHead>
@@ -52,11 +51,6 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
                     <TableRow key={p.id} className="cursor-pointer" onClick={() => { onOpenChange(false); navigate({ to: "/projects/$projectId", params: { projectId: p.id } }); }}>
                       <TableCell className="font-medium">{p.merchantName}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{p.mid}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {phaseLabels[p.currentPhase] || p.currentPhase}
-                        </Badge>
-                      </TableCell>
                       <TableCell className="text-sm">{stateLabels[p.projectState] || p.projectState}</TableCell>
                       <TableCell className="text-sm">{teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}</TableCell>
                       <TableCell className="text-right font-semibold">{(p.arr || 0).toFixed(2)}</TableCell>

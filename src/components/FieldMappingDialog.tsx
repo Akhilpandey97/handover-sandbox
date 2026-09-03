@@ -35,7 +35,6 @@ const BASE_PROJECT_FIELDS = [
   { key: "kick_off_date", label: "Kick Off Date" },
   { key: "expected_go_live_date", label: "Expected Go Live Date" },
   { key: "go_live_percent", label: "Go Live %" },
-  { key: "current_phase", label: "Current Phase" },
 ];
 
 const normalizeHeader = (value: string) =>

@@ -186,46 +186,6 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
         </Card>
       </Collapsible>
 
-      {/* Pipeline by Project Stage */}
-      <Collapsible open={expandedSection === "funnel"} onOpenChange={() => setExpandedSection(expandedSection === "funnel" ? null : "funnel")}>
-        <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
-              <div className="flex items-center justify-between">
-                <CardTitle className="portal-heading flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-blue-500" />
-                  Project Pipeline by Stage
-                </CardTitle>
-                {expandedSection === "funnel" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </div>
-              <CardDescription>Count of projects in each phase — identify macro-level bottlenecks</CardDescription>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent>
-              <div className="space-y-4">
-                {pipelineFunnel.map((stage) => (
-                  <div key={stage.phase} className="space-y-1">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium">{stage.label}</span>
-                      <span className="font-bold">{stage.count}</span>
-                    </div>
-                    <div className="h-8 bg-muted rounded-lg overflow-hidden relative">
-                      <div
-                        className="h-full rounded-lg transition-all bg-gradient-to-r from-primary/80 to-primary flex items-center justify-end pr-2"
-                        style={{ width: `${Math.max((stage.count / maxFunnelCount) * 100, 5)}%` }}
-                      >
-                        <span className="text-xs text-white font-bold">{stage.count}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
       {/* Go-Live Velocity */}
       <Collapsible open={expandedSection === "velocity"} onOpenChange={() => setExpandedSection(expandedSection === "velocity" ? null : "velocity")}>
         <Card>

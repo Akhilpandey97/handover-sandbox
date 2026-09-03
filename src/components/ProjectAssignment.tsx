@@ -267,7 +267,6 @@ export const ProjectAssignment = () => {
                   <TableHead>Platform</TableHead>
                   <TableHead>Current Team</TableHead>
                   <TableHead>Assigned Owner</TableHead>
-                  <TableHead>Phase</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,9 +299,6 @@ export const ProjectAssignment = () => {
                       ) : (
                         <span className="text-muted-foreground text-sm">-</span>
                       )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{project.currentPhase || "mint"}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}

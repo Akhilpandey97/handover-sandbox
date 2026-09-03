@@ -1448,7 +1448,6 @@ export const ManagerDashboard = () => {
                                 <SelectItem value="none">None</SelectItem>
                                 <SelectItem value="arr">ARR</SelectItem>
                                 <SelectItem value="owner">Owner</SelectItem>
-                                <SelectItem value="phase">Phase</SelectItem>
                                 <SelectItem value="platform">Platform</SelectItem>
                               </SelectContent>
                             </Select>
@@ -1490,7 +1489,6 @@ export const ManagerDashboard = () => {
                           {[
                             { label: "Team", values: teamFilter, setter: setTeamFilter, options: [{ value: "mint", label: teamLabels.mint }, { value: "integration", label: teamLabels.integration }, { value: "ms", label: teamLabels.ms }] },
                             { label: "Owner", values: ownerFilter, setter: setOwnerFilter, options: [{ value: "unassigned", label: "None (Unassigned)" }, ...filteredOwners.map(o => ({ value: o.id, label: o.name }))] },
-                            { label: "Phase", values: phaseFilter, setter: setPhaseFilter, options: uniquePhaseLabels.map(l => ({ value: l, label: l })) },
                             { label: "State", values: stateFilter, setter: setStateFilter, options: (Object.keys(projectStateLabels) as ProjectState[]).map(s => ({ value: s, label: stateLabelsFromCtx[s] || projectStateLabels[s] })) },
                             { label: "Platform", values: platformFilter, setter: setPlatformFilter, options: uniquePlatforms.map(p => ({ value: p, label: p })) },
                             { label: "Category", values: categoryFilter, setter: setCategoryFilter, options: uniqueCategories.map(c => ({ value: c, label: c })) },
@@ -1790,7 +1788,6 @@ export const ManagerDashboard = () => {
                           {[
                             { label: "Team", values: lvTeamFilter, setter: setLvTeamFilter, options: [{ value: "mint", label: teamLabels.mint }, { value: "integration", label: teamLabels.integration }, { value: "ms", label: teamLabels.ms }] },
                             { label: "Owner", values: lvOwnerFilter, setter: setLvOwnerFilter, options: [{ value: "unassigned", label: "None (Unassigned)" }, ...lvFilteredOwners.map(o => ({ value: o.id, label: o.name }))] },
-                            { label: "Phase", values: lvPhaseFilter, setter: setLvPhaseFilter, options: uniquePhaseLabels.map(l => ({ value: l, label: l })) },
                             { label: "State", values: lvStateFilter, setter: setLvStateFilter, options: (Object.keys(projectStateLabels) as ProjectState[]).map(s => ({ value: s, label: stateLabelsFromCtx[s] || projectStateLabels[s] })) },
                             { label: "Platform", values: lvPlatformFilter, setter: setLvPlatformFilter, options: uniquePlatforms.map(p => ({ value: p, label: p })) },
                             { label: "Category", values: lvCategoryFilter, setter: setLvCategoryFilter, options: uniqueCategories.map(c => ({ value: c, label: c })) },
@@ -2278,7 +2275,6 @@ export const ManagerDashboard = () => {
                                     <TableHeader>
                                       <TableRow>
                                         <TableHead>Checklist Item</TableHead>
-                                        <TableHead>Phase</TableHead>
                                         <TableHead>Team</TableHead>
                                         <TableHead>Responsibility</TableHead>
                                         <TableHead>{responsibilityLabels.gokwik} Time</TableHead>
@@ -2290,7 +2286,6 @@ export const ManagerDashboard = () => {
                                       {project.checklistItems.map((item) => (
                                         <TableRow key={item.id}>
                                           <TableCell className="font-medium">{item.checklistTitle}</TableCell>
-                                          <TableCell>{phaseLabels[item.phase] || item.phase}</TableCell>
                                           <TableCell><Badge variant="outline">{teamLabels[item.team] || item.team}</Badge></TableCell>
                                           <TableCell>{responsibilityLabels[item.responsibility] || item.responsibility}</TableCell>
                                           <TableCell>{formatDuration(item.gokwikTime)}</TableCell>
