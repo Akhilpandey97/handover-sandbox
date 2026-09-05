@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
-import { teamColors } from "@/data/teams";
+import { teamColorClass } from "@/data/teams";
 import { useLabels } from "@/contexts/LabelsContext";
 import {
   Project,
@@ -260,7 +260,7 @@ export const TeamDashboard = () => {
             {labels.org_logo_url ? (
               <img src={labels.org_logo_url} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
             ) : (
-              <div className={`h-9 w-9 rounded-lg ${teamColors[currentUser.team]} flex items-center justify-center`}>
+              <div className={`h-9 w-9 rounded-lg ${teamColorClass(currentUser.team)} flex items-center justify-center`}>
                 <FolderKanban className="h-5 w-5 text-white" />
               </div>
             )}
@@ -402,7 +402,7 @@ export const TeamDashboard = () => {
                 <p className="font-medium text-xs">{currentUser.name}</p>
                 <p className="text-xs text-muted-foreground">{teamLabels[currentUser.team] || currentUser.team}</p>
               </div>
-              <div className={`h-8 w-8 rounded-lg ${teamColors[currentUser.team]} flex items-center justify-center text-white font-semibold text-xs`}>
+              <div className={`h-8 w-8 rounded-lg ${teamColorClass(currentUser.team)} flex items-center justify-center text-white font-semibold text-xs`}>
                 {currentUser.name.charAt(0)}
               </div>
               <Button variant="ghost" size="icon" onClick={logout} className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive">

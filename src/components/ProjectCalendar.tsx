@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { Project, projectStateColors } from "@/data/projectsData";
-import { teamColors } from "@/data/teams";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

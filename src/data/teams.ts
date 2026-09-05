@@ -36,12 +36,12 @@ export const teamUsers: TeamUser[] = [
 ];
 
 export const teamLabels: Record<TeamRole, string> = {
-  mint: "MINT (Presales)",
-  integration: "Integration Team",
-  ms: "MS (Merchant Success)",
+  mint: "Sales",
+  integration: "MINT",
+  ms: "Merchant Success",
   manager: "Manager",
   super_admin: "Super Admin",
-  gokwik_general: "GoKwik General",
+  gokwik_general: "General",
 };
 
 export const teamColors: Record<TeamRole, string> = {
@@ -52,3 +52,8 @@ export const teamColors: Record<TeamRole, string> = {
   super_admin: "bg-red-500",
   gokwik_general: "bg-teal-500",
 };
+
+/** Safe colour class for any team slug, including custom teams created in Settings. */
+export const teamColorClass = (slug?: string | null): string =>
+  (slug && teamColors[slug]) || "bg-slate-500";
+

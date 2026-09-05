@@ -412,19 +412,10 @@ export const ChecklistManagement = () => {
   };
 
   // Dynamic teams management
-  const [dynamicTeams, setDynamicTeams] = useState<{ id: string; name: string; slug: string; color: string; is_system: boolean }[]>([]);
   const [addTeamOpen, setAddTeamOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamColor, setNewTeamColor] = useState("#3b82f6");
   const [deleteTeamConfirm, setDeleteTeamConfirm] = useState<{ id: string; name: string; slug: string } | null>(null);
-
-  useEffect(() => {
-    const fetchTeams = async () => {
-      const { data } = await supabase.from("teams").select("*").order("sort_order");
-      if (data) setDynamicTeams(data);
-    };
-    fetchTeams();
-  }, []);
 
   const addTeamMutation = useMutation({
     mutationFn: async ({ name, color }: { name: string; color: string }) => {
@@ -432,15 +423,14 @@ export const ChecklistManagement = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
       const { error } = await supabase.from("teams").insert({
-        name, slug, color, is_system: false, sort_order: dynamicTeams.length,
+        name, slug, color, is_system: false, sort_order: customTeams.length,
         tenant_id: profile?.tenant_id,
       });
       if (error) throw error;
       return { name, slug };
     },
     onSuccess: async () => {
-      const { data } = await supabase.from("teams").select("*").order("sort_order");
-      if (data) setDynamicTeams(data);
+      await queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast.success("Team added");
       setAddTeamOpen(false);
       setNewTeamName("");
@@ -454,15 +444,14 @@ export const ChecklistManagement = () => {
       if (error) throw error;
     },
     onSuccess: async () => {
-      const { data } = await supabase.from("teams").select("*").order("sort_order");
-      if (data) setDynamicTeams(data);
+      await queryClient.invalidateQueries({ queryKey: ["teams"] });
       toast.success("Team removed");
       setDeleteTeamConfirm(null);
     },
     onError: (e) => toast.error(e.message || "Failed to delete team"),
   });
 
-  const { checklistTeamSlugs, teamLabelMap } = useTeams();
+  const { checklistTeamSlugs, teamLabelMap, customTeams } = useTeams();
   const teams = checklistTeamSlugs.length > 0 ? checklistTeamSlugs : ["mint", "integration", "ms"];
   const getLabel = (slug: string) => teamLabels[slug as keyof typeof teamLabels] || teamLabelMap[slug] || slug;
 
@@ -801,11 +790,11 @@ export const ChecklistManagement = () => {
           </div>
 
           {/* Custom Teams */}
-          {dynamicTeams.filter(t => !t.is_system).length > 0 && (
+          {customTeams.length > 0 && (
             <div className="mb-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Custom Teams</p>
               <div className="space-y-2">
-                {dynamicTeams.filter(t => !t.is_system).map(team => (
+                {customTeams.map(team => (
                   <div key={team.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50 group">
                     <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: team.color }}>
                       {team.name.charAt(0)}
@@ -826,7 +815,7 @@ export const ChecklistManagement = () => {
             </div>
           )}
 
-          {dynamicTeams.filter(t => !t.is_system).length === 0 && (
+          {customTeams.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">No custom teams yet. Click "Add Team" to create one.</p>
           )}
         </CardContent>

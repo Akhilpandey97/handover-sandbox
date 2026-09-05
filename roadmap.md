@@ -19,6 +19,11 @@
       "not configured" instead of running.
 - [ ] MCP server function (intentionally skipped — unused by the UI)
 
+## Done (later)
+- [x] Team Management synced: custom teams from Settings now flow into every
+      team dropdown/label across dashboards, checklists, transfers, exports
+- [x] Removed stale GoKwik-era team names and the @gokwik.co signup restriction
+
 ## Notes
 - Cron dispatcher auth: `x-cron-token` header, validated against a private
   admin-only table (`private.cron_config`) or `LOVABLE_CRON_SECRET`.

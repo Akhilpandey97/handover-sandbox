@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, ReactNode 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFunnelConfig } from "@/hooks/useFunnelConfig";
+import { useTeams } from "@/hooks/useTeams";
 
 // Default labels - used as fallback when DB has no overrides
 const DEFAULT_LABELS: Record<string, string> = {
@@ -11,9 +12,9 @@ const DEFAULT_LABELS: Record<string, string> = {
   org_name: "Handover",
 
   // Team labels
-  team_mint: "MINT (Presales)",
+  team_mint: "Sales",
   team_integration: "MINT",
-  team_ms: "MS (Merchant Success)",
+  team_ms: "Merchant Success",
   team_manager: "Manager",
 
   // Responsibility labels
@@ -122,6 +123,9 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
   // Loads tenant project stages into the runtime registry used across the app
   useFunnelConfig();
+  const { customTeams } = useTeams();
+  const customTeamLabels: Record<string, string> = {};
+  customTeams.forEach((t) => { customTeamLabels[t.slug] = t.name; });
   const [labels, setLabels] = useState<Record<string, string>>(DEFAULT_LABELS);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -187,8 +191,11 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
     ms: labels.team_ms,
     manager: labels.team_manager,
     super_admin: "Super Admin",
-    gokwik_general: "GoKwik General",
+    gokwik_general: "General",
+    // Custom teams created in Settings → Team Management
+    ...customTeamLabels,
   };
+
 
   const responsibilityLabels: Record<string, string> = {
     gokwik: labels.responsibility_internal,
