@@ -187,8 +187,11 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
     ms: labels.team_ms,
     manager: labels.team_manager,
     super_admin: "Super Admin",
-    gokwik_general: "GoKwik General",
+    gokwik_general: "General",
+    // Custom teams created in Settings → Team Management
+    ...customTeamLabels,
   };
+
 
   const responsibilityLabels: Record<string, string> = {
     gokwik: labels.responsibility_internal,
