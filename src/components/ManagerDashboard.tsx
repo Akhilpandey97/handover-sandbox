@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
-import { teamColors, teamLabels as defaultTeamLabels, TeamRole } from "@/data/teams";
+import { teamColorClass, teamLabels as defaultTeamLabels, TeamRole } from "@/data/teams";
 import { UserManagement } from "./UserManagement";
 import { TenantManagement } from "./TenantManagement";
 import { SettingsPanel } from "./SettingsPanel";
@@ -2343,7 +2343,7 @@ export const ManagerDashboard = () => {
                             <CardContent className="p-6">
                               <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                  <div className={`h-12 w-12 rounded-xl ${teamColors[team.team]} flex items-center justify-center text-white font-bold text-lg`}>
+                                  <div className={`h-12 w-12 rounded-xl ${teamColorClass(team.team)} flex items-center justify-center text-white font-bold text-lg`}>
                                     {team.teamLabel.charAt(0)}
                                   </div>
                                   <div>

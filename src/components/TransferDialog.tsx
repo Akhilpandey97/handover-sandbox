@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Project } from "@/data/projectsData";
-import { teamColors, TeamRole } from "@/data/teams";
+import { teamColorClass, TeamRole } from "@/data/teams";
 import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -138,7 +138,7 @@ export const TransferDialog = ({
                   >
                     <RadioGroupItem value={member.id} id={member.id} />
                     <div
-                      className={`h-9 w-9 rounded-full ${teamColors[member.team]} flex items-center justify-center text-white font-semibold text-sm`}
+                      className={`h-9 w-9 rounded-full ${teamColorClass(member.team)} flex items-center justify-center text-white font-semibold text-sm`}
                     >
                       {member.name.charAt(0)}
                     </div>
