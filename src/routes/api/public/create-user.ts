@@ -24,13 +24,8 @@ async function handler(req: Request): Promise<Response> {
       );
     }
 
-    // Enforce @gokwik.co email domain for gokwik_general role
-    if (team === 'gokwik_general' && !email.endsWith('@gokwik.co')) {
-      return new Response(
-        JSON.stringify({ error: 'GoKwik General role requires a @gokwik.co email address' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+
+
 
     // Verify the requesting user is a manager
     const authHeader = req.headers.get('Authorization');
