@@ -97,6 +97,15 @@ const transformDbChecklistItem = (row: any): ProjectChecklist => ({
   dueDate: row.due_date || undefined,
 });
 
+// Optimistic-cache helpers: the projects query key is ["projects", userId],
+// so mutations must write to every matching entry, not the bare ["projects"] key.
+const restoreProjectsCache = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  previous: Array<[readonly unknown[], unknown]>,
+) => {
+  previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
+};
+
 // Fetch all projects with related data
 export const useProjectsQuery = () => {
   const { currentUser } = useAuth();
@@ -382,7 +391,7 @@ export const useUpdateProject = () => {
   return useMutation({
     mutationFn: async (project: Project) => {
       // Grab the old version for diffing
-      const oldProjects = queryClient.getQueryData<Project[]>(["projects"]);
+      const oldProjects = (queryClient.getQueriesData<Project[]>({ queryKey: ["projects"] })[0]?.[1]) as Project[] | undefined;
       const oldProject = oldProjects?.find(p => p.id === project.id);
 
       // Auto-set Actual Go-Live date the moment a project transitions to "live"
@@ -874,8 +883,8 @@ export const useUpdateChecklist = () => {
     },
     onMutate: async ({ projectId, checklistId, completed }) => {
       await queryClient.cancelQueries({ queryKey: ["projects"] });
-      const previous = queryClient.getQueryData<Project[]>(["projects"]);
-      queryClient.setQueryData<Project[]>(["projects"], (old) =>
+      const previous = queryClient.getQueriesData<Project[]>({ queryKey: ["projects"] });
+      queryClient.setQueriesData<Project[]>({ queryKey: ["projects"] }, (old) =>
         old?.map((p) =>
           p.id === projectId
             ? {
@@ -892,7 +901,7 @@ export const useUpdateChecklist = () => {
       return { previous };
     },
     onError: (error, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(["projects"], context.previous);
+      if (context?.previous) restoreProjectsCache(queryClient, context.previous);
       console.error("Error updating checklist:", error);
       toast.error("Failed to update checklist");
     },
@@ -1031,8 +1040,8 @@ export const useToggleResponsibility = () => {
     },
     onMutate: async ({ projectId, party }) => {
       await queryClient.cancelQueries({ queryKey: ["projects"] });
-      const previous = queryClient.getQueryData(["projects"]);
-      queryClient.setQueryData(["projects"], (old: any[] | undefined) => {
+      const previous = queryClient.getQueriesData({ queryKey: ["projects"] });
+      queryClient.setQueriesData({ queryKey: ["projects"] }, (old: any[] | undefined) => {
         if (!old) return old;
         return old.map((p: any) =>
           p.id === projectId ? { ...p, current_responsibility: party } : p
@@ -1042,7 +1051,7 @@ export const useToggleResponsibility = () => {
     },
     onError: (error, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(["projects"], context.previous);
+        restoreProjectsCache(queryClient, context.previous);
       }
       console.error("Error toggling responsibility:", error);
       toast.error("Failed to update responsibility");
@@ -1111,8 +1120,8 @@ export const useToggleChecklistResponsibility = () => {
     },
     onMutate: async ({ checklistId, party }) => {
       await queryClient.cancelQueries({ queryKey: ["projects"] });
-      const previous = queryClient.getQueryData<Project[]>(["projects"]);
-      queryClient.setQueryData<Project[]>(["projects"], (old) => {
+      const previous = queryClient.getQueriesData<Project[]>({ queryKey: ["projects"] });
+      queryClient.setQueriesData<Project[]>({ queryKey: ["projects"] }, (old) => {
         if (!old) return old;
         return old.map((project) => ({
           ...project,
@@ -1125,7 +1134,7 @@ export const useToggleChecklistResponsibility = () => {
     },
     onError: (error, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(["projects"], context.previous);
+        restoreProjectsCache(queryClient, context.previous);
       }
       console.error("Error toggling checklist responsibility:", error);
       toast.error("Failed to update responsibility");
