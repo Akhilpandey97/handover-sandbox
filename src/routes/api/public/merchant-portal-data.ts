@@ -696,10 +696,14 @@ async function handler(req: Request): Promise<Response> {
           const { data: resps } = await supabase
             .from("brd_responses").select("value").eq("session_id", sess.id);
           const answered = (resps || []).filter((r: any) => (r.value || "").toString().trim()).length;
+          const isSubmitted = sess.status === "completed";
+          const total = totalFields || 0;
           brdProgress = {
-            answered,
-            total: totalFields || 0,
-            percent: totalFields ? Math.round((answered / totalFields) * 100) : 0,
+            // A submitted form counts as fully answered even if some optional
+            // questions were skipped.
+            answered: isSubmitted ? Math.max(answered, total) : answered,
+            total,
+            percent: isSubmitted ? 100 : total ? Math.round((answered / total) * 100) : 0,
             status: sess.status,
           };
         } else {
