@@ -387,7 +387,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                   </div>
                 ))}
                 <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground font-medium">ARR Range (Cr)</label>
+                  <label className="text-xs text-muted-foreground font-medium">{labels.getLabel("field_arr")} Range (Cr)</label>
                   <div className="flex gap-1">
                     <Input type="number" placeholder="Min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-full h-9 text-xs" />
                     <Input type="number" placeholder="Max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-full h-9 text-xs" />
@@ -470,7 +470,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                     return (
                       <span
                         key={st}
-                        title={`${labelize(st, "state")} ARR`}
+                        title={`${labelize(st, "state")} ${labels.getLabel("field_arr")}`}
                         className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded ring-1 whitespace-nowrap", s.bg, s.text, s.ring)}
                       >
                         {formatArr(amt)}
