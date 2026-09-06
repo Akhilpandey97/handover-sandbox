@@ -1130,8 +1130,11 @@ export const useToggleChecklistResponsibility = () => {
       console.error("Error toggling checklist responsibility:", error);
       toast.error("Failed to update responsibility");
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    onSettled: (_data, error) => {
+      queryClient.invalidateQueries({
+        queryKey: ["projects"],
+        refetchType: error ? "active" : "none",
+      });
       queryClient.invalidateQueries({ queryKey: ["checklist_responsibility_logs"] });
     },
   });
