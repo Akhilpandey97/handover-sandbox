@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useParams } from "@/lib/router-compat";
 import { LoginScreen } from "@/components/LoginScreen";
 import { AssignOwnerDialog } from "@/components/AssignOwnerDialog";
@@ -552,6 +552,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const groupedActivity = useMemo(() => groupByDate(activityFeed), [activityFeed]);
 
   const { isLoading: projectsLoading } = useProjects();
+  const router = useRouter();
+  const navigate = useNavigate();
 
   if (isLoading || projectsLoading) {
     return <WorkspaceSkeleton inModal={inModal} />;
