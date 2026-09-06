@@ -1120,7 +1120,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
             {checklist_progress.completed} of {checklist_progress.total} complete
           </span>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-[#253553]">
+        <div className="divide-y divide-border">
           {data.checklist.map((item, i) => {
             const overdue = !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
             return (
@@ -1152,7 +1152,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
 
         <Card className="p-5">
           <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Project Overview</h3>
-          <div className="divide-y divide-slate-100 dark:divide-[#253553]">
+          <div className="divide-y divide-border">
             <OverviewRow label={portalLabel("field_platform", "Platform")} value={project.platform || "—"} />
             {data.custom_fields.filter(f => f.key === "arr" || f.label.toLowerCase() === "arr").map(f => (
               <OverviewRow key={f.key} label={portalLabel("field_arr", "ARR")} value={f.value || "—"} />
