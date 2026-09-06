@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useParams } from "@/lib/router-compat";
 import { LoginScreen } from "@/components/LoginScreen";
 import { AssignOwnerDialog } from "@/components/AssignOwnerDialog";
@@ -552,6 +552,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const groupedActivity = useMemo(() => groupByDate(activityFeed), [activityFeed]);
 
   const { isLoading: projectsLoading } = useProjects();
+  const router = useRouter();
+  const navigate = useNavigate();
 
   if (isLoading || projectsLoading) {
     return <WorkspaceSkeleton inModal={inModal} />;
@@ -774,9 +776,19 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 Kanban
               </button>
             ) : (
-              <Link to="/" className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 shrink-0 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground">
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.history.length > 1) {
+                    router.history.back();
+                  } else {
+                    navigate({ to: "/" });
+                  }
+                }}
+                className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 shrink-0 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground"
+              >
                 Projects
-              </Link>
+              </button>
             )}
             <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0 dark:text-muted-foreground" />
             <div className="flex items-center gap-2 min-w-0">
