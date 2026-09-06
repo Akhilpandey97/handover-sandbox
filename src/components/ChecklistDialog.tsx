@@ -187,9 +187,10 @@ export const ChecklistDialog = ({
   }, {} as Record<string, { completed: number; total: number }>);
 
   const canEditChecklistItem = (ownerTeam: string) => {
-    if (userTeam === "manager") return true;
+    if (hasFullChecklistAccess) return true;
     return userTeam === (ownerTeam || "").toLowerCase();
   };
+
 
 
   const handleResponsibilityChange = (checklistId: string, newParty: string) => {
