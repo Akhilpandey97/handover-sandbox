@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Project } from "@/data/projectsData";
+import { Project, isProjectLive } from "@/data/projectsData";
+import { useLabels } from "@/contexts/LabelsContext";
 
 import { Timer } from "lucide-react";
 import { arrToCrore } from "@/lib/arr";
@@ -23,12 +24,15 @@ const diffDays = (from: string, to: string) => {
 interface Props { projects: Project[] }
 
 export const TATDashlet = ({ projects }: Props) => {
+  const { getLabel } = useLabels();
+  const arrLabel = getLabel("field_arr");
   const rows = useMemo(() => {
     return projects
-      .filter(p => p.dates?.kickOffDate && p.dates?.goLiveDate)
+      .filter(p => isProjectLive(p) && p.dates?.kickOffDate && p.dates?.goLiveDate)
       .map(p => ({ id: p.id, merchant: p.merchantName, arr: p.arr || 0, kick: p.dates.kickOffDate!, live: p.dates.goLiveDate!, tat: diffDays(p.dates.kickOffDate!, p.dates.goLiveDate!) }))
       .sort((a, b) => b.tat - a.tat);
   }, [projects]);
+
 
   const overall = useMemo(() => {
     const n = rows.length;
