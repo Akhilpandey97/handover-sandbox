@@ -214,29 +214,30 @@ export const ManagerDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // List view column selection
+  // Column headers follow the names configured in Settings → Field Labels.
   const LIST_VIEW_COLUMNS = [
-    { key: "merchantName", label: "Merchant Name" },
-    { key: "mid", label: "MID" },
-    { key: "platform", label: "Platform" },
-    { key: "category", label: "Category" },
+    { key: "merchantName", label: getLabel("field_merchant_name") },
+    { key: "mid", label: getLabel("field_mid") },
+    { key: "platform", label: getLabel("field_platform") },
+    { key: "category", label: getLabel("field_category") },
     { key: "merchantState", label: "Merchant State" },
-    { key: "mintComment", label: "Mint Comment" },
-    { key: "liveDate", label: "Live Date" },
+    { key: "mintComment", label: getLabel("field_current_phase_comment") },
+    { key: "liveDate", label: getLabel("field_actual_go_live_date") },
     { key: "recentComments", label: "Recent Comments" },
     { key: "status", label: "Status" },
-    { key: "arr", label: "ARR" },
-    { key: "owner", label: "Owner" },
-    { key: "salesSpoc", label: "Sales SPOC" },
-    { key: "kickOffDate", label: "Start Date" },
-    { key: "goLiveDate", label: "Go-Live Date" },
-    { key: "expectedGoLiveDate", label: "Expected Go-Live" },
-    { key: "integrationType", label: "Integration Type" },
-    { key: "pgOnboarding", label: "PG Onboarding" },
-    { key: "goLivePercent", label: "Go-Live %" },
-    { key: "mintNotes", label: "MINT Notes" },
-    { key: "projectNotes", label: "Project Notes" },
+    { key: "arr", label: getLabel("field_arr") },
+    { key: "owner", label: getLabel("field_assigned_owner") },
+    { key: "salesSpoc", label: getLabel("field_sales_spoc") },
+    { key: "kickOffDate", label: getLabel("field_kick_off_date") },
+    { key: "goLiveDate", label: getLabel("field_go_live_date") },
+    { key: "expectedGoLiveDate", label: getLabel("field_expected_go_live_date") },
+    { key: "integrationType", label: getLabel("field_integration_type") },
+    { key: "pgOnboarding", label: getLabel("field_pg_onboarding") },
+    { key: "goLivePercent", label: getLabel("field_go_live_percent") },
+    { key: "mintNotes", label: getLabel("field_mint_notes") },
+    { key: "projectNotes", label: getLabel("field_project_notes") },
     { key: "opsComment", label: "Ops Comment" },
-    { key: "phase2Comment", label: "Phase 2 Comment" },
+    { key: "phase2Comment", label: getLabel("field_phase2_comment") },
   ];
   const [listViewColumns, setListViewColumns] = useState<string[]>(() => {
     try {
