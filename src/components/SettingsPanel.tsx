@@ -34,16 +34,9 @@ const GENERAL_GROUPS: LabelGroup[] = [
       { key: "org_name", label: "Organisation Name" },
     ],
   },
-  {
-    title: "Team Names",
-    description: "Labels for each team/department",
-    keys: [
-      { key: "team_mint", label: "Team 1 (Presales)" },
-      { key: "team_integration", label: "Team 2 (Integration)" },
-      { key: "team_ms", label: "Team 3 (Post-Sales)" },
-      { key: "team_manager", label: "Manager Role" },
-    ],
-  },
+  // Team names are managed in Settings → Checklist → Team Management, which is
+  // the single source of truth for every team label across the product.
+
   {
     title: "Responsibility Parties",
     description: "Labels for internal vs external ownership",

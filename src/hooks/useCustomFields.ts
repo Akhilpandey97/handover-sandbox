@@ -23,17 +23,22 @@ const EMPTY_FIELDS: CustomField[] = [];
 // Cached across every component that needs custom fields — this table barely
 // changes but was previously refetched on every single mount (90k+ hits).
 export const useCustomFields = () => {
+  const { currentUser } = useAuth();
+  const tenantId = currentUser?.tenantId;
   const { data, isLoading } = useQuery({
-    queryKey: ["custom_fields"],
+    queryKey: ["custom_fields", tenantId],
     staleTime: 10 * 60_000,
     gcTime: 30 * 60_000,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("custom_fields")
         .select("id, field_key, field_label, field_type, options, is_active, sort_order")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
+        .eq("is_active", true);
+      // Super admins can read every tenant's fields — keep the list scoped to
+      // the workspace the user is actually in.
+      if (tenantId) q = q.eq("tenant_id", tenantId);
+      const { data, error } = await q.order("sort_order", { ascending: true });
       if (error) throw error;
       return (data || []).map((f: any) => ({
         ...f,

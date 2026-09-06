@@ -11,14 +11,10 @@ const DEFAULT_LABELS: Record<string, string> = {
   app_subtitle: "Handover — Project Management Hub",
   org_name: "Handover",
 
-  // Team labels
-  team_mint: "Sales",
-  team_integration: "MINT",
-  team_ms: "Merchant Success",
-  team_manager: "Manager",
+  // Team names live in the `teams` table (Settings → Checklist → Team Management)
 
   // Responsibility labels
-  responsibility_internal: "GoKwik",
+  responsibility_internal: "Internal Team",
   responsibility_external: "Merchant",
   responsibility_neutral: "Neutral",
 
