@@ -82,6 +82,11 @@ const FIELD_GROUPS: LabelGroup[] = [
       { key: "field_aov", label: "AOV Label" },
       { key: "field_pg_onboarding", label: "PG Onboarding Label" },
       { key: "field_go_live_percent", label: "Go Live % Label" },
+      { key: "field_project_state", label: "Project State Label" },
+      { key: "field_project_stage", label: "Project Stage Label" },
+      { key: "field_kick_off_date", label: "Kick-off Date Label" },
+      { key: "field_expected_go_live_date", label: "Expected Go-Live Label" },
+      { key: "field_actual_go_live_date", label: "Actual Go-Live Label" },
     ],
   },
   {
