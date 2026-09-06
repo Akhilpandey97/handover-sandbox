@@ -141,7 +141,7 @@ type ProjectView = "board" | "list" | "kanban" | "golive";
 export const ManagerDashboard = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
-  const { labels: appLabels, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels } = useLabels();
+  const { labels: appLabels, getLabel, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels } = useLabels();
   const { projects, isLoading, addProject, deleteProject, updateProject, archiveProject } = useProjects();
   const { fields: customFields } = useCustomFields();
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
