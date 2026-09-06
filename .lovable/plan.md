@@ -86,6 +86,12 @@ Minor: the default name for the internal responsibility party is still
    visible, in the portal overview).
 4. Scope the custom-fields read to the current workspace.
 5. Change the default internal-party name from "GoKwik" to "Internal Team".
+6. **One place for team names.** Team names are edited in two places today —
+   Settings → General → "Team Names" and Settings → Checklist → Team Management.
+   Remove the "Team Names" boxes from General and make Team Management the only
+   source, so a team renamed there shows up on every dashboard, badge, checklist
+   group, transfer screen, report and export. Existing custom names already
+   entered in General are carried over into Team Management so nothing is lost.
 
 ## Technical notes
 
@@ -99,3 +105,9 @@ Minor: the default name for the internal responsibility party is still
 - `src/hooks/useCustomFields.ts` selects `custom_fields` with no `tenant_id`
   filter on read.
 - `src/pages/ProjectWorkspace.tsx` does not import `CustomFieldsRenderer`.
+- Team names: drop the `team_*` group from `SETTINGS_GROUPS` in
+  `src/components/SettingsPanel.tsx` and build `teamLabels` in
+  `LabelsContext` from `useTeams().teamLabelMap` (teams table) instead of the
+  `team_mint / team_integration / team_ms` keys, keeping manager, super_admin
+  and general as fixed role labels. Any existing `app_settings` team_* override
+  is migrated into the matching `teams` row once.
