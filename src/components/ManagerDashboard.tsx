@@ -920,7 +920,7 @@ export const ManagerDashboard = () => {
   const isGokwikGeneral = currentUser?.team === "gokwik_general";
   const GOKWIK_GENERAL_TABS = ["dashboard", "projects", "listview", "kanban", "reports"];
 
-  const isManagerOrAdmin = currentUser?.team === "manager" || currentUser?.team === "super_admin";
+  const isManagerOrAdmin = perms.isManagerOrAbove;
   const sidebarTabs = [
     ...tabOrder,
     ...(currentUser?.team === "super_admin" && !tabOrder.includes("tenants") ? ["tenants"] : []),
