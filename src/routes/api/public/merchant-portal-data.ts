@@ -657,11 +657,16 @@ async function handler(req: Request): Promise<Response> {
       .eq("entity_id", projectId).order("created_at", { ascending: false }).limit(15);
 
     let branding: Record<string, string> = {};
+    // Field names configured in Settings, so the portal shows the same wording
+    // the internal product uses.
+    const labels: Record<string, string> = {};
     if (tenantId) {
       const { data: settings } = await supabase
-        .from("app_settings").select("key, value").eq("tenant_id", tenantId)
-        .in("key", ["org_name", "primary_color", "logo_url"]);
-      (settings ?? []).forEach((s: any) => { branding[s.key] = s.value; });
+        .from("app_settings").select("key, value").eq("tenant_id", tenantId);
+      (settings ?? []).forEach((s: any) => {
+        if (["org_name", "primary_color", "logo_url"].includes(s.key)) branding[s.key] = s.value;
+        if (s.key.startsWith("field_")) labels[s.key] = s.value;
+      });
     }
 
     const jiraCredentials = await fetchJiraCredentials(project.merchant_name || "", (project as any).tenant_id ?? tenantId);
