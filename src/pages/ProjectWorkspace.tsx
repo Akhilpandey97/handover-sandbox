@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useProjects } from "@/contexts/ProjectContext";
+import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
 import {
   Project,
   ProjectState,
@@ -496,6 +497,8 @@ const buildActionDrivenSummary = (
 export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false, onClose, projectIds, onNavigate }: ProjectWorkspaceProps) => {
   const { projectId: routeProjectId } = useParams<{ projectId?: string }>();
   const projectId = projectIdProp || routeProjectId;
+  const { fields: customFields } = useCustomFields();
+  const { values: customFieldValues } = useCustomFieldValues(projectId);
   const { isAuthenticated, isLoading, currentUser } = useAuth();
   const {
     projects,
