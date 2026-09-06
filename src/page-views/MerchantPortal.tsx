@@ -165,8 +165,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
       className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border transition-all
-        border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50
-        dark:border-slate-500 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-600"
+        border-border text-muted-foreground hover:text-foreground hover:bg-muted"
     >
       {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
       {copied ? "Copied" : "Copy"}
@@ -180,7 +179,7 @@ function KwikAssistLogo({ size = "md", onClick }: { size?: "sm" | "md" | "lg"; o
   return (
     <button onClick={onClick} className={cn("font-bold tracking-tight", sizes[size])}>
       <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
-      <span className="text-[10px] text-slate-400 ml-1 font-medium">PORTAL</span>
+      <span className="text-[10px] text-muted-foreground ml-1 font-medium">PORTAL</span>
     </button>
   );
 }
@@ -253,9 +252,9 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
   }
 
   return (
-    <div className="fixed bottom-5 left-5 z-50 w-[380px] max-h-[560px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 flex flex-col overflow-hidden">
+    <div className="fixed bottom-5 left-5 z-50 w-[380px] max-h-[560px] rounded-2xl shadow-2xl border border-border bg-card flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-600" style={{ background: BRAND.primary }}>
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border" style={{ background: BRAND.primary }}>
         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
           <Bot className="w-5 h-5 text-white" />
         </div>
@@ -276,7 +275,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
               "max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed",
               msg.role === "user"
                 ? "text-white rounded-br-sm"
-                : "bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-sm"
+                : "bg-muted text-foreground rounded-bl-sm"
             )} style={msg.role === "user" ? { background: BRAND.primary } : {}}>
               {msg.content}
             </div>
@@ -284,11 +283,11 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-slate-100 dark:bg-slate-700 px-4 py-3 rounded-2xl rounded-bl-sm">
+            <div className="bg-muted px-4 py-3 rounded-2xl rounded-bl-sm">
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -296,14 +295,14 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
       </div>
 
       {/* Input */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-600">
+      <div className="p-3 border-t border-border">
         <div className="flex items-center gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
             placeholder="Ask about your integration..."
-            className="flex-1 px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+            className="flex-1 px-3.5 py-2.5 rounded-xl text-sm bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
           />
           <button
             onClick={sendMessage}
@@ -635,22 +634,22 @@ export default function MerchantPortal() {
   if (!token) {
     if (resolvingMid) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0c1220]">
+        <div className="min-h-screen flex items-center justify-center bg-background">
           <div className="text-center">
-            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-slate-500" />
-            <p className="text-slate-500 dark:text-slate-300 text-sm">Opening portal for {midFromPath}…</p>
+            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-muted-foreground" />
+            <p className="text-muted-foreground text-sm">Opening portal for {midFromPath}…</p>
           </div>
         </div>
       );
     }
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0c1220] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center bg-red-50 dark:bg-red-900/30">
             <ShieldAlert className="w-8 h-8 text-red-500" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Access Denied</h1>
-          <p className="text-slate-500 dark:text-slate-300 text-sm">{resolveError || "No access token provided. Please use the link shared by your integration team."}</p>
+          <h1 className="text-xl font-bold text-foreground mb-2">Access Denied</h1>
+          <p className="text-muted-foreground text-sm">{resolveError || "No access token provided. Please use the link shared by your integration team."}</p>
         </div>
       </div>
     );
@@ -659,10 +658,10 @@ export default function MerchantPortal() {
   // ===== MAGIC LINK AUTH LOADING =====
   if (isMagicLink && !isAuthenticated && magicAuthLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0c1220]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-slate-500" />
-          <p className="text-slate-500 dark:text-slate-300 text-sm">Signing you in via secure link…</p>
+          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground text-sm">Signing you in via secure link…</p>
         </div>
       </div>
     );
@@ -671,26 +670,26 @@ export default function MerchantPortal() {
   // ===== MID LOGIN GATE =====
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-[#0c1220] dark:via-[#101b2e] dark:to-[#0c1220]">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-background via-muted/40 to-background">
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #30658F 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         <div className="w-full max-w-md relative z-10">
-          <div className="bg-white dark:bg-[#141e30] rounded-2xl shadow-xl shadow-slate-200/60 dark:shadow-black/40 p-8 border border-slate-200 dark:border-[#253553]">
+          <div className="bg-card rounded-2xl shadow-xl shadow-[var(--shadow-soft)] p-8 border border-border">
             <div className="text-center mb-8">
               <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md" style={{ background: BRAND.primary }}>
                 <Zap className="w-7 h-7 text-white" fill="white" />
               </div>
               <h1 className="text-2xl font-bold tracking-tight">
                 <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
-                <span className="text-xs font-medium text-slate-400 ml-1">PORTAL</span>
+                <span className="text-xs font-medium text-muted-foreground ml-1">PORTAL</span>
               </h1>
-              <p className="text-slate-500 dark:text-slate-300 text-sm mt-2 font-medium">
+              <p className="text-muted-foreground text-sm mt-2 font-medium">
                 Your Complete Merchant Integration Workspace
               </p>
             </div>
 
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+                <label className="block text-sm font-semibold text-foreground mb-2">
                   Work Email
                 </label>
                 <input
@@ -699,9 +698,9 @@ export default function MerchantPortal() {
                   onChange={(e) => { setEmailInput(e.target.value); setLoginError(null); }}
                   onKeyDown={(e) => { if (e.key === "Enter") handleMidLogin(); }}
                   placeholder="you@company.com"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-[#253553] bg-slate-50 dark:bg-[#1a2740] text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 transition-all text-sm"
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-muted/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary transition-all text-sm"
                 />
-                <p className="text-[11px] text-slate-400 mt-1.5">We use this to track your integration progress.</p>
+                <p className="text-[11px] text-muted-foreground mt-1.5">We use this to track your integration progress.</p>
               </div>
 
               {loginError && (
@@ -730,14 +729,14 @@ export default function MerchantPortal() {
               </button>
             </div>
 
-            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-[#253553]">
-              <p className="text-center text-[11px] text-slate-400 dark:text-slate-400">
+            <div className="mt-6 pt-5 border-t border-border">
+              <p className="text-center text-[11px] text-muted-foreground">
                 Use the work email shared with your Handover integration team.
                 <br />Contact your project manager if you need assistance.
               </p>
             </div>
           </div>
-          <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-4">Powered by Handover</p>
+          <p className="text-center text-[10px] text-muted-foreground mt-4">Powered by Handover</p>
         </div>
       </div>
     );
@@ -746,12 +745,12 @@ export default function MerchantPortal() {
   // ===== LOADING DATA =====
   if (loading || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0c1220]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center" style={{ background: BRAND.primary }}>
             <Loader2 className="w-6 h-6 animate-spin text-white" />
           </div>
-          <p className="text-slate-500 dark:text-slate-300 text-sm">Loading your integration workspace...</p>
+          <p className="text-muted-foreground text-sm">Loading your integration workspace...</p>
         </div>
       </div>
     );
@@ -759,11 +758,11 @@ export default function MerchantPortal() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0c1220] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
           <ShieldAlert className="w-12 h-12 mx-auto mb-4 text-red-500" />
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Access Denied</h1>
-          <p className="text-slate-500 dark:text-slate-300 text-sm">{error}</p>
+          <h1 className="text-xl font-bold text-foreground mb-2">Access Denied</h1>
+          <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>
     );
@@ -772,9 +771,9 @@ export default function MerchantPortal() {
   const { project, owner, checklist_progress } = data;
 
   return (
-    <div className="h-screen bg-slate-50 dark:bg-[#0c1220] text-slate-900 dark:text-slate-100 flex flex-col overflow-hidden">
+    <div className="h-screen bg-background text-foreground flex flex-col overflow-hidden">
       {/* TOP HEADER */}
-      <header className="h-14 flex items-center px-4 gap-3 sticky top-0 z-50 flex-shrink-0 border-b border-slate-200 dark:border-[#253553] bg-white dark:bg-[#111827] shadow-sm">
+      <header className="h-14 flex items-center px-4 gap-3 sticky top-0 z-50 flex-shrink-0 border-b border-border bg-card shadow-sm">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: BRAND.primary }}>
           <Zap className="w-4 h-4 text-white" fill="white" />
         </div>
@@ -784,17 +783,17 @@ export default function MerchantPortal() {
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: BRAND.primary }}>
             {project.merchant_name?.charAt(0).toUpperCase()}
           </div>
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-200 hidden sm:inline">{project.merchant_name}</span>
+          <span className="text-sm font-medium text-foreground hidden sm:inline">{project.merchant_name}</span>
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#1a2740] flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white transition-colors"
+            className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-slate-100 dark:bg-[#1a2740] text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/15 text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-muted text-muted-foreground hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/15 text-xs font-semibold transition-colors"
             title="Sign out of the portal"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -805,7 +804,7 @@ export default function MerchantPortal() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR */}
-        <aside className="w-64 flex flex-col flex-shrink-0 hidden md:flex border-r border-[#25405f] bg-[#1E3355]">
+        <aside className="w-64 flex flex-col flex-shrink-0 hidden md:flex border-r border-sidebar-border bg-sidebar">
           <div className="px-4 pt-6 pb-2">
             <p className="text-[10px] font-bold text-white/55 uppercase tracking-[0.2em] mb-3">Navigation</p>
           </div>
@@ -898,7 +897,7 @@ function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour }: {
 /* ===================== CARD WRAPPER ===================== */
 function Card({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
-    <div className={cn("bg-white dark:bg-[#141e30] border border-slate-200 dark:border-[#253553] rounded-xl shadow-sm", className)} style={style}>
+    <div className={cn("bg-card border border-border rounded-xl shadow-sm", className)} style={style}>
       {children}
     </div>
   );
@@ -966,29 +965,29 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
 
   return (
     <div className="h-full flex flex-col">
-      <div className="px-6 py-3 border-b border-slate-200 dark:border-[#253553] flex items-center justify-between gap-4 bg-white dark:bg-[#0c1220]">
+      <div className="px-6 py-3 border-b border-border flex items-center justify-between gap-4 bg-card">
         <div className="flex items-center gap-3 min-w-0">
           <ClipboardList className="w-5 h-5 flex-shrink-0" style={{ color: BRAND.primary }} />
           <div className="min-w-0">
-            <h1 className="text-base font-bold text-slate-900 dark:text-white truncate">BRD Form</h1>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            <h1 className="text-base font-bold text-foreground truncate">BRD Form</h1>
+            <p className="text-[11px] text-muted-foreground">
               {info?.answered ?? 0}/{info?.total ?? 0} answered · {info?.percent ?? 0}% complete
               {info?.status === "completed" && " · Submitted"}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="w-40 h-2 bg-slate-100 dark:bg-[#1a2740] rounded-full overflow-hidden">
+          <div className="w-40 h-2 bg-muted rounded-full overflow-hidden">
             <div className="h-full rounded-full transition-all"
               style={{ width: `${info?.percent ?? 0}%`, background: (info?.percent ?? 0) === 100 ? BRAND.green : BRAND.accent }} />
           </div>
           <a href={brdUrl} target="_blank" rel="noopener noreferrer"
-            className="text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded border border-slate-200 dark:border-[#253553] text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#1a2740]">
+            className="text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded border border-border text-muted-foreground hover:bg-muted/50">
             <ExternalLink className="w-3 h-3" /> Open in new tab
           </a>
         </div>
       </div>
-      <div className="flex-1 bg-white dark:bg-[#0c1220]">
+      <div className="flex-1 bg-card">
         {brdUrl && (
           <iframe
             src={brdUrl}
@@ -1023,8 +1022,8 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <div>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{project.merchant_name}</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-300 mt-0.5">
+            <h1 className="text-2xl font-bold text-foreground">{project.merchant_name}</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
               {project.brand_url || "—"} · {project.platform} · {project.integration_type || "Standard"}
             </p>
           </div>
@@ -1048,7 +1047,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                 <p className="text-sm font-bold" style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }}>
                   BRD Form · {brdProgress.percent}% complete
                 </p>
-                <p className="text-[11px] text-slate-600 dark:text-slate-700">
+                <p className="text-[11px] text-muted-foreground">
                   {brdProgress.answered}/{brdProgress.total} answered {brdProgress.status === "completed" ? "· Submitted" : "· Click to continue"}
                 </p>
               </div>
@@ -1068,15 +1067,15 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <Card className="p-6">
         <div className="flex items-start justify-between mb-1">
           <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Integration Roadmap</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-300">Stage {currentStage} of {totalStages} — {stages[currentStage - 1]?.label}</p>
+            <h2 className="text-base font-bold text-foreground">Integration Roadmap</h2>
+            <p className="text-sm text-muted-foreground">Stage {currentStage} of {totalStages} — {stages[currentStage - 1]?.label}</p>
           </div>
           <div className="text-right">
             <span className="text-3xl font-bold" style={{ color: BRAND.accent }}>{checklist_progress.percent}%</span>
-            <p className="text-xs text-slate-400 dark:text-slate-400">Complete</p>
+            <p className="text-xs text-muted-foreground">Complete</p>
           </div>
         </div>
-        <div className="h-2 bg-slate-100 dark:bg-[#1a2740] rounded-full overflow-hidden mb-6 mt-3">
+        <div className="h-2 bg-muted rounded-full overflow-hidden mb-6 mt-3">
           <div className="h-full rounded-full transition-all duration-700" style={{ width: `${checklist_progress.percent}%`, background: `linear-gradient(90deg, ${BRAND.accent}, ${BRAND.primary})` }} />
         </div>
         <div className="flex items-center justify-between px-2 overflow-x-auto">
@@ -1089,7 +1088,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                 <div className="flex flex-col items-center min-w-[52px]">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                    isFuture && "bg-slate-100 dark:bg-[#1a2740] text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-[#253553]"
+                    isFuture && "bg-muted text-muted-foreground border border-border"
                   )}
                     style={isDone ? { background: BRAND.green, color: "white" } : isCurrent ? { background: BRAND.accent, color: "white", boxShadow: `0 0 16px ${BRAND.accent}60` } : {}}
                   >
@@ -1097,7 +1096,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                   </div>
                   <span className={cn(
                     "mt-2 text-[10px] text-center leading-tight max-w-[60px]",
-                    isFuture && "text-slate-400 dark:text-slate-500"
+                    isFuture && "text-muted-foreground"
                   )}
                     style={isDone ? { color: BRAND.green } : isCurrent ? { color: BRAND.accent, fontWeight: 700 } : {}}>
                     {stage.label.replace(/^\s*\d+\.\s*/, "")}
@@ -1116,12 +1115,12 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       {/* Full checklist with due dates */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white">Checklist</h2>
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-300">
+          <h2 className="text-base font-bold text-foreground">Checklist</h2>
+          <span className="text-xs font-semibold text-muted-foreground">
             {checklist_progress.completed} of {checklist_progress.total} complete
           </span>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-[#253553]">
+        <div className="divide-y divide-border">
           {data.checklist.map((item, i) => {
             const overdue = !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
             return (
@@ -1130,20 +1129,20 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0"
                     style={{ color: item.completed ? BRAND.green : "#cbd5e1" }} />
                   <span className={cn("text-sm truncate", item.completed
-                    ? "text-slate-500 dark:text-slate-400"
-                    : "text-slate-800 dark:text-slate-100 font-medium")}>
+                    ? "text-muted-foreground"
+                    : "text-foreground font-medium")}>
                     {item.title}
                   </span>
                 </div>
                 <span className={cn("text-xs whitespace-nowrap font-semibold",
-                  overdue ? "text-red-600 dark:text-red-400" : "text-slate-400 dark:text-slate-400")}>
+                  overdue ? "text-red-600 dark:text-red-400" : "text-muted-foreground")}>
                   {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
                 </span>
               </div>
             );
           })}
           {data.checklist.length === 0 && (
-            <p className="text-sm text-slate-400 py-3">No checklist items yet.</p>
+            <p className="text-sm text-muted-foreground py-3">No checklist items yet.</p>
           )}
         </div>
       </Card>
@@ -1152,8 +1151,8 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         <Card className="p-5">
-          <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Project Overview</h3>
-          <div className="divide-y divide-slate-100 dark:divide-[#253553]">
+          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Project Overview</h3>
+          <div className="divide-y divide-border">
             <OverviewRow label={portalLabel("field_platform", "Platform")} value={project.platform || "—"} />
             {data.custom_fields.filter(f => f.key === "arr" || f.label.toLowerCase() === "arr").map(f => (
               <OverviewRow key={f.key} label={portalLabel("field_arr", "ARR")} value={f.value || "—"} />
@@ -1175,7 +1174,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         {/* Notes & Updates with timestamps */}
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Notes & Updates</h3>
+            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Notes & Updates</h3>
             <button onClick={onSaveNote} disabled={!noteText.trim()}
               className="text-xs font-bold text-white px-4 py-1.5 rounded transition-colors disabled:opacity-40"
               style={{ background: BRAND.primary }}>Save</button>
@@ -1183,7 +1182,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
           <textarea
             value={noteText} onChange={(e) => setNoteText(e.target.value)}
             placeholder="Add a note for your SE..."
-            className="w-full bg-slate-50 dark:bg-[#1a2740] border border-slate-200 dark:border-[#253553] rounded-lg p-3 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-400 resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+            className="w-full bg-muted/40 border border-border rounded-lg p-3 text-sm text-foreground placeholder:text-muted-foreground resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
           {savedNotes.length > 0 && (
             <div className="mt-4 space-y-2 max-h-[260px] overflow-y-auto">
@@ -1197,8 +1196,8 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
 
       <Card className="px-5 py-3 flex items-center gap-3" style={{ borderLeft: `3px solid ${BRAND.accent}` }}>
         <Zap className="w-4 h-4 flex-shrink-0" style={{ color: BRAND.accent }} />
-        <p className="text-sm text-slate-500 dark:text-slate-300">
-          Your {orgName} SE will advance your stage once milestones are complete. Use <span className="font-bold text-slate-700 dark:text-white">Handover Assist</span> for help.
+        <p className="text-sm text-muted-foreground">
+          Your {orgName} SE will advance your stage once milestones are complete. Use <span className="font-bold text-foreground">Handover Assist</span> for help.
         </p>
       </Card>
     </div>
@@ -1218,34 +1217,34 @@ function NoteRow({ note, onEdit, onDelete }: { note: MerchantNote; onEdit: (text
     setEditing(false);
   };
   return (
-    <div className="bg-slate-50 dark:bg-[#1a2740] border border-slate-100 dark:border-[#253553] rounded-lg px-3 py-2 group">
+    <div className="bg-muted/40 border border-border rounded-lg px-3 py-2 group">
       {editing ? (
         <div className="space-y-2">
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            className="w-full bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-[#253553] rounded-md p-2 text-sm text-slate-700 dark:text-slate-200 resize-y min-h-[60px] focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+            className="w-full bg-card border border-border rounded-md p-2 text-sm text-foreground resize-y min-h-[60px] focus:outline-none focus:ring-2 focus:ring-ring/30"
             autoFocus
           />
           <div className="flex items-center gap-2">
             <button onClick={save} className="text-[11px] font-bold text-white px-3 py-1 rounded" style={{ background: BRAND.primary }}>Save</button>
-            <button onClick={() => { setDraft(note.text); setEditing(false); }} className="text-[11px] font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white px-2 py-1">Cancel</button>
+            <button onClick={() => { setDraft(note.text); setEditing(false); }} className="text-[11px] font-medium text-muted-foreground hover:text-foreground px-2 py-1">Cancel</button>
           </div>
         </div>
       ) : (
         <>
           <div className="flex items-start gap-2">
-            <p className="text-sm text-slate-700 dark:text-slate-200 flex-1 whitespace-pre-wrap break-words">{note.text}</p>
+            <p className="text-sm text-foreground flex-1 whitespace-pre-wrap break-words">{note.text}</p>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-              <button onClick={() => setEditing(true)} className="p-1 rounded hover:bg-slate-200 dark:hover:bg-[#253553] text-slate-500 dark:text-slate-300" title="Edit">
+              <button onClick={() => setEditing(true)} className="p-1 rounded hover:bg-muted text-muted-foreground" title="Edit">
                 <Pencil className="w-3 h-3" />
               </button>
-              <button onClick={() => { if (confirm("Delete this note?")) onDelete(); }} className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-500/20 text-slate-500 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-300" title="Delete">
+              <button onClick={() => { if (confirm("Delete this note?")) onDelete(); }} className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-500/20 text-muted-foreground hover:text-red-600 dark:hover:text-red-300" title="Delete">
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
           </div>
-          <p className="text-[10px] text-slate-400 dark:text-slate-400 mt-1">
+          <p className="text-[10px] text-muted-foreground mt-1">
             {d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}
           </p>
         </>
@@ -1257,8 +1256,8 @@ function NoteRow({ note, onEdit, onDelete }: { note: MerchantNote; onEdit: (text
 function OverviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between py-3">
-      <span className="text-sm text-slate-500 dark:text-slate-300">{label}</span>
-      <span className="text-sm font-semibold text-slate-900 dark:text-white">{value}</span>
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-semibold text-foreground">{value}</span>
     </div>
   );
 }
@@ -1270,15 +1269,15 @@ function CredentialsPage({ project, credentials }: { project: PortalData["projec
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Credentials</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-300">Keep your App Secret secure. Do not share it publicly.</p>
+        <h1 className="text-2xl font-bold text-foreground">My Credentials</h1>
+        <p className="text-sm text-muted-foreground">Keep your App Secret secure. Do not share it publicly.</p>
       </div>
 
       <div className="flex gap-2">
         {(["sandbox", "production"] as const).map(e => (
           <button key={e} onClick={() => setEnv(e)}
             className={cn("px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize",
-              env === e ? "text-white shadow-md" : "bg-slate-100 dark:bg-[#1a2740] text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#253553]"
+              env === e ? "text-white shadow-md" : "bg-muted text-muted-foreground hover:bg-muted"
             )}
             style={env === e ? { background: BRAND.primary } : {}}
           >{e}</button>
@@ -1286,7 +1285,7 @@ function CredentialsPage({ project, credentials }: { project: PortalData["projec
       </div>
 
       <Card className="p-6 space-y-5">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
           {env === "sandbox" ? "Sandbox" : "Production"} Credentials
         </h3>
         <CredentialField label="MERCHANT ID (MID)" value={creds?.mid || project.mid || "NA"} />
@@ -1315,12 +1314,12 @@ function CredentialField({ label, value, masked, sensitive }: { label: string; v
   const displayVal = showToggle && !visible ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" : value;
   return (
     <div>
-      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1.5">{label}</p>
-      <div className="bg-slate-50 dark:bg-[#1a2740] border border-slate-200 dark:border-[#253553] rounded-lg px-4 py-3 flex items-center justify-between">
-        <span className="text-sm text-slate-700 dark:text-slate-200 font-mono">{displayVal}</span>
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</p>
+      <div className="bg-muted/40 border border-border rounded-lg px-4 py-3 flex items-center justify-between">
+        <span className="text-sm text-foreground font-mono">{displayVal}</span>
         <div className="flex items-center gap-2">
           {showToggle && (
-            <button onClick={() => setVisible(!visible)} className="text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors" title={visible ? "Hide" : "Reveal"}>
+            <button onClick={() => setVisible(!visible)} className="text-muted-foreground hover:text-foreground transition-colors" title={visible ? "Hide" : "Reveal"}>
               {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           )}
@@ -1381,26 +1380,26 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Documents & Resources</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-300">Access your integration documents and resources.</p>
+        <h1 className="text-2xl font-bold text-foreground">Documents & Resources</h1>
+        <p className="text-sm text-muted-foreground">Access your integration documents and resources.</p>
       </div>
       <div className="space-y-3">
         {docs.map((doc, i) => {
           const inner = (
-            <Card className="p-5 flex items-center gap-4 hover:border-slate-300 dark:hover:border-[#354565] transition-colors cursor-pointer">
-              <div className="w-10 h-10 rounded-lg bg-slate-50 dark:bg-[#1a2740] flex items-center justify-center flex-shrink-0">
+            <Card className="p-5 flex items-center gap-4 hover:border-primary/40 transition-colors cursor-pointer">
+              <div className="w-10 h-10 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
                 {doc.icon}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-bold text-slate-900 dark:text-white">{doc.title}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{doc.desc}</p>
+                <p className="text-sm font-bold text-foreground">{doc.title}</p>
+                <p className="text-xs text-muted-foreground">{doc.desc}</p>
               </div>
               <span className={cn(
                 "text-[10px] font-bold px-2.5 py-1 rounded",
                 doc.badgeColor === "blue" ? "bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300" :
                 "bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-300"
               )}>{doc.badge}</span>
-              <ExternalLink className="w-4 h-4 text-slate-400 dark:text-slate-400" />
+              <ExternalLink className="w-4 h-4 text-muted-foreground" />
             </Card>
           );
           return doc.onClick ? (
@@ -1413,7 +1412,7 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
 
       {docs.length === 0 && (
         <Card className="p-8 text-center">
-          <p className="text-sm text-slate-400 dark:text-slate-400">No documents shared yet</p>
+          <p className="text-sm text-muted-foreground">No documents shared yet</p>
         </Card>
       )}
     </div>
@@ -1555,18 +1554,18 @@ console.log(payload);
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       {onBack && (
-        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
+        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="w-4 h-4" /> Back to Documents
         </button>
       )}
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <KeyRound className="w-6 h-6" style={{ color: BRAND.primary }} />
             KwikPass Integration
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Follow the steps below, or open the full KP API reference for advanced details. Both stay in sync.
           </p>
         </div>
@@ -1604,14 +1603,14 @@ console.log(payload);
 
       {/* JWE Keys */}
       <Card className="p-5 space-y-4">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Your JWE Decryption Keys</h3>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Your JWE Decryption Keys</h3>
         <CredentialField label="SANDBOX JWE KEY" value={sandboxJweKey} masked sensitive />
         <CredentialField label="PRODUCTION JWE KEY" value={prodJweKey || "••••••••••••••••"} masked sensitive={!!prodJweKey} />
       </Card>
 
       {/* Step-by-step Guide */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Integration Steps</h3>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Integration Steps</h3>
         <div className="flex gap-2 flex-wrap mb-5">
           {steps.map((s, i) => (
             <button key={i} onClick={() => setActiveStep(i)}
@@ -1619,7 +1618,7 @@ console.log(payload);
                 "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                 activeStep === i
                   ? "text-white shadow-md"
-                  : "bg-slate-100 dark:bg-[#1a2740] text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#253553]"
+                  : "bg-muted text-muted-foreground hover:bg-muted"
               )}
               style={activeStep === i ? { background: BRAND.primary } : {}}
             >
@@ -1630,7 +1629,7 @@ console.log(payload);
 
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <h4 className="text-base font-bold text-slate-900 dark:text-white">{steps[activeStep].title}</h4>
+            <h4 className="text-base font-bold text-foreground">{steps[activeStep].title}</h4>
             {(steps[activeStep] as any).badge && (
               <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded border",
                 (steps[activeStep] as any).badgeColor === "red"
@@ -1641,12 +1640,12 @@ console.log(payload);
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-300">{steps[activeStep].desc}</p>
+          <p className="text-sm text-muted-foreground">{steps[activeStep].desc}</p>
           {(steps[activeStep] as any).note && (
-            <p className="text-xs text-slate-400 dark:text-slate-400 italic">{(steps[activeStep] as any).note}</p>
+            <p className="text-xs text-muted-foreground italic">{(steps[activeStep] as any).note}</p>
           )}
           <div className="relative">
-            <pre className="bg-slate-900 dark:bg-[#0c1220] text-green-400 dark:text-green-300 rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-slate-700 dark:border-[#253553]">
+            <pre className="bg-muted text-green-400 dark:text-green-300 rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-border">
               {steps[activeStep].code}
             </pre>
             <div className="absolute top-2 right-2">
@@ -1657,16 +1656,16 @@ console.log(payload);
           {/* Environment-specific changes table */}
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Sandbox vs Production Changes</p>
-              <div className="border border-slate-200 dark:border-[#253553] rounded-lg overflow-hidden text-xs">
-                <div className="grid grid-cols-3 bg-slate-50 dark:bg-[#1a2740] font-bold">
-                  <div className="px-3 py-2 text-slate-600 dark:text-slate-300">Field</div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Sandbox vs Production Changes</p>
+              <div className="border border-border rounded-lg overflow-hidden text-xs">
+                <div className="grid grid-cols-3 bg-muted/40 font-bold">
+                  <div className="px-3 py-2 text-muted-foreground">Field</div>
                   <div className="px-3 py-2 text-green-600 dark:text-green-400">Sandbox</div>
                   <div className="px-3 py-2 text-amber-600 dark:text-amber-400">Production</div>
                 </div>
                 {(steps[activeStep] as any).envChanges.map((c: any, j: number) => (
-                  <div key={j} className="grid grid-cols-3 border-t border-slate-200 dark:border-[#253553]">
-                    <div className="px-3 py-2 font-medium text-slate-700 dark:text-slate-200">{c.field}</div>
+                  <div key={j} className="grid grid-cols-3 border-t border-border">
+                    <div className="px-3 py-2 font-medium text-foreground">{c.field}</div>
                     <div className="px-3 py-2 text-green-600 dark:text-green-400 font-mono break-all">{c.sandbox}</div>
                     <div className="px-3 py-2 text-amber-600 dark:text-amber-400 font-mono break-all">{c.production}</div>
                   </div>
@@ -1688,11 +1687,11 @@ console.log(payload);
           {/* SSO customization note */}
           {(steps[activeStep] as any).ssoNote && (
             <Card className="p-4 mt-2" style={{ borderLeft: `3px solid ${BRAND.accent}` }}>
-              <p className="text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">SSO Button — What can & cannot be changed</p>
+              <p className="text-xs font-bold text-foreground mb-2">SSO Button — What can & cannot be changed</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase mb-1">✅ Can Customise</p>
-                  <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                  <ul className="text-xs text-muted-foreground space-y-1">
                     <li>✓ Button colour</li>
                     <li>✓ Button size & shape</li>
                     <li>✓ Button edges (border-radius)</li>
@@ -1701,7 +1700,7 @@ console.log(payload);
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase mb-1">✕ Cannot Change</p>
-                  <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                  <ul className="text-xs text-muted-foreground space-y-1">
                     <li>✕ Text "Login with 98xxxxxxx34" (fetched dynamically)</li>
                     <li>✕ "Powered by KwikPass" logo (mandatory)</li>
                     <li>✕ Button opacity = 0 or display = none</li>
@@ -1713,19 +1712,19 @@ console.log(payload);
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 dark:border-[#253553]">
+        <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
           <button
             onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
             disabled={activeStep === 0}
-            className="flex items-center gap-1 text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"
+            className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" /> Previous
           </button>
-          <span className="text-xs text-slate-400">Step {activeStep + 1} of {steps.length}</span>
+          <span className="text-xs text-muted-foreground">Step {activeStep + 1} of {steps.length}</span>
           <button
             onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))}
             disabled={activeStep === steps.length - 1}
-            className="flex items-center gap-1 text-sm font-medium hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"
+            className="flex items-center gap-1 text-sm font-medium hover:text-foreground disabled:opacity-30 transition-colors"
             style={{ color: BRAND.primary }}
           >
             Next <ChevronRight className="w-4 h-4" />
@@ -1735,7 +1734,7 @@ console.log(payload);
 
       {/* Do's & Don'ts */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Do's & Don'ts</h3>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Do's & Don'ts</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase">✅ Do's</p>
@@ -1749,7 +1748,7 @@ console.log(payload);
             ].map((d, i) => (
               <div key={i} className="flex items-start gap-2 p-2 rounded bg-green-50 dark:bg-green-500/10">
                 <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-slate-700 dark:text-slate-200">{d}</p>
+                <p className="text-xs text-foreground">{d}</p>
               </div>
             ))}
           </div>
@@ -1765,7 +1764,7 @@ console.log(payload);
             ].map((d, i) => (
               <div key={i} className="flex items-start gap-2 p-2 rounded bg-red-50 dark:bg-red-500/10">
                 <X className="w-3.5 h-3.5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-slate-700 dark:text-slate-200">{d}</p>
+                <p className="text-xs text-foreground">{d}</p>
               </div>
             ))}
           </div>
@@ -1774,16 +1773,16 @@ console.log(payload);
 
       {/* Production vs Sandbox — all changes */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Production vs Sandbox — Full Change Reference</h3>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Production vs Sandbox — Full Change Reference</h3>
         <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg px-4 py-2.5 flex items-center gap-2 mb-4">
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
           <p className="text-xs text-amber-700 dark:text-amber-300">
             When moving from Sandbox → Production, update <strong>all</strong> values below. Mixing environments will cause authentication failures.
           </p>
         </div>
-        <div className="border border-slate-200 dark:border-[#253553] rounded-lg overflow-hidden text-xs">
-          <div className="grid grid-cols-3 bg-slate-50 dark:bg-[#1a2740] font-bold">
-            <div className="px-3 py-2.5 text-slate-600 dark:text-slate-300">Configuration</div>
+        <div className="border border-border rounded-lg overflow-hidden text-xs">
+          <div className="grid grid-cols-3 bg-muted/40 font-bold">
+            <div className="px-3 py-2.5 text-muted-foreground">Configuration</div>
             <div className="px-3 py-2.5 text-green-600 dark:text-green-400">Sandbox</div>
             <div className="px-3 py-2.5 text-amber-600 dark:text-amber-400">Production</div>
           </div>
@@ -1794,8 +1793,8 @@ console.log(payload);
             { field: "JWE Decryption Key", sandbox: sandboxJweKey.substring(0, 20) + "…", production: "Production Key (from Credentials)" },
             { field: "Base URL (APIs)", sandbox: "sandbox.api.gokwik.co", production: "api.gokwik.co" },
           ].map((row, i) => (
-            <div key={i} className="grid grid-cols-3 border-t border-slate-200 dark:border-[#253553]">
-              <div className="px-3 py-2 font-medium text-slate-700 dark:text-slate-200">{row.field}</div>
+            <div key={i} className="grid grid-cols-3 border-t border-border">
+              <div className="px-3 py-2 font-medium text-foreground">{row.field}</div>
               <div className="px-3 py-2 text-green-600 dark:text-green-400 font-mono break-all">{row.sandbox}</div>
               <div className="px-3 py-2 text-amber-600 dark:text-amber-400 font-mono break-all">{row.production}</div>
             </div>
@@ -1805,7 +1804,7 @@ console.log(payload);
 
       {/* Testing Guide */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Testing Guide</h3>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Testing Guide</h3>
         <div className="space-y-3">
           {[
             { title: "Test OTP Flow", desc: "Go to profile/account section → Enter mobile number → Receive Handover OTP → Verify OTP → You're logged in!", icon: "📱" },
@@ -1813,11 +1812,11 @@ console.log(payload);
             { title: "Test Token Decryption", desc: "Use the JWE secret key to decrypt kpToken → Verify phone number and email in payload", icon: "🔑" },
             { title: "Test Logout", desc: "Logout → Verify handleKPLogout() clears session → Login again via OTP to confirm flow resets", icon: "🔄" },
           ].map((t, i) => (
-            <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-[#1a2740]">
+            <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/40">
               <span className="text-lg">{t.icon}</span>
               <div>
-                <p className="text-sm font-bold text-slate-800 dark:text-white">{t.title}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-300 mt-0.5">{t.desc}</p>
+                <p className="text-sm font-bold text-foreground">{t.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
               </div>
             </div>
           ))}
@@ -1832,8 +1831,8 @@ function PaymentSimulatorPage({ link }: { link: string }) {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Payment Simulator</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-300">Run end-to-end test transactions on a sandbox payment flow.</p>
+        <h1 className="text-2xl font-bold text-foreground">Payment Simulator</h1>
+        <p className="text-sm text-muted-foreground">Run end-to-end test transactions on a sandbox payment flow.</p>
       </div>
 
       <div className="rounded-xl p-6" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
@@ -1850,8 +1849,8 @@ function PaymentSimulatorPage({ link }: { link: string }) {
             <Zap className="w-5 h-5" style={{ color: BRAND.primary }} />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">About the Simulator</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+            <h3 className="text-sm font-bold text-foreground">About the Simulator</h3>
+            <p className="text-sm text-muted-foreground mt-1">
               The Payment Simulator lets you trigger end-to-end sandbox payment flows tied to your merchant configuration. Use it to verify webhooks, order status updates and the full checkout experience before going live.
             </p>
           </div>
@@ -1922,22 +1921,22 @@ function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">FAQ & Help</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-300">Common questions about Handover API integration.</p>
+        <h1 className="text-2xl font-bold text-foreground">FAQ & Help</h1>
+        <p className="text-sm text-muted-foreground">Common questions about Handover API integration.</p>
       </div>
       <div className="space-y-2">
         {faqs.map((faq, i) => (
           <Card key={i} className="overflow-hidden">
             <button
               onClick={() => setOpenIdx(openIdx === i ? null : i)}
-              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-[#1a2740] transition-colors"
+              className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/50 transition-colors"
             >
-              <span className="text-sm text-slate-700 dark:text-slate-200">{faq.q}</span>
-              <ChevronRight className={cn("w-4 h-4 text-slate-400 dark:text-slate-400 transition-transform", openIdx === i && "rotate-90")} />
+              <span className="text-sm text-foreground">{faq.q}</span>
+              <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform", openIdx === i && "rotate-90")} />
             </button>
             {openIdx === i && (
               <div className="px-5 pb-4">
-                <p className="text-sm text-slate-500 dark:text-slate-300 whitespace-pre-line">{faq.a}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{faq.a}</p>
               </div>
             )}
           </Card>
@@ -2085,18 +2084,18 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       {onBack && (
-        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
+        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="w-4 h-4" /> Back to Documents
         </button>
       )}
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Code className="w-6 h-6" style={{ color: BRAND.primary }} />
             MCP Server Setup
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Hand the steps below to your AI assistant — it will set up the MCP server end-to-end. Or download the full prompt.
           </p>
         </div>
@@ -2112,16 +2111,16 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* API Key */}
       <Card className="p-5 space-y-3">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Your API Key</h3>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Your API Key</h3>
         <CredentialField label="X-API-KEY" value={apiKey} masked sensitive={apiKey !== "<USER_API_KEY>"} />
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-muted-foreground">
           Same value as the Validator's <span className="font-semibold">Config ID</span>. If empty, request it from your Handover onboarding manager.
         </p>
       </Card>
 
       {/* Steps */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Setup Steps</h3>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Setup Steps</h3>
         <div className="flex gap-2 flex-wrap mb-5">
           {steps.map((s, i) => (
             <button key={i} onClick={() => setActiveStep(i)}
@@ -2129,7 +2128,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
                 "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                 activeStep === i
                   ? "text-white shadow-md"
-                  : "bg-slate-100 dark:bg-[#1a2740] text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#253553]"
+                  : "bg-muted text-muted-foreground hover:bg-muted"
               )}
               style={activeStep === i ? { background: BRAND.primary } : {}}
             >
@@ -2139,13 +2138,13 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
         </div>
 
         <div className="space-y-3">
-          <h4 className="text-base font-bold text-slate-900 dark:text-white">{steps[activeStep].title}</h4>
-          <p className="text-sm text-slate-500 dark:text-slate-300">{steps[activeStep].desc}</p>
+          <h4 className="text-base font-bold text-foreground">{steps[activeStep].title}</h4>
+          <p className="text-sm text-muted-foreground">{steps[activeStep].desc}</p>
           {(steps[activeStep] as any).note && (
-            <p className="text-xs text-slate-400 dark:text-slate-400 italic">{(steps[activeStep] as any).note}</p>
+            <p className="text-xs text-muted-foreground italic">{(steps[activeStep] as any).note}</p>
           )}
           <div className="relative">
-            <pre className="bg-slate-900 dark:bg-[#0c1220] text-green-400 dark:text-green-300 rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-slate-700 dark:border-[#253553]">
+            <pre className="bg-muted text-green-400 dark:text-green-300 rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-border">
               {steps[activeStep].code}
             </pre>
             <div className="absolute top-2 right-2">
@@ -2155,16 +2154,16 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Environment-Specific Configuration</p>
-              <div className="border border-slate-200 dark:border-[#253553] rounded-lg overflow-hidden text-xs">
-                <div className="grid grid-cols-3 bg-slate-50 dark:bg-[#1a2740] font-bold">
-                  <div className="px-3 py-2 text-slate-600 dark:text-slate-300">Field</div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Environment-Specific Configuration</p>
+              <div className="border border-border rounded-lg overflow-hidden text-xs">
+                <div className="grid grid-cols-3 bg-muted/40 font-bold">
+                  <div className="px-3 py-2 text-muted-foreground">Field</div>
                   <div className="px-3 py-2 text-green-600 dark:text-green-400">Sandbox / Code</div>
                   <div className="px-3 py-2 text-amber-600 dark:text-amber-400">Production / Desktop</div>
                 </div>
                 {(steps[activeStep] as any).envChanges.map((c: any, j: number) => (
-                  <div key={j} className="grid grid-cols-3 border-t border-slate-200 dark:border-[#253553]">
-                    <div className="px-3 py-2 font-medium text-slate-700 dark:text-slate-200">{c.field}</div>
+                  <div key={j} className="grid grid-cols-3 border-t border-border">
+                    <div className="px-3 py-2 font-medium text-foreground">{c.field}</div>
                     <div className="px-3 py-2 text-green-600 dark:text-green-400 font-mono break-all">{c.sandbox}</div>
                     <div className="px-3 py-2 text-amber-600 dark:text-amber-400 font-mono break-all">{c.production}</div>
                   </div>
@@ -2183,14 +2182,14 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 dark:border-[#253553]">
+        <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
           <button onClick={() => setActiveStep(Math.max(0, activeStep - 1))} disabled={activeStep === 0}
-            className="flex items-center gap-1 text-sm font-medium text-slate-500 dark:text-slate-300 hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors">
+            className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
             <ChevronLeft className="w-4 h-4" /> Previous
           </button>
-          <span className="text-xs text-slate-400">Step {activeStep + 1} of {steps.length}</span>
+          <span className="text-xs text-muted-foreground">Step {activeStep + 1} of {steps.length}</span>
           <button onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))} disabled={activeStep === steps.length - 1}
-            className="flex items-center gap-1 text-sm font-medium hover:text-slate-700 dark:hover:text-white disabled:opacity-30 transition-colors"
+            className="flex items-center gap-1 text-sm font-medium hover:text-foreground disabled:opacity-30 transition-colors"
             style={{ color: BRAND.primary }}>
             Next <ChevronRight className="w-4 h-4" />
           </button>
@@ -2199,7 +2198,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* Do's & Don'ts */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Do's & Don'ts</h3>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Do's & Don'ts</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase">✅ Do's</p>
@@ -2213,7 +2212,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
             ].map((d, i) => (
               <div key={i} className="flex items-start gap-2 p-2 rounded bg-green-50 dark:bg-green-500/10">
                 <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-slate-700 dark:text-slate-200">{d}</p>
+                <p className="text-xs text-foreground">{d}</p>
               </div>
             ))}
           </div>
@@ -2229,7 +2228,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
             ].map((d, i) => (
               <div key={i} className="flex items-start gap-2 p-2 rounded bg-red-50 dark:bg-red-500/10">
                 <X className="w-3.5 h-3.5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-slate-700 dark:text-slate-200">{d}</p>
+                <p className="text-xs text-foreground">{d}</p>
               </div>
             ))}
           </div>
@@ -2238,16 +2237,16 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* Troubleshooting */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Troubleshooting</h3>
-        <div className="border border-slate-200 dark:border-[#253553] rounded-lg overflow-hidden text-xs">
-          <div className="grid grid-cols-2 bg-slate-50 dark:bg-[#1a2740] font-bold">
-            <div className="px-3 py-2 text-slate-600 dark:text-slate-300">Error</div>
-            <div className="px-3 py-2 text-slate-600 dark:text-slate-300">Fix</div>
+        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Troubleshooting</h3>
+        <div className="border border-border rounded-lg overflow-hidden text-xs">
+          <div className="grid grid-cols-2 bg-muted/40 font-bold">
+            <div className="px-3 py-2 text-muted-foreground">Error</div>
+            <div className="px-3 py-2 text-muted-foreground">Fix</div>
           </div>
           {troubleshooting.map((t, i) => (
-            <div key={i} className="grid grid-cols-2 border-t border-slate-200 dark:border-[#253553]">
+            <div key={i} className="grid grid-cols-2 border-t border-border">
               <div className="px-3 py-2 font-mono text-red-600 dark:text-red-400 break-all">{t.error}</div>
-              <div className="px-3 py-2 text-slate-700 dark:text-slate-200">{t.fix}</div>
+              <div className="px-3 py-2 text-foreground">{t.fix}</div>
             </div>
           ))}
         </div>
@@ -2285,17 +2284,17 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
   const apis = project.mandatory_apis ?? [];
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
-      <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">
+      <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
         <ChevronLeft className="w-4 h-4" /> Back to Documents
       </button>
 
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <FileCode className="w-6 h-6 text-orange-500" />
             Mandatory APIs & Postman Collection
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-300 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {apis.length > 0
               ? `${apis.length} API${apis.length === 1 ? "" : "s"} marked mandatory by your CE for integration.`
               : "Your CE has not marked any APIs as mandatory yet — refer to the Postman collection below."}
@@ -2313,7 +2312,7 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
 
       {apis.length > 0 && (
         <Card className="p-5">
-          <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Mandatory API List</h3>
+          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Mandatory API List</h3>
           <ol className="space-y-2">
             {apis.map((api, i) => {
               const href = MANDATORY_API_DOC_LINKS[api] || POSTMAN_COLLECTION_URL;
@@ -2323,7 +2322,7 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-[#1a2740] border border-slate-200 dark:border-[#253553] hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-[#1f2b48] transition-colors"
+                    className="group flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border hover:border-primary hover:bg-accent/10 transition-colors"
                   >
                     <div
                       className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
@@ -2331,8 +2330,8 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
                     >
                       {i + 1}
                     </div>
-                    <p className="text-sm font-bold text-slate-900 dark:text-white flex-1">{api}</p>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                    <p className="text-sm font-bold text-foreground flex-1">{api}</p>
+                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </a>
                 </li>
               );
@@ -2348,8 +2347,8 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
 function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="bg-white dark:bg-[#141e30] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-[#253553]">
-        <div className="px-7 py-6 border-b border-slate-100 dark:border-[#253553] flex items-start justify-between gap-4" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
+      <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border">
+        <div className="px-7 py-6 border-b border-border flex items-start justify-between gap-4" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Zap className="w-5 h-5 text-white" fill="white" />
@@ -2361,14 +2360,14 @@ function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; o
         </div>
         <div className="px-7 py-6 space-y-5">
           <div>
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-2">🎯 What problem does this solve?</h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            <h3 className="text-sm font-bold text-foreground mb-2">🎯 What problem does this solve?</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Merchant integrations often stall because credentials, documents, status updates, and validations live across emails, Jira, Slack, and spreadsheets. <strong>Handover Assist consolidates everything you need to go live into one secure workspace</strong> — eliminating back-and-forth and accelerating time-to-launch.
             </p>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-2">⚡ How are we solving it?</h3>
-            <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+            <h3 className="text-sm font-bold text-foreground mb-2">⚡ How are we solving it?</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex gap-2"><span className="text-blue-500">1.</span><span><strong>Single source of truth</strong> — Live integration status, owner, and next steps, always in sync with your Handover CE.</span></li>
               <li className="flex gap-2"><span className="text-blue-500">2.</span><span><strong>Secure credentials vault</strong> — Sandbox & production keys hidden by default, with copy + reveal controls.</span></li>
               <li className="flex gap-2"><span className="text-blue-500">3.</span><span><strong>Self-service validation</strong> — Run the Merchant Validator and Payment Simulator without waiting on CE bandwidth.</span></li>
@@ -2382,7 +2381,7 @@ function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; o
             </p>
           </div>
         </div>
-        <div className="px-7 py-4 border-t border-slate-100 dark:border-[#253553] flex justify-end">
+        <div className="px-7 py-4 border-t border-border flex justify-end">
           <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90" style={{ background: BRAND.primary }}>
             Get Started →
           </button>
