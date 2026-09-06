@@ -105,3 +105,9 @@ Minor: the default name for the internal responsibility party is still
 - `src/hooks/useCustomFields.ts` selects `custom_fields` with no `tenant_id`
   filter on read.
 - `src/pages/ProjectWorkspace.tsx` does not import `CustomFieldsRenderer`.
+- Team names: drop the `team_*` group from `SETTINGS_GROUPS` in
+  `src/components/SettingsPanel.tsx` and build `teamLabels` in
+  `LabelsContext` from `useTeams().teamLabelMap` (teams table) instead of the
+  `team_mint / team_integration / team_ms` keys, keeping manager, super_admin
+  and general as fixed role labels. Any existing `app_settings` team_* override
+  is migrated into the matching `teams` row once.
