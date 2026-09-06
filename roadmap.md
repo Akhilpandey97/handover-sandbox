@@ -24,6 +24,11 @@
       team dropdown/label across dashboards, checklists, transfers, exports
 - [x] Removed stale GoKwik-era team names and the @gokwik.co signup restriction
 
+- [x] Removed stale `qa_team` checklist template + all project copies
+- [x] CRM integration API live: tenant API keys (Settings → Integrations →
+      API Keys) + `/api/public/v1/{projects,projects/:id,users,health}`,
+      `external_id` idempotency. Docs: `docs/handover-crm-api.md`
+
 ## Notes
 - Cron dispatcher auth: `x-cron-token` header, validated against a private
   admin-only table (`private.cron_config`) or `LOVABLE_CRON_SECRET`.
