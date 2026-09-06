@@ -165,8 +165,7 @@ function CopyButton({ text }: { text: string }) {
     <button
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
       className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border transition-all
-        border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50
-        dark:border-slate-500 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-600"
+        border-border text-muted-foreground hover:text-foreground hover:bg-muted"
     >
       {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
       {copied ? "Copied" : "Copy"}
@@ -180,7 +179,7 @@ function KwikAssistLogo({ size = "md", onClick }: { size?: "sm" | "md" | "lg"; o
   return (
     <button onClick={onClick} className={cn("font-bold tracking-tight", sizes[size])}>
       <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
-      <span className="text-[10px] text-slate-400 ml-1 font-medium">PORTAL</span>
+      <span className="text-[10px] text-muted-foreground ml-1 font-medium">PORTAL</span>
     </button>
   );
 }
@@ -253,9 +252,9 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
   }
 
   return (
-    <div className="fixed bottom-5 left-5 z-50 w-[380px] max-h-[560px] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 flex flex-col overflow-hidden">
+    <div className="fixed bottom-5 left-5 z-50 w-[380px] max-h-[560px] rounded-2xl shadow-2xl border border-border bg-card flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-600" style={{ background: BRAND.primary }}>
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border" style={{ background: BRAND.primary }}>
         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
           <Bot className="w-5 h-5 text-white" />
         </div>
@@ -276,7 +275,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
               "max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed",
               msg.role === "user"
                 ? "text-white rounded-br-sm"
-                : "bg-slate-100 dark:bg-slate-700 text-foreground rounded-bl-sm"
+                : "bg-muted text-foreground rounded-bl-sm"
             )} style={msg.role === "user" ? { background: BRAND.primary } : {}}>
               {msg.content}
             </div>
@@ -284,11 +283,11 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-slate-100 dark:bg-slate-700 px-4 py-3 rounded-2xl rounded-bl-sm">
+            <div className="bg-muted px-4 py-3 rounded-2xl rounded-bl-sm">
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
@@ -296,14 +295,14 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
       </div>
 
       {/* Input */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-600">
+      <div className="p-3 border-t border-border">
         <div className="flex items-center gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
             placeholder="Ask about your integration..."
-            className="flex-1 px-3.5 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-foreground placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+            className="flex-1 px-3.5 py-2.5 rounded-xl text-sm bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
           />
           <button
             onClick={sendMessage}
@@ -637,7 +636,7 @@ export default function MerchantPortal() {
       return (
         <div className="min-h-screen flex items-center justify-center bg-background">
           <div className="text-center">
-            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-slate-500" />
+            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-muted-foreground" />
             <p className="text-muted-foreground text-sm">Opening portal for {midFromPath}…</p>
           </div>
         </div>
@@ -661,7 +660,7 @@ export default function MerchantPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-slate-500" />
+          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-muted-foreground" />
           <p className="text-muted-foreground text-sm">Signing you in via secure link…</p>
         </div>
       </div>
@@ -681,7 +680,7 @@ export default function MerchantPortal() {
               </div>
               <h1 className="text-2xl font-bold tracking-tight">
                 <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
-                <span className="text-xs font-medium text-slate-400 ml-1">PORTAL</span>
+                <span className="text-xs font-medium text-muted-foreground ml-1">PORTAL</span>
               </h1>
               <p className="text-muted-foreground text-sm mt-2 font-medium">
                 Your Complete Merchant Integration Workspace
@@ -701,7 +700,7 @@ export default function MerchantPortal() {
                   placeholder="you@company.com"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-muted/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary transition-all text-sm"
                 />
-                <p className="text-[11px] text-slate-400 mt-1.5">We use this to track your integration progress.</p>
+                <p className="text-[11px] text-muted-foreground mt-1.5">We use this to track your integration progress.</p>
               </div>
 
               {loginError && (
@@ -1048,7 +1047,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                 <p className="text-sm font-bold" style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }}>
                   BRD Form · {brdProgress.percent}% complete
                 </p>
-                <p className="text-[11px] text-slate-600 dark:text-slate-700">
+                <p className="text-[11px] text-muted-foreground">
                   {brdProgress.answered}/{brdProgress.total} answered {brdProgress.status === "completed" ? "· Submitted" : "· Click to continue"}
                 </p>
               </div>
@@ -1143,7 +1142,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
             );
           })}
           {data.checklist.length === 0 && (
-            <p className="text-sm text-slate-400 py-3">No checklist items yet.</p>
+            <p className="text-sm text-muted-foreground py-3">No checklist items yet.</p>
           )}
         </div>
       </Card>
@@ -1198,7 +1197,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <Card className="px-5 py-3 flex items-center gap-3" style={{ borderLeft: `3px solid ${BRAND.accent}` }}>
         <Zap className="w-4 h-4 flex-shrink-0" style={{ color: BRAND.accent }} />
         <p className="text-sm text-muted-foreground">
-          Your {orgName} SE will advance your stage once milestones are complete. Use <span className="font-bold text-slate-700 dark:text-white">Handover Assist</span> for help.
+          Your {orgName} SE will advance your stage once milestones are complete. Use <span className="font-bold text-foreground">Handover Assist</span> for help.
         </p>
       </Card>
     </div>
@@ -1320,7 +1319,7 @@ function CredentialField({ label, value, masked, sensitive }: { label: string; v
         <span className="text-sm text-foreground font-mono">{displayVal}</span>
         <div className="flex items-center gap-2">
           {showToggle && (
-            <button onClick={() => setVisible(!visible)} className="text-muted-foreground hover:text-slate-600 dark:hover:text-white transition-colors" title={visible ? "Hide" : "Reveal"}>
+            <button onClick={() => setVisible(!visible)} className="text-muted-foreground hover:text-foreground transition-colors" title={visible ? "Hide" : "Reveal"}>
               {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           )}
@@ -1387,7 +1386,7 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
       <div className="space-y-3">
         {docs.map((doc, i) => {
           const inner = (
-            <Card className="p-5 flex items-center gap-4 hover:border-slate-300 dark:hover:border-[#354565] transition-colors cursor-pointer">
+            <Card className="p-5 flex items-center gap-4 hover:border-primary/40 transition-colors cursor-pointer">
               <div className="w-10 h-10 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
                 {doc.icon}
               </div>
@@ -1555,7 +1554,7 @@ console.log(payload);
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       {onBack && (
-        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-slate-900 dark:hover:text-white transition-colors">
+        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="w-4 h-4" /> Back to Documents
         </button>
       )}
@@ -1721,7 +1720,7 @@ console.log(payload);
           >
             <ChevronLeft className="w-4 h-4" /> Previous
           </button>
-          <span className="text-xs text-slate-400">Step {activeStep + 1} of {steps.length}</span>
+          <span className="text-xs text-muted-foreground">Step {activeStep + 1} of {steps.length}</span>
           <button
             onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))}
             disabled={activeStep === steps.length - 1}
@@ -1816,7 +1815,7 @@ console.log(payload);
             <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/40">
               <span className="text-lg">{t.icon}</span>
               <div>
-                <p className="text-sm font-bold text-slate-800 dark:text-white">{t.title}</p>
+                <p className="text-sm font-bold text-foreground">{t.title}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{t.desc}</p>
               </div>
             </div>
@@ -2085,7 +2084,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       {onBack && (
-        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-slate-900 dark:hover:text-white transition-colors">
+        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft className="w-4 h-4" /> Back to Documents
         </button>
       )}
@@ -2188,7 +2187,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
             className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
             <ChevronLeft className="w-4 h-4" /> Previous
           </button>
-          <span className="text-xs text-slate-400">Step {activeStep + 1} of {steps.length}</span>
+          <span className="text-xs text-muted-foreground">Step {activeStep + 1} of {steps.length}</span>
           <button onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))} disabled={activeStep === steps.length - 1}
             className="flex items-center gap-1 text-sm font-medium hover:text-foreground disabled:opacity-30 transition-colors"
             style={{ color: BRAND.primary }}>
@@ -2285,7 +2284,7 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
   const apis = project.mandatory_apis ?? [];
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
-      <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-slate-900 dark:hover:text-white transition-colors">
+      <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
         <ChevronLeft className="w-4 h-4" /> Back to Documents
       </button>
 
@@ -2332,7 +2331,7 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
                       {i + 1}
                     </div>
                     <p className="text-sm font-bold text-foreground flex-1">{api}</p>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </a>
                 </li>
               );
