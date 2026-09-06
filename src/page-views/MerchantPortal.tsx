@@ -1057,7 +1057,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
             Stage {currentStage}: {stages[currentStage - 1]?.label}
           </span>
         </div>
-        {brdProgress && brdProgress.total > 0 && (
+        {brdProgress && brdProgress.total > 0 && brdProgress.status !== "completed" && (
           <button
             onClick={onOpenBrd}
             className="mt-4 w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl border-2 transition-all hover:shadow-md"
