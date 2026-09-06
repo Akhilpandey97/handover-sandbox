@@ -907,11 +907,11 @@ export const useUpdateChecklist = () => {
       if (!_error && variables) {
         const { data: itemRow } = await supabase
           .from("checklist_items")
-          .select("title, team")
+          .select("title, owner_team")
           .eq("id", variables.checklistId)
           .maybeSingle();
         const itemTitle = (itemRow as any)?.title || "checklist item";
-        const itemTeam = (itemRow as any)?.team || "";
+        const itemTeam = (itemRow as any)?.owner_team || "";
         const action = variables.completed ? "Completed" : "Unchecked";
         logActivity({
           action_type: "user",
