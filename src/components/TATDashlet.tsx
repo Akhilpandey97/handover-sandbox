@@ -74,7 +74,7 @@ export const TATDashlet = ({ projects }: Props) => {
           <p className="text-xs text-muted-foreground">No live projects with both kick-off and actual go-live dates.</p>
         ) : (
           <>
-            <div className="min-h-0 flex-1 overflow-y-auto rounded-md border border-border">
+            <div className="max-h-[9rem] overflow-y-auto rounded-md border border-border">
               <div className="divide-y divide-border">
                 {rows.map(r => (
                   <div key={r.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2">
