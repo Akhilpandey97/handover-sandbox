@@ -21,7 +21,7 @@ async function authorize(req: Request) {
 
   const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id);
   const isAdmin = (roles || []).some((r: { role: string }) =>
-    ["super_admin", "manager"].includes(r.role),
+    ["super_admin", "admin"].includes(r.role),
   );
   if (!isAdmin) return { error: apiJson({ error: "Admins only" }, 403) };
 
