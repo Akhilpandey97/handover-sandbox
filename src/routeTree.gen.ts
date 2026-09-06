@@ -18,6 +18,7 @@ import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-a
 import { Route as ApiPublicAiChatRouteImport } from './routes/api/public/ai-chat'
 import { Route as ApiPublicAiFieldMappingRouteImport } from './routes/api/public/ai-field-mapping'
 import { Route as ApiPublicAiProjectInsightsRouteImport } from './routes/api/public/ai-project-insights'
+import { Route as ApiPublicApiKeysRouteImport } from './routes/api/public/api-keys'
 import { Route as ApiPublicAssignShopifySmeOwnerRouteImport } from './routes/api/public/assign-shopify-sme-owner'
 import { Route as ApiPublicBackfillShopifySmeAssignmentsRouteImport } from './routes/api/public/backfill-shopify-sme-assignments'
 import { Route as ApiPublicBrdFormApiRouteImport } from './routes/api/public/brd-form-api'
@@ -50,6 +51,10 @@ import { Route as ApiPublicTenantIntegrationsRouteImport } from './routes/api/pu
 import { Route as ApiPublicUpdateUserRouteImport } from './routes/api/public/update-user'
 import { Route as ApiPublicUploadProjectPdfRouteImport } from './routes/api/public/upload-project-pdf'
 import { Route as ApiPublicMerchantPortalDataSplatRouteImport } from './routes/api/public/merchant-portal-data.$'
+import { Route as ApiPublicV1HealthRouteImport } from './routes/api/public/v1/health'
+import { Route as ApiPublicV1ProjectsRouteImport } from './routes/api/public/v1/projects'
+import { Route as ApiPublicV1UsersRouteImport } from './routes/api/public/v1/users'
+import { Route as ApiPublicV1ProjectsIdRouteImport } from './routes/api/public/v1/projects.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -97,6 +102,11 @@ const ApiPublicAiProjectInsightsRoute =
     path: '/api/public/ai-project-insights',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicApiKeysRoute = ApiPublicApiKeysRouteImport.update({
+  id: '/api/public/api-keys',
+  path: '/api/public/api-keys',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAssignShopifySmeOwnerRoute =
   ApiPublicAssignShopifySmeOwnerRouteImport.update({
     id: '/api/public/assign-shopify-sme-owner',
@@ -280,6 +290,26 @@ const ApiPublicMerchantPortalDataSplatRoute =
     path: '/$',
     getParentRoute: () => ApiPublicMerchantPortalDataRoute,
   } as any)
+const ApiPublicV1HealthRoute = ApiPublicV1HealthRouteImport.update({
+  id: '/api/public/v1/health',
+  path: '/api/public/v1/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ProjectsRoute = ApiPublicV1ProjectsRouteImport.update({
+  id: '/api/public/v1/projects',
+  path: '/api/public/v1/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1UsersRoute = ApiPublicV1UsersRouteImport.update({
+  id: '/api/public/v1/users',
+  path: '/api/public/v1/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ProjectsIdRoute = ApiPublicV1ProjectsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiPublicV1ProjectsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -291,6 +321,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
@@ -323,6 +354,10 @@ export interface FileRoutesByFullPath {
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
+  '/api/public/v1/health': typeof ApiPublicV1HealthRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
+  '/api/public/v1/users': typeof ApiPublicV1UsersRoute
+  '/api/public/v1/projects/$id': typeof ApiPublicV1ProjectsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -334,6 +369,7 @@ export interface FileRoutesByTo {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
@@ -366,6 +402,10 @@ export interface FileRoutesByTo {
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
+  '/api/public/v1/health': typeof ApiPublicV1HealthRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
+  '/api/public/v1/users': typeof ApiPublicV1UsersRoute
+  '/api/public/v1/projects/$id': typeof ApiPublicV1ProjectsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -378,6 +418,7 @@ export interface FileRoutesById {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
@@ -410,6 +451,10 @@ export interface FileRoutesById {
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
+  '/api/public/v1/health': typeof ApiPublicV1HealthRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
+  '/api/public/v1/users': typeof ApiPublicV1UsersRoute
+  '/api/public/v1/projects/$id': typeof ApiPublicV1ProjectsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -423,6 +468,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
@@ -455,6 +501,10 @@ export interface FileRouteTypes {
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
+    | '/api/public/v1/health'
+    | '/api/public/v1/projects'
+    | '/api/public/v1/users'
+    | '/api/public/v1/projects/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -466,6 +516,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
@@ -498,6 +549,10 @@ export interface FileRouteTypes {
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
+    | '/api/public/v1/health'
+    | '/api/public/v1/projects'
+    | '/api/public/v1/users'
+    | '/api/public/v1/projects/$id'
   id:
     | '__root__'
     | '/'
@@ -509,6 +564,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
@@ -541,6 +597,10 @@ export interface FileRouteTypes {
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
+    | '/api/public/v1/health'
+    | '/api/public/v1/projects'
+    | '/api/public/v1/users'
+    | '/api/public/v1/projects/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -552,6 +612,7 @@ export interface RootRouteChildren {
   ApiPublicAiChatRoute: typeof ApiPublicAiChatRoute
   ApiPublicAiFieldMappingRoute: typeof ApiPublicAiFieldMappingRoute
   ApiPublicAiProjectInsightsRoute: typeof ApiPublicAiProjectInsightsRoute
+  ApiPublicApiKeysRoute: typeof ApiPublicApiKeysRoute
   ApiPublicAssignShopifySmeOwnerRoute: typeof ApiPublicAssignShopifySmeOwnerRoute
   ApiPublicBackfillShopifySmeAssignmentsRoute: typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   ApiPublicBrdFormApiRoute: typeof ApiPublicBrdFormApiRoute
@@ -583,6 +644,9 @@ export interface RootRouteChildren {
   ApiPublicTenantIntegrationsRoute: typeof ApiPublicTenantIntegrationsRoute
   ApiPublicUpdateUserRoute: typeof ApiPublicUpdateUserRoute
   ApiPublicUploadProjectPdfRoute: typeof ApiPublicUploadProjectPdfRoute
+  ApiPublicV1HealthRoute: typeof ApiPublicV1HealthRoute
+  ApiPublicV1ProjectsRoute: typeof ApiPublicV1ProjectsRouteWithChildren
+  ApiPublicV1UsersRoute: typeof ApiPublicV1UsersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -648,6 +712,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/ai-project-insights'
       fullPath: '/api/public/ai-project-insights'
       preLoaderRoute: typeof ApiPublicAiProjectInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/api-keys': {
+      id: '/api/public/api-keys'
+      path: '/api/public/api-keys'
+      fullPath: '/api/public/api-keys'
+      preLoaderRoute: typeof ApiPublicApiKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/assign-shopify-sme-owner': {
@@ -874,6 +945,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMerchantPortalDataSplatRouteImport
       parentRoute: typeof ApiPublicMerchantPortalDataRoute
     }
+    '/api/public/v1/health': {
+      id: '/api/public/v1/health'
+      path: '/api/public/v1/health'
+      fullPath: '/api/public/v1/health'
+      preLoaderRoute: typeof ApiPublicV1HealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/projects': {
+      id: '/api/public/v1/projects'
+      path: '/api/public/v1/projects'
+      fullPath: '/api/public/v1/projects'
+      preLoaderRoute: typeof ApiPublicV1ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/users': {
+      id: '/api/public/v1/users'
+      path: '/api/public/v1/users'
+      fullPath: '/api/public/v1/users'
+      preLoaderRoute: typeof ApiPublicV1UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/projects/$id': {
+      id: '/api/public/v1/projects/$id'
+      path: '/$id'
+      fullPath: '/api/public/v1/projects/$id'
+      preLoaderRoute: typeof ApiPublicV1ProjectsIdRouteImport
+      parentRoute: typeof ApiPublicV1ProjectsRoute
+    }
   }
 }
 
@@ -903,6 +1002,17 @@ const ApiPublicMerchantPortalDataRouteWithChildren =
     ApiPublicMerchantPortalDataRouteChildren,
   )
 
+interface ApiPublicV1ProjectsRouteChildren {
+  ApiPublicV1ProjectsIdRoute: typeof ApiPublicV1ProjectsIdRoute
+}
+
+const ApiPublicV1ProjectsRouteChildren: ApiPublicV1ProjectsRouteChildren = {
+  ApiPublicV1ProjectsIdRoute: ApiPublicV1ProjectsIdRoute,
+}
+
+const ApiPublicV1ProjectsRouteWithChildren =
+  ApiPublicV1ProjectsRoute._addFileChildren(ApiPublicV1ProjectsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BrdRoute: BrdRoute,
@@ -912,6 +1022,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAiChatRoute: ApiPublicAiChatRoute,
   ApiPublicAiFieldMappingRoute: ApiPublicAiFieldMappingRoute,
   ApiPublicAiProjectInsightsRoute: ApiPublicAiProjectInsightsRoute,
+  ApiPublicApiKeysRoute: ApiPublicApiKeysRoute,
   ApiPublicAssignShopifySmeOwnerRoute: ApiPublicAssignShopifySmeOwnerRoute,
   ApiPublicBackfillShopifySmeAssignmentsRoute:
     ApiPublicBackfillShopifySmeAssignmentsRoute,
@@ -948,6 +1059,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTenantIntegrationsRoute: ApiPublicTenantIntegrationsRoute,
   ApiPublicUpdateUserRoute: ApiPublicUpdateUserRoute,
   ApiPublicUploadProjectPdfRoute: ApiPublicUploadProjectPdfRoute,
+  ApiPublicV1HealthRoute: ApiPublicV1HealthRoute,
+  ApiPublicV1ProjectsRoute: ApiPublicV1ProjectsRouteWithChildren,
+  ApiPublicV1UsersRoute: ApiPublicV1UsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

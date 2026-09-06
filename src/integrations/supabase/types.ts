@@ -129,6 +129,50 @@ export type Database = {
           },
         ]
       }
+      api_keys: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          revoked_at: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          revoked_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          revoked_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           category: string
@@ -1934,6 +1978,7 @@ export type Database = {
           enable_kp: boolean
           enable_mcp_document: boolean
           expected_go_live_date: string | null
+          external_id: string | null
           faq_help: Json
           go_live_date: string | null
           go_live_percent: number | null
@@ -1998,6 +2043,7 @@ export type Database = {
           enable_kp?: boolean
           enable_mcp_document?: boolean
           expected_go_live_date?: string | null
+          external_id?: string | null
           faq_help?: Json
           go_live_date?: string | null
           go_live_percent?: number | null
@@ -2062,6 +2108,7 @@ export type Database = {
           enable_kp?: boolean
           enable_mcp_document?: boolean
           expected_go_live_date?: string | null
+          external_id?: string | null
           faq_help?: Json
           go_live_date?: string | null
           go_live_percent?: number | null
