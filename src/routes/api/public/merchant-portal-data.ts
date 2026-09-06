@@ -783,6 +783,7 @@ async function handler(req: Request): Promise<Response> {
         created_at: a.created_at, user_name: a.user_name,
       })),
       branding,
+      labels,
       credentials: mergedCredentials,
       uploads,
       brd_progress: brdProgress,
