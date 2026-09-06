@@ -18,7 +18,7 @@ import { formatArrCr } from "@/lib/arr";
 
 export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: string }) => {
   const navigate = useNavigate();
-  const { stateLabels } = useLabels();
+  const { stateLabels, getLabel } = useLabels();
   const { updateProject } = useProjects();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [checklistOpen, setChecklistOpen] = useState(false);
@@ -134,7 +134,7 @@ export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: s
         </div>
 
         <div className="text-muted-foreground">
-          ARR: <span className="font-medium text-foreground">{arrDisplay}</span>
+          {getLabel("field_arr")}: <span className="font-medium text-foreground">{arrDisplay}</span>
         </div>
 
         <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -161,9 +161,6 @@ export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: s
           >
             <Timer className="h-3 w-3" />
             <span>TAT:</span>
-            <span className="font-medium text-foreground">{tatInfo.actual}d</span>
-            <span className="text-muted-foreground/70">actual</span>
-            <span className="text-muted-foreground/40">·</span>
             <span className="font-medium text-foreground">{tatInfo.net}d</span>
             <span className="text-muted-foreground/70">net</span>
             {!tatInfo.isLive && (
