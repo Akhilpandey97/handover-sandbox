@@ -52,15 +52,15 @@ export const TATDashlet = ({ projects }: Props) => {
         </div>
         <Timer className="h-5 w-5 text-primary" />
       </div>
-      <div className="space-y-4 p-5">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 p-5">
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-md bg-sky-50 p-3 dark:bg-sky-950/40">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Merchants</p>
             <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-sky-900 dark:text-sky-200">{overall.count}</p>
-            <p className="mt-0.5 text-[10px] text-sky-700 dark:text-sky-300">tracked</p>
+            <p className="mt-0.5 text-[10px] text-sky-700 dark:text-sky-300">live</p>
           </div>
           <div className="min-w-0 rounded-md bg-muted p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Total ARR</p>
+            <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Total {arrLabel}</p>
             <p className="mt-1 truncate text-2xl font-semibold tracking-tight tabular-nums text-foreground">{formatCr(overall.totalArr)}</p>
             <p className="mt-0.5 text-[10px] text-muted-foreground">Cr</p>
           </div>
@@ -71,23 +71,27 @@ export const TATDashlet = ({ projects }: Props) => {
           </div>
         </div>
         {rows.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No projects with both Kickoff and Actual Go-Live dates.</p>
+          <p className="text-xs text-muted-foreground">No live projects with both kick-off and actual go-live dates.</p>
         ) : (
           <>
-            <div className="divide-y divide-border rounded-md border border-border">
-              {rows.slice(0, 8).map(r => (
-                <div key={r.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-semibold text-foreground">{r.merchant}</p>
-                    <p className="text-[10px] text-muted-foreground">ARR: {formatCr(r.arr)} Cr</p>
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-md border border-border">
+              <div className="divide-y divide-border">
+                {rows.map(r => (
+                  <div key={r.id} className="grid grid-cols-[1fr_auto] items-center gap-3 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold text-foreground">{r.merchant}</p>
+                      <p className="text-[10px] text-muted-foreground">{arrLabel}: {formatCr(r.arr)} Cr</p>
+                    </div>
+                    <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">{r.tat}d</span>
                   </div>
-                  <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">{r.tat}d</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">Based on {overall.count} project{overall.count === 1 ? "" : "s"} with kick-off and go-live dates.</p>
+            <p className="text-xs text-muted-foreground">Based on {overall.count} live project{overall.count === 1 ? "" : "s"} with kick-off and go-live dates.</p>
           </>
         )}
+      </div>
+
       </div>
     </section>
   );
