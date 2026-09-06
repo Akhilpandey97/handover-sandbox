@@ -37,6 +37,7 @@ const teamColors: Record<string, string> = {
   integration: "bg-purple-500",
   ms: "bg-green-500",
   manager: "bg-orange-500",
+  admin: "bg-indigo-500",
   super_admin: "bg-red-500",
   gokwik_general: "bg-teal-500",
 };
