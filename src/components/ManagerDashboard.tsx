@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
+import { NoAccessCard } from "@/components/NoAccessCard";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { teamColorClass, teamLabels as defaultTeamLabels, TeamRole } from "@/data/teams";
