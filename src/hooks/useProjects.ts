@@ -897,7 +897,13 @@ export const useUpdateChecklist = () => {
       toast.error("Failed to update checklist");
     },
     onSettled: async (_data, _error, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      // The optimistic cache already holds the new value. Refetching the whole
+      // projects list on every tick makes the checkbox feel laggy, so on success
+      // we only mark the data stale and let the next mount/focus refresh it.
+      queryClient.invalidateQueries({
+        queryKey: ["projects"],
+        refetchType: _error ? "active" : "none",
+      });
       if (!_error && variables) {
         const { data: itemRow } = await supabase
           .from("checklist_items")
@@ -1124,8 +1130,11 @@ export const useToggleChecklistResponsibility = () => {
       console.error("Error toggling checklist responsibility:", error);
       toast.error("Failed to update responsibility");
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    onSettled: (_data, error) => {
+      queryClient.invalidateQueries({
+        queryKey: ["projects"],
+        refetchType: error ? "active" : "none",
+      });
       queryClient.invalidateQueries({ queryKey: ["checklist_responsibility_logs"] });
     },
   });
