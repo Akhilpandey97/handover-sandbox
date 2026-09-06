@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { teamColorClass, teamLabels as defaultTeamLabels, TeamRole } from "@/data/teams";
@@ -138,9 +139,12 @@ const ALL_NAV_ITEMS = [
 ];
 type ProjectView = "board" | "list" | "kanban" | "golive";
 
+const ADMIN_ONLY_SETTINGS = ["users", "integrations"];
+
 export const ManagerDashboard = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const perms = usePermissions();
   const { labels: appLabels, getLabel, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels } = useLabels();
   const arrLabel = getLabel("field_arr");
   const { projects, isLoading, addProject, deleteProject, updateProject, archiveProject } = useProjects();
@@ -1021,7 +1025,7 @@ export const ManagerDashboard = () => {
         {/* Settings sub-menu */}
         {isSettings && settingsExpanded && (
           <div className="ml-6 mt-1 mb-1 space-y-1 pl-4">
-            {Object.entries(SETTINGS_SUB_CONFIG).filter(([key]) => key === "navigation" || navVisibility[`settings:${key}`] !== false).map(([key, { label }]) => (
+            {Object.entries(SETTINGS_SUB_CONFIG).filter(([key]) => (key === "navigation" || navVisibility[`settings:${key}`] !== false) && (!ADMIN_ONLY_SETTINGS.includes(key) || perms.canManageUsers)).map(([key, { label }]) => (
               <button
                 key={key}
                 onClick={() => { setActiveTab("settings"); setSettingsSubTab(key); }}
@@ -2457,7 +2461,7 @@ export const ManagerDashboard = () => {
             {settingsSubTab === "checklist" ? (
               <ChecklistManagement />
             ) : settingsSubTab === "users" ? (
-              <UserManagement />
+              perms.canManageUsers ? <UserManagement /> : <NoAccessCard />
             ) : settingsSubTab === "navigation" ? (
               <Card className="shadow-sm border-border">
                 <CardHeader className="border-b bg-muted/30">
