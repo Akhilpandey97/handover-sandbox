@@ -898,23 +898,26 @@ function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour }: {
       onClick={onClick}
       data-tour={dataTour}
       className={cn(
-        "w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-[15px] transition-all text-left text-white/90",
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group",
         active
-          ? "font-semibold text-white ring-2 ring-white/70 shadow-md"
-          : "hover:bg-white/10"
+          ? "gradient-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+          : "hover:bg-sidebar-accent/60 text-sidebar-foreground"
       )}
-      style={active ? { background: `linear-gradient(90deg, ${BRAND.primary}, ${BRAND.primaryLight})` } : {}}
     >
-      <span className={cn("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg", active ? "bg-white/25" : "bg-white/10")}>
-        <Icon className="w-[18px] h-[18px]" />
+      <span className={cn(
+        "flex items-center justify-center h-8 w-8 rounded-lg shrink-0 transition-colors",
+        active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-sidebar-accent text-sidebar-foreground"
+      )}>
+        <Icon className="h-4 w-4" />
       </span>
-      <span className="flex-1">{label}</span>
+      <span className="font-medium text-sm flex-1">{label}</span>
       {badge !== undefined && (
-        <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold bg-white/25 text-white">{badge}</span>
+        <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold bg-primary-foreground/20">{badge}</span>
       )}
     </button>
   );
 }
+
 
 /* ===================== CARD WRAPPER ===================== */
 function Card({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
