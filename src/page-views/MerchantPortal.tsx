@@ -115,6 +115,7 @@ interface PortalData {
     user_name: string;
   }[];
   branding: Record<string, string>;
+  labels?: Record<string, string>;
   credentials: {
     sandbox: { mid?: string; app_id?: string; app_secret?: string; base_url?: string; config_id?: string; kwikpass_jwe_key?: string };
     production: { mid?: string; app_id?: string; app_secret?: string; base_url?: string; config_id?: string; kwikpass_jwe_key?: string };
@@ -1014,6 +1015,8 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
 }) {
   const stages = useMemo(() => buildStagesFromChecklist(data.checklist), [data.checklist]);
   const totalStages = stages.length;
+  // Field names configured in Settings win over the built-in wording.
+  const portalLabel = (key: string, fallback: string) => data.labels?.[key] || fallback;
 
   return (
     <div className="px-8 py-7 max-w-6xl mx-auto space-y-6">
