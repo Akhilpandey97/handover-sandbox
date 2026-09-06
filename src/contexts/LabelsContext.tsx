@@ -38,6 +38,8 @@ const DEFAULT_LABELS: Record<string, string> = {
   field_go_live_date: "Go-Live Date",
   field_arr: "ARR",
   field_platform: "Platform",
+  field_project_state: "Project State",
+  field_project_stage: "Project Stage",
   field_integration_type: "Integration Type",
   field_sales_spoc: "Sales SPOC",
   field_assigned_owner: "Assigned Owner",
