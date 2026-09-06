@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -74,6 +75,11 @@ export const UserManagement = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteUser, setDeleteUser] = useState<UserWithRole | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const perms = usePermissions();
+  const assignableRoles = Object.keys(teamLabels).filter(
+    (role) => role !== "super_admin" || perms.isSuperAdmin,
+  );
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -267,7 +273,7 @@ export const UserManagement = () => {
                     <Select value={team} onValueChange={(v) => setTeam(v)}>
                       <SelectTrigger><SelectValue placeholder="Select team" /></SelectTrigger>
                       <SelectContent>
-                        {Object.keys(teamLabels).map((role) => (
+                        {assignableRoles.map((role) => (
                           <SelectItem key={role} value={role}>{teamLabels[role as keyof typeof teamLabels]}</SelectItem>
                         ))}
                       </SelectContent>
@@ -381,7 +387,7 @@ export const UserManagement = () => {
               <Select value={editTeam} onValueChange={(v) => setEditTeam(v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Object.keys(teamLabels).map((role) => (
+                  {assignableRoles.map((role) => (
                     <SelectItem key={role} value={role}>{teamLabels[role as keyof typeof teamLabels]}</SelectItem>
                   ))}
                 </SelectContent>
