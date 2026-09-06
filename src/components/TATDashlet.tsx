@@ -92,7 +92,6 @@ export const TATDashlet = ({ projects }: Props) => {
         )}
       </div>
 
-      </div>
     </section>
   );
 
