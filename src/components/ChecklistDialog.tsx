@@ -166,8 +166,9 @@ export const ChecklistDialog = ({
       orderedTeams.push(s);
     }
   });
-  // If manager, show all
-  if (userTeam === "manager" && orderedTeams.length === 0) {
+  // Managers/admins see all teams
+  if (hasFullChecklistAccess && orderedTeams.length === 0) {
+
     systemSlugs.forEach(s => {
       if (allSlugsInChecklist.includes(s)) orderedTeams.push(s);
     });
