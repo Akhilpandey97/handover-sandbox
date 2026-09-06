@@ -662,7 +662,7 @@ export const ManagerDashboard = () => {
   const displayProjects = filteredProjects;
   // Drill-down popup for clickable dashboard cards
   const totalProjects = displayProjects.length;
-  const pendingProjects = displayProjects.filter((p) => p.projectState === "on_hold" || p.projectState === "not_started").length;
+  const pendingProjects = displayProjects.filter((p) => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked").length;
   const completedProjects = displayProjects.filter((p) => p.projectState === "live").length;
   const activeProjects = displayProjects.filter((p: Project) => p.projectState === "in_progress").length;
 
@@ -678,7 +678,7 @@ export const ManagerDashboard = () => {
   // Pipeline stats for overview
   const totalArr = displayProjects.reduce((s, p) => s + arrToCrore(p.arr), 0);
   const liveArr = displayProjects.filter(p => p.projectState === "live").reduce((s, p) => s + arrToCrore(p.arr), 0);
-  const pendingArr = displayProjects.filter((p: Project) => p.projectState === "on_hold" || p.projectState === "not_started").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
+  const pendingArr = displayProjects.filter((p: Project) => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
   const activeArr = displayProjects.filter((p: Project) => p.projectState === "in_progress").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
   const blockedProjects = displayProjects.filter(p => p.projectState === "blocked").length;
   const onHoldProjects = displayProjects.filter(p => p.projectState === "on_hold").length;
@@ -1221,7 +1221,7 @@ export const ManagerDashboard = () => {
 
                 const kpiCards = [
                   { label: "All projects", value: totalProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
-                  { label: "Pending", value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
+                  { label: "Pending", value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked") },
                   { label: "In delivery", value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ${arrLabel}: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
                   { label: "Live", value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ${arrLabel}: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
                 ];
