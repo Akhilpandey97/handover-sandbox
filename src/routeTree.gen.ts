@@ -54,6 +54,7 @@ import { Route as ApiPublicMerchantPortalDataSplatRouteImport } from './routes/a
 import { Route as ApiPublicV1HealthRouteImport } from './routes/api/public/v1/health'
 import { Route as ApiPublicV1ProjectsRouteImport } from './routes/api/public/v1/projects'
 import { Route as ApiPublicV1UsersRouteImport } from './routes/api/public/v1/users'
+import { Route as ApiPublicV1ProjectsIdRouteImport } from './routes/api/public/v1/projects.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -304,6 +305,11 @@ const ApiPublicV1UsersRoute = ApiPublicV1UsersRouteImport.update({
   path: '/api/public/v1/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1ProjectsIdRoute = ApiPublicV1ProjectsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiPublicV1ProjectsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -349,8 +355,9 @@ export interface FileRoutesByFullPath {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
-  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
   '/api/public/v1/users': typeof ApiPublicV1UsersRoute
+  '/api/public/v1/projects/$id': typeof ApiPublicV1ProjectsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -396,8 +403,9 @@ export interface FileRoutesByTo {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
-  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
   '/api/public/v1/users': typeof ApiPublicV1UsersRoute
+  '/api/public/v1/projects/$id': typeof ApiPublicV1ProjectsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -444,8 +452,9 @@ export interface FileRoutesById {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
-  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
   '/api/public/v1/users': typeof ApiPublicV1UsersRoute
+  '/api/public/v1/projects/$id': typeof ApiPublicV1ProjectsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -495,6 +504,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/health'
     | '/api/public/v1/projects'
     | '/api/public/v1/users'
+    | '/api/public/v1/projects/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -542,6 +552,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/health'
     | '/api/public/v1/projects'
     | '/api/public/v1/users'
+    | '/api/public/v1/projects/$id'
   id:
     | '__root__'
     | '/'
@@ -589,6 +600,7 @@ export interface FileRouteTypes {
     | '/api/public/v1/health'
     | '/api/public/v1/projects'
     | '/api/public/v1/users'
+    | '/api/public/v1/projects/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -633,7 +645,7 @@ export interface RootRouteChildren {
   ApiPublicUpdateUserRoute: typeof ApiPublicUpdateUserRoute
   ApiPublicUploadProjectPdfRoute: typeof ApiPublicUploadProjectPdfRoute
   ApiPublicV1HealthRoute: typeof ApiPublicV1HealthRoute
-  ApiPublicV1ProjectsRoute: typeof ApiPublicV1ProjectsRoute
+  ApiPublicV1ProjectsRoute: typeof ApiPublicV1ProjectsRouteWithChildren
   ApiPublicV1UsersRoute: typeof ApiPublicV1UsersRoute
 }
 
@@ -954,6 +966,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/projects/$id': {
+      id: '/api/public/v1/projects/$id'
+      path: '/$id'
+      fullPath: '/api/public/v1/projects/$id'
+      preLoaderRoute: typeof ApiPublicV1ProjectsIdRouteImport
+      parentRoute: typeof ApiPublicV1ProjectsRoute
+    }
   }
 }
 
@@ -982,6 +1001,17 @@ const ApiPublicMerchantPortalDataRouteWithChildren =
   ApiPublicMerchantPortalDataRoute._addFileChildren(
     ApiPublicMerchantPortalDataRouteChildren,
   )
+
+interface ApiPublicV1ProjectsRouteChildren {
+  ApiPublicV1ProjectsIdRoute: typeof ApiPublicV1ProjectsIdRoute
+}
+
+const ApiPublicV1ProjectsRouteChildren: ApiPublicV1ProjectsRouteChildren = {
+  ApiPublicV1ProjectsIdRoute: ApiPublicV1ProjectsIdRoute,
+}
+
+const ApiPublicV1ProjectsRouteWithChildren =
+  ApiPublicV1ProjectsRoute._addFileChildren(ApiPublicV1ProjectsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -1030,7 +1060,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicUpdateUserRoute: ApiPublicUpdateUserRoute,
   ApiPublicUploadProjectPdfRoute: ApiPublicUploadProjectPdfRoute,
   ApiPublicV1HealthRoute: ApiPublicV1HealthRoute,
-  ApiPublicV1ProjectsRoute: ApiPublicV1ProjectsRoute,
+  ApiPublicV1ProjectsRoute: ApiPublicV1ProjectsRouteWithChildren,
   ApiPublicV1UsersRoute: ApiPublicV1UsersRoute,
 }
 export const routeTree = rootRouteImport
