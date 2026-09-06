@@ -52,6 +52,7 @@ import { Route as ApiPublicUpdateUserRouteImport } from './routes/api/public/upd
 import { Route as ApiPublicUploadProjectPdfRouteImport } from './routes/api/public/upload-project-pdf'
 import { Route as ApiPublicMerchantPortalDataSplatRouteImport } from './routes/api/public/merchant-portal-data.$'
 import { Route as ApiPublicV1HealthRouteImport } from './routes/api/public/v1/health'
+import { Route as ApiPublicV1ProjectsRouteImport } from './routes/api/public/v1/projects'
 import { Route as ApiPublicV1UsersRouteImport } from './routes/api/public/v1/users'
 
 const IndexRoute = IndexRouteImport.update({
@@ -293,6 +294,11 @@ const ApiPublicV1HealthRoute = ApiPublicV1HealthRouteImport.update({
   path: '/api/public/v1/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1ProjectsRoute = ApiPublicV1ProjectsRouteImport.update({
+  id: '/api/public/v1/projects',
+  path: '/api/public/v1/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1UsersRoute = ApiPublicV1UsersRouteImport.update({
   id: '/api/public/v1/users',
   path: '/api/public/v1/users',
@@ -343,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRoute
   '/api/public/v1/users': typeof ApiPublicV1UsersRoute
 }
 export interface FileRoutesByTo {
@@ -389,6 +396,7 @@ export interface FileRoutesByTo {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRoute
   '/api/public/v1/users': typeof ApiPublicV1UsersRoute
 }
 export interface FileRoutesById {
@@ -436,6 +444,7 @@ export interface FileRoutesById {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
+  '/api/public/v1/projects': typeof ApiPublicV1ProjectsRoute
   '/api/public/v1/users': typeof ApiPublicV1UsersRoute
 }
 export interface FileRouteTypes {
@@ -484,6 +493,7 @@ export interface FileRouteTypes {
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
+    | '/api/public/v1/projects'
     | '/api/public/v1/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -530,6 +540,7 @@ export interface FileRouteTypes {
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
+    | '/api/public/v1/projects'
     | '/api/public/v1/users'
   id:
     | '__root__'
@@ -576,6 +587,7 @@ export interface FileRouteTypes {
     | '/api/public/upload-project-pdf'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
+    | '/api/public/v1/projects'
     | '/api/public/v1/users'
   fileRoutesById: FileRoutesById
 }
@@ -621,6 +633,7 @@ export interface RootRouteChildren {
   ApiPublicUpdateUserRoute: typeof ApiPublicUpdateUserRoute
   ApiPublicUploadProjectPdfRoute: typeof ApiPublicUploadProjectPdfRoute
   ApiPublicV1HealthRoute: typeof ApiPublicV1HealthRoute
+  ApiPublicV1ProjectsRoute: typeof ApiPublicV1ProjectsRoute
   ApiPublicV1UsersRoute: typeof ApiPublicV1UsersRoute
 }
 
@@ -927,6 +940,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/projects': {
+      id: '/api/public/v1/projects'
+      path: '/api/public/v1/projects'
+      fullPath: '/api/public/v1/projects'
+      preLoaderRoute: typeof ApiPublicV1ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/users': {
       id: '/api/public/v1/users'
       path: '/api/public/v1/users'
@@ -1010,6 +1030,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicUpdateUserRoute: ApiPublicUpdateUserRoute,
   ApiPublicUploadProjectPdfRoute: ApiPublicUploadProjectPdfRoute,
   ApiPublicV1HealthRoute: ApiPublicV1HealthRoute,
+  ApiPublicV1ProjectsRoute: ApiPublicV1ProjectsRoute,
   ApiPublicV1UsersRoute: ApiPublicV1UsersRoute,
 }
 export const routeTree = rootRouteImport
