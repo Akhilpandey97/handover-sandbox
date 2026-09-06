@@ -18,6 +18,7 @@ import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-a
 import { Route as ApiPublicAiChatRouteImport } from './routes/api/public/ai-chat'
 import { Route as ApiPublicAiFieldMappingRouteImport } from './routes/api/public/ai-field-mapping'
 import { Route as ApiPublicAiProjectInsightsRouteImport } from './routes/api/public/ai-project-insights'
+import { Route as ApiPublicApiKeysRouteImport } from './routes/api/public/api-keys'
 import { Route as ApiPublicAssignShopifySmeOwnerRouteImport } from './routes/api/public/assign-shopify-sme-owner'
 import { Route as ApiPublicBackfillShopifySmeAssignmentsRouteImport } from './routes/api/public/backfill-shopify-sme-assignments'
 import { Route as ApiPublicBrdFormApiRouteImport } from './routes/api/public/brd-form-api'
@@ -97,6 +98,11 @@ const ApiPublicAiProjectInsightsRoute =
     path: '/api/public/ai-project-insights',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicApiKeysRoute = ApiPublicApiKeysRouteImport.update({
+  id: '/api/public/api-keys',
+  path: '/api/public/api-keys',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicAssignShopifySmeOwnerRoute =
   ApiPublicAssignShopifySmeOwnerRouteImport.update({
     id: '/api/public/assign-shopify-sme-owner',
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
@@ -334,6 +341,7 @@ export interface FileRoutesByTo {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
@@ -378,6 +386,7 @@ export interface FileRoutesById {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
@@ -423,6 +432,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
@@ -466,6 +476,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
@@ -509,6 +520,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
@@ -552,6 +564,7 @@ export interface RootRouteChildren {
   ApiPublicAiChatRoute: typeof ApiPublicAiChatRoute
   ApiPublicAiFieldMappingRoute: typeof ApiPublicAiFieldMappingRoute
   ApiPublicAiProjectInsightsRoute: typeof ApiPublicAiProjectInsightsRoute
+  ApiPublicApiKeysRoute: typeof ApiPublicApiKeysRoute
   ApiPublicAssignShopifySmeOwnerRoute: typeof ApiPublicAssignShopifySmeOwnerRoute
   ApiPublicBackfillShopifySmeAssignmentsRoute: typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   ApiPublicBrdFormApiRoute: typeof ApiPublicBrdFormApiRoute
@@ -648,6 +661,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/ai-project-insights'
       fullPath: '/api/public/ai-project-insights'
       preLoaderRoute: typeof ApiPublicAiProjectInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/api-keys': {
+      id: '/api/public/api-keys'
+      path: '/api/public/api-keys'
+      fullPath: '/api/public/api-keys'
+      preLoaderRoute: typeof ApiPublicApiKeysRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/assign-shopify-sme-owner': {
@@ -912,6 +932,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAiChatRoute: ApiPublicAiChatRoute,
   ApiPublicAiFieldMappingRoute: ApiPublicAiFieldMappingRoute,
   ApiPublicAiProjectInsightsRoute: ApiPublicAiProjectInsightsRoute,
+  ApiPublicApiKeysRoute: ApiPublicApiKeysRoute,
   ApiPublicAssignShopifySmeOwnerRoute: ApiPublicAssignShopifySmeOwnerRoute,
   ApiPublicBackfillShopifySmeAssignmentsRoute:
     ApiPublicBackfillShopifySmeAssignmentsRoute,
