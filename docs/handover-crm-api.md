@@ -1,11 +1,12 @@
-# Handover CRM Integration API (proposed spec)
+# Handover CRM Integration API
 
 Purpose: let a customer's CRM push a **won deal** into Handover so a project is
 created automatically, with owner assignment and checklist seeding, exactly as if
 it were created in the UI.
 
-Status: **specification / plan**. The endpoint below is not built yet — this
-document is the contract to review before implementation.
+Status: **live**. Phase 1 (inbound API + tenant API keys) is implemented and
+available at `https://handover-sandbox.lovable.app/api/public/v1/…`. Outbound
+webhooks (section 6) remain a future phase.
 
 ---
 
