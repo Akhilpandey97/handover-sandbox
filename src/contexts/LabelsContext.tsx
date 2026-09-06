@@ -119,7 +119,7 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
   // Loads tenant project stages into the runtime registry used across the app
   useFunnelConfig();
-  const { customTeams } = useTeams();
+  const { customTeams, teamLabelMap } = useTeams();
   const customTeamLabels: Record<string, string> = {};
   customTeams.forEach((t) => { customTeamLabels[t.slug] = t.name; });
   const [labels, setLabels] = useState<Record<string, string>>(DEFAULT_LABELS);
