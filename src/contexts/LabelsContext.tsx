@@ -11,14 +11,10 @@ const DEFAULT_LABELS: Record<string, string> = {
   app_subtitle: "Handover — Project Management Hub",
   org_name: "Handover",
 
-  // Team labels
-  team_mint: "Sales",
-  team_integration: "MINT",
-  team_ms: "Merchant Success",
-  team_manager: "Manager",
+  // Team names live in the `teams` table (Settings → Checklist → Team Management)
 
   // Responsibility labels
-  responsibility_internal: "GoKwik",
+  responsibility_internal: "Internal Team",
   responsibility_external: "Merchant",
   responsibility_neutral: "Neutral",
 
@@ -123,7 +119,7 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
   // Loads tenant project stages into the runtime registry used across the app
   useFunnelConfig();
-  const { customTeams } = useTeams();
+  const { customTeams, teamLabelMap } = useTeams();
   const customTeamLabels: Record<string, string> = {};
   customTeams.forEach((t) => { customTeamLabels[t.slug] = t.name; });
   const [labels, setLabels] = useState<Record<string, string>>(DEFAULT_LABELS);
@@ -185,14 +181,12 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [currentUser?.tenantId]);
 
+  // Names come from Settings → Checklist → Team Management (the `teams` table).
   const teamLabels: Record<string, string> = {
-    mint: labels.team_mint,
-    integration: labels.team_integration,
-    ms: labels.team_ms,
-    manager: labels.team_manager,
+    manager: "Manager",
     super_admin: "Super Admin",
     gokwik_general: "General",
-    // Custom teams created in Settings → Team Management
+    ...teamLabelMap,
     ...customTeamLabels,
   };
 

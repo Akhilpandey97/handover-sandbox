@@ -29,9 +29,16 @@ export const useTeams = () => {
   });
 
   const customTeams: DynamicTeam[] = dbTeams.filter(t => !t.is_system);
-  
+
+  // Team Management (Settings → Checklist) is the single source of truth for
+  // team names. A saved row always wins over the built-in fallback name.
+  const systemTeams: DynamicTeam[] = SYSTEM_TEAMS.map((fallback) => {
+    const saved = dbTeams.find(t => t.slug === fallback.slug);
+    return saved ? { ...fallback, ...saved } : fallback;
+  });
+
   // Checklist teams = system teams + custom teams (excludes manager/super_admin/gokwik_general)
-  const checklistTeams = [...SYSTEM_TEAMS, ...customTeams];
+  const checklistTeams = [...systemTeams, ...customTeams];
 
   // Build slug→name lookup
   const teamLabelMap: Record<string, string> = {};
@@ -47,7 +54,7 @@ export const useTeams = () => {
   return {
     allTeams: checklistTeams,
     customTeams,
-    systemTeams: SYSTEM_TEAMS,
+    systemTeams,
     teamLabelMap,
     teamColorMap,
     checklistTeamSlugs,

@@ -115,6 +115,7 @@ interface PortalData {
     user_name: string;
   }[];
   branding: Record<string, string>;
+  labels?: Record<string, string>;
   credentials: {
     sandbox: { mid?: string; app_id?: string; app_secret?: string; base_url?: string; config_id?: string; kwikpass_jwe_key?: string };
     production: { mid?: string; app_id?: string; app_secret?: string; base_url?: string; config_id?: string; kwikpass_jwe_key?: string };
@@ -1014,6 +1015,8 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
 }) {
   const stages = useMemo(() => buildStagesFromChecklist(data.checklist), [data.checklist]);
   const totalStages = stages.length;
+  // Field names configured in Settings win over the built-in wording.
+  const portalLabel = (key: string, fallback: string) => data.labels?.[key] || fallback;
 
   return (
     <div className="px-8 py-7 max-w-6xl mx-auto space-y-6">
@@ -1151,12 +1154,12 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         <Card className="p-5">
           <h3 className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-4">Project Overview</h3>
           <div className="divide-y divide-slate-100 dark:divide-[#253553]">
-            <OverviewRow label="Platform" value={project.platform || "—"} />
+            <OverviewRow label={portalLabel("field_platform", "Platform")} value={project.platform || "—"} />
             {data.custom_fields.filter(f => f.key === "arr" || f.label.toLowerCase() === "arr").map(f => (
-              <OverviewRow key={f.key} label="ARR" value={f.value || "—"} />
+              <OverviewRow key={f.key} label={portalLabel("field_arr", "ARR")} value={f.value || "—"} />
             ))}
             <OverviewRow label="Customer Engineer (POC)" value={owner?.name || "—"} />
-            <OverviewRow label="Expected Go-Live Date" value={formatDate(project.expected_go_live_date || project.go_live_date)} />
+            <OverviewRow label={portalLabel("field_expected_go_live_date", "Expected Go-Live Date")} value={formatDate(project.expected_go_live_date || project.go_live_date)} />
             {data.custom_fields
               .filter(f => {
                 const lbl = f.label.toLowerCase();

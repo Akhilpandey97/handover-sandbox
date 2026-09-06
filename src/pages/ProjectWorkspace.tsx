@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useProjects } from "@/contexts/ProjectContext";
+import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
 import {
   Project,
   ProjectState,
@@ -496,6 +497,8 @@ const buildActionDrivenSummary = (
 export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false, onClose, projectIds, onNavigate }: ProjectWorkspaceProps) => {
   const { projectId: routeProjectId } = useParams<{ projectId?: string }>();
   const projectId = projectIdProp || routeProjectId;
+  const { fields: customFields } = useCustomFields();
+  const { values: customFieldValues } = useCustomFieldValues(projectId);
   const { isAuthenticated, isLoading, currentUser } = useAuth();
   const {
     projects,
@@ -639,6 +642,18 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     [getLabel("field_platform"), project.platform],
     [getLabel("field_expected_go_live_date"), project.dates.expectedGoLiveDate || "—"],
   ];
+
+  // Workspace-defined extra fields (Settings → Custom Fields)
+  const customFieldRows: string[][] = customFields
+    .filter((f) => (customFieldValues[f.id] ?? "").length > 0)
+    .map((f) => [
+      f.field_label,
+      f.field_type === "boolean"
+        ? customFieldValues[f.id] === "true"
+          ? "Yes"
+          : "No"
+        : customFieldValues[f.id],
+    ]);
 
   const noteSections = [
     ["Current phase", project.notes.currentPhaseComment || "No current phase note added."],
@@ -871,6 +886,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], ["Kick-off", project.dates.kickOffDate || "—"], ["Expected go-live", project.dates.expectedGoLiveDate || "—"], ["Actual go-live", project.dates.goLiveDate || "—"], ["Internal time", formatDuration(timeByParty.gokwik)], ["Merchant time", formatDuration(timeByParty.merchant)]] },
               { title: "Business", rows: [["Platform", project.platform], ["Category", project.category || "—"], ["ARR", formatArrCr(project.arr)], ["Transactions/day", `${project.txnsPerDay}`], ["AOV", `₹${project.aov.toLocaleString()}`], ["Integration type", project.integrationType || "—"], ["PG onboarding", project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
+              ...(customFieldRows.length ? [{ title: "Custom Fields", rows: customFieldRows }] : []),
             ].map((section) => (
               <details key={section.title} className="group rounded-lg border border-border bg-card">
                 <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-foreground">
