@@ -25,7 +25,7 @@ const getTime = () => new Date().toLocaleTimeString([], { hour: "2-digit", minut
 const APPROVAL_ACTIONS = new Set(["create_workflow", "bulk_update_projects", "assign_owner", "update_project_field", "trigger_brd", "toggle_responsibility", "create_project"]);
 
 // Roles that can use AI action capabilities
-const ACTION_ROLES = new Set(["manager", "super_admin"]);
+const ACTION_ROLES = new Set(["manager", "admin", "super_admin"]);
 const canUseActions = (team?: string) => ACTION_ROLES.has(team || "");
 
 const ACTION_SUGGESTIONS = [

@@ -62,11 +62,25 @@ async function handler(req: Request): Promise<Response> {
       .eq('user_id', requester.id)
       .single();
 
-    if (roleError || (roleData?.role !== 'manager' && roleData?.role !== 'super_admin')) {
+    if (roleError || (roleData?.role !== 'admin' && roleData?.role !== 'super_admin')) {
       return new Response(
-        JSON.stringify({ error: 'Only managers can delete users' }),
+        JSON.stringify({ error: 'Only tenant admins can delete users' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    const isSuperAdmin = roleData?.role === 'super_admin';
+    if (!isSuperAdmin) {
+      const { data: requesterProfile } = await supabaseAdmin
+        .from('profiles').select('tenant_id').eq('id', requester.id).single();
+      const { data: targetProfile } = await supabaseAdmin
+        .from('profiles').select('tenant_id').eq('id', userId).single();
+      if (!requesterProfile?.tenant_id || requesterProfile.tenant_id !== targetProfile?.tenant_id) {
+        return new Response(
+          JSON.stringify({ error: 'You can only manage users in your own workspace' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Delete from profiles and user_roles first

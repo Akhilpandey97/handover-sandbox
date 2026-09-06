@@ -152,7 +152,7 @@ export const TenantManagement = () => {
           email: managerEmail,
           password: managerPassword,
           name: managerName,
-          team: "manager",
+          team: "admin",
           tenant_id: selectedTenantForManager,
         },
       });
@@ -160,7 +160,7 @@ export const TenantManagement = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      toast.success(`Manager ${managerName} created for tenant`);
+      toast.success(`Admin ${managerName} created for tenant`);
       setIsManagerDialogOpen(false);
       setManagerEmail("");
       setManagerPassword("");

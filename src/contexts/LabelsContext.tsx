@@ -184,6 +184,7 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   // Names come from Settings → Checklist → Team Management (the `teams` table).
   const teamLabels: Record<string, string> = {
     manager: "Manager",
+    admin: "Admin",
     super_admin: "Super Admin",
     gokwik_general: "General",
     ...teamLabelMap,

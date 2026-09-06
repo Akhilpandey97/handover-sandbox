@@ -1,4 +1,4 @@
-export type TeamRole = "mint" | "integration" | "ms" | "manager" | "super_admin" | "gokwik_general" | (string & {});
+export type TeamRole = "mint" | "integration" | "ms" | "manager" | "admin" | "super_admin" | "gokwik_general" | (string & {});
 
 export interface TeamUser {
   id: string;
@@ -40,6 +40,7 @@ export const teamLabels: Record<TeamRole, string> = {
   integration: "MINT",
   ms: "Merchant Success",
   manager: "Manager",
+  admin: "Admin",
   super_admin: "Super Admin",
   gokwik_general: "General",
 };
@@ -49,6 +50,7 @@ export const teamColors: Record<TeamRole, string> = {
   integration: "bg-purple-500",
   ms: "bg-green-500",
   manager: "bg-orange-500",
+  admin: "bg-indigo-500",
   super_admin: "bg-red-500",
   gokwik_general: "bg-teal-500",
 };

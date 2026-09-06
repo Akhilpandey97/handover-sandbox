@@ -34,7 +34,7 @@ const Index = () => {
   }
 
   // Show manager dashboard for manager, super_admin
-  if (currentUser?.team === "manager" || currentUser?.team === "super_admin") {
+  if (currentUser?.team === "manager" || currentUser?.team === "admin" || currentUser?.team === "super_admin") {
     return (
       <>
         <ManagerDashboard />

@@ -17,6 +17,8 @@ import { ActivityLogViewer } from "./settings/ActivityLogViewer";
 import { SlackAlertsSettings } from "./settings/SlackAlertsSettings";
 import { FunnelStagesSettings } from "./settings/FunnelStagesSettings";
 import { IntegrationsSettings } from "./settings/IntegrationsSettings";
+import { usePermissions } from "@/hooks/usePermissions";
+import { NoAccessCard } from "@/components/NoAccessCard";
 
 interface LabelGroup {
   title: string;
@@ -198,6 +200,7 @@ interface SettingsPanelProps {
 }
 
 export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
+  const perms = usePermissions();
   const { labels, updateLabels } = useLabels();
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -352,7 +355,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
 
         {/* General Tab */}
         <TabsContent value="general" className="space-y-6">
-          <LogoUpload />
+          {perms.canManageBranding && <LogoUpload />}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -375,7 +378,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
 
         {/* Integrations Tab */}
         <TabsContent value="integrations">
-          <IntegrationsSettings />
+          {perms.canManageIntegrations ? <IntegrationsSettings /> : <NoAccessCard message="Integration credentials and API keys are managed by workspace admins." />}
         </TabsContent>
 
 

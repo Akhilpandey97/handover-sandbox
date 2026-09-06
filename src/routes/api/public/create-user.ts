@@ -65,9 +65,9 @@ async function handler(req: Request): Promise<Response> {
       .eq('user_id', requester.id)
       .single();
 
-    if (roleError || (roleData?.role !== 'manager' && roleData?.role !== 'super_admin')) {
+    if (roleError || (roleData?.role !== 'admin' && roleData?.role !== 'super_admin')) {
       return new Response(
-        JSON.stringify({ error: 'Only managers can create users' }),
+        JSON.stringify({ error: 'Only tenant admins can create users' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -94,15 +94,15 @@ async function handler(req: Request): Promise<Response> {
 
     // Manually insert into profiles table (in case trigger doesn't fire)
     // Determine tenant_id: use provided tenant_id, or fall back to requester's tenant
-    let resolvedTenantId = tenant_id;
-    if (!resolvedTenantId) {
-      const { data: requesterProfile } = await supabaseAdmin
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', requester.id)
-        .single();
-      resolvedTenantId = requesterProfile?.tenant_id;
-    }
+    const { data: requesterProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('tenant_id')
+      .eq('id', requester.id)
+      .single();
+    // Non super-admins can only create users inside their own tenant
+    let resolvedTenantId = roleData?.role === 'super_admin'
+      ? (tenant_id || requesterProfile?.tenant_id)
+      : requesterProfile?.tenant_id;
 
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
