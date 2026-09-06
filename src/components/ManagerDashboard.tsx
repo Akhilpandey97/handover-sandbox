@@ -142,6 +142,7 @@ export const ManagerDashboard = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const { labels: appLabels, getLabel, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels } = useLabels();
+  const arrLabel = getLabel("field_arr");
   const { projects, isLoading, addProject, deleteProject, updateProject, archiveProject } = useProjects();
   const { fields: customFields } = useCustomFields();
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
@@ -1214,10 +1215,10 @@ export const ManagerDashboard = () => {
                 }, {} as Record<string, number>);
 
                 const kpiCards = [
-                  { label: "All projects", value: totalProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `Pipeline ARR: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
-                  { label: "Pending", value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ARR: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
-                  { label: "In delivery", value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ARR: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
-                  { label: "Live", value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ARR: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
+                  { label: "All projects", value: totalProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
+                  { label: "Pending", value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started") },
+                  { label: "In delivery", value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ${arrLabel}: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
+                  { label: "Live", value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ${arrLabel}: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
                 ];
                 return kpiCards.map((kpi) => (
                   <div
@@ -1446,7 +1447,7 @@ export const ManagerDashboard = () => {
                               <SelectTrigger className="w-full"><SelectValue placeholder="None" /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="none">None</SelectItem>
-                                <SelectItem value="arr">ARR</SelectItem>
+                                <SelectItem value="arr">{arrLabel}</SelectItem>
                                 <SelectItem value="owner">Owner</SelectItem>
                                 <SelectItem value="platform">Platform</SelectItem>
                               </SelectContent>
@@ -1525,7 +1526,7 @@ export const ManagerDashboard = () => {
                             </div>
                           ))}
                           <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground font-medium">ARR Range (Cr)</label>
+                            <label className="text-xs text-muted-foreground font-medium">{arrLabel} Range (Cr)</label>
                             <div className="flex gap-1">
                               <Input type="number" placeholder="Min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-full h-9 text-xs" />
                               <Input type="number" placeholder="Max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-full h-9 text-xs" />
@@ -1743,7 +1744,7 @@ export const ManagerDashboard = () => {
                               <SelectContent>
                                 <SelectItem value="none">None</SelectItem>
                                 <SelectItem value="merchantName">Merchant Name</SelectItem>
-                                <SelectItem value="arr">ARR</SelectItem>
+                                <SelectItem value="arr">{arrLabel}</SelectItem>
                                 <SelectItem value="platform">Platform</SelectItem>
                                 <SelectItem value="kickOffDate">Start Date</SelectItem>
                                 <SelectItem value="owner">Owner</SelectItem>
@@ -1825,7 +1826,7 @@ export const ManagerDashboard = () => {
                             </div>
                           ))}
                           <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground font-medium">ARR Range (Cr)</label>
+                            <label className="text-xs text-muted-foreground font-medium">{arrLabel} Range (Cr)</label>
                             <div className="flex gap-1">
                               <Input type="number" placeholder="Min" value={lvArrMin} onChange={e => setLvArrMin(e.target.value)} className="w-full h-9 text-xs" />
                               <Input type="number" placeholder="Max" value={lvArrMax} onChange={e => setLvArrMax(e.target.value)} className="w-full h-9 text-xs" />
@@ -2591,7 +2592,7 @@ export const ManagerDashboard = () => {
                                 <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{project.projectState}</Badge>
                               </div>
                               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                <span>ARR: {formatArrCr(project.arr)}</span>
+                                <span>{arrLabel}: {formatArrCr(project.arr)}</span>
                                 {project.assignedOwnerName && <span>Owner: {project.assignedOwnerName}</span>}
                                 {project.archivedAt && <span>Archived: {new Date(project.archivedAt).toLocaleDateString()}</span>}
                               </div>
