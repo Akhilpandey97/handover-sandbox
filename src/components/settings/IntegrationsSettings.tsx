@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Loader2, Save, Mail, Inbox, Bug, Bell, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { ApiKeysSettings } from "./ApiKeysSettings";
 
 type Fields = Record<string, string>;
 
@@ -213,6 +214,8 @@ export function IntegrationsSettings() {
           </Card>
         );
       })}
+
+      <ApiKeysSettings />
 
       <Separator />
       <p className="text-xs text-muted-foreground">
