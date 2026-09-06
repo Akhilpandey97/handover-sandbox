@@ -771,44 +771,26 @@ export default function MerchantPortal() {
   const { project, owner, checklist_progress } = data;
 
   return (
-    <div className="h-screen bg-background text-foreground flex flex-col overflow-hidden">
-      {/* TOP HEADER */}
-      <header className="h-14 flex items-center px-4 gap-3 sticky top-0 z-50 flex-shrink-0 border-b border-border bg-card shadow-sm">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: BRAND.primary }}>
-          <Zap className="w-4 h-4 text-white" fill="white" />
-        </div>
-        <KwikAssistLogo size="sm" onClick={() => setActivePage("integration")} />
-        <div className="flex-1" />
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: BRAND.primary }}>
-            {project.merchant_name?.charAt(0).toUpperCase()}
+    <div className="h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground flex">
+      {/* SIDEBAR — matches manager dashboard */}
+      <aside className="w-[212px] hidden md:flex flex-col shrink-0 bg-sidebar text-sidebar-foreground">
+        {/* Logo & Title */}
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-xl gradient-primary flex items-center justify-center shadow-[var(--shadow-soft)] shrink-0">
+              <Zap className="h-5 w-5 text-primary-foreground" fill="currentColor" />
+            </div>
+            <div className="min-w-0">
+              <KwikAssistLogo size="sm" onClick={() => setActivePage("integration")} />
+            </div>
           </div>
-          <span className="text-sm font-medium text-foreground hidden sm:inline">{project.merchant_name}</span>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-lg bg-muted text-muted-foreground hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/15 text-xs font-semibold transition-colors"
-            title="Sign out of the portal"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
         </div>
-      </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* SIDEBAR */}
-        <aside className="w-64 flex flex-col flex-shrink-0 hidden md:flex border-r border-sidebar-border bg-sidebar">
-          <div className="px-4 pt-6 pb-2">
-            <p className="text-[10px] font-bold text-white/55 uppercase tracking-[0.2em] mb-3">Navigation</p>
-          </div>
-          <nav className="px-3 space-y-1.5 flex-1">
+        <nav className="flex-1 px-2 py-4 overflow-y-auto">
+          <p className="text-[11px] font-semibold text-sidebar-foreground uppercase tracking-widest mb-3 px-4">
+            Navigation
+          </p>
+          <div className="space-y-1">
             <SidebarItem icon={LayoutDashboard} label="My Integration" active={activePage === "integration"} onClick={() => setActivePage("integration")} dataTour="tour-integration" />
             <SidebarItem icon={Lock} label="Credentials" active={activePage === "credentials"} onClick={() => setActivePage("credentials")} dataTour="tour-credentials" />
             <SidebarItem icon={FileText} label="Documents" active={activePage === "documents"} onClick={() => setActivePage("documents")} dataTour="tour-documents" />
@@ -823,11 +805,51 @@ export default function MerchantPortal() {
             {project.payment_simulator_link && (
               <SidebarItem icon={Zap} label="Payment Simulator" active={activePage === "simulator"} onClick={() => setActivePage("simulator")} dataTour="tour-simulator" />
             )}
-          </nav>
-        </aside>
+          </div>
+        </nav>
+      </aside>
+
+      {/* MAIN */}
+      <div className="flex-1 flex min-h-0 flex-col min-w-0">
+        {/* HEADER */}
+        <header className="h-16 border-b border-border bg-card/95 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="md:hidden h-8 w-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
+              <Zap className="h-4 w-4 text-primary-foreground" fill="currentColor" />
+            </div>
+            <h2 className="text-xl font-bold truncate">{project.merchant_name}</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="h-8 w-8 rounded-lg bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <div className="flex items-center gap-2 pl-3 border-l border-border/50">
+              <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
+                {project.merchant_name?.charAt(0).toUpperCase()}
+              </div>
+              <div className="hidden sm:block min-w-0">
+                <p className="font-medium text-xs text-foreground truncate leading-tight">{project.merchant_name}</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">Customer portal</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border text-destructive hover:bg-destructive/10 text-xs font-semibold transition-colors"
+              title="Sign out of the portal"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
+        </header>
 
         {/* MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto min-w-0">
+        <main className="flex-1 overflow-y-auto min-w-0 app-shell-surface">
+
           {activePage === "integration" && (
             <IntegrationPage data={data} project={project} owner={owner}
               checklist_progress={checklist_progress} currentStage={currentStage}
@@ -876,23 +898,26 @@ function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour }: {
       onClick={onClick}
       data-tour={dataTour}
       className={cn(
-        "w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-[15px] transition-all text-left text-white/90",
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group",
         active
-          ? "font-semibold text-white ring-2 ring-white/70 shadow-md"
-          : "hover:bg-white/10"
+          ? "gradient-primary text-primary-foreground shadow-[var(--shadow-soft)]"
+          : "hover:bg-sidebar-accent/60 text-sidebar-foreground"
       )}
-      style={active ? { background: `linear-gradient(90deg, ${BRAND.primary}, ${BRAND.primaryLight})` } : {}}
     >
-      <span className={cn("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg", active ? "bg-white/25" : "bg-white/10")}>
-        <Icon className="w-[18px] h-[18px]" />
+      <span className={cn(
+        "flex items-center justify-center h-8 w-8 rounded-lg shrink-0 transition-colors",
+        active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-sidebar-accent text-sidebar-foreground"
+      )}>
+        <Icon className="h-4 w-4" />
       </span>
-      <span className="flex-1">{label}</span>
+      <span className="font-medium text-sm flex-1">{label}</span>
       {badge !== undefined && (
-        <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold bg-white/25 text-white">{badge}</span>
+        <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold bg-primary-foreground/20">{badge}</span>
       )}
     </button>
   );
 }
+
 
 /* ===================== CARD WRAPPER ===================== */
 function Card({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
