@@ -54,7 +54,7 @@ export const useTeams = () => {
   return {
     allTeams: checklistTeams,
     customTeams,
-    systemTeams: SYSTEM_TEAMS,
+    systemTeams,
     teamLabelMap,
     teamColorMap,
     checklistTeamSlugs,

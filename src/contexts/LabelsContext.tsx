@@ -181,14 +181,12 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [currentUser?.tenantId]);
 
+  // Names come from Settings → Checklist → Team Management (the `teams` table).
   const teamLabels: Record<string, string> = {
-    mint: labels.team_mint,
-    integration: labels.team_integration,
-    ms: labels.team_ms,
-    manager: labels.team_manager,
+    manager: "Manager",
     super_admin: "Super Admin",
     gokwik_general: "General",
-    // Custom teams created in Settings → Team Management
+    ...teamLabelMap,
     ...customTeamLabels,
   };
 
