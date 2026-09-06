@@ -118,7 +118,7 @@ import { arrToCrore, formatArrCr } from "@/lib/arr";
 
 // Sub-tab keys for reports and settings
 const REPORTS_SUB_TABS = ["predefined", "builder", "scheduler", "pivot-table", "sandbox", "daily-report", "weekly-report"];
-const SETTINGS_SUB_TABS = ["general", "workflow", "fields", "custom-fields", "checklist-forms", "colours", "email", "workflows", "funnel", "activity-log"];
+const SETTINGS_SUB_TABS = ["general", "fields", "custom-fields", "checklist-forms", "colours", "email", "workflows", "funnel", "activity-log"];
 const PREDEFINED_REPORT_TYPES = ["executive", "operational", "merchant", "tactical", "project", "team"];
 
 // All nav items that can be toggled
@@ -790,7 +790,6 @@ export const ManagerDashboard = () => {
 
   const SETTINGS_SUB_CONFIG: Record<string, { label: string }> = {
     general: { label: "General" },
-    workflow: { label: "Workflow" },
     fields: { label: "Field Labels" },
     "custom-fields": { label: "Custom Fields" },
     "checklist-forms": { label: "Checklist Forms" },
