@@ -447,17 +447,21 @@ export const ChecklistDialog = ({
                               </div>
 
                               {/* Due Date */}
-                              {item.dueDate && (
+                              {(item.dueDate || (canEdit && !item.completed)) && (
                                 <div className="flex items-center gap-2 mb-2">
                                   <Calendar className="h-3 w-3 text-muted-foreground" />
-                                  <span className={`text-xs ${!item.completed && new Date(item.dueDate) < new Date() ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                                    Due: {new Date(item.dueDate).toLocaleDateString()}
-                                    {!item.completed && new Date(item.dueDate) < new Date() && " (Overdue)"}
-                                  </span>
+                                  {item.dueDate ? (
+                                    <span className={`text-xs ${!item.completed && new Date(item.dueDate) < new Date() ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                                      Due: {new Date(item.dueDate).toLocaleDateString()}
+                                      {!item.completed && new Date(item.dueDate) < new Date() && " (Overdue)"}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">No due date</span>
+                                  )}
                                   {canEdit && !item.completed && (
                                     <Input
                                       type="date"
-                                      defaultValue={item.dueDate}
+                                      defaultValue={item.dueDate || ""}
                                       className="h-6 w-32 text-xs px-1"
                                       onChange={async (e) => {
                                         const newDate = e.target.value || null;
@@ -468,6 +472,7 @@ export const ChecklistDialog = ({
                                   )}
                                 </div>
                               )}
+
                               
                               {item.completedBy && (
                                 <p className="text-xs text-muted-foreground mb-2">
