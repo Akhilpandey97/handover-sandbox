@@ -141,6 +141,8 @@ export const ChecklistDialog = ({
 
   // Normalize current user's team for comparison
   const userTeam = (currentUser.team || "").toLowerCase();
+  // Managers, tenant admins and super admins can work across every team
+  const hasFullChecklistAccess = ["manager", "admin", "super_admin", "superadmin"].includes(userTeam);
 
   // Build ordered teams: user's team first, then system teams, then custom teams
   const systemSlugs = ["mint", "integration", "ms"];
@@ -148,9 +150,10 @@ export const ChecklistDialog = ({
   
   // User's team first
   const orderedTeams: string[] = [];
-  if (userTeam && allSlugsInChecklist.includes(userTeam) && userTeam !== "manager") {
+  if (userTeam && allSlugsInChecklist.includes(userTeam) && !hasFullChecklistAccess) {
     orderedTeams.push(userTeam);
   }
+
   // System teams
   systemSlugs.forEach(s => {
     if (allSlugsInChecklist.includes(s) && !orderedTeams.includes(s)) {
