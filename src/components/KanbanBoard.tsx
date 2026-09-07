@@ -32,6 +32,7 @@ const KANBAN_FIELD_OPTIONS = [
 const FUNNEL_ORDER: FunnelStage[] = ["sales", "pre_integration", "under_integration", "live"];
 
 const CARD_ORDER_KEY = "kanban_card_order";
+const COLUMN_ORDER_KEY = "kanban_column_order";
 const FUNNEL_STAGE_STYLES: Record<FunnelStage, { text: string; bar: string; bg: string; ring: string }> = {
   sales: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
   pre_integration: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
@@ -144,6 +145,15 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
   });
   const [dragCard, setDragCard] = useState<{ id: string; colKey: string } | null>(null);
 
+  // Column arrangement, per grouping, remembered per browser.
+  const [columnOrder, setColumnOrder] = useState<Record<string, string[]>>(() => {
+    try {
+      const saved = localStorage.getItem(COLUMN_ORDER_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  const [dragColumn, setDragColumn] = useState<string | null>(null);
+
   const activeProjects = useMemo(() => projects.filter(p => !p.archived), [projects]);
   const projectIds = useMemo(() => activeProjects.map(p => p.id), [activeProjects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
@@ -215,6 +225,31 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
     const customOptions = customFields.map(f => ({ key: `custom_field_${f.id}`, label: f.field_label }));
     return [...KANBAN_FIELD_OPTIONS, ...customOptions];
   }, [customFields]);
+
+  const handleColumnDragStart = (colKey: string) => setDragColumn(colKey);
+
+  const handleColumnDragOver = (targetKey: string) => {
+    if (!dragColumn || dragColumn === targetKey) return;
+    const visible = columns.map(c => c.key);
+    setColumnOrder(prev => {
+      const current = prev[groupField] ?? visible;
+      const next = [...current];
+      const from = next.indexOf(dragColumn);
+      const to = next.indexOf(targetKey);
+      if (from === -1 || to === -1) return prev;
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved!);
+      return { ...prev, [groupField]: next };
+    });
+  };
+
+  const handleColumnDragEnd = () => {
+    setDragColumn(null);
+    setColumnOrder(current => {
+      try { localStorage.setItem(COLUMN_ORDER_KEY, JSON.stringify(current)); } catch { /* private mode */ }
+      return current;
+    });
+  };
 
   const handleCardDragStart = (id: string, colKey: string) => setDragCard({ id, colKey });
 
@@ -302,11 +337,20 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
         };
       });
 
+    const savedColumns = columnOrder[groupField];
+    if (savedColumns) {
+      // A column added since the last drag keeps its default position at the end.
+      const rank = (key: string) => {
+        const i = savedColumns.indexOf(key);
+        return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+      };
+      return entries.sort((a, b) => rank(a.key) - rank(b.key));
+    }
     if (groupField === "funnelStage") {
       return entries.sort((a, b) => FUNNEL_ORDER.indexOf(a.key as FunnelStage) - FUNNEL_ORDER.indexOf(b.key as FunnelStage));
     }
     return entries.sort((a, b) => a.label.localeCompare(b.label));
-  }, [filteredProjects, groupField, labels, customValuesMap, liveThisYearOnly, cardOrder]);
+  }, [filteredProjects, groupField, labels, customValuesMap, liveThisYearOnly, cardOrder, columnOrder]);
 
   const formatArr = (n: number) =>
     n >= 10000000 ? `${(n / 10000000).toFixed(1)}Cr` :
@@ -496,11 +540,23 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
       {/* Board */}
       <div className="flex gap-3 w-full flex-1 min-h-0 overflow-x-auto pb-2">
         {columns.map((col) => (
-          <div key={col.key} className="flex-1 min-w-[260px] flex flex-col h-full">
+          <div
+            key={col.key}
+            // Guarded inside the handler by dragColumn, so a card being dragged
+            // over the column does not reorder the columns.
+            onDragOver={(e) => { if (dragColumn) { e.preventDefault(); handleColumnDragOver(col.key); } }}
+            className={cn("flex-1 min-w-[260px] flex flex-col h-full", dragColumn === col.key && "opacity-60")}
+          >
             <div className={cn("rounded-lg border bg-card shadow-sm flex flex-col h-full overflow-hidden ring-1", col.ring)}>
 
               <div className={cn("h-1 w-full", col.bar)} />
-              <div className={cn("flex items-center justify-between gap-2 px-3 py-2.5 border-b", col.bg)}>
+              <div
+                draggable
+                onDragStart={() => handleColumnDragStart(col.key)}
+                onDragEnd={handleColumnDragEnd}
+                title="Drag to reorder columns"
+                className={cn("flex items-center justify-between gap-2 px-3 py-2.5 border-b cursor-grab active:cursor-grabbing", col.bg)}
+              >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className={cn("font-semibold text-sm tracking-tight truncate min-w-0", col.text)}>
                     {col.label}

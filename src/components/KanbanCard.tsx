@@ -2,9 +2,8 @@ import { Project, ProjectState, projectStateLabels, projectStateColors } from "@
 import { useLabels } from "@/contexts/LabelsContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { ListChecks, Calendar, User, Check, Pencil, Timer, ChevronDown } from "lucide-react";
+import { Calendar, User, Check, Pencil, Timer, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -12,7 +11,6 @@ import { toast } from "sonner";
 import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
 import { RiskBadge } from "./RiskBadge";
 import type { RiskVerdict } from "@/data/riskRules";
-import { ChecklistDialog } from "./ChecklistDialog";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { formatArrCr } from "@/lib/arr";
@@ -39,7 +37,6 @@ export const KanbanCard = ({
   const { stateLabels, getLabel } = useLabels();
   const { updateProject } = useProjects();
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [checklistOpen, setChecklistOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
 
@@ -50,9 +47,6 @@ export const KanbanCard = ({
     project.projectState;
 
   const arrDisplay = formatArrCr(project.arr);
-
-  const completedChecklist = project.checklist.filter(c => c.completed).length;
-  const totalChecklist = project.checklist.length;
 
   const isLive = project.projectState === "live";
   const goLiveDate = project.dates?.goLiveDate
@@ -194,29 +188,12 @@ export const KanbanCard = ({
             )}
           </div>
         )}
-
-        <div className="flex items-center gap-1.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 px-2 text-[11px] gap-1 text-muted-foreground hover:text-primary"
-            onClick={() => setChecklistOpen(true)}
-          >
-            <ListChecks className="h-3 w-3" />
-            {completedChecklist}/{totalChecklist}
-          </Button>
-        </div>
       </div>
 
       <ProjectDetailsDialog
         project={project}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
-      />
-      <ChecklistDialog
-        project={project}
-        open={checklistOpen}
-        onOpenChange={setChecklistOpen}
       />
       <EditProjectDialog
         project={project}
