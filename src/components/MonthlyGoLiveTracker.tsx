@@ -8,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sparkles, Download, Plus, RefreshCw, ExternalLink } from "lucide-react";
+import { Sparkles, Download, RefreshCw, ExternalLink, ArrowUpDown, Filter, ListChecks, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { useProjects } from "@/contexts/ProjectContext";
+import { useLabels } from "@/contexts/LabelsContext";
+import { getProjectFunnelStage, funnelStageLabels, projectStateLabels } from "@/data/projectsData";
 import { arrCroreValue } from "@/lib/arr";
 
 type Project = {
@@ -42,22 +45,7 @@ type Insight = {
   manual_overrides: Record<string, string>;
 };
 
-const PHASE_LABEL: Record<string, string> = {
-  sales: "Sales",
-  pre_integration: "Pre Integration",
-  mint: "Under Integration",
-  ms: "Live",
-};
-
-const FUNNEL_LABEL: Record<string, string> = {
-  live: "Live",
-  under_integration: "Under Integration",
-  pre_integration: "Pre Integration",
-  sales: "Sales",
-  none: "—",
-};
-
-const FUNNEL_BADGE: Record<string, string> = {
+const STAGE_BADGE: Record<string, string> = {
   live: "bg-emerald-500 text-white",
   under_integration: "bg-amber-500 text-white",
   pre_integration: "bg-sky-500 text-white",
@@ -71,37 +59,13 @@ const CONF_BADGE: Record<string, string> = {
   Low: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
 };
 
-const MINT_REQ = ["requirement gathering", "api walkthrough", "api build & sdk integration", "api validation"];
-const FUNNEL_ANY_TITLES = [
-  "feasibility analysis", "pg onboarding", "requirement gathering", "api walkthrough",
-  "api build & sdk integration", "api validation", "under integration", "sandbox testing",
-  "production testing", "dashboard walkthrough", "go-live",
-];
-
-function computeFunnelStage(projectState: string | null, items: { title: string; completed: boolean; is_task: boolean }[]): string {
-  if (projectState === "live") return "live";
-  const nonTasks = items.filter(i => !i.is_task);
-  const titleCompleted = (needle: string) => {
-    const it = nonTasks.find(i => i.title.toLowerCase().includes(needle));
-    return !!it && it.completed;
-  };
-  if (MINT_REQ.every(t => titleCompleted(t))) return "under_integration";
-  const feasibilityDone = titleCompleted("feasibility analysis");
-  if (feasibilityDone && MINT_REQ.some(t => !titleCompleted(t))) return "pre_integration";
-  const anyFunnelDone = FUNNEL_ANY_TITLES.some(t => titleCompleted(t));
-  if (!anyFunnelDone) return "sales";
-  return "none";
-}
-
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+const COLUMN_STORAGE_KEY = "golive_tracker_columns";
 
 function ymToLabel(ym: string) {
   const [y, m] = ym.split("-");
   return `${MONTHS[parseInt(m,10)-1]} ${y}`;
-}
-function dateToYm(d: string | null | undefined) {
-  if (!d) return null;
-  return d.slice(0, 7);
 }
 function weekOfMonth(dateStr: string | null) {
   if (!dateStr) return "";
@@ -118,6 +82,7 @@ function dateLabel(dateStr: string | null) {
 export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { toolbarContainer?: HTMLElement | null; searchQuery?: string } = {}) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { getLabel } = useLabels();
   const now = new Date();
   const defaultYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
@@ -126,16 +91,81 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const [insights, setInsights] = useState<Record<string, Insight>>({});
   const [owners, setOwners] = useState<Record<string, string>>({});
   const [platformCsm, setPlatformCsm] = useState<Record<string, string>>({}); // merchant_name -> CSM name
-  const [funnelStages, setFunnelStages] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [allProjects, setAllProjects] = useState<Project[]>([]);
-  const [pickerSearch, setPickerSearch] = useState("");
-  const [pickerSelected, setPickerSelected] = useState<Record<string, boolean>>({});
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const { projects: fullProjects, updateProject } = useProjects();
   const editingProject = editProjectId ? fullProjects.find(p => p.id === editProjectId) : null;
+
+  const arrLabel = getLabel("field_arr");
+  const stageLabel = getLabel("field_project_stage");
+  const ownerLabel = getLabel("field_assigned_owner");
+  const expectedLabel = getLabel("field_expected_go_live_date");
+  const stateLabel = getLabel("field_project_state");
+
+  // Stage resolves through the tenant's configured project-stage rules
+  const funnelStages = useMemo(() => {
+    const map: Record<string, string> = {};
+    fullProjects.forEach(p => { map[p.id] = getProjectFunnelStage(p); });
+    return map;
+  }, [fullProjects]);
+
+  const ALL_COLUMNS = useMemo(() => ([
+    { key: "arr", label: `${arrLabel} Cr.` },
+    { key: "stage", label: stageLabel },
+    { key: "blocker", label: "Blocker" },
+    { key: "blocked_on", label: "Blocked On" },
+    { key: "deadline", label: "Deadline" },
+    { key: "confidence", label: "Confidence" },
+    { key: "owner", label: ownerLabel },
+    { key: "expected", label: expectedLabel },
+    { key: "csm", label: "CSM" },
+  ]), [arrLabel, stageLabel, ownerLabel, expectedLabel]);
+
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem(COLUMN_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[];
+        }
+      } catch { /* ignore */ }
+    }
+    return ["arr", "stage", "blocker", "blocked_on", "deadline", "confidence", "owner", "expected", "csm"];
+  });
+  const isVisible = (key: string) => visibleColumns.includes(key);
+  const toggleColumn = (key: string) => {
+    const next = visibleColumns.includes(key) ? visibleColumns.filter(c => c !== key) : [...visibleColumns, key];
+    setVisibleColumns(next);
+    try { window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+  };
+
+  // Sort
+  const [sortField, setSortField] = useState<string>("none");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  // Filters
+  const [stageFilter, setStageFilter] = useState<string[]>([]);
+  const [stateFilter, setStateFilter] = useState<string[]>([]);
+  const [confidenceFilter, setConfidenceFilter] = useState<string[]>([]);
+  const [arrMin, setArrMin] = useState("");
+  const [arrMax, setArrMax] = useState("");
+  const [expectedFrom, setExpectedFrom] = useState("");
+  const [expectedTo, setExpectedTo] = useState("");
+
+  const activeFilterCount =
+    stageFilter.length + stateFilter.length + confidenceFilter.length +
+    (arrMin ? 1 : 0) + (arrMax ? 1 : 0) + (expectedFrom ? 1 : 0) + (expectedTo ? 1 : 0);
+
+  const clearFilters = () => {
+    setStageFilter([]); setStateFilter([]); setConfidenceFilter([]);
+    setArrMin(""); setArrMax(""); setExpectedFrom(""); setExpectedTo("");
+  };
+
+  const toggleValue = (setter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
+    setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -152,11 +182,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
 
       const ids = list.map(p => p.id);
       if (ids.length > 0) {
-        const [{ data: iData }, { data: profData }, { data: pmData }, { data: ciData }] = await Promise.all([
+        const [{ data: iData }, { data: profData }, { data: pmData }] = await Promise.all([
           supabase.from("project_ai_insights").select("*").eq("month", month).in("project_id", ids),
           supabase.from("profiles").select("id, name").in("id", list.map(p => p.assigned_owner).filter(Boolean) as string[]),
           supabase.from("platform_merchants").select("merchant_name, csm_id"),
-          supabase.from("checklist_items").select("project_id, title, completed, is_task").in("project_id", ids),
         ]);
         const iMap: Record<string, Insight> = {};
         (iData || []).forEach((r: any) => { iMap[r.project_id] = r; });
@@ -165,18 +194,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
         (profData || []).forEach((p: any) => { oMap[p.id] = p.name; });
         setOwners(oMap);
 
-        // Compute funnel stage per project from checklist items + project_state
-        const itemsByProject: Record<string, { title: string; completed: boolean; is_task: boolean }[]> = {};
-        (ciData || []).forEach((c: any) => {
-          (itemsByProject[c.project_id] ||= []).push({ title: c.title, completed: !!c.completed, is_task: !!c.is_task });
-        });
-        const fMap: Record<string, string> = {};
-        list.forEach(p => { fMap[p.id] = computeFunnelStage(p.project_state, itemsByProject[p.id] || []); });
-        setFunnelStages(fMap);
-
         // Map merchant_name -> CSM name via profiles
         const csmIds = (pmData || []).map((p: any) => p.csm_id).filter(Boolean);
-        let csmNames: Record<string, string> = {};
+        const csmNames: Record<string, string> = {};
         if (csmIds.length) {
           const { data: csmProf } = await supabase.from("profiles").select("id, name").in("id", csmIds);
           (csmProf || []).forEach((p: any) => { csmNames[p.id] = p.name; });
@@ -189,7 +209,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
       } else {
         setInsights({});
         setOwners({});
-        setFunnelStages({});
       }
     } finally {
       setLoading(false);
@@ -244,14 +263,17 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     setInsights(prev => ({ ...prev, [projectId]: data as any }));
   };
 
+  const stageOf = (id: string) => funnelStages[id] || "none";
+  const stageText = (id: string) => funnelStageLabels[stageOf(id)] || "—";
+
   const exportCsv = () => {
-    const rows = [["Opportunity Name","ARR Cr.","Pipe Stage","Blocker","Blocked On","Deadline","Confidence","Owner","Expected Go live","PG Creds","DB Walkthrough","CSM Alignment"]];
+    const rows = [["Opportunity Name", `${arrLabel} Cr.`, stageLabel, "Blocker", "Blocked On", "Deadline", "Confidence", ownerLabel, expectedLabel, "PG Creds", "DB Walkthrough", "CSM Alignment"]];
     sortedRows.forEach(p => {
       const i = insights[p.id];
       rows.push([
         p.merchant_name,
         String(p.arr ?? ""),
-        FUNNEL_LABEL[funnelStages[p.id] || "none"] || "",
+        stageText(p.id),
         i?.blocker || "",
         i?.blocked_on || "",
         i?.deadline || "",
@@ -273,50 +295,42 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
 
   const sortedRows = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    return projects.filter((project) => !query || project.merchant_name.toLowerCase().includes(query)).sort((a, b) => {
+    const filtered = projects.filter((p) => {
+      if (query && !p.merchant_name.toLowerCase().includes(query)) return false;
+      if (stageFilter.length > 0 && !stageFilter.includes(stageOf(p.id))) return false;
+      if (stateFilter.length > 0 && !stateFilter.includes(p.project_state || "")) return false;
+      if (confidenceFilter.length > 0 && !confidenceFilter.includes(insights[p.id]?.confidence || "")) return false;
+      const arrCr = p.arr != null ? Number(arrCroreValue(p.arr)) : null;
+      if (arrMin && (arrCr == null || arrCr < parseFloat(arrMin))) return false;
+      if (arrMax && (arrCr == null || arrCr > parseFloat(arrMax))) return false;
+      if (expectedFrom && (!p.expected_go_live_date || p.expected_go_live_date < expectedFrom)) return false;
+      if (expectedTo && (!p.expected_go_live_date || p.expected_go_live_date > expectedTo)) return false;
+      return true;
+    });
+
+    if (sortField !== "none") {
+      const dir = sortDir === "asc" ? 1 : -1;
+      return [...filtered].sort((a, b) => {
+        switch (sortField) {
+          case "merchantName": return dir * a.merchant_name.localeCompare(b.merchant_name);
+          case "arr": return dir * ((a.arr ?? 0) - (b.arr ?? 0));
+          case "stage": return dir * stageText(a.id).localeCompare(stageText(b.id));
+          case "confidence": return dir * (insights[a.id]?.confidence || "").localeCompare(insights[b.id]?.confidence || "");
+          case "owner": return dir * (owners[a.assigned_owner || ""] || "").localeCompare(owners[b.assigned_owner || ""] || "");
+          case "expected": return dir * (a.expected_go_live_date || "").localeCompare(b.expected_go_live_date || "");
+          default: return 0;
+        }
+      });
+    }
+
+    return [...filtered].sort((a, b) => {
       const aBlocked = a.project_state === "blocked" ? 0 : 1;
       const bBlocked = b.project_state === "blocked" ? 0 : 1;
       if (aBlocked !== bBlocked) return aBlocked - bBlocked;
       return (a.expected_go_live_date || "").localeCompare(b.expected_go_live_date || "");
     });
-  }, [projects, searchQuery]);
-
-  const openPicker = async () => {
-    const { data } = await supabase
-      .from("projects")
-      .select("id, merchant_name, arr, current_phase, project_state, assigned_owner, expected_go_live_date, tracker_month, platform")
-      .eq("archived", false)
-      .order("merchant_name");
-    setAllProjects((data || []) as Project[]);
-    const sel: Record<string, boolean> = {};
-    projects.forEach(p => { sel[p.id] = true; });
-    setPickerSelected(sel);
-    setPickerOpen(true);
-  };
-
-  const savePicker = async () => {
-    // Tag any selected project not already in this month with tracker_month = month
-    const ops: Promise<any>[] = [];
-    for (const id of Object.keys(pickerSelected)) {
-      if (!pickerSelected[id]) continue;
-      const p = allProjects.find(x => x.id === id);
-      if (!p) continue;
-      const inMonth = dateToYm(p.expected_go_live_date) === month;
-      if (!inMonth && p.tracker_month !== month) {
-        ops.push(Promise.resolve(supabase.from("projects").update({ tracker_month: month } as any).eq("id", id)));
-      }
-    }
-    // Untag any current rows that were deselected and only present via tracker_month
-    for (const p of projects) {
-      if (!pickerSelected[p.id] && p.tracker_month === month) {
-        ops.push(Promise.resolve(supabase.from("projects").update({ tracker_month: null } as any).eq("id", p.id)));
-      }
-    }
-    await Promise.all(ops);
-    toast.success("Tracker updated");
-    setPickerOpen(false);
-    load();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects, searchQuery, stageFilter, stateFilter, confidenceFilter, arrMin, arrMax, expectedFrom, expectedTo, sortField, sortDir, insights, owners, funnelStages]);
 
   const monthOptions = useMemo(() => {
     const opts: string[] = [];
@@ -329,8 +343,155 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     return opts;
   }, []);
 
+  const stageOptions = useMemo(() => {
+    const set = new Set<string>();
+    projects.forEach(p => set.add(stageOf(p.id)));
+    return Array.from(set).sort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects, funnelStages]);
+
+  const visibleColCount = 1 + visibleColumns.length;
+
   const toolbar = (
       <div className="flex w-full flex-wrap items-center justify-end gap-3">
+        <div className="flex items-center gap-2">
+          {/* Sort */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <ArrowUpDown className="h-4 w-4" />
+                Sort
+                {sortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>}
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-[320px] p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Sort By</p>
+                {sortField !== "none" && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setSortField("none"); setSortDir("asc"); }}>Clear</Button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Field</label>
+                  <Select value={sortField} onValueChange={setSortField}>
+                    <SelectTrigger className="w-full"><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="merchantName">Opportunity</SelectItem>
+                      <SelectItem value="arr">{arrLabel}</SelectItem>
+                      <SelectItem value="stage">{stageLabel}</SelectItem>
+                      <SelectItem value="confidence">Confidence</SelectItem>
+                      <SelectItem value="owner">{ownerLabel}</SelectItem>
+                      <SelectItem value="expected">{expectedLabel}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">Direction</label>
+                  <Select value={sortDir} onValueChange={(v) => setSortDir(v as "asc" | "desc")}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="asc">Ascending</SelectItem>
+                      <SelectItem value="desc">Descending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Filters */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Filter className="h-4 w-4" />
+                Filters
+                {activeFilterCount > 0 && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{activeFilterCount}</Badge>}
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" collisionPadding={16} className="w-[560px] p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">Filters</p>
+                {activeFilterCount > 0 && (
+                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={clearFilters}><X className="h-3 w-3" /> Reset</Button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: stageLabel, values: stageFilter, setter: setStageFilter, options: stageOptions.map(s => ({ value: s, label: funnelStageLabels[s] || s })) },
+                  { label: stateLabel, values: stateFilter, setter: setStateFilter, options: Object.keys(projectStateLabels).map(s => ({ value: s, label: projectStateLabels[s as keyof typeof projectStateLabels] })) },
+                  { label: "Confidence", values: confidenceFilter, setter: setConfidenceFilter, options: ["High", "Medium", "Low"].map(c => ({ value: c, label: c })) },
+                ].map(({ label, values, setter, options }) => (
+                  <div key={label} className="space-y-1">
+                    <label className="text-xs text-muted-foreground font-medium">{label}</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between h-10 text-sm font-normal">
+                          <span className="truncate">{values.length === 0 ? `All` : `${values.length} selected`}</span>
+                          <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2" align="start">
+                        <div className="max-h-48 overflow-y-auto space-y-1">
+                          {options.map(opt => (
+                            <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted cursor-pointer text-sm">
+                              <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleValue(setter, opt.value)} />
+                              <span className="truncate">{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                        {values.length > 0 && (
+                          <Button variant="ghost" size="sm" className="w-full mt-1 text-xs" onClick={() => setter([])}>Clear</Button>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                ))}
+                <div className="space-y-1">
+                  <label className="text-xs text-muted-foreground font-medium">{arrLabel} Range (Cr)</label>
+                  <div className="flex gap-1">
+                    <Input type="number" placeholder="Min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-full h-9 text-xs" />
+                    <Input type="number" placeholder="Max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-full h-9 text-xs" />
+                  </div>
+                </div>
+                <div className="space-y-1 col-span-2">
+                  <label className="text-xs text-muted-foreground font-medium">{expectedLabel} Range</label>
+                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
+                    <Input type="date" value={expectedFrom} onChange={e => setExpectedFrom(e.target.value)} className="h-9 text-xs min-w-0" />
+                    <span className="text-xs text-muted-foreground px-1">to</span>
+                    <Input type="date" value={expectedTo} onChange={e => setExpectedTo(e.target.value)} className="h-9 text-xs min-w-0" />
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Select Columns */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <ListChecks className="h-4 w-4" />
+                Select Columns
+                <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">{visibleColumns.length}</Badge>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3" align="end">
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Visible Columns</p>
+              <div className="space-y-1 max-h-[300px] overflow-auto">
+                {ALL_COLUMNS.map(col => (
+                  <label key={col.key} className="flex items-center gap-2 py-1.5 px-1 cursor-pointer text-sm hover:bg-muted/50 rounded">
+                    <Checkbox checked={isVisible(col.key)} onCheckedChange={() => toggleColumn(col.key)} className="h-4 w-4" />
+                    {col.label}
+                  </label>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
         <div className="flex items-center gap-3">
           <Select value={month} onValueChange={setMonth}>
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
@@ -338,9 +499,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
               {monthOptions.map(m => <SelectItem key={m} value={m}>{ymToLabel(m)}</SelectItem>)}
             </SelectContent>
           </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={openPicker}><Plus className="h-4 w-4 mr-1" />Manage projects</Button>
           <Button variant="outline" size="sm" onClick={runAiRefresh} disabled={aiLoading}>
             {aiLoading ? <RefreshCw className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
             Refresh AI
@@ -359,27 +517,27 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
               <TableHeader className="sticky top-0 bg-navy z-10">
                 <TableRow className="hover:bg-navy">
                   <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy-foreground">Opportunity</TableHead>
-                  <TableHead className="font-semibold text-right whitespace-nowrap text-navy-foreground">ARR Cr.</TableHead>
-                  <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">Stage</TableHead>
-                  <TableHead className="font-semibold min-w-[200px] text-navy-foreground">Blocker</TableHead>
-                  <TableHead className="font-semibold min-w-[120px] text-navy-foreground">Blocked On</TableHead>
-                  <TableHead className="font-semibold min-w-[100px] text-navy-foreground">Deadline</TableHead>
-                  <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">Confidence</TableHead>
-                  <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy-foreground">Owner</TableHead>
-                  <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">Expected Go-live</TableHead>
-                  <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy-foreground">CSM</TableHead>
+                  {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy-foreground">{arrLabel} Cr.</TableHead>}
+                  {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">{stageLabel}</TableHead>}
+                  {isVisible("blocker") && <TableHead className="font-semibold min-w-[200px] text-navy-foreground">Blocker</TableHead>}
+                  {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-navy-foreground">Blocked On</TableHead>}
+                  {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-navy-foreground">Deadline</TableHead>}
+                  {isVisible("confidence") && <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">Confidence</TableHead>}
+                  {isVisible("owner") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy-foreground">{ownerLabel}</TableHead>}
+                  {isVisible("expected") && <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">{expectedLabel}</TableHead>}
+                  {isVisible("csm") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy-foreground">CSM</TableHead>}
                 </TableRow>
               </TableHeader>
             <TableBody>
-              {loading && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>}
-              {!loading && sortedRows.length === 0 && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">No projects for {ymToLabel(month)}. Use "Manage projects" to tag projects.</TableCell></TableRow>}
+              {loading && <TableRow><TableCell colSpan={visibleColCount} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>}
+              {!loading && sortedRows.length === 0 && <TableRow><TableCell colSpan={visibleColCount} className="text-center text-muted-foreground py-8">No projects for {ymToLabel(month)}.</TableCell></TableRow>}
               {sortedRows.map(p => {
                 const i = insights[p.id];
                 const isBlocked = p.project_state === "blocked" || (i?.confidence?.toLowerCase() === "low");
                 const conf = i?.confidence || "";
                 const blockerText = i?.blocker || "";
                 const isUrl = /^https?:\/\//i.test(blockerText);
-                const stage = funnelStages[p.id] || "none";
+                const stage = stageOf(p.id);
                 return (
                   <TableRow key={p.id} onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id }, search: { from: "go-live" } })} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-red-50/40 dark:bg-red-500/5")}>
                     <TableCell className={cn("font-medium whitespace-nowrap", isBlocked && "text-red-600 dark:text-red-400")} title={p.merchant_name}>
@@ -391,10 +549,13 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                         {p.merchant_name}
                       </button>
                     </TableCell>
-                    <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", FUNNEL_BADGE[stage])}>{FUNNEL_LABEL[stage]}</span>
-                    </TableCell>
+                    {isVisible("arr") && <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>}
+                    {isVisible("stage") && (
+                      <TableCell className="whitespace-nowrap">
+                        <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", STAGE_BADGE[stage] || "bg-navy text-navy-foreground")}>{funnelStageLabels[stage] || "—"}</span>
+                      </TableCell>
+                    )}
+                    {isVisible("blocker") && (
                     <TableCell className="align-top">
                       {isUrl ? (
                         <a href={blockerText.split(" ")[0]} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline break-all">
@@ -410,12 +571,15 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                             e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
                           }}
                           onBlur={e => updateInsight(p.id, "blocker", e.target.value)}
+                          onClick={e => e.stopPropagation()}
                           className="w-full min-h-[28px] resize-none border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
                           placeholder="—"
                           rows={1}
                         />
                       )}
                     </TableCell>
+                    )}
+                    {isVisible("blocked_on") && (
                     <TableCell className="align-top">
                       <textarea
                         value={i?.blocked_on || ""}
@@ -425,11 +589,14 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                           e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
                         }}
                         onBlur={e => updateInsight(p.id, "blocked_on", e.target.value)}
+                        onClick={e => e.stopPropagation()}
                         className="w-full min-h-[28px] resize-none border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
                         placeholder="—"
                         rows={1}
                       />
                     </TableCell>
+                    )}
+                    {isVisible("deadline") && (
                     <TableCell className="align-top">
                       <textarea
                         value={i?.deadline || ""}
@@ -439,12 +606,15 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                           e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
                         }}
                         onBlur={e => updateInsight(p.id, "deadline", e.target.value)}
+                        onClick={e => e.stopPropagation()}
                         className="w-full min-h-[28px] resize-none border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
                         placeholder="—"
                         rows={1}
                       />
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    )}
+                    {isVisible("confidence") && (
+                    <TableCell className="whitespace-nowrap" onClick={e => e.stopPropagation()}>
                       <Select value={conf} onValueChange={v => updateInsight(p.id, "confidence", v)}>
                         <SelectTrigger className={cn("h-7 border-0 bg-transparent w-[100px] px-2", conf && CONF_BADGE[conf], conf && "rounded-md font-medium")}><SelectValue placeholder="—" /></SelectTrigger>
                         <SelectContent>
@@ -454,11 +624,15 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                         </SelectContent>
                       </Select>
                     </TableCell>
+                    )}
+                    {isVisible("owner") && (
                     <TableCell className="whitespace-nowrap" title={owners[p.assigned_owner || ""] || ""}>
                       <div className="max-w-[160px] truncate">{owners[p.assigned_owner || ""] || "—"}</div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap tabular-nums">{dateLabel(p.expected_go_live_date)}</TableCell>
-                    <TableCell>
+                    )}
+                    {isVisible("expected") && <TableCell className="whitespace-nowrap tabular-nums">{dateLabel(p.expected_go_live_date)}</TableCell>}
+                    {isVisible("csm") && (
+                    <TableCell onClick={e => e.stopPropagation()}>
                       <Input
                         value={i?.csm_alignment ?? platformCsm[p.merchant_name.toLowerCase()] ?? ""}
                         onChange={e => setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), csm_alignment: e.target.value } }))}
@@ -466,6 +640,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                         className="h-8 border-0 bg-transparent focus-visible:ring-1 px-2" placeholder="—"
                       />
                     </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
@@ -473,32 +648,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
           </Table>
         </CardContent>
       </Card>
-
-      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Projects in {ymToLabel(month)} tracker</DialogTitle></DialogHeader>
-          <Input placeholder="Search…" value={pickerSearch} onChange={e => setPickerSearch(e.target.value)} />
-          <div className="max-h-[50vh] overflow-auto border rounded">
-            <Table>
-              <TableHeader className="bg-navy"><TableRow className="hover:bg-navy"><TableHead className="w-10 text-navy-foreground"></TableHead><TableHead className="text-navy-foreground">Merchant</TableHead><TableHead className="text-navy-foreground">Stage</TableHead><TableHead className="text-navy-foreground">Expected</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {allProjects.filter(p => p.merchant_name.toLowerCase().includes(pickerSearch.toLowerCase())).map(p => (
-                  <TableRow key={p.id}>
-                    <TableCell><Checkbox checked={!!pickerSelected[p.id]} onCheckedChange={v => setPickerSelected(s => ({ ...s, [p.id]: !!v }))} /></TableCell>
-                    <TableCell>{p.merchant_name}</TableCell>
-                    <TableCell>{FUNNEL_LABEL[funnelStages[p.id] || "none"]}</TableCell>
-                    <TableCell>{p.expected_go_live_date || (p.tracker_month ? `tag: ${p.tracker_month}` : "—")}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPickerOpen(false)}>Cancel</Button>
-            <Button onClick={savePicker}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {editingProject && (
         <EditProjectDialog
