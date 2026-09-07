@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 export interface AppNotification {
   id: string;
@@ -38,7 +39,12 @@ export interface CreateNotificationInput {
 export const createNotifications = async (rows: CreateNotificationInput[]) => {
   if (rows.length === 0) return;
   const { error } = await supabase.from("notifications").insert(rows as never);
-  if (error) console.error("Failed to create notifications:", error);
+  if (error) {
+    // Callers fire this without awaiting a result, so a swallowed failure looks
+    // exactly like "notifications are broken" with nothing to go on.
+    console.error("Failed to create notifications:", error);
+    toast.error("Notification not sent", { description: error.message });
+  }
 };
 
 export const useNotifications = () => {
