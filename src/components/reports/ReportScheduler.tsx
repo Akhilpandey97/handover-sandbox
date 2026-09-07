@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -162,16 +163,9 @@ export const ReportScheduler = () => {
   const handleTriggerNow = async (reportId: string) => {
     setTriggerLoading(reportId);
     try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
       const res = await fetch(`/api/public/send-scheduled-report`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-          apikey: SUPABASE_KEY,
-        },
+        headers: await apiAuthHeaders(),
         body: JSON.stringify({ report_id: reportId, tenant_id: currentUser?.tenantId }),
       });
 

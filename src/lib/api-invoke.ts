@@ -1,6 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
+ * Headers for calling /api/public/* routes as the signed-in user.
+ *
+ * The publishable key is not a JWT, so tenantIdFromRequest() cannot resolve a
+ * tenant from it and the route falls back to platform env vars — which is why
+ * per-tenant Integrations settings appear to be ignored. Send the session token
+ * instead for any route that reads tenant credentials.
+ */
+export async function apiAuthHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+/**
  * Drop-in replacement for supabase.functions.invoke that calls the app's own
  * /api/public/<name> route with the current user's bearer token.
  */

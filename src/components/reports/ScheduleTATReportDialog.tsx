@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -124,11 +125,7 @@ export const ScheduleTATReportDialog = ({ open, onOpenChange, defaultGranularity
         `/api/public/send-scheduled-tat-report`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
+          headers: await apiAuthHeaders(),
           body: JSON.stringify({ schedule_id: s.id }),
         }
       );

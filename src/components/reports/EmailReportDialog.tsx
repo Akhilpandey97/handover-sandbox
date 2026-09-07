@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,11 +49,7 @@ export const EmailReportDialog = ({ open, onOpenChange, defaultSubject, htmlBody
         `/api/public/send-movement-report`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
+          headers: await apiAuthHeaders(),
           body: JSON.stringify({ recipients: emails, subject, html: htmlBody }),
         }
       );
