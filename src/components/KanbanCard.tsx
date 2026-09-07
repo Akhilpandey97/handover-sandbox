@@ -1,10 +1,10 @@
-import { Project, ProjectState, projectStateLabels, projectStateColors, getProjectFunnelStage } from "@/data/projectsData";
+import { Project, ProjectState, projectStateLabels, projectStateColors } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { ListChecks, Calendar, User, Check, X, Headset, Pencil, TrendingUp, Timer, ChevronDown } from "lucide-react";
+import { ListChecks, Calendar, User, Check, Pencil, Timer, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -20,7 +20,21 @@ import { formatArrCr } from "@/lib/arr";
 
 // riskVerdict is passed in rather than looked up here: the board renders one
 // card per project, and each hook call would re-evaluate the whole portfolio.
-export const KanbanCard = ({ project, csmName, riskVerdict }: { project: Project; csmName?: string; riskVerdict?: RiskVerdict }) => {
+export const KanbanCard = ({
+  project,
+  riskVerdict,
+  isDragging,
+  onDragStart,
+  onDragOver,
+  onDragEnd,
+}: {
+  project: Project;
+  riskVerdict?: RiskVerdict;
+  isDragging?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: () => void;
+  onDragEnd?: () => void;
+}) => {
   const navigate = useNavigate();
   const { stateLabels, getLabel } = useLabels();
   const { updateProject } = useProjects();
@@ -73,7 +87,14 @@ export const KanbanCard = ({ project, csmName, riskVerdict }: { project: Project
   return (
     <>
       <div
-        className="rounded-md border bg-card p-3 space-y-2 shadow-sm text-xs cursor-pointer transition-colors hover:border-primary/40"
+        draggable={!!onDragStart}
+        onDragStart={onDragStart}
+        onDragOver={(e) => { if (onDragOver) { e.preventDefault(); onDragOver(); } }}
+        onDragEnd={onDragEnd}
+        className={cn(
+          "rounded-md border bg-card p-3 space-y-2 shadow-sm text-xs cursor-pointer transition-colors hover:border-primary/40",
+          isDragging && "opacity-50",
+        )}
         onClick={(e) => {
           const el = e.target as HTMLElement;
           if (el.closest("button,a,input,label,[role='menuitem']")) return;
@@ -173,64 +194,6 @@ export const KanbanCard = ({ project, csmName, riskVerdict }: { project: Project
             )}
           </div>
         )}
-
-        {getProjectFunnelStage(project) === "under_integration" && (() => {
-          const findItem = (needle: string) =>
-            project.checklist.find(c => !c.isTask && c.title.toLowerCase().includes(needle.toLowerCase()));
-          const pg = findItem("PG Onboarding");
-          const db = findItem("Dashboard Walkthrough");
-          const StatusPill = ({ label, done }: { label: string; done: boolean | undefined }) => (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ring-1",
-                done
-                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-emerald-500/20"
-                  : "bg-muted text-muted-foreground ring-border"
-              )}
-              title={done ? `${label}: Yes` : `${label}: No`}
-            >
-              {done ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
-              {label}
-            </span>
-          );
-          return (
-            <div className="space-y-1 pt-1 border-t border-dashed">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Headset className="h-3 w-3" />
-                <span>CSM:</span>
-                <span className={cn("font-medium truncate", csmName ? "text-foreground" : "text-muted-foreground/60 italic")}>
-                  {csmName || "Unassigned"}
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-1">
-                <StatusPill label="PG Onboarding" done={!!pg?.completed} />
-                <StatusPill label="DB Walkthrough" done={!!db?.completed} />
-              </div>
-            </div>
-          );
-        })()}
-
-        {getProjectFunnelStage(project) === "live" && (() => {
-          const pct = Math.max(0, Math.min(100, Number(project.goLivePercent) || 0));
-          return (
-            <div className="pt-1 border-t border-dashed">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <TrendingUp className="h-3 w-3" />
-                <span>Go Live:</span>
-                <span className="font-medium text-foreground">{pct}%</span>
-                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden ml-1">
-                  <div
-                    className="h-full bg-emerald-500 transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })()}
-
-
-
 
         <div className="flex items-center gap-1.5">
           <Button

@@ -30,6 +30,8 @@ const KANBAN_FIELD_OPTIONS = [
 ];
 
 const FUNNEL_ORDER: FunnelStage[] = ["sales", "pre_integration", "under_integration", "live"];
+
+const CARD_ORDER_KEY = "kanban_card_order";
 const FUNNEL_STAGE_STYLES: Record<FunnelStage, { text: string; bar: string; bg: string; ring: string }> = {
   sales: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
   pre_integration: { text: "text-navy", bar: "bg-navy", bg: "bg-navy/5", ring: "ring-navy/20" },
@@ -130,6 +132,18 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
   const [goLiveInProgressOnly, setGoLiveInProgressOnly] = useState(false);
   const [liveThisYearOnly, setLiveThisYearOnly] = useState(false);
 
+  // Manual card order, per grouping and column, remembered per browser like the
+  // other view preferences. Cards never move between columns: the default
+  // grouping (Project Stage) is derived from checklist rules, so a cross-column
+  // drop has nothing to write and would snap straight back.
+  const [cardOrder, setCardOrder] = useState<Record<string, string[]>>(() => {
+    try {
+      const saved = localStorage.getItem(CARD_ORDER_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  const [dragCard, setDragCard] = useState<{ id: string; colKey: string } | null>(null);
+
   const activeProjects = useMemo(() => projects.filter(p => !p.archived), [projects]);
   const projectIds = useMemo(() => activeProjects.map(p => p.id), [activeProjects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
@@ -202,6 +216,34 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
     return [...KANBAN_FIELD_OPTIONS, ...customOptions];
   }, [customFields]);
 
+  const handleCardDragStart = (id: string, colKey: string) => setDragCard({ id, colKey });
+
+  const handleCardDragOver = (targetId: string, colKey: string) => {
+    if (!dragCard || dragCard.colKey !== colKey || dragCard.id === targetId) return;
+    const key = `${groupField}::${colKey}`;
+    const visible = columns.find(c => c.key === colKey)?.projects.map(p => p.id) ?? [];
+    setCardOrder(prev => {
+      const current = prev[key] ?? visible;
+      const next = [...current];
+      const from = next.indexOf(dragCard.id);
+      const to = next.indexOf(targetId);
+      if (from === -1 || to === -1) return prev;
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved!);
+      return { ...prev, [key]: next };
+    });
+  };
+
+  const handleCardDragEnd = () => {
+    setDragCard(null);
+    // Read through the setter: `cardOrder` in this closure is the value from the
+    // render that registered the handler, so the last move would be lost.
+    setCardOrder(current => {
+      try { localStorage.setItem(CARD_ORDER_KEY, JSON.stringify(current)); } catch { /* private mode */ }
+      return current;
+    });
+  };
+
   const columns = useMemo(() => {
     const STATE_SORT_ORDER: Record<string, number> = {
       in_progress: 0,
@@ -236,6 +278,17 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
           if (ao !== bo) return ao - bo;
           return (b.arr ?? 0) - (a.arr ?? 0);
         });
+        // A saved arrangement wins; anything it doesn't mention (a project added
+        // since the last drag) keeps its default position at the end.
+        const saved = cardOrder[`${groupField}::${key}`];
+        if (saved) {
+          const rank = (id: string) => {
+            const i = saved.indexOf(id);
+            return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+          };
+          sorted.sort((a, b) => rank(a.id) - rank(b.id));
+        }
+
         const arrByState: Record<string, number> = {};
         sorted.forEach(p => {
           arrByState[p.projectState] = (arrByState[p.projectState] ?? 0) + (p.arr ?? 0);
@@ -253,7 +306,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
       return entries.sort((a, b) => FUNNEL_ORDER.indexOf(a.key as FunnelStage) - FUNNEL_ORDER.indexOf(b.key as FunnelStage));
     }
     return entries.sort((a, b) => a.label.localeCompare(b.label));
-  }, [filteredProjects, groupField, labels, customValuesMap, liveThisYearOnly]);
+  }, [filteredProjects, groupField, labels, customValuesMap, liveThisYearOnly, cardOrder]);
 
   const formatArr = (n: number) =>
     n >= 10000000 ? `${(n / 10000000).toFixed(1)}Cr` :
@@ -491,11 +544,17 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                       No projects
                     </p>
                   ) : (
-                    col.projects.map((project) => {
-                      const csmField = customFields.find(f => f.field_key === "custom_csm_manager");
-                      const csmName = csmField ? customValuesMap[project.id]?.[csmField.id] : undefined;
-                      return <KanbanCard key={project.id} project={project} csmName={csmName} riskVerdict={riskVerdicts[project.id]} />;
-                    })
+                    col.projects.map((project) => (
+                      <KanbanCard
+                        key={project.id}
+                        project={project}
+                        riskVerdict={riskVerdicts[project.id]}
+                        isDragging={dragCard?.id === project.id}
+                        onDragStart={() => handleCardDragStart(project.id, col.key)}
+                        onDragOver={() => handleCardDragOver(project.id, col.key)}
+                        onDragEnd={handleCardDragEnd}
+                      />
+                    ))
                   )}
                 </div>
               </ScrollArea>
