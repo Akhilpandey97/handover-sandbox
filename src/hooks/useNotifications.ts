@@ -15,6 +15,7 @@ export interface AppNotification {
   checklist_item_id: string | null;
   checklist_item_title: string | null;
   task_id: string | null;
+  comment_id: string | null;
   read_at: string | null;
   created_at: string;
 }
@@ -30,6 +31,7 @@ export interface CreateNotificationInput {
   checklist_item_id?: string | null;
   checklist_item_title?: string | null;
   task_id?: string | null;
+  comment_id?: string | null;
   tenant_id?: string | null;
 }
 

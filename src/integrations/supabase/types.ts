@@ -1173,6 +1173,7 @@ export type Database = {
           body: string | null
           checklist_item_id: string | null
           checklist_item_title: string | null
+          comment_id: string | null
           created_at: string
           id: string
           project_id: string | null
@@ -1189,6 +1190,7 @@ export type Database = {
           body?: string | null
           checklist_item_id?: string | null
           checklist_item_title?: string | null
+          comment_id?: string | null
           created_at?: string
           id?: string
           project_id?: string | null
@@ -1205,6 +1207,7 @@ export type Database = {
           body?: string | null
           checklist_item_id?: string | null
           checklist_item_title?: string | null
+          comment_id?: string | null
           created_at?: string
           id?: string
           project_id?: string | null

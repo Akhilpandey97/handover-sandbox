@@ -67,6 +67,7 @@ export const NotificationCenter = () => {
         tab: "checklists",
         ...(n.checklist_item_id ? { item: n.checklist_item_id } : {}),
         ...(n.task_id ? { task: n.task_id } : {}),
+        ...(n.comment_id ? { comment: n.comment_id } : {}),
       } as never,
     });
   };

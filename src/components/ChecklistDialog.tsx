@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Project, calculateTimeByParty, formatDuration, ResponsibilityParty } from "@/data/projectsData";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProjectDeepLink } from "@/hooks/useProjectDeepLink";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useFormAssignments, useFormTemplates } from "@/hooks/useChecklistForms";
 import { useTeams } from "@/hooks/useTeams";
@@ -62,6 +63,18 @@ export const ChecklistDialog = ({
     checklistItemId: string;
     checklistItemTitle: string;
   } | null>(null);
+
+  // A ?task= link opens that item's task dialog once the checklist has loaded.
+  const deepLink = useProjectDeepLink();
+  const openedTaskRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!deepLink.task || !deepLink.item || !project) return;
+    if (openedTaskRef.current === deepLink.task) return;
+    const item = project.checklist.find((i) => i.id === deepLink.item);
+    if (!item) return;
+    openedTaskRef.current = deepLink.task;
+    setTaskDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title });
+  }, [deepLink.task, deepLink.item, project]);
 
   // Inline sub-task add form state: which checklist item has the form open
   const [inlineAddFormId, setInlineAddFormId] = useState<string | null>(null);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import {
   Dialog,
   DialogContent,
@@ -53,6 +54,11 @@ export const TaskManagementDialog = ({
   profiles = [],
 }: TaskManagementDialogProps) => {
   const { data: tasks = [], isLoading } = useChecklistTasksByItem(checklistItemId);
+
+  // Highlight the task a ?task= link points at, once the dialog has its rows.
+  const deepLink = useProjectDeepLink();
+  useScrollToAnchor(deepLink.task ? `task-${deepLink.task}` : null, open && !isLoading);
+
   const addTask = useAddChecklistTask();
   const updateTask = useUpdateChecklistTask();
   const deleteTask = useDeleteChecklistTask();
@@ -145,6 +151,7 @@ export const TaskManagementDialog = ({
               return (
                 <div
                   key={task.id}
+                  id={`task-${task.id}`}
                   className={`p-3 rounded-lg border transition-all ${
                     task.status === "done"
                       ? "bg-emerald-500/5 border-emerald-200 dark:border-emerald-800 opacity-70"

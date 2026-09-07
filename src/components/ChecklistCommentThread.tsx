@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useChecklistComments, useAddChecklistComment } from "@/hooks/useChecklistComments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfilesLookup } from "@/hooks/useLookups";
 import { createNotifications } from "@/hooks/useNotifications";
+import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -36,6 +37,15 @@ export const ChecklistCommentThread = ({
   const { profiles } = useProfilesLookup();
   const addComment = useAddChecklistComment();
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // A ?comment= link targets a thread that is collapsed by default, so open it
+  // before trying to scroll — the comment is not in the DOM until then.
+  const deepLink = useProjectDeepLink();
+  const isCommentTarget = !!deepLink.comment && deepLink.item === checklistItemId;
+  useEffect(() => {
+    if (isCommentTarget) setIsExpanded(true);
+  }, [isCommentTarget]);
+  useScrollToAnchor(isCommentTarget ? `comment-${deepLink.comment}` : null, isExpanded);
   const [commentText, setCommentText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
@@ -62,7 +72,7 @@ export const ChecklistCommentThread = ({
     textareaRef.current?.focus();
   };
 
-  const notifyMentions = (text: string) => {
+  const notifyMentions = (text: string, commentId: string | null) => {
     const mentioned = profiles.filter(
       (p) => p.id !== currentUser?.id && text.toLowerCase().includes(`@${p.name.toLowerCase()}`),
     );
@@ -78,6 +88,7 @@ export const ChecklistCommentThread = ({
         project_name: projectName || null,
         checklist_item_id: checklistItemId,
         checklist_item_title: checklistItemTitle || null,
+        comment_id: commentId,
         tenant_id: currentUser?.tenantId || null,
       })),
     );
@@ -94,8 +105,8 @@ export const ChecklistCommentThread = ({
         file: selectedFile || undefined,
       },
       {
-        onSuccess: () => {
-          notifyMentions(text);
+        onSuccess: (created) => {
+          notifyMentions(text, (created as { id?: string } | undefined)?.id ?? null);
           setCommentText("");
           setSelectedFile(null);
           setMentionQuery(null);
@@ -260,6 +271,7 @@ const CommentBubble = ({
 
   return (
     <div
+      id={`comment-${comment.id}`}
       className={`text-xs p-2.5 rounded-lg ${
         isOwn ? "bg-primary/10 border border-primary/20" : "bg-muted/50"
       }`}
