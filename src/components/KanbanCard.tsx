@@ -18,21 +18,7 @@ import { formatArrCr } from "@/lib/arr";
 
 // riskVerdict is passed in rather than looked up here: the board renders one
 // card per project, and each hook call would re-evaluate the whole portfolio.
-export const KanbanCard = ({
-  project,
-  riskVerdict,
-  isDragging,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
-}: {
-  project: Project;
-  riskVerdict?: RiskVerdict;
-  isDragging?: boolean;
-  onDragStart?: () => void;
-  onDragOver?: () => void;
-  onDragEnd?: () => void;
-}) => {
+export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVerdict?: RiskVerdict }) => {
   const navigate = useNavigate();
   const { stateLabels, getLabel } = useLabels();
   const { updateProject } = useProjects();
@@ -81,14 +67,7 @@ export const KanbanCard = ({
   return (
     <>
       <div
-        draggable={!!onDragStart}
-        onDragStart={onDragStart}
-        onDragOver={(e) => { if (onDragOver) { e.preventDefault(); onDragOver(); } }}
-        onDragEnd={onDragEnd}
-        className={cn(
-          "rounded-md border bg-card p-3 space-y-2 shadow-sm text-xs cursor-pointer transition-colors hover:border-primary/40",
-          isDragging && "opacity-50",
-        )}
+        className="rounded-md border bg-card p-3 space-y-2 shadow-sm text-xs cursor-pointer transition-colors hover:border-primary/40"
         onClick={(e) => {
           const el = e.target as HTMLElement;
           if (el.closest("button,a,input,label,[role='menuitem']")) return;
