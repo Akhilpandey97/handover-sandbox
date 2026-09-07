@@ -1,6 +1,14 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+  parseDashboardPath,
+  pathForTab,
+  projectViewPath,
+  normalizeTabOrder,
+  DEFAULT_PROJECT_VIEW,
+  type ProjectView,
+} from "@/lib/dashboard-routes";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { NoAccessCard } from "@/components/NoAccessCard";
@@ -118,11 +126,6 @@ import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
 import { arrToCrore, formatArrCr } from "@/lib/arr";
 
-// Sub-tab keys for reports and settings
-const REPORTS_SUB_TABS = ["predefined", "builder", "scheduler", "pivot-table", "sandbox", "daily-report", "weekly-report"];
-const SETTINGS_SUB_TABS = ["general", "fields", "custom-fields", "checklist-forms", "colours", "email", "workflows", "funnel", "activity-log"];
-const PREDEFINED_REPORT_TYPES = ["executive", "operational", "merchant", "tactical", "project", "team"];
-
 // All nav items that can be toggled
 const ALL_NAV_ITEMS = [
   "dashboard",
@@ -138,23 +141,35 @@ const ALL_NAV_ITEMS = [
   "shopify-lt-emails",
   "tenants",
 ];
-type ProjectView = "board" | "list" | "kanban" | "golive";
-
 const ADMIN_ONLY_SETTINGS = ["users", "integrations"];
 
-export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: "kanban" | "list" | "golive" }) => {
+const LAST_PROJECT_VIEW_KEY = "manager_last_project_view";
+
+const readLastProjectView = (): ProjectView => {
+  try {
+    const saved = localStorage.getItem(LAST_PROJECT_VIEW_KEY);
+    if (saved === "kanban" || saved === "list" || saved === "golive") return saved;
+  } catch { /* private mode */ }
+  return DEFAULT_PROJECT_VIEW;
+};
+
+export const ManagerDashboard = () => {
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const routeState = useMemo(() => parseDashboardPath(pathname), [pathname]);
   const { currentUser, logout } = useAuth();
   const perms = usePermissions();
-  const { labels: appLabels, getLabel, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels } = useLabels();
+  const { labels: appLabels, getLabel, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels, isLoading: labelsLoading } = useLabels();
   const arrLabel = getLabel("field_arr");
   const { projects, isLoading, addProject, deleteProject, updateProject, archiveProject } = useProjects();
   const { fields: customFields } = useCustomFields();
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState(initialProjectView ? "projects" : "");
-  const [projectView, setProjectView] = useState<ProjectView>(initialProjectView || "kanban");
+  // Tab state is derived from the URL, never stored — that is what keeps the two
+  // from drifting apart. "" means the path names no tab, so `/` resolves a default.
+  const activeTab = routeState.tab;
+  const projectView = routeState.projectView;
   const [projectToolbarHost, setProjectToolbarHost] = useState<HTMLDivElement | null>(null);
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
   const [ownerFilter, setOwnerFilter] = useState<string[]>([]);
@@ -181,9 +196,15 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
   const [expectedGoLiveNone, setExpectedGoLiveNone] = useState<boolean>(false);
   const [updatesSearch, setUpdatesSearch] = useState<string>("");
   const [updatesSelectedProject, setUpdatesSelectedProject] = useState<Project | null>(null);
-  const [reportType, setReportType] = useState<string>("executive");
-  const [reportSubTab, setReportSubTab] = useState<string>("predefined");
-  const [settingsSubTab, setSettingsSubTab] = useState<string>("general");
+  const reportType = routeState.reportType;
+  const reportSubTab = routeState.reportSubTab;
+  const settingsSubTab = routeState.settingsSubTab;
+  const lastProjectViewRef = useRef<ProjectView>(readLastProjectView());
+  useEffect(() => {
+    if (routeState.tab !== "projects") return;
+    lastProjectViewRef.current = routeState.projectView;
+    try { localStorage.setItem(LAST_PROJECT_VIEW_KEY, routeState.projectView); } catch { /* private mode */ }
+  }, [routeState.tab, routeState.projectView]);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -265,13 +286,15 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
   const navVisibility = getNavVisibility();
 
   // Draggable tab order
-  const DEFAULT_TAB_ORDER = ["dashboard", "projects", "listview", "calendar", "risks", "reports", "checklist", "users", "settings", "kanban", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails"];
+  const DEFAULT_TAB_ORDER = ["dashboard", "projects", "risks", "reports", "settings", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails"];
   const [tabOrder, setTabOrder] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem("manager_tab_order");
       const parsed = saved ? JSON.parse(saved) : DEFAULT_TAB_ORDER;
-      // Migrate: rename "overview" to "dashboard"
-      return parsed.map((t: string) => t === "overview" ? "dashboard" : t);
+      // Saved orders predate listview/kanban/calendar folding into Projects and
+      // checklist/users moving into Settings; map them in place so the first
+      // visible entry — and therefore the landing tab — does not shift.
+      return normalizeTabOrder(parsed);
     } catch { return DEFAULT_TAB_ORDER; }
   });
   const [draggedTab, setDraggedTab] = useState<string | null>(null);
@@ -306,33 +329,18 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
     fetchProfiles();
   }, []);
 
-  // Set default active tab to first visible nav item on mount
-  useEffect(() => {
-    if (activeTab === "") {
-      const visibleTabs = [...tabOrder, ...(currentUser?.team === "super_admin" && !tabOrder.includes("tenants") ? ["tenants"] : [])]
-        .filter(tab => TAB_CONFIG_KEYS.includes(tab))
-        .filter(tab => navVisibility[tab] !== false || tab === "tenants");
-      if (visibleTabs.length > 0) {
-        setActiveTab(visibleTabs[0]);
-      } else {
-        setActiveTab("dashboard");
-      }
-    }
-  }, []);
-  const TAB_CONFIG_KEYS = ["dashboard", "projects", "listview", "calendar", "risks", "reports", "checklist", "users", "settings", "kanban", "emails", "tenants", "archived"];
+  const TAB_CONFIG_KEYS = ["dashboard", "projects", "risks", "reports", "settings", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails", "tenants", "archived"];
 
+  // A bare "/" names no tab, so redirect to the first visible one. Visibility
+  // comes from LabelsContext, which defaults to placeholder labels while it
+  // loads — resolving early would pick the wrong tab and redirect twice.
   useEffect(() => {
-    const legacyViews: Record<string, ProjectView> = {
-      listview: "list",
-      kanban: "kanban",
-      calendar: "golive",
-    };
-    const view = legacyViews[activeTab];
-    if (view) {
-      setProjectView(view);
-      setActiveTab("projects");
-    }
-  }, [activeTab]);
+    if (activeTab !== "" || labelsLoading) return;
+    const visibleTabs = [...tabOrder, ...(currentUser?.team === "super_admin" && !tabOrder.includes("tenants") ? ["tenants"] : [])]
+      .filter(tab => TAB_CONFIG_KEYS.includes(tab))
+      .filter(tab => navVisibility[tab] !== false || tab === "tenants");
+    navigate({ to: pathForTab(visibleTabs[0] || "dashboard"), replace: true });
+  }, [activeTab, labelsLoading, tabOrder, navVisibility, currentUser?.team, navigate]);
 
   // Calculate project time stats helper - FIXED: uses checklist-level time
   const calculateProjectStats = (project: Project) => {
@@ -839,7 +847,12 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
   };
   const handleTabDragEnd = () => {
     setDraggedTab(null);
-    localStorage.setItem("manager_tab_order", JSON.stringify(tabOrder));
+    // Read through the setter: `tabOrder` here is the value from the render that
+    // registered this handler, so the last drop would otherwise not be saved.
+    setTabOrder((current) => {
+      localStorage.setItem("manager_tab_order", JSON.stringify(current));
+      return current;
+    });
   };
 
   const handleColDragStart = (col: string) => setDraggedCol(col);
@@ -923,7 +936,8 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
   };
 
   const isGokwikGeneral = currentUser?.team === "gokwik_general";
-  const GOKWIK_GENERAL_TABS = ["dashboard", "projects", "listview", "kanban", "reports"];
+  // listview/kanban used to be separate nav entries; both are Projects views now.
+  const GOKWIK_GENERAL_TABS = ["dashboard", "projects", "reports"];
 
   const isManagerOrAdmin = perms.isManagerOrAbove;
   const sidebarTabs = [
@@ -948,14 +962,15 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
     ? `Reports — ${REPORTS_SUB_CONFIG[reportSubTab]?.label || "Pre Defined"}`
     : TAB_CONFIG[activeTab]?.label || "Dashboard";
 
-  const openProjectView = (view: "kanban" | "list" | "golive") => {
-    // Only this tab is routed; the others switch in local state and leave the URL
-    // pointing at the last project view. Navigating there would then be a no-op,
-    // so the tab state has to be set here rather than on remount.
-    setActiveTab("projects");
-    setProjectView(view);
-    const to = view === "golive" ? "/projects/go-live" : `/projects/${view}`;
-    navigate({ to });
+  const openProjectView = (view: ProjectView) => {
+    navigate({ to: projectViewPath(view) });
+  };
+
+  // Leaving Projects for another tab drops the view from the URL, so remember it
+  // and restore it when the user comes back.
+  const openTab = (tab: string) => {
+    if (tab === "projects") return openProjectView(lastProjectViewRef.current);
+    navigate({ to: pathForTab(tab) });
   };
 
   // Render a single nav item
@@ -971,14 +986,12 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
           onClick={() => {
             if (isReports) {
               setReportsExpanded(!reportsExpanded);
-              if (!reportsExpanded) { setActiveTab("reports"); }
+              if (!reportsExpanded) { openTab("reports"); }
             } else if (isSettings) {
               setSettingsExpanded(!settingsExpanded);
-              if (!settingsExpanded) { setActiveTab("settings"); }
-            } else if (tab === "projects") {
-              openProjectView(projectView === "list" || projectView === "golive" ? projectView : "kanban");
+              if (!settingsExpanded) { openTab("settings"); }
             } else {
-              setActiveTab(tab);
+              openTab(tab);
             }
           }}
           draggable
@@ -1020,7 +1033,7 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
             {Object.entries(REPORTS_SUB_CONFIG).filter(([key]) => navVisibility[`reports:${key}`] !== false).map(([key, cfg]) => (
               <button
                 key={key}
-                onClick={() => { setActiveTab("reports"); setReportSubTab(key); }}
+                onClick={() => navigate({ to: pathForTab("reports", { reportSubTab: key, reportType }) })}
                 className={cn(
                   "w-full flex items-center gap-2.5 text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
                   reportSubTab === key && activeTab === "reports"
@@ -1041,7 +1054,7 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
             {Object.entries(SETTINGS_SUB_CONFIG).filter(([key]) => (key === "navigation" || navVisibility[`settings:${key}`] !== false) && (!ADMIN_ONLY_SETTINGS.includes(key) || perms.canManageUsers)).map(([key, { label }]) => (
               <button
                 key={key}
-                onClick={() => { setActiveTab("settings"); setSettingsSubTab(key); }}
+                onClick={() => navigate({ to: pathForTab("settings", { settingsSubTab: key }) })}
                 className={cn(
                   "w-full flex items-center gap-2.5 text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
                   settingsSubTab === key && activeTab === "settings"
@@ -1094,12 +1107,7 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
             {sidebarTabs.map((tab) => sidebarCollapsed ? (
               <button
                 key={tab}
-                onClick={() => {
-                  if (tab === "reports") { setActiveTab("reports"); }
-                  else if (tab === "settings") { setActiveTab("settings"); }
-                   else if (tab === "projects") { openProjectView(projectView === "list" || projectView === "golive" ? projectView : "kanban"); }
-                   else { setActiveTab(tab); }
-                }}
+                onClick={() => openTab(tab)}
                 className={cn(
                   "w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200",
                   activeTab === tab
@@ -1430,306 +1438,6 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
             />
           </div>}
 
-          {/* ========= PROJECTS TAB ========= */}
-          {activeTab === "projects" && projectView === "board" && <div className="space-y-6">
-            <Card className="shadow-sm border-border">
-              <CardHeader className="border-b bg-muted/30">
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex items-center gap-3 relative">
-                    <Checkbox checked={allFilteredSelected} onCheckedChange={() => toggleSelectAll(filteredProjectIds)} />
-                    <CardTitle className="portal-heading flex items-center gap-2">
-                      <Target className="h-5 w-5 text-primary" />
-                      All Projects
-                    </CardTitle>
-                    {/* Sort Dropdown - left side */}
-                    <Collapsible>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <ArrowUpDown className="h-4 w-4" />
-                          Sort
-                          {sortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>}
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="absolute z-20 mt-2 left-0 top-full w-[320px] bg-card border rounded-lg shadow-xl p-4 space-y-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-semibold">Sort By</p>
-                          {sortField !== "none" && (
-                            <Button variant="ghost" size="sm" onClick={() => { setSortField("none"); setSortDirection("asc"); }} className="text-xs h-7">Clear</Button>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground font-medium">Field</label>
-                            <Select value={sortField} onValueChange={setSortField}>
-                              <SelectTrigger className="w-full"><SelectValue placeholder="None" /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">None</SelectItem>
-                                <SelectItem value="arr">{arrLabel}</SelectItem>
-                                <SelectItem value="owner">Owner</SelectItem>
-                                <SelectItem value="platform">Platform</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground font-medium">Direction</label>
-                            <Select value={sortDirection} onValueChange={(v) => setSortDirection(v as "asc" | "desc")}>
-                              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="asc">Ascending</SelectItem>
-                                <SelectItem value="desc">Descending</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="flex justify-end mt-3 pt-3 border-t">
-                          <CollapsibleTrigger asChild><Button size="sm" className="text-xs">Done</Button></CollapsibleTrigger>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                    {/* Filters - left side */}
-                    <Collapsible>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Search className="h-4 w-4" />
-                          Filters
-                          {hasActiveFilters && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{[teamFilter.length > 0, ownerFilter.length > 0, phaseFilter.length > 0, stateFilter.length > 0, kickOffFrom, kickOffTo, goLiveFrom, goLiveTo].filter(Boolean).length}</Badge>}
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="absolute z-20 mt-2 left-0 top-full w-[600px] bg-card border rounded-lg shadow-xl p-4 space-y-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-semibold">Filters</p>
-                          {hasActiveFilters && (
-                            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7">Clear All</Button>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          {[
-                            { label: "Team", values: teamFilter, setter: setTeamFilter, options: [{ value: "mint", label: teamLabels.mint }, { value: "integration", label: teamLabels.integration }, { value: "ms", label: teamLabels.ms }] },
-                            { label: "Owner", values: ownerFilter, setter: setOwnerFilter, options: [{ value: "unassigned", label: "None (Unassigned)" }, ...filteredOwners.map(o => ({ value: o.id, label: o.name }))] },
-                            { label: "State", values: stateFilter, setter: setStateFilter, options: (Object.keys(projectStateLabels) as ProjectState[]).map(s => ({ value: s, label: stateLabelsFromCtx[s] || projectStateLabels[s] })) },
-                            { label: "Platform", values: platformFilter, setter: setPlatformFilter, options: uniquePlatforms.map(p => ({ value: p, label: p })) },
-                            { label: "Category", values: categoryFilter, setter: setCategoryFilter, options: uniqueCategories.map(c => ({ value: c, label: c })) },
-                            { label: "Responsibility", values: responsibilityFilter, setter: setResponsibilityFilter, options: [{ value: "gokwik", label: responsibilityLabels.gokwik }, { value: "merchant", label: responsibilityLabels.merchant }, { value: "neutral", label: "Neutral" }] },
-                          ].map(({ label, values, setter, options }) => (
-                            <div key={label} className="space-y-1">
-                              <label className="text-xs text-muted-foreground font-medium">{label}</label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button variant="outline" className="w-full justify-between h-10 text-sm font-normal">
-                                    <span className="truncate">{values.length === 0 ? `All ${label}s` : `${values.length} selected`}</span>
-                                    <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-56 p-2" align="start">
-                                  <div className="max-h-48 overflow-y-auto">
-                                    <div className="space-y-1">
-                                      {options.map(opt => (
-                                        <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted cursor-pointer text-sm">
-                                          <Checkbox
-                                            checked={values.includes(opt.value)}
-                                            onCheckedChange={() => toggleFilterValue(setter, opt.value)}
-                                          />
-                                          <span className="truncate">{opt.label}</span>
-                                        </label>
-                                      ))}
-                                    </div>
-                                  </div>
-                                  {values.length > 0 && (
-                                    <Button variant="ghost" size="sm" className="w-full mt-1 text-xs" onClick={() => setter([])}>Clear</Button>
-                                  )}
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                          ))}
-                          <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground font-medium">{arrLabel} Range (Cr)</label>
-                            <div className="flex gap-1">
-                              <Input type="number" placeholder="Min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-full h-9 text-xs" />
-                              <Input type="number" placeholder="Max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-full h-9 text-xs" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 pt-2 border-t">
-                          <div className="space-y-1 border rounded-md p-3 overflow-hidden">
-                            <label className="text-xs text-muted-foreground font-medium">Start Date Range</label>
-                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                              <Input type="date" value={kickOffFrom} onChange={e => setKickOffFrom(e.target.value)} className="h-9 text-xs min-w-0" />
-                              <span className="text-xs text-muted-foreground px-1">to</span>
-                              <Input type="date" value={kickOffTo} onChange={e => setKickOffTo(e.target.value)} className="h-9 text-xs min-w-0" />
-                            </div>
-                          </div>
-                          <div className="space-y-1 border rounded-md p-3 overflow-hidden">
-                            <label className="text-xs text-muted-foreground font-medium">Go-Live Date Range</label>
-                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                              <Input type="date" value={goLiveFrom} onChange={e => setGoLiveFrom(e.target.value)} className="h-9 text-xs min-w-0" />
-                              <span className="text-xs text-muted-foreground px-1">to</span>
-                              <Input type="date" value={goLiveTo} onChange={e => setGoLiveTo(e.target.value)} className="h-9 text-xs min-w-0" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="space-y-1 border rounded-md p-3 overflow-hidden">
-                          <label className="text-xs text-muted-foreground font-medium">Expected Go-Live Date</label>
-                          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                            <Input type="date" value={expectedGoLiveFrom} onChange={e => setExpectedGoLiveFrom(e.target.value)} className="h-9 text-xs min-w-0" />
-                            <span className="text-xs text-muted-foreground px-1">to</span>
-                            <Input type="date" value={expectedGoLiveTo} onChange={e => setExpectedGoLiveTo(e.target.value)} className="h-9 text-xs min-w-0" />
-                          </div>
-                          <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                            <input type="checkbox" checked={expectedGoLiveNone} onChange={e => setExpectedGoLiveNone(e.target.checked)} className="h-3.5 w-3.5" />
-                            <span className="text-xs text-muted-foreground">None (not set)</span>
-                          </label>
-                        </div>
-                        <div className="pt-2 border-t space-y-1.5">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Project Stage</p>
-                          <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-                            {(["sales","pre_integration","under_integration","live","none"] as const).map(stage => (
-                              <label key={stage} className="flex items-center gap-1.5 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={funnelStageFilter.includes(stage)}
-                                  onChange={() => toggleFilterValue(setFunnelStageFilter, stage)}
-                                  className="h-3.5 w-3.5"
-                                />
-                                <span className="text-xs text-muted-foreground">{funnelStageLabels[stage]}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
-                        {customFields.length > 0 && (
-                          <div className="pt-2 border-t space-y-2">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Custom Fields</p>
-                            <div className="grid grid-cols-2 gap-3">
-                              {customFields.map(cf => {
-                                const vals = customFieldFilters[cf.id] || [];
-                                const setVals = (next: string[]) => setCustomFieldFilters(prev => ({ ...prev, [cf.id]: next }));
-                                const presentValues = Array.from(new Set(
-                                  Object.values(customValuesMap).map(m => m?.[cf.id]).filter(Boolean) as string[]
-                                )).sort();
-                                const opts = (cf.field_type === "select" && cf.options.length > 0 ? cf.options : presentValues);
-                                return (
-                                  <div key={cf.id} className="space-y-1">
-                                    <label className="text-xs text-muted-foreground font-medium">{cf.field_label}</label>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-between h-10 text-sm font-normal">
-                                          <span className="truncate">{vals.length === 0 ? `All` : `${vals.length} selected`}</span>
-                                          <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-                                        </Button>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-56 p-2" align="start">
-                                        <div className="max-h-48 overflow-y-auto space-y-1">
-                                          {opts.length === 0 && <p className="text-xs text-muted-foreground px-2 py-1">No values yet</p>}
-                                          {opts.map(opt => (
-                                            <label key={opt} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted cursor-pointer text-sm">
-                                              <Checkbox
-                                                checked={vals.includes(opt)}
-                                                onCheckedChange={() => setVals(vals.includes(opt) ? vals.filter(v => v !== opt) : [...vals, opt])}
-                                              />
-                                              <span className="truncate">{opt}</span>
-                                            </label>
-                                          ))}
-                                        </div>
-                                        {vals.length > 0 && (
-                                          <Button variant="ghost" size="sm" className="w-full mt-1 text-xs" onClick={() => setVals([])}>Clear</Button>
-                                        )}
-                                      </PopoverContent>
-                                    </Popover>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                        <div className="flex justify-end mt-3 pt-3 border-t">
-                          <CollapsibleTrigger asChild><Button size="sm" className="text-xs">Done</Button></CollapsibleTrigger>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                    {selectedProjects.size > 0 && (
-                      <Badge variant="secondary" className="text-sm">{selectedProjects.size} selected</Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-2 relative">
-                    {selectedProjects.size > 0 && (
-                      <Collapsible>
-                        <CollapsibleTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <Pencil className="h-4 w-4" />
-                            Bulk Actions ({selectedProjects.size})
-                            <ChevronDown className="h-3 w-3" />
-                          </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="absolute z-20 mt-2 right-0 bg-card border rounded-lg shadow-xl p-3 space-y-1 min-w-[200px]">
-                          <Button variant="ghost" className="w-full justify-start gap-2 h-9" onClick={() => setBulkAssignDialogOpen(true)}>
-                            <UserPlus className="h-4 w-4" />
-                            Assign Owner
-                          </Button>
-                          <Button variant="ghost" className="w-full justify-start gap-2 h-9" onClick={() => setBulkEditDialogOpen(true)}>
-                            <Pencil className="h-4 w-4" />
-                            Bulk Edit
-                          </Button>
-                          <Button variant="ghost" className="w-full justify-start gap-2 h-9" onClick={() => setBulkStateDialogOpen(true)}>
-                            <RefreshCw className="h-4 w-4" />
-                            Update State
-                          </Button>
-                          {isManagerOrAdmin && (
-                            <Button variant="ghost" className="w-full justify-start gap-2 h-9 text-amber-600 hover:text-amber-600 hover:bg-amber-50" onClick={() => setBulkArchiveDialogOpen(true)}>
-                              <Archive className="h-4 w-4" />
-                              Archive
-                            </Button>
-                          )}
-                          <Button variant="ghost" className="w-full justify-start gap-2 h-9 text-destructive hover:text-destructive" onClick={() => setBulkDeleteDialogOpen(true)}>
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </Button>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-               <CardContent className="p-0">
-                  <div className="px-6 pt-3 pb-6 space-y-4">
-                    {(() => {
-                      const sortedProjects = sortField === "none" ? filteredProjects : [...filteredProjects].sort((a, b) => {
-                        let cmp = 0;
-                        switch (sortField) {
-                          case "arr": cmp = a.arr - b.arr; break;
-                          case "owner": cmp = (a.assignedOwnerName || "").localeCompare(b.assignedOwnerName || ""); break;
-                          case "phase": cmp = getProjectPhaseLabel(a).localeCompare(getProjectPhaseLabel(b)); break;
-                          case "platform": cmp = (a.platform || "").localeCompare(b.platform || ""); break;
-                        }
-                        return sortDirection === "desc" ? -cmp : cmp;
-                      });
-                      return (
-                        <>
-                    {sortedProjects.length === 0 ? (
-                      <div className="text-center py-20">
-                        <FolderKanban className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-                        <h3 className="font-semibold text-lg mb-2">No Projects Found</h3>
-                        <p className="text-muted-foreground">Try adjusting your filters or add a new project.</p>
-                      </div>
-                    ) : (
-                      sortedProjects.map((project) => (
-                        <div key={project.id} className="flex items-start gap-3">
-                          <div className="pt-4">
-                            <Checkbox checked={selectedProjects.has(project.id)} onCheckedChange={() => toggleProjectSelection(project.id)} />
-                          </div>
-                          <div className="flex-1">
-                            <ProjectCardNew project={project} />
-                          </div>
-                        </div>
-                      ))
-                    )}
-                        </>
-                      );
-                    })()}
-                  </div>
-              </CardContent>
-            </Card>
-          </div>}
 
           {/* ========= LIST VIEW TAB ========= */}
           {activeTab === "projects" && projectView === "list" && <div className="space-y-4">
@@ -2209,7 +1917,7 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
                           { key: "weeks_checklist", label: "Weeks per Checklist" },
                           { key: "tat", label: "TAT" },
                         ].map(({ key, label }) => (
-                          <Button key={key} variant={reportType === key ? "default" : "outline"} size="sm" onClick={() => setReportType(key)}>
+                          <Button key={key} variant={reportType === key ? "default" : "outline"} size="sm" onClick={() => navigate({ to: pathForTab("reports", { reportSubTab: "predefined", reportType: key }) })}>
                             {label}
                           </Button>
                         ))}
@@ -2472,10 +2180,12 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
 
           {/* Settings Tab */}
           {activeTab === "settings" && <div className="space-y-6">
-            {settingsSubTab === "checklist" ? (
+            {ADMIN_ONLY_SETTINGS.includes(settingsSubTab) && !perms.canManageUsers ? (
+              <NoAccessCard />
+            ) : settingsSubTab === "checklist" ? (
               <ChecklistManagement />
             ) : settingsSubTab === "users" ? (
-              perms.canManageUsers ? <UserManagement /> : <NoAccessCard />
+              <UserManagement />
             ) : settingsSubTab === "navigation" ? (
               <Card className="shadow-sm border-border">
                 <CardHeader className="border-b bg-muted/30">
@@ -2573,9 +2283,10 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
           {activeTab === "shopify-lt-emails" && <ShopifyLtEmailComms />}
 
           {/* Tenants Tab (Super Admin only) */}
-          {activeTab === "tenants" && currentUser?.team === "super_admin" && <TenantManagement />}
+          {activeTab === "tenants" && (currentUser?.team === "super_admin" ? <TenantManagement /> : <NoAccessCard />)}
 
           {/* Archived Projects Tab (Manager / Super Admin only) */}
+          {activeTab === "archived" && !isManagerOrAdmin && <NoAccessCard />}
           {activeTab === "archived" && isManagerOrAdmin && (() => {
             const archivedProjects = projects.filter(p => p.archived);
             return (

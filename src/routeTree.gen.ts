@@ -9,14 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashRouteImport } from './routes/_dash'
 import { Route as BrdRouteImport } from './routes/brd'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as DashIndexRouteImport } from './routes/_dash.index'
+import { Route as DashArchivedRouteImport } from './routes/_dash.archived'
+import { Route as DashDashboardRouteImport } from './routes/_dash.dashboard'
+import { Route as DashEmailsRouteImport } from './routes/_dash.emails'
+import { Route as DashGoLiveRouteImport } from './routes/_dash.go-live'
+import { Route as DashPlatformsRouteImport } from './routes/_dash.platforms'
+import { Route as DashRisksRouteImport } from './routes/_dash.risks'
+import { Route as DashShopifyLtEmailsRouteImport } from './routes/_dash.shopify-lt-emails'
+import { Route as DashShopifySmeRouteImport } from './routes/_dash.shopify-sme'
+import { Route as DashTenantsRouteImport } from './routes/_dash.tenants'
 import { Route as PortalMidRouteImport } from './routes/portal.$mid'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
-import { Route as ProjectsGoLiveRouteImport } from './routes/projects.go-live'
-import { Route as ProjectsKanbanRouteImport } from './routes/projects.kanban'
-import { Route as ProjectsListRouteImport } from './routes/projects.list'
+import { Route as DashProjectsGoLiveRouteImport } from './routes/_dash.projects.go-live'
+import { Route as DashProjectsKanbanRouteImport } from './routes/_dash.projects.kanban'
+import { Route as DashProjectsListRouteImport } from './routes/_dash.projects.list'
+import { Route as DashReportsSubTabRouteImport } from './routes/_dash.reports.$subTab'
+import { Route as DashSettingsSubTabRouteImport } from './routes/_dash.settings.$subTab'
 import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-actions'
 import { Route as ApiPublicAiChatRouteImport } from './routes/api/public/ai-chat'
 import { Route as ApiPublicAiFieldMappingRouteImport } from './routes/api/public/ai-field-mapping'
@@ -53,15 +65,15 @@ import { Route as ApiPublicSlackStuckMerchantsDigestRouteImport } from './routes
 import { Route as ApiPublicTenantIntegrationsRouteImport } from './routes/api/public/tenant-integrations'
 import { Route as ApiPublicUpdateUserRouteImport } from './routes/api/public/update-user'
 import { Route as ApiPublicUploadProjectPdfRouteImport } from './routes/api/public/upload-project-pdf'
+import { Route as DashReportsPredefinedReportTypeRouteImport } from './routes/_dash.reports.predefined.$reportType'
 import { Route as ApiPublicMerchantPortalDataSplatRouteImport } from './routes/api/public/merchant-portal-data.$'
 import { Route as ApiPublicV1HealthRouteImport } from './routes/api/public/v1/health'
 import { Route as ApiPublicV1ProjectsRouteImport } from './routes/api/public/v1/projects'
 import { Route as ApiPublicV1UsersRouteImport } from './routes/api/public/v1/users'
 import { Route as ApiPublicV1ProjectsIdRouteImport } from './routes/api/public/v1/projects.$id'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashRoute = DashRouteImport.update({
+  id: '/_dash',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BrdRoute = BrdRouteImport.update({
@@ -74,6 +86,56 @@ const PortalRoute = PortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashIndexRoute = DashIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashArchivedRoute = DashArchivedRouteImport.update({
+  id: '/archived',
+  path: '/archived',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashDashboardRoute = DashDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashEmailsRoute = DashEmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashGoLiveRoute = DashGoLiveRouteImport.update({
+  id: '/go-live',
+  path: '/go-live',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashPlatformsRoute = DashPlatformsRouteImport.update({
+  id: '/platforms',
+  path: '/platforms',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashRisksRoute = DashRisksRouteImport.update({
+  id: '/risks',
+  path: '/risks',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashShopifyLtEmailsRoute = DashShopifyLtEmailsRouteImport.update({
+  id: '/shopify-lt-emails',
+  path: '/shopify-lt-emails',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashShopifySmeRoute = DashShopifySmeRouteImport.update({
+  id: '/shopify-sme',
+  path: '/shopify-sme',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashTenantsRoute = DashTenantsRouteImport.update({
+  id: '/tenants',
+  path: '/tenants',
+  getParentRoute: () => DashRoute,
+} as any)
 const PortalMidRoute = PortalMidRouteImport.update({
   id: '/$mid',
   path: '/$mid',
@@ -84,20 +146,30 @@ const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsGoLiveRoute = ProjectsGoLiveRouteImport.update({
+const DashProjectsGoLiveRoute = DashProjectsGoLiveRouteImport.update({
   id: '/projects/go-live',
   path: '/projects/go-live',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => DashRoute,
 } as any)
-const ProjectsKanbanRoute = ProjectsKanbanRouteImport.update({
+const DashProjectsKanbanRoute = DashProjectsKanbanRouteImport.update({
   id: '/projects/kanban',
   path: '/projects/kanban',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => DashRoute,
 } as any)
-const ProjectsListRoute = ProjectsListRouteImport.update({
+const DashProjectsListRoute = DashProjectsListRouteImport.update({
   id: '/projects/list',
   path: '/projects/list',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => DashRoute,
+} as any)
+const DashReportsSubTabRoute = DashReportsSubTabRouteImport.update({
+  id: '/reports/$subTab',
+  path: '/reports/$subTab',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashSettingsSubTabRoute = DashSettingsSubTabRouteImport.update({
+  id: '/settings/$subTab',
+  path: '/settings/$subTab',
+  getParentRoute: () => DashRoute,
 } as any)
 const ApiPublicAiActionsRoute = ApiPublicAiActionsRouteImport.update({
   id: '/api/public/ai-actions',
@@ -302,6 +374,12 @@ const ApiPublicUploadProjectPdfRoute =
     path: '/api/public/upload-project-pdf',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DashReportsPredefinedReportTypeRoute =
+  DashReportsPredefinedReportTypeRouteImport.update({
+    id: '/reports/predefined/$reportType',
+    path: '/reports/predefined/$reportType',
+    getParentRoute: () => DashRoute,
+  } as any)
 const ApiPublicMerchantPortalDataSplatRoute =
   ApiPublicMerchantPortalDataSplatRouteImport.update({
     id: '/$',
@@ -330,14 +408,25 @@ const ApiPublicV1ProjectsIdRoute = ApiPublicV1ProjectsIdRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof DashIndexRoute
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
+  '/archived': typeof DashArchivedRoute
+  '/dashboard': typeof DashDashboardRoute
+  '/emails': typeof DashEmailsRoute
+  '/go-live': typeof DashGoLiveRoute
+  '/platforms': typeof DashPlatformsRoute
+  '/risks': typeof DashRisksRoute
+  '/shopify-lt-emails': typeof DashShopifyLtEmailsRoute
+  '/shopify-sme': typeof DashShopifySmeRoute
+  '/tenants': typeof DashTenantsRoute
   '/portal/$mid': typeof PortalMidRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/projects/go-live': typeof ProjectsGoLiveRoute
-  '/projects/kanban': typeof ProjectsKanbanRoute
-  '/projects/list': typeof ProjectsListRoute
+  '/projects/go-live': typeof DashProjectsGoLiveRoute
+  '/projects/kanban': typeof DashProjectsKanbanRoute
+  '/projects/list': typeof DashProjectsListRoute
+  '/reports/$subTab': typeof DashReportsSubTabRoute
+  '/settings/$subTab': typeof DashSettingsSubTabRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -374,6 +463,7 @@ export interface FileRoutesByFullPath {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
   '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
@@ -381,14 +471,25 @@ export interface FileRoutesByFullPath {
   '/api/public/v1/projects/$id': typeof ApiPublicV1ProjectsIdRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
+  '/archived': typeof DashArchivedRoute
+  '/dashboard': typeof DashDashboardRoute
+  '/emails': typeof DashEmailsRoute
+  '/go-live': typeof DashGoLiveRoute
+  '/platforms': typeof DashPlatformsRoute
+  '/risks': typeof DashRisksRoute
+  '/shopify-lt-emails': typeof DashShopifyLtEmailsRoute
+  '/shopify-sme': typeof DashShopifySmeRoute
+  '/tenants': typeof DashTenantsRoute
   '/portal/$mid': typeof PortalMidRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/projects/go-live': typeof ProjectsGoLiveRoute
-  '/projects/kanban': typeof ProjectsKanbanRoute
-  '/projects/list': typeof ProjectsListRoute
+  '/': typeof DashIndexRoute
+  '/projects/go-live': typeof DashProjectsGoLiveRoute
+  '/projects/kanban': typeof DashProjectsKanbanRoute
+  '/projects/list': typeof DashProjectsListRoute
+  '/reports/$subTab': typeof DashReportsSubTabRoute
+  '/settings/$subTab': typeof DashSettingsSubTabRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -425,6 +526,7 @@ export interface FileRoutesByTo {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
   '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
@@ -433,14 +535,26 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_dash': typeof DashRouteWithChildren
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
+  '/_dash/archived': typeof DashArchivedRoute
+  '/_dash/dashboard': typeof DashDashboardRoute
+  '/_dash/emails': typeof DashEmailsRoute
+  '/_dash/go-live': typeof DashGoLiveRoute
+  '/_dash/platforms': typeof DashPlatformsRoute
+  '/_dash/risks': typeof DashRisksRoute
+  '/_dash/shopify-lt-emails': typeof DashShopifyLtEmailsRoute
+  '/_dash/shopify-sme': typeof DashShopifySmeRoute
+  '/_dash/tenants': typeof DashTenantsRoute
   '/portal/$mid': typeof PortalMidRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/projects/go-live': typeof ProjectsGoLiveRoute
-  '/projects/kanban': typeof ProjectsKanbanRoute
-  '/projects/list': typeof ProjectsListRoute
+  '/_dash/': typeof DashIndexRoute
+  '/_dash/projects/go-live': typeof DashProjectsGoLiveRoute
+  '/_dash/projects/kanban': typeof DashProjectsKanbanRoute
+  '/_dash/projects/list': typeof DashProjectsListRoute
+  '/_dash/reports/$subTab': typeof DashReportsSubTabRoute
+  '/_dash/settings/$subTab': typeof DashSettingsSubTabRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -477,6 +591,7 @@ export interface FileRoutesById {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/_dash/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
   '/api/public/v1/projects': typeof ApiPublicV1ProjectsRouteWithChildren
@@ -489,11 +604,22 @@ export interface FileRouteTypes {
     | '/'
     | '/brd'
     | '/portal'
+    | '/archived'
+    | '/dashboard'
+    | '/emails'
+    | '/go-live'
+    | '/platforms'
+    | '/risks'
+    | '/shopify-lt-emails'
+    | '/shopify-sme'
+    | '/tenants'
     | '/portal/$mid'
     | '/projects/$projectId'
     | '/projects/go-live'
     | '/projects/kanban'
     | '/projects/list'
+    | '/reports/$subTab'
+    | '/settings/$subTab'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -530,6 +656,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
     | '/api/public/v1/projects'
@@ -537,14 +664,25 @@ export interface FileRouteTypes {
     | '/api/public/v1/projects/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
     | '/brd'
     | '/portal'
+    | '/archived'
+    | '/dashboard'
+    | '/emails'
+    | '/go-live'
+    | '/platforms'
+    | '/risks'
+    | '/shopify-lt-emails'
+    | '/shopify-sme'
+    | '/tenants'
     | '/portal/$mid'
     | '/projects/$projectId'
+    | '/'
     | '/projects/go-live'
     | '/projects/kanban'
     | '/projects/list'
+    | '/reports/$subTab'
+    | '/settings/$subTab'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -581,6 +719,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
     | '/api/public/v1/projects'
@@ -588,14 +727,26 @@ export interface FileRouteTypes {
     | '/api/public/v1/projects/$id'
   id:
     | '__root__'
-    | '/'
+    | '/_dash'
     | '/brd'
     | '/portal'
+    | '/_dash/archived'
+    | '/_dash/dashboard'
+    | '/_dash/emails'
+    | '/_dash/go-live'
+    | '/_dash/platforms'
+    | '/_dash/risks'
+    | '/_dash/shopify-lt-emails'
+    | '/_dash/shopify-sme'
+    | '/_dash/tenants'
     | '/portal/$mid'
     | '/projects/$projectId'
-    | '/projects/go-live'
-    | '/projects/kanban'
-    | '/projects/list'
+    | '/_dash/'
+    | '/_dash/projects/go-live'
+    | '/_dash/projects/kanban'
+    | '/_dash/projects/list'
+    | '/_dash/reports/$subTab'
+    | '/_dash/settings/$subTab'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -632,6 +783,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/_dash/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
     | '/api/public/v1/projects'
@@ -640,13 +792,10 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  DashRoute: typeof DashRouteWithChildren
   BrdRoute: typeof BrdRoute
   PortalRoute: typeof PortalRouteWithChildren
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
-  ProjectsGoLiveRoute: typeof ProjectsGoLiveRoute
-  ProjectsKanbanRoute: typeof ProjectsKanbanRoute
-  ProjectsListRoute: typeof ProjectsListRoute
   ApiPublicAiActionsRoute: typeof ApiPublicAiActionsRoute
   ApiPublicAiChatRoute: typeof ApiPublicAiChatRoute
   ApiPublicAiFieldMappingRoute: typeof ApiPublicAiFieldMappingRoute
@@ -690,11 +839,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_dash': {
+      id: '/_dash'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof DashRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/brd': {
@@ -711,6 +860,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_dash/': {
+      id: '/_dash/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof DashIndexRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/archived': {
+      id: '/_dash/archived'
+      path: '/archived'
+      fullPath: '/archived'
+      preLoaderRoute: typeof DashArchivedRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/dashboard': {
+      id: '/_dash/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashDashboardRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/emails': {
+      id: '/_dash/emails'
+      path: '/emails'
+      fullPath: '/emails'
+      preLoaderRoute: typeof DashEmailsRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/go-live': {
+      id: '/_dash/go-live'
+      path: '/go-live'
+      fullPath: '/go-live'
+      preLoaderRoute: typeof DashGoLiveRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/platforms': {
+      id: '/_dash/platforms'
+      path: '/platforms'
+      fullPath: '/platforms'
+      preLoaderRoute: typeof DashPlatformsRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/risks': {
+      id: '/_dash/risks'
+      path: '/risks'
+      fullPath: '/risks'
+      preLoaderRoute: typeof DashRisksRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/shopify-lt-emails': {
+      id: '/_dash/shopify-lt-emails'
+      path: '/shopify-lt-emails'
+      fullPath: '/shopify-lt-emails'
+      preLoaderRoute: typeof DashShopifyLtEmailsRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/shopify-sme': {
+      id: '/_dash/shopify-sme'
+      path: '/shopify-sme'
+      fullPath: '/shopify-sme'
+      preLoaderRoute: typeof DashShopifySmeRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/tenants': {
+      id: '/_dash/tenants'
+      path: '/tenants'
+      fullPath: '/tenants'
+      preLoaderRoute: typeof DashTenantsRouteImport
+      parentRoute: typeof DashRoute
+    }
     '/portal/$mid': {
       id: '/portal/$mid'
       path: '/$mid'
@@ -725,26 +944,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects/go-live': {
-      id: '/projects/go-live'
+    '/_dash/projects/go-live': {
+      id: '/_dash/projects/go-live'
       path: '/projects/go-live'
       fullPath: '/projects/go-live'
-      preLoaderRoute: typeof ProjectsGoLiveRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof DashProjectsGoLiveRouteImport
+      parentRoute: typeof DashRoute
     }
-    '/projects/kanban': {
-      id: '/projects/kanban'
+    '/_dash/projects/kanban': {
+      id: '/_dash/projects/kanban'
       path: '/projects/kanban'
       fullPath: '/projects/kanban'
-      preLoaderRoute: typeof ProjectsKanbanRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof DashProjectsKanbanRouteImport
+      parentRoute: typeof DashRoute
     }
-    '/projects/list': {
-      id: '/projects/list'
+    '/_dash/projects/list': {
+      id: '/_dash/projects/list'
       path: '/projects/list'
       fullPath: '/projects/list'
-      preLoaderRoute: typeof ProjectsListRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof DashProjectsListRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/reports/$subTab': {
+      id: '/_dash/reports/$subTab'
+      path: '/reports/$subTab'
+      fullPath: '/reports/$subTab'
+      preLoaderRoute: typeof DashReportsSubTabRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/settings/$subTab': {
+      id: '/_dash/settings/$subTab'
+      path: '/settings/$subTab'
+      fullPath: '/settings/$subTab'
+      preLoaderRoute: typeof DashSettingsSubTabRouteImport
+      parentRoute: typeof DashRoute
     }
     '/api/public/ai-actions': {
       id: '/api/public/ai-actions'
@@ -998,6 +1231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUploadProjectPdfRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_dash/reports/predefined/$reportType': {
+      id: '/_dash/reports/predefined/$reportType'
+      path: '/reports/predefined/$reportType'
+      fullPath: '/reports/predefined/$reportType'
+      preLoaderRoute: typeof DashReportsPredefinedReportTypeRouteImport
+      parentRoute: typeof DashRoute
+    }
     '/api/public/merchant-portal-data/$': {
       id: '/api/public/merchant-portal-data/$'
       path: '/$'
@@ -1035,6 +1275,46 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface DashRouteChildren {
+  DashArchivedRoute: typeof DashArchivedRoute
+  DashDashboardRoute: typeof DashDashboardRoute
+  DashEmailsRoute: typeof DashEmailsRoute
+  DashGoLiveRoute: typeof DashGoLiveRoute
+  DashPlatformsRoute: typeof DashPlatformsRoute
+  DashRisksRoute: typeof DashRisksRoute
+  DashShopifyLtEmailsRoute: typeof DashShopifyLtEmailsRoute
+  DashShopifySmeRoute: typeof DashShopifySmeRoute
+  DashTenantsRoute: typeof DashTenantsRoute
+  DashIndexRoute: typeof DashIndexRoute
+  DashProjectsGoLiveRoute: typeof DashProjectsGoLiveRoute
+  DashProjectsKanbanRoute: typeof DashProjectsKanbanRoute
+  DashProjectsListRoute: typeof DashProjectsListRoute
+  DashReportsSubTabRoute: typeof DashReportsSubTabRoute
+  DashSettingsSubTabRoute: typeof DashSettingsSubTabRoute
+  DashReportsPredefinedReportTypeRoute: typeof DashReportsPredefinedReportTypeRoute
+}
+
+const DashRouteChildren: DashRouteChildren = {
+  DashArchivedRoute: DashArchivedRoute,
+  DashDashboardRoute: DashDashboardRoute,
+  DashEmailsRoute: DashEmailsRoute,
+  DashGoLiveRoute: DashGoLiveRoute,
+  DashPlatformsRoute: DashPlatformsRoute,
+  DashRisksRoute: DashRisksRoute,
+  DashShopifyLtEmailsRoute: DashShopifyLtEmailsRoute,
+  DashShopifySmeRoute: DashShopifySmeRoute,
+  DashTenantsRoute: DashTenantsRoute,
+  DashIndexRoute: DashIndexRoute,
+  DashProjectsGoLiveRoute: DashProjectsGoLiveRoute,
+  DashProjectsKanbanRoute: DashProjectsKanbanRoute,
+  DashProjectsListRoute: DashProjectsListRoute,
+  DashReportsSubTabRoute: DashReportsSubTabRoute,
+  DashSettingsSubTabRoute: DashSettingsSubTabRoute,
+  DashReportsPredefinedReportTypeRoute: DashReportsPredefinedReportTypeRoute,
+}
+
+const DashRouteWithChildren = DashRoute._addFileChildren(DashRouteChildren)
 
 interface PortalRouteChildren {
   PortalMidRoute: typeof PortalMidRoute
@@ -1074,13 +1354,10 @@ const ApiPublicV1ProjectsRouteWithChildren =
   ApiPublicV1ProjectsRoute._addFileChildren(ApiPublicV1ProjectsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  DashRoute: DashRouteWithChildren,
   BrdRoute: BrdRoute,
   PortalRoute: PortalRouteWithChildren,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
-  ProjectsGoLiveRoute: ProjectsGoLiveRoute,
-  ProjectsKanbanRoute: ProjectsKanbanRoute,
-  ProjectsListRoute: ProjectsListRoute,
   ApiPublicAiActionsRoute: ApiPublicAiActionsRoute,
   ApiPublicAiChatRoute: ApiPublicAiChatRoute,
   ApiPublicAiFieldMappingRoute: ApiPublicAiFieldMappingRoute,

@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Index from "@/page-views/Index";
 
-export const Route = createFileRoute("/projects/go-live")({
+export const Route = createFileRoute("/_dash/projects/go-live")({
   head: () => ({
     meta: [
       { title: "Go-Live Tracker — Handover" },
@@ -12,5 +11,4 @@ export const Route = createFileRoute("/projects/go-live")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => <Index initialProjectView="golive" />,
 });

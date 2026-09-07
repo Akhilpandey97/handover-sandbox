@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Index from "@/page-views/Index";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_dash/")({
   head: () => ({
     meta: [
       { title: "Handover — Onboarding Command Center" },
@@ -20,5 +19,4 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Index,
 });

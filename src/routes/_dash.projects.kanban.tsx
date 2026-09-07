@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Index from "@/page-views/Index";
 
-export const Route = createFileRoute("/projects/kanban")({
+export const Route = createFileRoute("/_dash/projects/kanban")({
   head: () => ({
     meta: [
       { title: "Projects Kanban — Handover" },
@@ -12,5 +11,4 @@ export const Route = createFileRoute("/projects/kanban")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => <Index initialProjectView="kanban" />,
 });

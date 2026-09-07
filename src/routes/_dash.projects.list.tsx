@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import Index from "@/page-views/Index";
 
-export const Route = createFileRoute("/projects/list")({
+export const Route = createFileRoute("/_dash/projects/list")({
   head: () => ({
     meta: [
       { title: "Projects List — Handover" },
@@ -12,5 +11,4 @@ export const Route = createFileRoute("/projects/list")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => <Index initialProjectView="list" />,
 });
