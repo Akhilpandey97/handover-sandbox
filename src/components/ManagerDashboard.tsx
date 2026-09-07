@@ -331,16 +331,20 @@ export const ManagerDashboard = () => {
 
   const TAB_CONFIG_KEYS = ["dashboard", "projects", "risks", "reports", "settings", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails", "tenants", "archived"];
 
-  // A bare "/" names no tab, so redirect to the first visible one. Visibility
-  // comes from LabelsContext, which defaults to placeholder labels while it
-  // loads — resolving early would pick the wrong tab and redirect twice.
+  // A bare "/" names no tab, so redirect to the first visible one. Match the
+  // exact path rather than "no tab resolved": navigating to a page outside the
+  // dashboard (a project workspace, say) also resolves to no tab, and this
+  // component is still mounted for that render — keying off the tab would
+  // redirect to the dashboard instead of letting the new page take over.
+  // Visibility comes from LabelsContext, which serves placeholder labels while
+  // it loads, so resolving early would pick the wrong tab and redirect twice.
   useEffect(() => {
-    if (activeTab !== "" || labelsLoading) return;
+    if (pathname !== "/" || labelsLoading) return;
     const visibleTabs = [...tabOrder, ...(currentUser?.team === "super_admin" && !tabOrder.includes("tenants") ? ["tenants"] : [])]
       .filter(tab => TAB_CONFIG_KEYS.includes(tab))
       .filter(tab => navVisibility[tab] !== false || tab === "tenants");
     navigate({ to: pathForTab(visibleTabs[0] || "dashboard"), replace: true });
-  }, [activeTab, labelsLoading, tabOrder, navVisibility, currentUser?.team, navigate]);
+  }, [pathname, labelsLoading, tabOrder, navVisibility, currentUser?.team, navigate]);
 
   // Calculate project time stats helper - FIXED: uses checklist-level time
   const calculateProjectStats = (project: Project) => {
