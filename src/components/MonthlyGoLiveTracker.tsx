@@ -515,7 +515,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     <div className="space-y-4">
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       <Card className="w-full">
-        <CardContent className="p-0 overflow-auto">
+        <CardContent className="p-0 overflow-auto rounded-t-lg">
             <div className="h-1 w-full bg-navy" />
             <Table className="text-sm w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
               <TableHeader className="sticky top-0 bg-navy/5 z-10">

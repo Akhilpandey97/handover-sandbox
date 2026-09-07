@@ -1735,7 +1735,8 @@ export const ManagerDashboard = () => {
                 </div>
               </CardHeader>, projectToolbarHost) : null}
               <CardContent className="p-0">
-                <div className="overflow-auto">
+                {/* rounded + clipping so the accent bar and header follow the card's corners */}
+                <div className="overflow-auto rounded-t-lg">
                   <div className="h-1 w-full bg-navy" />
                   <Table>
                     <TableHeader className="bg-navy/5">
