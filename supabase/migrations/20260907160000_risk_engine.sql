@@ -46,10 +46,10 @@ ALTER TABLE public.project_risk_insights ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Tenant members read risk insights" ON public.project_risk_insights;
 CREATE POLICY "Tenant members read risk insights" ON public.project_risk_insights
-  FOR SELECT TO authenticated USING (tenant_id = public.get_user_tenant_id());
+  FOR SELECT TO authenticated USING (tenant_id = public.get_user_tenant_id(auth.uid()));
 
 DROP POLICY IF EXISTS "Tenant members write risk insights" ON public.project_risk_insights;
 CREATE POLICY "Tenant members write risk insights" ON public.project_risk_insights
   FOR ALL TO authenticated
-  USING (tenant_id = public.get_user_tenant_id())
-  WITH CHECK (tenant_id = public.get_user_tenant_id());
+  USING (tenant_id = public.get_user_tenant_id(auth.uid()))
+  WITH CHECK (tenant_id = public.get_user_tenant_id(auth.uid()));
