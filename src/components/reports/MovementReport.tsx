@@ -9,6 +9,7 @@ import {
   projectStateLabels,
 } from "@/data/projectsData";
 import { useMovementReport, MovementEntry } from "@/hooks/useMovementReport";
+import { useFunnelConfig } from "@/hooks/useFunnelConfig";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,9 +25,6 @@ import { EmailReportDialog } from "./EmailReportDialog";
 import { ScheduleMovementReportDialog } from "./ScheduleMovementReportDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-const FUNNEL_ORDER: FunnelStage[] = ["sales", "pre_integration", "under_integration", "live", "none"];
-const FUNNEL_RANK: Record<FunnelStage, number> = FUNNEL_ORDER.reduce((acc, s, i) => { acc[s] = i; return acc; }, {} as Record<FunnelStage, number>);
 
 interface Props {
   timeframe: "daily" | "weekly";
@@ -67,6 +65,13 @@ const formatEgl = (d: string | undefined | null): string => {
 
 const cleanDescription = (s: string): string =>
   (s || "").replace(/\s+/g, " ").trim();
+
+// A project can resolve to a stage that was since renamed or deleted in
+// Settings → Project Stages, so anything unrecognised falls back to "none".
+const resolveStageKey = (p: Project, funnelOrder: FunnelStage[]): FunnelStage => {
+  const stage = getProjectFunnelStage(p);
+  return funnelOrder.includes(stage) ? stage : "none";
+};
 
 const buildSummary = (entries: MovementEntry[], maxParts = 3): string => {
   if (!entries.length) return "";
@@ -158,6 +163,7 @@ const buildFunnelEmailHtml = (
   filtered: Project[],
   movementMap: Record<string, MovementEntry[]>,
   aiMap: Record<string, AiSummary>,
+  funnelOrder: FunnelStage[],
 ): string => {
   const isActive = (p: Project) => (movementMap[p.id]?.length ?? 0) > 0;
 
@@ -186,8 +192,8 @@ const buildFunnelEmailHtml = (
     <strong>${filtered.length}</strong> projects · <strong style="color:#059669;">${totalActive}</strong> Active · <strong style="color:#64748b;">${totalInactive}</strong> Inactive
   </div>`;
 
-  for (const stage of FUNNEL_ORDER) {
-    const list = filtered.filter(p => getProjectFunnelStage(p) === stage);
+  for (const stage of funnelOrder) {
+    const list = filtered.filter(p => resolveStageKey(p, funnelOrder) === stage);
     if (list.length === 0) continue;
     const active = list.filter(isActive);
     const inactive = list.filter(p => !isActive(p));
@@ -269,7 +275,19 @@ const buildBucketedEmailHtml = (
 export const MovementReport = ({ timeframe }: Props) => {
   const { projects } = useProjects();
   const { teamLabels } = useLabels();
+  const { stages } = useFunnelConfig();
   const { data: movementMap = {}, isLoading, refetch, isFetching, dataUpdatedAt } = useMovementReport(timeframe);
+
+  // Stages are configured most-advanced-first (first rule to match wins), so the
+  // report reverses them to read earliest-first and appends the unmatched bucket.
+  const funnelOrder = useMemo<FunnelStage[]>(
+    () => [...stages].reverse().map(s => s.id).concat("none"),
+    [stages],
+  );
+  const funnelRank = useMemo(
+    () => funnelOrder.reduce((acc, s, i) => { acc[s] = i; return acc; }, {} as Record<FunnelStage, number>),
+    [funnelOrder],
+  );
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -312,7 +330,7 @@ export const MovementReport = ({ timeframe }: Props) => {
       const isActive = (movementMap[p.id]?.length ?? 0) > 0;
       const status = isActive ? "active" : "inactive";
       if (statusFilter.length && !statusFilter.includes(status)) return false;
-      if (funnelFilter.length && !funnelFilter.includes(getProjectFunnelStage(p))) return false;
+      if (funnelFilter.length && !funnelFilter.includes(resolveStageKey(p, funnelOrder))) return false;
       if (teamFilter.length && !teamFilter.includes(p.currentOwnerTeam)) return false;
       if (stateFilter.length && !stateFilter.includes(p.projectState)) return false;
       if (responsibilityFilter.length && !responsibilityFilter.includes(p.currentResponsibility)) return false;
@@ -321,15 +339,16 @@ export const MovementReport = ({ timeframe }: Props) => {
       if (arrMax && p.arr > parseFloat(arrMax)) return false;
       return true;
     });
-  }, [projects, movementMap, funnelFilter, teamFilter, stateFilter, responsibilityFilter, platformFilter, statusFilter, arrMin, arrMax]);
+  }, [projects, movementMap, funnelOrder, funnelFilter, teamFilter, stateFilter, responsibilityFilter, platformFilter, statusFilter, arrMin, arrMax]);
 
   const grouped = useMemo(() => {
-    const g: Record<FunnelStage, Project[]> = { live: [], under_integration: [], pre_integration: [], sales: [], none: [] };
+    const g: Record<FunnelStage, Project[]> = {};
+    for (const stage of funnelOrder) g[stage] = [];
     for (const p of filteredProjects) {
-      g[getProjectFunnelStage(p)].push(p);
+      g[resolveStageKey(p, funnelOrder)].push(p);
     }
     return g;
-  }, [filteredProjects]);
+  }, [filteredProjects, funnelOrder]);
 
   const totals = useMemo(() => {
     let active = 0, total = 0;
@@ -345,11 +364,11 @@ export const MovementReport = ({ timeframe }: Props) => {
     const windowLabel = timeframe === "daily" ? `Today (IST) · ${startLabel}` : `This week (Mon–today IST) · ${startLabel}`;
     const reportTitle = `${timeframe === "daily" ? "Daily" : "Weekly"} Movement Report`;
     const byFunnel = (a: Project, b: Project) =>
-      (FUNNEL_RANK[getProjectFunnelStage(a)] ?? 99) - (FUNNEL_RANK[getProjectFunnelStage(b)] ?? 99);
+      (funnelRank[resolveStageKey(a, funnelOrder)] ?? 99) - (funnelRank[resolveStageKey(b, funnelOrder)] ?? 99);
 
     if (timeframe === "daily") {
       const sorted = [...filteredProjects].sort(byFunnel);
-      return buildFunnelEmailHtml(reportTitle, windowLabel, sorted, movementMap, aiMap);
+      return buildFunnelEmailHtml(reportTitle, windowLabel, sorted, movementMap, aiMap, funnelOrder);
     }
 
     const activeBuckets: Record<Bucket, Project[]> = { wins: [], updates: [], lowlights: [] };
@@ -458,7 +477,7 @@ export const MovementReport = ({ timeframe }: Props) => {
                       <CheckRow label="Inactive" checked={statusFilter.includes("inactive")} onChange={() => toggle(setStatusFilter, "inactive")} />
                     </FilterGroup>
                     <FilterGroup title="Project Stage">
-                      {FUNNEL_ORDER.map(s => (
+                      {funnelOrder.map(s => (
                         <CheckRow key={s} label={funnelStageLabels[s]} checked={funnelFilter.includes(s)} onChange={() => toggle(setFunnelFilter, s)} />
                       ))}
                     </FilterGroup>
@@ -520,7 +539,7 @@ export const MovementReport = ({ timeframe }: Props) => {
           <div className="py-20 text-center text-muted-foreground">No projects match the current filters.</div>
         ) : (
           <div className="space-y-3">
-            {FUNNEL_ORDER.map(stage => {
+            {funnelOrder.map(stage => {
               const list = grouped[stage];
               if (!list || list.length === 0) return null;
               const activeCount = list.filter(p => (movementMap[p.id]?.length ?? 0) > 0).length;
