@@ -41,6 +41,8 @@ import {
   projectStateLabels,
 } from "@/data/projectsData";
 import { fetchAiInsights } from "@/utils/aiInsights";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
+import type { RiskVerdict } from "@/data/riskRules";
 import { cn } from "@/lib/utils";
 import { WorkspaceSkeleton } from "@/components/skeletons/WorkspaceSkeleton";
 import { ProjectActivityHistoryPanel } from "@/components/ProjectActivityHistoryPanel";
@@ -323,92 +325,21 @@ const getLatestProjectTimestamp = (project: Project) => {
     .sort((a, b) => b - a)[0];
 };
 
-const calculateRiskAssessment = (project: Project): RiskAssessment => {
-  const drivers: RiskDriver[] = [];
-  const now = new Date();
-  const checklistTotal = project.checklist.length;
-  const checklistDone = project.checklist.filter((item) => item.completed).length;
-  const completionRatio = checklistTotal > 0 ? checklistDone / checklistTotal : 0;
-  const latestTimestamp = getLatestProjectTimestamp(project);
-  const expectedGoLive = project.dates.expectedGoLiveDate ? new Date(project.dates.expectedGoLiveDate) : null;
-  const kickOff = project.dates.kickOffDate ? new Date(project.dates.kickOffDate) : null;
+/**
+ * Adapts the shared risk engine's verdict to the gauge this page already
+ * renders. The engine decides high/low; the score and findings drive the
+ * display so it stays consistent with the Risks tab.
+ */
+const riskAssessmentFromVerdict = (verdict: RiskVerdict | undefined): RiskAssessment => {
+  const findings = verdict?.findings ?? [];
+  const score = verdict?.score ?? 0;
 
-  if (project.projectState === "blocked") {
-    drivers.push({ label: "Project is blocked", points: 45 });
-  }
-
-  if (project.pendingAcceptance) {
-    drivers.push({ label: "Pending acceptance from next owner", points: 20 });
-  }
-
-  if (project.projectState === "on_hold") {
-    drivers.push({ label: "Project is on hold", points: 18 });
-  }
-
-  if (!project.assignedOwnerName) {
-    drivers.push({ label: "Owner is unassigned", points: 10 });
-  }
-
-  if (project.goLivePercent < 25) {
-    drivers.push({ label: "Go-live progress is below 25%", points: 12 });
-  } else if (project.goLivePercent < 50) {
-    drivers.push({ label: "Go-live progress is below 50%", points: 6 });
-  }
-
-  if (checklistTotal > 0 && completionRatio < 0.35) {
-    drivers.push({ label: "Most checklist items are still open", points: 12 });
-  } else if (checklistTotal > 0 && completionRatio < 0.7) {
-    drivers.push({ label: "Checklist completion is still moderate", points: 6 });
-  }
-
-  if (
-    expectedGoLive &&
-    !Number.isNaN(expectedGoLive.getTime()) &&
-    expectedGoLive.getTime() < now.getTime() &&
-    project.projectState !== "live"
-  ) {
-    drivers.push({ label: "Expected go-live date has passed", points: 20 });
-  }
-
-  if (
-    kickOff &&
-    !Number.isNaN(kickOff.getTime()) &&
-    kickOff.getTime() < now.getTime() &&
-    project.projectState === "not_started"
-  ) {
-    drivers.push({ label: "Kick-off date passed but project has not started", points: 14 });
-  }
-
-  if (latestTimestamp) {
-    const inactiveDays = Math.floor((now.getTime() - latestTimestamp) / (1000 * 60 * 60 * 24));
-    if (inactiveDays >= 14) {
-      drivers.push({ label: `No meaningful update in ${inactiveDays} days`, points: 14 });
-    } else if (inactiveDays >= 7) {
-      drivers.push({ label: `No meaningful update in ${inactiveDays} days`, points: 8 });
-    }
-  }
-
-  if (project.transferHistory.length >= 3) {
-    drivers.push({ label: "Multiple ownership handoffs recorded", points: 6 });
-  }
-
-  const score = drivers.reduce((sum, driver) => sum + driver.points, 0);
-
-  if (score >= 55) {
+  if (verdict?.level === "high") {
     return {
       score,
       label: "High risk",
       tone: "bg-rose-100 text-rose-800 border-rose-200",
-      drivers: drivers.sort((a, b) => b.points - a.points),
-    };
-  }
-
-  if (score >= 28) {
-    return {
-      score,
-      label: "Medium risk",
-      tone: "bg-amber-100 text-amber-800 border-amber-200",
-      drivers: drivers.sort((a, b) => b.points - a.points),
+      drivers: findings.map((f) => ({ label: f.detail, points: f.magnitude ?? 0 })),
     };
   }
 
@@ -416,10 +347,7 @@ const calculateRiskAssessment = (project: Project): RiskAssessment => {
     score,
     label: "Low risk",
     tone: "bg-emerald-100 text-emerald-800 border-emerald-200",
-    drivers:
-      drivers.length > 0
-        ? drivers.sort((a, b) => b.points - a.points)
-        : [{ label: "No major delivery or ownership risks detected", points: 0 }],
+    drivers: [{ label: "No major delivery or ownership risks detected", points: 0 }],
   };
 };
 
@@ -541,6 +469,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
   const project = projects.find((entry) => entry.id === projectId) ?? null;
 
+  // Same engine as the Risks tab and the at-risk lists, so a project cannot read
+  // "Low risk" here while appearing at risk elsewhere.
+  const riskProjects = useMemo(() => (project ? [project] : []), [project]);
+  const { verdicts: riskVerdicts } = useProjectRiskVerdicts(riskProjects);
+
   const activityFeed = useMemo(() => (project ? buildActivityFeed(project) : []), [project]);
   const groupedActivity = useMemo(() => groupByDate(activityFeed), [activityFeed]);
 
@@ -592,7 +525,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     project.currentOwnerTeam !== "ms" &&
     currentUser?.team !== "manager";
   const isTransferReady = canTransfer && allCurrentTeamChecklistCompleted;
-  const risk = calculateRiskAssessment(project);
+  const risk = riskAssessmentFromVerdict(riskVerdicts[project.id]);
   const openTasksCount = project.checklist.length - completedChecklist;
   const nextPendingItem = project.checklist.find((item) => !item.completed);
   const waitingOnLabel = pendingOn === "merchant" ? responsibilityLabels.merchant : teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam;

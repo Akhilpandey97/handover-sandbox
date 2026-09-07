@@ -34,6 +34,7 @@ const transformDbProject = (row: any): Project => ({
     kickOffDate: row.kick_off_date,
     goLiveDate: row.go_live_date || undefined,
     expectedGoLiveDate: row.expected_go_live_date || undefined,
+    expectedGoLiveDateIsDerived: Boolean((row as any).expected_go_live_date_is_derived),
   },
   notes: {
     mintNotes: row.mint_notes || "",
@@ -249,6 +250,7 @@ export const useProjectsQuery = () => {
         return transformDbProject({
           ...project,
           expected_go_live_date: project.expected_go_live_date || derivedExpectedGoLive || null,
+          expected_go_live_date_is_derived: !project.expected_go_live_date && !!derivedExpectedGoLive,
           checklist_items: items,
           responsibility_logs: logsByProject.get(project.id) || [],
           transfer_history: transfersByProject.get(project.id) || [],

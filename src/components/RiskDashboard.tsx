@@ -18,6 +18,9 @@ import {
 } from "lucide-react";
 import { Project } from "@/data/projectsData";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
+import { useRiskInsights } from "@/hooks/useRiskInsights";
+import { Loader2, Sparkles } from "lucide-react";
 
 const CATEGORIES = [
   { value: "merchant_dependency", label: "Merchant Dependency" },
@@ -84,75 +87,42 @@ export const RiskDashboard = () => {
     return m;
   }, [projects]);
 
-  // Auto-detection logic
+  // Verdicts come from the tenant's configured rules (Settings → Risk Rules), so
+  // this tab, the project workspace and the at-risk lists cannot disagree.
+  const { verdicts } = useProjectRiskVerdicts(activeProjects);
+  const { insightFor, generate, isGenerating } = useRiskInsights();
+
+  const atRiskProjects = useMemo(
+    () => activeProjects
+      .filter((p) => verdicts[p.id]?.level === "high")
+      .sort((a, b) => (verdicts[b.id]?.score ?? 0) - (verdicts[a.id]?.score ?? 0)),
+    [activeProjects, verdicts],
+  );
+
+  // Each firing rule becomes one suggested register row, deduped against auto
+  // rows already logged for that project and rule.
   const autoDetected = useMemo<AutoDetectedRisk[]>(() => {
-    const now = Date.now();
-    const h48 = 48 * 60 * 60 * 1000;
-    const d2 = 2 * 24 * 60 * 60 * 1000;
-    const d3 = 3 * 24 * 60 * 60 * 1000;
-    const flaggedRules = new Set(risks.filter(r => r.trigger_type === "auto").map(r => `${r.project_id}::${r.trigger_rule}`));
+    const flaggedRules = new Set(
+      risks.filter(r => r.trigger_type === "auto").map(r => `${r.project_id}::${r.trigger_rule}`),
+    );
     const detected: AutoDetectedRisk[] = [];
 
     activeProjects.forEach(p => {
-      if (p.projectState === "live" || p.currentPhase === "completed") return;
-
-      // No progress for 48h (updated_at stale)
-      if (p.updatedAt) {
-        const updatedMs = new Date(p.updatedAt).getTime();
-        if (now - updatedMs > h48 && !flaggedRules.has(`${p.id}::stale_48h`)) {
-          detected.push({
-            projectId: p.id, merchantName: p.merchantName, rule: "stale_48h",
-            suggestedCategory: "merchant_dependency", suggestedSeverity: "medium",
-            title: `No activity for 48+ hours on ${p.merchantName}`,
-          });
-        }
-      }
-
-      // Expected go-live within 3 days or past
-      if (p.dates.expectedGoLiveDate) {
-        const egl = new Date(p.dates.expectedGoLiveDate).getTime();
-        const diff = egl - now;
-        if (diff < d3 && !flaggedRules.has(`${p.id}::golive_at_risk`)) {
-          const severity = diff < 0 ? "critical" : "high";
-          detected.push({
-            projectId: p.id, merchantName: p.merchantName, rule: "golive_at_risk",
-            suggestedCategory: "project_viability", suggestedSeverity: severity,
-            title: diff < 0
-              ? `${p.merchantName} is past expected go-live date`
-              : `${p.merchantName} go-live in <3 days, not yet live`,
-          });
-        }
-      }
-
-      // Overdue tasks (>2 days)
-      const overdueTasks = p.checklist.filter(c => {
-        if (c.completed) return false;
-        if (!c.dueDate) return false;
-        return now - new Date(c.dueDate).getTime() > d2;
-      });
-      if (overdueTasks.length > 0 && !flaggedRules.has(`${p.id}::overdue_tasks`)) {
+      for (const finding of verdicts[p.id]?.findings || []) {
+        if (flaggedRules.has(`${p.id}::${finding.ruleId}`)) continue;
         detected.push({
-          projectId: p.id, merchantName: p.merchantName, rule: "overdue_tasks",
-          suggestedCategory: "internal_dependency", suggestedSeverity: "high",
-          title: `${overdueTasks.length} task(s) overdue by >2 days on ${p.merchantName}`,
+          projectId: p.id,
+          merchantName: p.merchantName,
+          rule: finding.ruleId,
+          suggestedCategory: "project_viability",
+          suggestedSeverity: finding.severity,
+          title: `${p.merchantName}: ${finding.detail}`,
         });
-      }
-
-      // Project not started / on hold for extended time
-      if ((p.projectState === "not_started" || p.projectState === "on_hold") && p.dates.kickOffDate) {
-        const ko = new Date(p.dates.kickOffDate).getTime();
-        if (now - ko > 7 * 24 * 60 * 60 * 1000 && !flaggedRules.has(`${p.id}::stale_state`)) {
-          detected.push({
-            projectId: p.id, merchantName: p.merchantName, rule: "stale_state",
-            suggestedCategory: "project_viability", suggestedSeverity: "medium",
-            title: `${p.merchantName} stuck in ${p.projectState === "on_hold" ? "on hold" : "not started"} state`,
-          });
-        }
       }
     });
 
     return detected;
-  }, [activeProjects, risks]);
+  }, [activeProjects, risks, verdicts]);
 
   // Filtered & sorted risks
   const filteredRisks = useMemo(() => {
@@ -332,6 +302,74 @@ export const RiskDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Risk engine verdicts — deterministic, with AI prose layered on top */}
+      <Card className="shadow-sm border-border">
+        <CardHeader className="border-b bg-muted/30">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="portal-heading flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-primary" />
+                At Risk
+                <Badge variant="secondary" className="text-xs">{atRiskProjects.length}</Badge>
+              </CardTitle>
+              <CardDescription>
+                Evaluated from Settings → Risk Rules. A project is High Risk when any enabled rule matches.
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => generate(atRiskProjects, verdicts)}
+              disabled={isGenerating || atRiskProjects.length === 0}
+            >
+              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              Explain with AI
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4">
+          {atRiskProjects.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              No projects are currently at risk.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {atRiskProjects.map((p) => {
+                const verdict = verdicts[p.id]!;
+                const insight = insightFor(p.id, verdict);
+                return (
+                  <div key={p.id} className="rounded-lg border border-border/60 p-3 bg-card">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm">{p.merchantName}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {verdict.findings.map((f) => f.detail).join(" · ")}
+                        </p>
+                      </div>
+                      <Badge className="bg-red-600 hover:bg-red-600 text-white shrink-0">High Risk</Badge>
+                    </div>
+                    {insight ? (
+                      <div className="mt-2 space-y-1 text-xs leading-relaxed border-t pt-2">
+                        <p className="text-foreground/90">{insight.why}</p>
+                        <p className="text-muted-foreground">
+                          <span className="font-medium text-foreground/80">Next: </span>
+                          {insight.recommendation}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-[11px] text-muted-foreground border-t pt-2">
+                        AI explanation not generated yet.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Filters + Add */}
       <div className="flex flex-wrap items-center gap-3">

@@ -16,6 +16,7 @@ import { WorkflowsManager } from "./settings/WorkflowsManager";
 import { ActivityLogViewer } from "./settings/ActivityLogViewer";
 import { SlackAlertsSettings } from "./settings/SlackAlertsSettings";
 import { FunnelStagesSettings } from "./settings/FunnelStagesSettings";
+import { RiskRulesSettings } from "./settings/RiskRulesSettings";
 import { IntegrationsSettings } from "./settings/IntegrationsSettings";
 import { usePermissions } from "@/hooks/usePermissions";
 import { NoAccessCard } from "@/components/NoAccessCard";
@@ -459,6 +460,11 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
         {/* Project Stages Tab */}
         <TabsContent value="funnel">
           <FunnelStagesSettings />
+        </TabsContent>
+
+        {/* Risk Rules Tab */}
+        <TabsContent value="risk-rules">
+          <RiskRulesSettings />
         </TabsContent>
 
         {/* Activity Log Tab */}

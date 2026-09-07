@@ -118,6 +118,101 @@ ${entriesTxt}`;
     }
 
 
+    // Risk explanations. The rule engine has already decided high/low; the model
+    // only writes prose, exactly as movement_summary does.
+    if (type === "risk_explanation" && Array.isArray(body.items)) {
+      const items = body.items as Array<{
+        id: string;
+        merchantName: string;
+        projectState: string;
+        funnel?: string;
+        reasons: string[];
+      }>;
+
+      const systemPrompt = `You are an onboarding delivery analyst for a merchant integration team. Each merchant below has ALREADY been deterministically flagged as at risk by a rule engine, and the exact reasons are given to you. Do NOT re-assess whether the project is at risk, and do NOT invent reasons that are not listed.
+
+For EACH merchant, produce:
+1. "why": ONE sentence explaining, in plain business language, what the listed reasons mean for this merchant's go-live. Reference the concrete numbers you are given.
+2. "recommendation": ONE sentence naming the single most useful next action, and who should take it. Be specific and practical — no generic advice like "monitor closely".`;
+
+      const userContent = items
+        .map((it) =>
+          `Merchant: ${it.merchantName}\nState: ${it.projectState}${it.funnel ? `\nStage: ${it.funnel}` : ""}\nRisk reasons:\n${it.reasons.map((r) => `- ${r}`).join("\n")}\nid: ${it.id}`,
+        )
+        .join("\n\n");
+
+      // cron.ts calls jobs sequentially per tenant, so a hung gateway call would
+      // stall the whole loop and risk the platform function timeout.
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 45_000);
+      let response: Response;
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          signal: controller.signal,
+          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userContent },
+            ],
+            tools: [{
+              type: "function",
+              function: {
+                name: "submit_risk_explanations",
+                description: "Return one explanation and recommendation per merchant",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    results: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          id: { type: "string" },
+                          why: { type: "string" },
+                          recommendation: { type: "string" },
+                        },
+                        required: ["id", "why", "recommendation"],
+                        additionalProperties: false,
+                      },
+                    },
+                  },
+                  required: ["results"],
+                  additionalProperties: false,
+                },
+              },
+            }],
+            tool_choice: { type: "function", function: { name: "submit_risk_explanations" } },
+          }),
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      if (!response.ok) {
+        if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (response.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const errText = await response.text();
+        console.error("AI gateway error:", response.status, errText);
+        throw new Error(`AI gateway error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      let results: Array<{ id: string; why: string; recommendation: string }> = [];
+      if (toolCall?.function?.arguments) {
+        try { results = JSON.parse(toolCall.function.arguments).results || []; } catch { results = []; }
+      }
+      // Match by id and drop anything unrecognised — the model occasionally
+      // returns fewer items than asked, so index alignment would mis-attribute.
+      const known = new Set(items.map((i) => i.id));
+      results = results.filter((r) => r && known.has(r.id) && r.why && r.recommendation);
+
+      return new Response(JSON.stringify({ result: results, model: "google/gemini-2.5-flash" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Email context: generate summary, test cases, and go-live checklist context from email threads
     if (type === "email_context") {
       const { project_id, tenant_id, threads } = body;

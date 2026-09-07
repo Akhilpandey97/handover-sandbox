@@ -818,6 +818,7 @@ export const ManagerDashboard = () => {
     workflows: { label: "AI Workflows" },
     "pivot-table": { label: "Pivot Table" },
     funnel: { label: "Project Stages" },
+    "risk-rules": { label: "Risk Rules" },
     "activity-log": { label: "Activity Log" },
     "slack-alerts": { label: "Slack Alerts" },
     integrations: { label: "Integrations" },

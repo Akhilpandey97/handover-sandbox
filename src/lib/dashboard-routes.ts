@@ -43,6 +43,7 @@ export const SETTINGS_SUB_TABS = [
   "workflows",
   "pivot-table",
   "funnel",
+  "risk-rules",
   "activity-log",
   "slack-alerts",
   "integrations",

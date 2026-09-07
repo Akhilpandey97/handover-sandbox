@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, AlertCircle, Trophy, Sparkles, Loader2 } from "lucide-react";
 import { fetchAiInsights } from "@/utils/aiInsights";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
+import { describeVerdict } from "@/data/riskRules";
 import { arrCroreValue } from "@/lib/arr";
 
 interface Props {
@@ -21,17 +23,19 @@ export const TacticalLists = ({ projects }: Props) => {
   const [aiLoading, setAiLoading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>("atrisk");
 
-  // At Risk Watchlist
-  const atRiskProjects = useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
-    return projects
-      .filter(p => p.projectState !== "live" && p.currentPhase !== "completed" && p.dates.expectedGoLiveDate && p.dates.expectedGoLiveDate < today)
+  // At Risk Watchlist — same verdict as the Risks tab and the project workspace.
+  const { verdicts } = useProjectRiskVerdicts(projects);
+  const atRiskProjects = useMemo(
+    () => projects
+      .filter(p => verdicts[p.id]?.level === "high")
       .map(p => {
-        const daysOverdue = Math.floor((Date.now() - new Date(p.dates.expectedGoLiveDate!).getTime()) / (1000 * 60 * 60 * 24));
-        return { ...p, daysOverdue };
+        const verdict = verdicts[p.id]!;
+        const daysOverdue = Math.max(0, ...verdict.findings.map(f => f.magnitude ?? 0));
+        return { ...p, daysOverdue, riskReason: describeVerdict(verdict), riskScore: verdict.score };
       })
-      .sort((a, b) => b.daysOverdue - a.daysOverdue);
-  }, [projects]);
+      .sort((a, b) => b.riskScore - a.riskScore),
+    [projects, verdicts],
+  );
 
   // Task Completion Leaderboard
   const leaderboard = useMemo(() => {

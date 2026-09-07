@@ -13,6 +13,7 @@ const LABELS: Record<string, string> = {
   workflows: "Workflows",
   "pivot-table": "Pivot Table Settings",
   funnel: "Project Stages",
+  "risk-rules": "Risk Rules",
   "activity-log": "Activity Log",
   "slack-alerts": "Slack Alerts",
   integrations: "Integrations",

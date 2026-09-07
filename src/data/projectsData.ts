@@ -77,6 +77,12 @@ export interface ProjectDates {
   kickOffDate: string;
   goLiveDate?: string;
   expectedGoLiveDate?: string;
+  /**
+   * True when expectedGoLiveDate was filled in from the latest checklist due
+   * date rather than set on the project. Risk rules use this to avoid reporting
+   * a missed go-live that is really just the missed checklist item restated.
+   */
+  expectedGoLiveDateIsDerived?: boolean;
 }
 
 export interface ProjectNotes {
