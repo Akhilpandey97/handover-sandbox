@@ -381,11 +381,11 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                 const isUrl = /^https?:\/\//i.test(blockerText);
                 const stage = funnelStages[p.id] || "none";
                 return (
-                  <TableRow key={p.id} onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-red-50/40 dark:bg-red-500/5")}>
+                  <TableRow key={p.id} onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id }, search: { from: "go-live" } })} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-red-50/40 dark:bg-red-500/5")}>
                     <TableCell className={cn("font-medium whitespace-nowrap", isBlocked && "text-red-600 dark:text-red-400")} title={p.merchant_name}>
                       <button
                         type="button"
-                        onClick={(event) => { event.stopPropagation(); navigate({ to: "/projects/$projectId", params: { projectId: p.id } }); }}
+                        onClick={(event) => { event.stopPropagation(); navigate({ to: "/projects/$projectId", params: { projectId: p.id }, search: { from: "go-live" } }); }}
                         className="max-w-[220px] truncate text-left hover:text-primary hover:underline cursor-pointer"
                       >
                         {p.merchant_name}

@@ -142,7 +142,7 @@ type ProjectView = "board" | "list" | "kanban" | "golive";
 
 const ADMIN_ONLY_SETTINGS = ["users", "integrations"];
 
-export const ManagerDashboard = () => {
+export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: "kanban" | "list" | "golive" }) => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const perms = usePermissions();
@@ -153,8 +153,8 @@ export const ManagerDashboard = () => {
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("");
-  const [projectView, setProjectView] = useState<ProjectView>("kanban");
+  const [activeTab, setActiveTab] = useState(initialProjectView ? "projects" : "");
+  const [projectView, setProjectView] = useState<ProjectView>(initialProjectView || "kanban");
   const [projectToolbarHost, setProjectToolbarHost] = useState<HTMLDivElement | null>(null);
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
   const [ownerFilter, setOwnerFilter] = useState<string[]>([]);
@@ -948,6 +948,11 @@ export const ManagerDashboard = () => {
     ? `Reports — ${REPORTS_SUB_CONFIG[reportSubTab]?.label || "Pre Defined"}`
     : TAB_CONFIG[activeTab]?.label || "Dashboard";
 
+  const openProjectView = (view: "kanban" | "list" | "golive") => {
+    const to = view === "golive" ? "/projects/go-live" : `/projects/${view}`;
+    navigate({ to });
+  };
+
   // Render a single nav item
   const renderNavItem = (tab: string) => {
     const isReports = tab === "reports";
@@ -965,6 +970,8 @@ export const ManagerDashboard = () => {
             } else if (isSettings) {
               setSettingsExpanded(!settingsExpanded);
               if (!settingsExpanded) { setActiveTab("settings"); }
+            } else if (tab === "projects") {
+              openProjectView(projectView === "list" || projectView === "golive" ? projectView : "kanban");
             } else {
               setActiveTab(tab);
             }
@@ -1085,7 +1092,8 @@ export const ManagerDashboard = () => {
                 onClick={() => {
                   if (tab === "reports") { setActiveTab("reports"); }
                   else if (tab === "settings") { setActiveTab("settings"); }
-                  else { setActiveTab(tab); }
+                   else if (tab === "projects") { openProjectView(projectView === "list" || projectView === "golive" ? projectView : "kanban"); }
+                   else { setActiveTab(tab); }
                 }}
                 className={cn(
                   "w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200",
@@ -1189,7 +1197,7 @@ export const ManagerDashboard = () => {
                     type="button"
                     role="tab"
                     aria-selected={projectView === value}
-                    onClick={() => setProjectView(value as ProjectView)}
+                     onClick={() => openProjectView(value as "kanban" | "list" | "golive")}
                     className={cn(
                       "flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-medium transition-colors",
                       projectView === value
@@ -2084,7 +2092,7 @@ export const ManagerDashboard = () => {
                             project.projectState === "live" ? "text-emerald-500" :
                             project.projectState === "blocked" ? "text-destructive" : "text-muted-foreground";
                           return (
-                            <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}>
+                            <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id }, search: { from: "list" } })}>
                               <TableCell onClick={(event) => event.stopPropagation()}>
                                 <Checkbox checked={selectedProjects.has(project.id)} onCheckedChange={() => toggleProjectSelection(project.id)} aria-label={`Select ${project.merchantName}`} />
                               </TableCell>

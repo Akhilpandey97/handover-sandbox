@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useParams } from "@/lib/router-compat";
 import { LoginScreen } from "@/components/LoginScreen";
 import { AssignOwnerDialog } from "@/components/AssignOwnerDialog";
@@ -552,7 +552,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const groupedActivity = useMemo(() => groupByDate(activityFeed), [activityFeed]);
 
   const { isLoading: projectsLoading } = useProjects();
-  const router = useRouter();
   const navigate = useNavigate();
 
   if (isLoading || projectsLoading) {
@@ -779,11 +778,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               <button
                 type="button"
                 onClick={() => {
-                  if (typeof window !== "undefined" && window.history.length > 1) {
-                    router.history.back();
-                  } else {
-                    navigate({ to: "/" });
-                  }
+                  const from = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("from");
+                  if (from === "list") navigate({ to: "/projects/list" });
+                  else if (from === "go-live") navigate({ to: "/projects/go-live" });
+                  else if (currentUser?.team === "manager" || currentUser?.team === "admin" || currentUser?.team === "super_admin" || currentUser?.team === "superadmin" || currentUser?.team === "gokwik_general") navigate({ to: "/projects/kanban" });
+                  else navigate({ to: "/" });
                 }}
                 className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 shrink-0 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground"
               >
