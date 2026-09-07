@@ -1,0 +1,16 @@
+import { createFileRoute } from "@tanstack/react-router";
+import Index from "@/page-views/Index";
+
+export const Route = createFileRoute("/projects/go-live")({
+  head: () => ({
+    meta: [
+      { title: "Go-Live Tracker — Handover" },
+      { name: "description", content: "Track expected go-live dates and delivery readiness for onboarding projects." },
+      { property: "og:title", content: "Go-Live Tracker — Handover" },
+      { property: "og:description", content: "Track expected go-live dates and delivery readiness for onboarding projects." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: () => <Index initialProjectView="golive" />,
+});

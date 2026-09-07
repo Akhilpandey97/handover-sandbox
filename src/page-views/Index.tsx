@@ -5,7 +5,9 @@ import { ManagerDashboard } from "@/components/ManagerDashboard";
 import { SalesDashboard } from "@/components/SalesDashboard";
 import { AiChatBot } from "@/components/AiChatBot";
 
-const Index = () => {
+type ProjectView = "kanban" | "list" | "golive";
+
+const Index = ({ initialProjectView }: { initialProjectView?: ProjectView }) => {
   const { isAuthenticated, currentUser, isLoading } = useAuth();
 
   if (isLoading) {
@@ -27,7 +29,7 @@ const Index = () => {
   if (currentUser?.team === "gokwik_general") {
     return (
       <>
-        <ManagerDashboard />
+        <ManagerDashboard initialProjectView={initialProjectView} />
         <AiChatBot />
       </>
     );
@@ -37,7 +39,7 @@ const Index = () => {
   if (currentUser?.team === "manager" || currentUser?.team === "admin" || currentUser?.team === "super_admin") {
     return (
       <>
-        <ManagerDashboard />
+        <ManagerDashboard initialProjectView={initialProjectView} />
         <AiChatBot />
       </>
     );
