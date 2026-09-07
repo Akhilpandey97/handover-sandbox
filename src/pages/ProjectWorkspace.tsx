@@ -406,9 +406,9 @@ const buildActionDrivenSummary = (
     {
       title: "Risk watch",
       body:
-        risk.drivers[0]?.points && risk.drivers[0].points > 0
-          ? `${risk.label} (score ${risk.score}). Primary driver: ${risk.drivers[0].label}.`
-          : `${risk.label} (score ${risk.score}). No material execution or ownership risk is currently detected.`,
+        risk.label === "High risk"
+          ? `High risk. ${risk.drivers.map((d) => d.label).join("; ")}.`
+          : "No risk rules are currently firing for this project.",
       tone: "border-[#d8e2f0] bg-white",
     },
     {
@@ -526,6 +526,10 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     currentUser?.team !== "manager";
   const isTransferReady = canTransfer && allCurrentTeamChecklistCompleted;
   const risk = riskAssessmentFromVerdict(riskVerdicts[project.id]);
+  // Only a firing rule is worth surfacing — "low risk" is the absence of a
+  // signal, and badging it just adds noise to every healthy project.
+  const isAtRisk = risk.label === "High risk";
+  const riskReasons = isAtRisk ? risk.drivers.map((d) => d.label).join("; ") : null;
   const openTasksCount = project.checklist.length - completedChecklist;
   const nextPendingItem = project.checklist.find((item) => !item.completed);
   const waitingOnLabel = pendingOn === "merchant" ? responsibilityLabels.merchant : teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam;
@@ -559,7 +563,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     [getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"],
     ["Reporter", project.salesSpoc || currentUser?.name || "—"],
     ["Current team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam],
-    ["Risk", risk.label],
+    ["Risk", riskReasons || "—"],
     ["Last update", getLastUpdated(project)],
     [getLabel("field_current_responsibility"), responsibilityLabels[pendingOn] || pendingOn],
     ["Original estimate", formatDuration(timeByParty.gokwik + timeByParty.merchant)],
@@ -613,7 +617,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
           onClick: () => setActiveTab("checklists"),
         }
       : null,
-    risk.label !== "Low risk"
+    isAtRisk
       ? { label: "Review activity", sublabel: "Inspect blockers and handoffs", onClick: () => setActiveTab("activity") }
       : null,
     canTransfer && isTransferReady
@@ -853,7 +857,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               { label: "Waiting on", value: waitingOnLabel },
               { label: "Next step", value: nextStepLabel },
               { label: "Go-live", value: project.dates.expectedGoLiveDate || "Not set" },
-              { label: "Risk", value: `${risk.label} · ${risk.score}` },
+              { label: "Risk", value: isAtRisk ? "High Risk" : "—" },
             ].map((item) => (
               <div key={item.label} className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-border dark:bg-card">
                 <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-muted-foreground">{item.label}</p>
@@ -888,7 +892,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     {[
                       { label: "Checklist Progress", value: `${completedChecklist}/${project.checklist.length}`, sub: `${project.checklist.length ? Math.round((completedChecklist / project.checklist.length) * 100) : 0}% complete` },
                       { label: "Go-Live %", value: `${project.goLivePercent}%`, sub: project.projectState === "live" ? "Live" : "In progress" },
-                      { label: "Risk Score", value: `${risk.score}`, sub: risk.label },
+                      { label: "Risk", value: isAtRisk ? "High" : "None", sub: riskReasons || "No rules firing" },
                       { label: "Handoffs", value: `${project.transferHistory.length}`, sub: `${activityFeed.length} total events` },
                     ].map((metric) => (
                       <div key={metric.label} className="rounded-lg border border-border/60 bg-card/80 p-3">
@@ -989,7 +993,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Project ID</span><Badge variant="outline" className="max-w-[175px] truncate px-1.5 py-0.5 text-[10px] font-semibold">MID {project.mid}</Badge></div>
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">State</span><span className="font-semibold text-sky-700">{stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span></div>
-                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Risk</span><span className={cn("font-semibold", risk.label === "Low risk" ? "text-emerald-600" : "text-rose-600")}>{risk.label}</span></div>
+                      {isAtRisk && <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Risk</span><span className="font-semibold text-rose-600">High Risk</span></div>}
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Go-live</span><span className="font-semibold text-slate-700 dark:text-foreground">{project.dates.expectedGoLiveDate || "—"}</span></div>
                     </div>
                   </div>

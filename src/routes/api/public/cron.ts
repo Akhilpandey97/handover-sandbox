@@ -17,7 +17,6 @@ const PER_TENANT_JOBS = [
   "poll-emails",
   "poll-shopify-sme-emails",
   "poll-platform-golive-emails",
-  "recompute-risk",
 ] as const;
 
 /** Jobs that already iterate tenants (or schedules) themselves. */
