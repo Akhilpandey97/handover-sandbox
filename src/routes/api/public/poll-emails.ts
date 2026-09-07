@@ -428,7 +428,6 @@ async function handler(req: Request): Promise<Response> {
               projectName: brandName.trim(),
               assignedBy: "System (Auto-assign)",
               projectId: newProj.id,
-              appUrl: process.env['APP_URL'] || "",
               cc,
             }),
           });

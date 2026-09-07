@@ -949,6 +949,11 @@ export const ManagerDashboard = ({ initialProjectView }: { initialProjectView?: 
     : TAB_CONFIG[activeTab]?.label || "Dashboard";
 
   const openProjectView = (view: "kanban" | "list" | "golive") => {
+    // Only this tab is routed; the others switch in local state and leave the URL
+    // pointing at the last project view. Navigating there would then be a no-op,
+    // so the tab state has to be set here rather than on remount.
+    setActiveTab("projects");
+    setProjectView(view);
     const to = view === "golive" ? "/projects/go-live" : `/projects/${view}`;
     navigate({ to });
   };

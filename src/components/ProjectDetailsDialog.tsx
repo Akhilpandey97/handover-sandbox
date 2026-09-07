@@ -107,7 +107,7 @@ export const ProjectDetailsDialog = ({
       const res = await fetch(`/api/public/merchant-portal-data/send-magic-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
-        body: JSON.stringify({ project_id: project.id, app_url: window.location.origin }),
+        body: JSON.stringify({ project_id: project.id }),
       });
       const result = await res.json();
       if (!res.ok || !result.success) throw new Error(result.error || "Failed");

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { portalUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -102,7 +103,7 @@ async function handler(req: Request): Promise<Response> {
   if (req.method === "POST" && url.pathname.endsWith("/send-magic-link")) {
     try {
       const body = await req.json();
-      const { project_id, app_url } = body;
+      const { project_id } = body;
       if (!project_id) return json({ error: "project_id required" }, 400);
 
       const { data: project } = await supabase
@@ -138,11 +139,14 @@ async function handler(req: Request): Promise<Response> {
         token = created.token;
       }
 
-      const baseUrl = (app_url || "").replace(/\/+$/, "") || "https://kwikassist.gokwik.co";
-      const magicUrl = `${baseUrl}/portal?token=${token}&ml=1`;
+      if (!token) return json({ error: "Could not create portal token" }, 500);
+
+      const tenantCreds = await getTenantIntegrations(project.tenant_id);
+      const magicUrl = portalUrl(tenantCreds, token, true);
+      if (!magicUrl) return json({ error: "App base URL is not configured for this tenant" }, 500);
 
       // Send email via Resend
-      const RESEND_API_KEY = (await getTenantIntegrations(project.tenant_id)).resend_api_key;
+      const RESEND_API_KEY = tenantCreds.resend_api_key;
       if (!RESEND_API_KEY) return json({ error: "Resend email is not configured for this tenant" }, 500);
 
       const html = `

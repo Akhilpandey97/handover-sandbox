@@ -723,7 +723,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
       const response = await fetch("/api/public/merchant-portal-data/send-magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json", apikey: key, Authorization: `Bearer ${key}` },
-        body: JSON.stringify({ project_id: project.id, app_url: window.location.origin }),
+        body: JSON.stringify({ project_id: project.id }),
       });
       const result = await response.json();
       if (!response.ok || !result.success) throw new Error(result.error || "Failed");

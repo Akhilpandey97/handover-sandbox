@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { brdUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -248,12 +249,11 @@ async function handler(req: Request): Promise<Response> {
           .single();
         if (sessErr || !session) throw new Error("Failed to create BRD session");
 
-        // Determine app URL from environment or default
-        const appUrl = process.env['APP_URL'] || "https://project-visionary-90.lovable.app";
-        const brdLink = `${appUrl}/brd?token=${session.token}`;
+        const tenantCreds = await getTenantIntegrations(tenantId);
+        const brdLink = brdUrl(tenantCreds, session.token);
 
         // Send email via Resend
-        const RESEND_API_KEY = (await getTenantIntegrations(tenantId)).resend_api_key;
+        const RESEND_API_KEY = tenantCreds.resend_api_key;
         if (RESEND_API_KEY) {
           const emailResponse = await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -298,7 +298,7 @@ async function handler(req: Request): Promise<Response> {
         result = { 
           success: true, 
           message: `BRD form "${formTemplate.name}" sent to ${project.contact_email} for ${project.merchant_name}. The merchant will receive an email with a link to fill out the form. Once completed, the BRD Excel file will be automatically saved to the project's BRD Link field.`,
-          brd_link: `${appUrl}/brd?token=${session.token}`,
+          brd_link: brdLink,
         };
         break;
       }

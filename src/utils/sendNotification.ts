@@ -12,7 +12,9 @@ interface NotificationPayload {
   assignedBy?: string;
   reason?: string;
   projectId?: string;
-  appUrl?: string;
+  checklistItemId?: string;
+  taskId?: string;
+  commentId?: string;
   cc?: string[];
 }
 

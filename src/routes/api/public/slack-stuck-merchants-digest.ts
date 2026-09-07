@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { projectUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -10,6 +11,8 @@ const corsHeaders = {
 
 interface StuckItem {
   project_id: string;
+  checklist_item_id: string;
+  comment_id: string;
   merchant_name: string;
   funnel_stage: string;
   project_state: string;
@@ -20,10 +23,6 @@ interface StuckItem {
   hours_stuck: number;
   tag_comment_at: string;
 }
-
-const APP_BASE_URL =
-  process.env['APP_BASE_URL'] ||
-  "https://project-visionary-90.lovable.app";
 
 const RESEND_FROM = "MINT Alerts <mintupdates@notifications.gokwik.co>";
 
@@ -99,7 +98,7 @@ async function handler(req: Request): Promise<Response> {
         continue;
       }
 
-      const html = buildDigestHtml(stuck, tag, hours);
+      const html = buildDigestHtml(stuck, tag, hours, tenantCreds);
       const subject = stuck.length
         ? `🚨 ${stuck.length} merchant${stuck.length > 1 ? "s" : ""} pending response (${hours}h+) — ${formatDateIST()}`
         : `✅ No stuck merchants (test) — ${formatDateIST()}`;
@@ -245,6 +244,8 @@ async function findStuckItems(
     );
     stuck.push({
       project_id: project.id,
+      checklist_item_id: itemId,
+      comment_id: tagCmt.id,
       merchant_name: project.merchant_name,
       funnel_stage: humanPhase(project.current_phase, project.project_state),
       project_state: project.project_state,
@@ -286,7 +287,12 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function buildDigestHtml(items: StuckItem[], tag: string, hours: number): string {
+function buildDigestHtml(
+  items: StuckItem[],
+  tag: string,
+  hours: number,
+  creds: { app_base_url: string | null },
+): string {
   if (items.length === 0) {
     return `<div style="font-family:Arial,sans-serif;padding:16px;color:#111">
       <p>✅ No stuck merchants matched <code>${escapeHtml(tag)}</code> (>${hours}h).</p>
@@ -296,12 +302,18 @@ function buildDigestHtml(items: StuckItem[], tag: string, hours: number): string
 
   const rows = items
     .map((it) => {
-      const url = `${APP_BASE_URL}/project/${it.project_id}`;
+      const url = projectUrl(creds, it.project_id, {
+        tab: "checklists",
+        item: it.checklist_item_id,
+        comment: it.comment_id,
+      });
       const note = escapeHtml(it.last_note).slice(0, 400);
       return `
       <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#fff">
         <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">
-          <a href="${url}" style="color:#0b66ff;text-decoration:none">${escapeHtml(it.merchant_name)}</a>
+          ${url
+            ? `<a href="${url}" style="color:#0b66ff;text-decoration:none">${escapeHtml(it.merchant_name)}</a>`
+            : escapeHtml(it.merchant_name)}
           <span style="color:#6b7280;font-weight:400;font-size:13px"> · ${escapeHtml(it.funnel_stage)} · ${it.hours_stuck}h stuck</span>
         </div>
         <div style="font-size:13px;color:#374151;margin-bottom:6px">

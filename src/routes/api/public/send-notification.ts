@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import { projectUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -14,15 +15,17 @@ async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const creds = await getTenantIntegrations(await tenantIdFromRequest(req));
+    const { type, recipientEmail, recipientName, projectName, fromTeam, toTeam, notes, assignedBy, projectId, checklistItemId, taskId, commentId, cc, tenantId } = await req.json();
+
+    // tenantId lets server-to-server callers (which have no user JWT) still get
+    // the right tenant's branding and base URL.
+    const creds = await getTenantIntegrations(await tenantIdFromRequest(req, tenantId));
     const RESEND_API_KEY = requireCred(creds, "resend_api_key", "Resend email");
 
-    const { type, recipientEmail, recipientName, projectName, fromTeam, toTeam, notes, assignedBy, projectId, appUrl, cc } = await req.json();
-
-    const projectUrl = projectId && appUrl ? `${appUrl}?openProject=${projectId}` : null;
-    const viewProjectBtn = projectUrl
+    const link = projectUrl(creds, projectId, { item: checklistItemId, task: taskId, comment: commentId });
+    const viewProjectBtn = link
       ? `<div style="margin-top: 20px; text-align: center;">
-           <a href="${projectUrl}" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">View Project →</a>
+           <a href="${link}" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">View Project →</a>
          </div>`
       : "";
 

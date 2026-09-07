@@ -169,7 +169,6 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
             projectName: project.merchantName,
             assignedBy: "Manager",
             projectId: project.id,
-            appUrl: window.location.origin,
           });
         }
 

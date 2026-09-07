@@ -698,7 +698,6 @@ export const useTransferProject = () => {
             toTeam: teamLabels[nextTeam] || nextTeam,
             notes: notes || undefined,
             projectId,
-            appUrl: window.location.origin,
           });
         }
       }
@@ -812,7 +811,6 @@ export const useRejectProject = () => {
             toTeam: teamLabels[previousTeam] || previousTeam,
             notes: reason,
             projectId,
-            appUrl: window.location.origin,
           });
         }
       }
