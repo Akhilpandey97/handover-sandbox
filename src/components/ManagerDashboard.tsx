@@ -1736,10 +1736,11 @@ export const ManagerDashboard = () => {
               </CardHeader>, projectToolbarHost) : null}
               <CardContent className="p-0">
                 <div className="overflow-auto">
+                  <div className="h-1 w-full bg-navy" />
                   <Table>
-                    <TableHeader className="bg-navy">
-                      <TableRow className="hover:bg-navy">
-                        <TableHead className="w-10 text-white">
+                    <TableHeader className="bg-navy/5">
+                      <TableRow className="hover:bg-navy/5 border-b">
+                        <TableHead className="w-10 text-navy">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
                         </TableHead>
                         {listViewColumns.map(colKey => {
@@ -1757,7 +1758,7 @@ export const ManagerDashboard = () => {
                               onDragStart={() => handleColDragStart(colKey)}
                               onDragOver={(e) => { e.preventDefault(); handleColDragOver(colKey); }}
                               onDragEnd={() => handleColDragEnd(listViewColumns)}
-                              className={cn("whitespace-nowrap text-xs uppercase tracking-wider cursor-grab select-none text-sidebar-foreground", draggedCol === colKey && "opacity-40")}
+                              className={cn("whitespace-nowrap text-xs uppercase tracking-wider cursor-grab select-none font-semibold text-navy", draggedCol === colKey && "opacity-40")}
                             >
                               {label}
                             </TableHead>

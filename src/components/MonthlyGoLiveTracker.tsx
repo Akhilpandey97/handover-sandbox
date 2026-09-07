@@ -516,19 +516,20 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       <Card className="w-full">
         <CardContent className="p-0 overflow-auto">
+            <div className="h-1 w-full bg-navy" />
             <Table className="text-sm w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
-              <TableHeader className="sticky top-0 bg-navy z-10">
-                <TableRow className="hover:bg-navy">
-                  <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy-foreground">Opportunity</TableHead>
-                  {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy-foreground">{arrLabel} Cr.</TableHead>}
-                  {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">{stageLabel}</TableHead>}
-                  {isVisible("blocker") && <TableHead className="font-semibold min-w-[200px] text-navy-foreground">Blocker</TableHead>}
-                  {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-navy-foreground">Blocked On</TableHead>}
-                  {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-navy-foreground">Deadline</TableHead>}
-                  {isVisible("confidence") && <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">Confidence</TableHead>}
-                  {isVisible("owner") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy-foreground">{ownerLabel}</TableHead>}
-                  {isVisible("expected") && <TableHead className="font-semibold whitespace-nowrap text-navy-foreground">{expectedLabel}</TableHead>}
-                  {isVisible("csm") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy-foreground">CSM</TableHead>}
+              <TableHeader className="sticky top-0 bg-navy/5 z-10">
+                <TableRow className="hover:bg-navy/5 border-b">
+                  <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">Opportunity</TableHead>
+                  {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy">{arrLabel} Cr.</TableHead>}
+                  {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stageLabel}</TableHead>}
+                  {isVisible("blocker") && <TableHead className="font-semibold min-w-[200px] text-navy">Blocker</TableHead>}
+                  {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-navy">Blocked On</TableHead>}
+                  {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-navy">Deadline</TableHead>}
+                  {isVisible("confidence") && <TableHead className="font-semibold whitespace-nowrap text-navy">Confidence</TableHead>}
+                  {isVisible("owner") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy">{ownerLabel}</TableHead>}
+                  {isVisible("expected") && <TableHead className="font-semibold whitespace-nowrap text-navy">{expectedLabel}</TableHead>}
+                  {isVisible("csm") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy">CSM</TableHead>}
                 </TableRow>
               </TableHeader>
             <TableBody>
