@@ -11,7 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { sendNotification } from "@/utils/sendNotification";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, CheckCircle2, FolderKanban, User } from "lucide-react";
-import { teamLabels, TeamRole } from "@/data/teams";
+import { TeamRole } from "@/data/teams";
+import { useLabels } from "@/contexts/LabelsContext";
 import type { Database } from "@/integrations/supabase/types";
 
 interface TeamMember {
@@ -24,6 +25,7 @@ interface TeamMember {
 export const ProjectAssignment = () => {
   const { projects } = useProjects();
   const queryClient = useQueryClient();
+  const { teamLabels } = useLabels();
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [targetTeam, setTargetTeam] = useState<TeamRole>("mint");
   const [targetOwner, setTargetOwner] = useState<string>("");
@@ -205,9 +207,9 @@ export const ProjectAssignment = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="mint">MINT (Presales)</SelectItem>
-                <SelectItem value="integration">Integration Team</SelectItem>
-                <SelectItem value="ms">Merchant Success</SelectItem>
+                <SelectItem value="mint">{teamLabels.mint}</SelectItem>
+                <SelectItem value="integration">{teamLabels.integration}</SelectItem>
+                <SelectItem value="ms">{teamLabels.ms}</SelectItem>
               </SelectContent>
             </Select>
           </div>

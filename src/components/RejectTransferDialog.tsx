@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Project } from "@/data/projectsData";
-import { teamLabels } from "@/data/teams";
+import { useLabels } from "@/contexts/LabelsContext";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,7 @@ export const RejectTransferDialog = ({
   onReject,
 }: RejectTransferDialogProps) => {
   const [reason, setReason] = useState("");
+  const { teamLabels } = useLabels();
 
   const getPreviousTeam = () => {
     if (project.currentOwnerTeam === "integration") return "mint";
