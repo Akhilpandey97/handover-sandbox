@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeApi } from "@/lib/api-invoke";
 import { useAuth } from "@/contexts/AuthContext";
+import { SYSTEM_TEAMS } from "@/hooks/useTeams";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,12 +106,29 @@ export const TenantManagement = () => {
         if (error) throw error;
         toast.success("Tenant updated successfully");
       } else {
-        const { error } = await supabase.from("tenants").insert({
-          name: tenantName,
-          slug: tenantSlug,
-          logo_url: tenantLogoUrl || null,
-        });
+        const { data: newTenant, error } = await supabase
+          .from("tenants")
+          .insert({
+            name: tenantName,
+            slug: tenantSlug,
+            logo_url: tenantLogoUrl || null,
+          })
+          .select("id")
+          .single();
         if (error) throw error;
+
+        const { error: teamsError } = await supabase.from("teams").insert(
+          SYSTEM_TEAMS.map((t) => ({
+            name: t.name,
+            slug: t.slug,
+            color: t.color,
+            is_system: true,
+            sort_order: t.sort_order,
+            tenant_id: newTenant.id,
+          }))
+        );
+        if (teamsError) throw teamsError;
+
         toast.success("Tenant created successfully");
       }
 

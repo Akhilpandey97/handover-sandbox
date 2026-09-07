@@ -439,13 +439,23 @@ export const ChecklistManagement = () => {
   });
 
   const deleteTeamMutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, slug }: { id: string; slug: string }) => {
+      // Checklist rows reference the team by slug, not by FK, so they must be
+      // removed here or they linger as items owned by a team that no longer exists.
+      const { error: templatesError } = await supabase.from("checklist_templates").delete().eq("owner_team", slug);
+      if (templatesError) throw templatesError;
+
+      const { error: itemsError } = await supabase.from("checklist_items").delete().eq("owner_team", slug);
+      if (itemsError) throw itemsError;
+
       const { error } = await supabase.from("teams").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["teams"] });
-      toast.success("Team removed");
+      await queryClient.invalidateQueries({ queryKey: ["checklist-templates"] });
+      await queryClient.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Team and its checklist items removed");
       setDeleteTeamConfirm(null);
     },
     onError: (e) => toast.error(e.message || "Failed to delete team"),
@@ -859,12 +869,12 @@ export const ChecklistManagement = () => {
               Delete Team
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deleteTeamConfirm?.name}"? This action cannot be undone.
+              Are you sure you want to delete "{deleteTeamConfirm?.name}"? This will also permanently remove its checklist template items and those items from every project's checklist. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteTeamConfirm(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => deleteTeamConfirm && deleteTeamMutation.mutate(deleteTeamConfirm.id)} disabled={deleteTeamMutation.isPending}>
+            <Button variant="destructive" onClick={() => deleteTeamConfirm && deleteTeamMutation.mutate({ id: deleteTeamConfirm.id, slug: deleteTeamConfirm.slug })} disabled={deleteTeamMutation.isPending}>
               {deleteTeamMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>

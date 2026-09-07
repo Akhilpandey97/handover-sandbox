@@ -11,7 +11,7 @@ export interface DynamicTeam {
 }
 
 // System teams that always exist (even if not in DB)
-const SYSTEM_TEAMS: DynamicTeam[] = [
+export const SYSTEM_TEAMS: DynamicTeam[] = [
   { id: "system-mint", name: "Sales", slug: "mint", color: "#3b82f6", is_system: true, sort_order: 0 },
   { id: "system-integration", name: "MINT", slug: "integration", color: "#a855f7", is_system: true, sort_order: 1 },
   { id: "system-ms", name: "Merchant Success", slug: "ms", color: "#10b981", is_system: true, sort_order: 2 },
