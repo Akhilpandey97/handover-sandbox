@@ -14,6 +14,9 @@ import { Route as BrdRouteImport } from './routes/brd'
 import { Route as PortalRouteImport } from './routes/portal'
 import { Route as PortalMidRouteImport } from './routes/portal.$mid'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as ProjectsGoLiveRouteImport } from './routes/projects.go-live'
+import { Route as ProjectsKanbanRouteImport } from './routes/projects.kanban'
+import { Route as ProjectsListRouteImport } from './routes/projects.list'
 import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-actions'
 import { Route as ApiPublicAiChatRouteImport } from './routes/api/public/ai-chat'
 import { Route as ApiPublicAiFieldMappingRouteImport } from './routes/api/public/ai-field-mapping'
@@ -79,6 +82,21 @@ const PortalMidRoute = PortalMidRouteImport.update({
 const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
   id: '/projects/$projectId',
   path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsGoLiveRoute = ProjectsGoLiveRouteImport.update({
+  id: '/projects/go-live',
+  path: '/projects/go-live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsKanbanRoute = ProjectsKanbanRouteImport.update({
+  id: '/projects/kanban',
+  path: '/projects/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsListRoute = ProjectsListRouteImport.update({
+  id: '/projects/list',
+  path: '/projects/list',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicAiActionsRoute = ApiPublicAiActionsRouteImport.update({
@@ -317,6 +335,9 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/go-live': typeof ProjectsGoLiveRoute
+  '/projects/kanban': typeof ProjectsKanbanRoute
+  '/projects/list': typeof ProjectsListRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -365,6 +386,9 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/go-live': typeof ProjectsGoLiveRoute
+  '/projects/kanban': typeof ProjectsKanbanRoute
+  '/projects/list': typeof ProjectsListRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -414,6 +438,9 @@ export interface FileRoutesById {
   '/portal': typeof PortalRouteWithChildren
   '/portal/$mid': typeof PortalMidRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/go-live': typeof ProjectsGoLiveRoute
+  '/projects/kanban': typeof ProjectsKanbanRoute
+  '/projects/list': typeof ProjectsListRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
@@ -464,6 +491,9 @@ export interface FileRouteTypes {
     | '/portal'
     | '/portal/$mid'
     | '/projects/$projectId'
+    | '/projects/go-live'
+    | '/projects/kanban'
+    | '/projects/list'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -512,6 +542,9 @@ export interface FileRouteTypes {
     | '/portal'
     | '/portal/$mid'
     | '/projects/$projectId'
+    | '/projects/go-live'
+    | '/projects/kanban'
+    | '/projects/list'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -560,6 +593,9 @@ export interface FileRouteTypes {
     | '/portal'
     | '/portal/$mid'
     | '/projects/$projectId'
+    | '/projects/go-live'
+    | '/projects/kanban'
+    | '/projects/list'
     | '/api/public/ai-actions'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
@@ -608,6 +644,9 @@ export interface RootRouteChildren {
   BrdRoute: typeof BrdRoute
   PortalRoute: typeof PortalRouteWithChildren
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  ProjectsGoLiveRoute: typeof ProjectsGoLiveRoute
+  ProjectsKanbanRoute: typeof ProjectsKanbanRoute
+  ProjectsListRoute: typeof ProjectsListRoute
   ApiPublicAiActionsRoute: typeof ApiPublicAiActionsRoute
   ApiPublicAiChatRoute: typeof ApiPublicAiChatRoute
   ApiPublicAiFieldMappingRoute: typeof ApiPublicAiFieldMappingRoute
@@ -684,6 +723,27 @@ declare module '@tanstack/react-router' {
       path: '/projects/$projectId'
       fullPath: '/projects/$projectId'
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/go-live': {
+      id: '/projects/go-live'
+      path: '/projects/go-live'
+      fullPath: '/projects/go-live'
+      preLoaderRoute: typeof ProjectsGoLiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/kanban': {
+      id: '/projects/kanban'
+      path: '/projects/kanban'
+      fullPath: '/projects/kanban'
+      preLoaderRoute: typeof ProjectsKanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/list': {
+      id: '/projects/list'
+      path: '/projects/list'
+      fullPath: '/projects/list'
+      preLoaderRoute: typeof ProjectsListRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/ai-actions': {
@@ -1018,6 +1078,9 @@ const rootRouteChildren: RootRouteChildren = {
   BrdRoute: BrdRoute,
   PortalRoute: PortalRouteWithChildren,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  ProjectsGoLiveRoute: ProjectsGoLiveRoute,
+  ProjectsKanbanRoute: ProjectsKanbanRoute,
+  ProjectsListRoute: ProjectsListRoute,
   ApiPublicAiActionsRoute: ApiPublicAiActionsRoute,
   ApiPublicAiChatRoute: ApiPublicAiChatRoute,
   ApiPublicAiFieldMappingRoute: ApiPublicAiFieldMappingRoute,
