@@ -10,13 +10,17 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
+import { RiskBadge } from "./RiskBadge";
+import type { RiskVerdict } from "@/data/riskRules";
 import { ChecklistDialog } from "./ChecklistDialog";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { formatArrCr } from "@/lib/arr";
 
 
-export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: string }) => {
+// riskVerdict is passed in rather than looked up here: the board renders one
+// card per project, and each hook call would re-evaluate the whole portfolio.
+export const KanbanCard = ({ project, csmName, riskVerdict }: { project: Project; csmName?: string; riskVerdict?: RiskVerdict }) => {
   const navigate = useNavigate();
   const { stateLabels, getLabel } = useLabels();
   const { updateProject } = useProjects();
@@ -131,6 +135,7 @@ export const KanbanCard = ({ project, csmName }: { project: Project; csmName?: s
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <RiskBadge verdict={riskVerdict} />
         </div>
 
         <div className="text-muted-foreground">

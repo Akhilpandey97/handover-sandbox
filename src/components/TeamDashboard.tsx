@@ -44,6 +44,8 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
+import { RiskBadge } from "./RiskBadge";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 
 type TabType = "pending" | "active" | "all";
 type ViewType = "cards" | "kanban" | "list";
@@ -77,6 +79,7 @@ export const TeamDashboard = () => {
   const { currentUser, logout } = useAuth();
   const { getPendingProjects, getActiveProjects, projects, isLoading } = useProjects();
   const { teamLabels, labels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
+  const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("active");
   const [view, setView] = useState<ViewType>("cards");
@@ -524,7 +527,7 @@ export const TeamDashboard = () => {
               ) : view === "cards" ? (
                 <div className="space-y-3">
                   {displayProjects.map((project) => (
-                    <ProjectCardNew key={project.id} project={project} />
+                    <ProjectCardNew key={project.id} project={project} riskVerdict={riskVerdicts[project.id]} />
                   ))}
                 </div>
               ) : (
@@ -550,7 +553,7 @@ export const TeamDashboard = () => {
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
                         >
-                          <TableCell className="text-xs font-medium">{p.merchantName}</TableCell>
+                          <TableCell className="text-xs font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge verdict={riskVerdicts[p.id]} /></span></TableCell>
                           <TableCell className="text-xs font-mono text-muted-foreground">{p.mid}</TableCell>
                           <TableCell className="text-xs">{p.platform || "—"}</TableCell>
                           <TableCell className="text-xs">

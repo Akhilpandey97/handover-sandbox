@@ -24,7 +24,7 @@ export const TacticalLists = ({ projects }: Props) => {
   const [expandedSection, setExpandedSection] = useState<string | null>("atrisk");
 
   // At Risk Watchlist — same verdict as the Risks tab and the project workspace.
-  const { verdicts } = useProjectRiskVerdicts(projects);
+  const { verdicts } = useProjectRiskVerdicts();
   const atRiskProjects = useMemo(
     () => projects
       .filter(p => verdicts[p.id]?.level === "high")

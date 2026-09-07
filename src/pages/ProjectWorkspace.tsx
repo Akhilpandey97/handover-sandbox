@@ -43,6 +43,7 @@ import {
 import { fetchAiInsights } from "@/utils/aiInsights";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import type { RiskVerdict } from "@/data/riskRules";
+import { RiskBadge } from "@/components/RiskBadge";
 import { cn } from "@/lib/utils";
 import { WorkspaceSkeleton } from "@/components/skeletons/WorkspaceSkeleton";
 import { ProjectActivityHistoryPanel } from "@/components/ProjectActivityHistoryPanel";
@@ -471,8 +472,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
   // Same engine as the Risks tab and the at-risk lists, so a project cannot read
   // "Low risk" here while appearing at risk elsewhere.
-  const riskProjects = useMemo(() => (project ? [project] : []), [project]);
-  const { verdicts: riskVerdicts } = useProjectRiskVerdicts(riskProjects);
+  const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
 
   const activityFeed = useMemo(() => (project ? buildActivityFeed(project) : []), [project]);
   const groupedActivity = useMemo(() => groupByDate(activityFeed), [activityFeed]);
@@ -722,6 +722,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0 dark:text-muted-foreground" />
             <div className="flex items-center gap-2 min-w-0">
               <h1 className="max-w-[34vw] truncate text-2xl font-semibold leading-none tracking-tight text-slate-950 dark:text-foreground">{project.merchantName}</h1>
+              <RiskBadge verdict={riskVerdicts[project.id]} className="ml-2" />
               {/* Prev/Next navigation inline */}
               {inModal && projectIds && projectIds.length > 1 && onNavigate && (() => {
                 const currentIndex = projectIds.indexOf(project.id);

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { RiskBadge } from "./RiskBadge";
+import type { RiskVerdict } from "@/data/riskRules";
 import { Project, calculateTimeFromChecklist, calculateProjectResponsibilityFromChecklist, formatDuration, projectStateLabels, projectStateColors, ProjectState, isProjectUnderIntegration, getProjectFunnelStage, funnelStageLabels } from "@/data/projectsData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
@@ -66,6 +68,8 @@ import {
 
 interface ProjectCardNewProps {
   project: Project;
+  /** Passed in by the list: one hook call per card would re-evaluate every project. */
+  riskVerdict?: RiskVerdict;
 }
 
 const defaultPhaseConfig = {
@@ -95,7 +99,7 @@ const defaultPhaseConfig = {
   },
 };
 
-export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
+export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) => {
   const { currentUser } = useAuth();
   const { acceptProject, transferProject, updateProject, deleteProject, rejectProject } = useProjects();
   const { teamLabels, responsibilityLabels, getLabel, stateLabels } = useLabels();
@@ -258,6 +262,7 @@ export const ProjectCardNew = ({ project }: ProjectCardNewProps) => {
                     >
                       {project.merchantName}
                     </button>
+                    <RiskBadge verdict={riskVerdict} />
                     {isPending && (
                       <Badge className="bg-amber-500 text-white animate-pulse px-2 py-0.5 text-xs font-semibold">
                         <Sparkles className="h-3 w-3 mr-1" />

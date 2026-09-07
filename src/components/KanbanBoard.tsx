@@ -5,6 +5,7 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
 import { Project, ProjectState, projectStateLabels, getProjectFunnelStage, funnelStageLabels, FunnelStage } from "@/data/projectsData";
 import { KanbanCard } from "./KanbanCard";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -111,6 +112,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
   const projects = projectsOverride ?? allProjects;
   const labels = useLabels();
   const { fields: customFields } = useCustomFields();
+  const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
   const [groupField, setGroupField] = useState("funnelStage");
   const [funnelStageFilter, setFunnelStageFilter] = useState<string[]>([]);
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
@@ -492,7 +494,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                     col.projects.map((project) => {
                       const csmField = customFields.find(f => f.field_key === "custom_csm_manager");
                       const csmName = csmField ? customValuesMap[project.id]?.[csmField.id] : undefined;
-                      return <KanbanCard key={project.id} project={project} csmName={csmName} />;
+                      return <KanbanCard key={project.id} project={project} csmName={csmName} riskVerdict={riskVerdicts[project.id]} />;
                     })
                   )}
                 </div>

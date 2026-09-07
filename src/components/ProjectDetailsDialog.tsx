@@ -7,6 +7,8 @@ import { useProjectEmails } from "@/hooks/useProjectEmails";
 import { CustomFieldsDisplay } from "./CustomFieldsRenderer";
 import { EmailThreadTimeline } from "./EmailThreadTimeline";
 import { JiraTicketsSection } from "./JiraTicketsSection";
+import { RiskBadge } from "./RiskBadge";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +58,7 @@ export const ProjectDetailsDialog = ({
   const [sharingPortal, setSharingPortal] = useState(false);
   const [sendingMagic, setSendingMagic] = useState(false);
   const { fields: customFields } = useCustomFields();
+  const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
 
   const handleSharePortal = async () => {
     if (!project) return;
@@ -160,7 +163,10 @@ export const ProjectDetailsDialog = ({
               <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <span>{project.merchantName}</span>
+              <span className="inline-flex items-center gap-2">
+                {project.merchantName}
+                <RiskBadge verdict={riskVerdicts[project.id]} />
+              </span>
               <p className="text-sm font-normal text-muted-foreground mt-0.5">
                 {getLabel("field_mid")}: {project.mid}
               </p>

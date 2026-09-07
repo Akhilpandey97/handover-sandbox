@@ -105,6 +105,8 @@ import { exportProjectChecklistCSV, exportTeamOwnerCSV } from "@/utils/reportExp
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
+import { RiskBadge } from "./RiskBadge";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { toast } from "sonner";
 import { fetchAiInsights } from "@/utils/aiInsights";
 import { cn } from "@/lib/utils";
@@ -163,6 +165,7 @@ export const ManagerDashboard = () => {
   const arrLabel = getLabel("field_arr");
   const { projects, isLoading, addProject, deleteProject, updateProject, archiveProject } = useProjects();
   const { fields: customFields } = useCustomFields();
+  const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1250,7 +1253,12 @@ export const ManagerDashboard = () => {
                   { label: "Pending", value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked") },
                   { label: "In delivery", value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ${arrLabel}: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
                   { label: "Live", value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ${arrLabel}: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
-                ];
+                ].map((kpi) => ({
+                  ...kpi,
+                  // Risk read in context: how many of THIS card's projects are
+                  // firing a rule, rather than one detached total.
+                  atRisk: kpi.list.filter((p: Project) => riskVerdicts[p.id]?.level === "high"),
+                }));
                 return kpiCards.map((kpi) => (
                   <div
                     key={kpi.label}
@@ -1269,6 +1277,18 @@ export const ManagerDashboard = () => {
                       </div>
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">{kpi.sub}</p>
+                    {kpi.atRisk.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setDrillDown({ title: `${kpi.label} — at risk`, description: `${kpi.atRisk.length} of ${kpi.value} at risk`, projects: kpi.atRisk });
+                        }}
+                        className="mt-1 text-xs font-semibold text-red-600 hover:underline dark:text-red-400"
+                      >
+                        {kpi.atRisk.length} at risk
+                      </button>
+                    )}
                   </div>
                 ));
               })()}
@@ -1816,7 +1836,12 @@ export const ManagerDashboard = () => {
                               </TableCell>
                               {listViewColumns.map(colKey => (
                                 <TableCell key={colKey} className={cn("text-sm", colKey === "status" && statusColor, colKey === "recentComments" && "max-w-[200px]")}>
-                                  {["mintNotes", "projectNotes", "opsComment", "phase2Comment"].includes(colKey) ? (
+                                  {colKey === "merchantName" ? (
+                                    <span className="inline-flex items-center gap-1.5">
+                                      {getColValue(colKey)}
+                                      <RiskBadge verdict={riskVerdicts[project.id]} />
+                                    </span>
+                                  ) : ["mintNotes", "projectNotes", "opsComment", "phase2Comment"].includes(colKey) ? (
                                     <span className="truncate block max-w-[200px]" title={getColValue(colKey)}>{getColValue(colKey)}</span>
                                   ) : colKey === "recentComments" ? (
                                     <div className="space-y-0.5">

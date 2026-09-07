@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useNavigate } from "@tanstack/react-router";
+import { RiskBadge } from "./RiskBadge";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 
 interface Props {
   title: string;
@@ -17,6 +19,7 @@ interface Props {
 export const ProjectListDialog = ({ title, description, projects, open, onOpenChange }: Props) => {
   const { teamLabels, stateLabels } = useLabels();
   const navigate = useNavigate();
+  const { verdicts } = useProjectRiskVerdicts();
   const list = projects || [];
   const totalArr = list.reduce((s, p) => s + (p.arr || 0), 0);
 
@@ -49,7 +52,7 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
                 <TableBody>
                   {list.map((p) => (
                     <TableRow key={p.id} className="cursor-pointer" onClick={() => { onOpenChange(false); navigate({ to: "/projects/$projectId", params: { projectId: p.id } }); }}>
-                      <TableCell className="font-medium">{p.merchantName}</TableCell>
+                      <TableCell className="font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge verdict={verdicts[p.id]} /></span></TableCell>
                       <TableCell className="text-xs text-muted-foreground">{p.mid}</TableCell>
                       <TableCell className="text-sm">{stateLabels[p.projectState] || p.projectState}</TableCell>
                       <TableCell className="text-sm">{teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}</TableCell>

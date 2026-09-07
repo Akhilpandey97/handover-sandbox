@@ -11,10 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-  AlertTriangle, ShieldAlert, Clock, CheckCircle2, Plus, ChevronDown, ChevronRight,
-  Zap, TrendingUp, Eye, Trash2, Pencil, AlertCircle, ArrowUpDown, Shield
+  AlertTriangle, ShieldAlert, Clock, Plus,
+  Zap, Eye, Trash2, Pencil, AlertCircle, ArrowUpDown
 } from "lucide-react";
 import { Project } from "@/data/projectsData";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
@@ -46,15 +45,6 @@ const STATUSES = [
 const severityColor = (s: string) => SEVERITIES.find(x => x.value === s)?.color ?? "";
 const categoryLabel = (c: string) => CATEGORIES.find(x => x.value === c)?.label ?? c;
 
-interface AutoDetectedRisk {
-  projectId: string;
-  merchantName: string;
-  rule: string;
-  suggestedCategory: string;
-  suggestedSeverity: string;
-  title: string;
-}
-
 export const RiskDashboard = () => {
   const { risks, isLoading, createRisk, updateRisk, deleteRisk } = useProjectRisks();
   const { projects } = useProjects();
@@ -67,7 +57,6 @@ export const RiskDashboard = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterSeverity, setFilterSeverity] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [autoDetectOpen, setAutoDetectOpen] = useState(true);
   const [sortField, setSortField] = useState<"severity" | "created_at" | "mitigation_due_at">("severity");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -89,7 +78,7 @@ export const RiskDashboard = () => {
 
   // Verdicts come from the tenant's configured rules (Settings → Risk Rules), so
   // this tab, the project workspace and the at-risk lists cannot disagree.
-  const { verdicts } = useProjectRiskVerdicts(activeProjects);
+  const { verdicts } = useProjectRiskVerdicts();
   const { insightFor, generate, isGenerating } = useRiskInsights();
 
   const atRiskProjects = useMemo(
@@ -98,31 +87,6 @@ export const RiskDashboard = () => {
       .sort((a, b) => (verdicts[b.id]?.score ?? 0) - (verdicts[a.id]?.score ?? 0)),
     [activeProjects, verdicts],
   );
-
-  // Each firing rule becomes one suggested register row, deduped against auto
-  // rows already logged for that project and rule.
-  const autoDetected = useMemo<AutoDetectedRisk[]>(() => {
-    const flaggedRules = new Set(
-      risks.filter(r => r.trigger_type === "auto").map(r => `${r.project_id}::${r.trigger_rule}`),
-    );
-    const detected: AutoDetectedRisk[] = [];
-
-    activeProjects.forEach(p => {
-      for (const finding of verdicts[p.id]?.findings || []) {
-        if (flaggedRules.has(`${p.id}::${finding.ruleId}`)) continue;
-        detected.push({
-          projectId: p.id,
-          merchantName: p.merchantName,
-          rule: finding.ruleId,
-          suggestedCategory: "project_viability",
-          suggestedSeverity: finding.severity,
-          title: `${p.merchantName}: ${finding.detail}`,
-        });
-      }
-    });
-
-    return detected;
-  }, [activeProjects, risks, verdicts]);
 
   // Filtered & sorted risks
   const filteredRisks = useMemo(() => {
@@ -214,27 +178,6 @@ export const RiskDashboard = () => {
       });
     }
     setDialogOpen(false);
-  };
-
-  const flagAutoRisk = (det: AutoDetectedRisk) => {
-    const slaHours = det.suggestedCategory === "project_viability" ? 48 : 24;
-    createRisk.mutate({
-      project_id: det.projectId,
-      title: det.title,
-      description: `Auto-detected: ${det.rule}`,
-      category: det.suggestedCategory,
-      severity: det.suggestedSeverity,
-      trigger_type: "auto",
-      trigger_rule: det.rule,
-      mitigation_plan: null,
-      mitigation_due_at: new Date(Date.now() + slaHours * 60 * 60 * 1000).toISOString(),
-      assigned_to: null,
-      status: "open",
-      escalated: false,
-      tenant_id: currentUser?.tenantId ?? null,
-      resolved_at: null,
-      created_by: "system",
-    });
   };
 
   const ageStr = (dateStr: string) => {
@@ -531,100 +474,6 @@ export const RiskDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Auto-Detected Risks */}
-      <Collapsible open={autoDetectOpen} onOpenChange={setAutoDetectOpen}>
-        <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
-              <div className="flex items-center justify-between">
-                <CardTitle className="portal-heading flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-amber-500" />
-                  Auto-Detected Risks
-                  {autoDetected.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">{autoDetected.length} detected</Badge>
-                  )}
-                </CardTitle>
-                {autoDetectOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              </div>
-              <CardDescription>Automatically identified based on project data — review and flag as needed</CardDescription>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent>
-              {autoDetected.length === 0 ? (
-                <div className="text-center py-6">
-                  <Badge className="bg-emerald-500/10 text-emerald-600 text-sm px-4 py-2">
-                    <CheckCircle2 className="h-4 w-4 mr-1 inline" /> No auto-detected risks — all clear!
-                  </Badge>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Detected Issue</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Severity</TableHead>
-                      {!isReadOnly && <TableHead className="w-28">Action</TableHead>}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {autoDetected.map((det, i) => (
-                      <TableRow key={`${det.projectId}-${det.rule}`} className="bg-amber-50/30 dark:bg-amber-950/10">
-                        <TableCell className="font-medium">
-                          <button
-                            className="hover:text-primary hover:underline cursor-pointer transition-colors text-left"
-                            onClick={() => setActivityProject({ id: det.projectId, name: det.merchantName })}
-                          >
-                            {det.merchantName}
-                          </button>
-                        </TableCell>
-                        <TableCell>{det.title}</TableCell>
-                        <TableCell><Badge variant="secondary" className="text-xs">{categoryLabel(det.suggestedCategory)}</Badge></TableCell>
-                        <TableCell><Badge className={`text-xs ${severityColor(det.suggestedSeverity)}`}>{det.suggestedSeverity}</Badge></TableCell>
-                        {!isReadOnly && (
-                          <TableCell>
-                            <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => flagAutoRisk(det)}>
-                              <ShieldAlert className="h-3 w-3" /> Flag
-                            </Button>
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
-      {/* Risk Action Framework Reference */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="portal-heading flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" /> Risk Action Framework (SLA Reference)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Risk Type</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>SLA</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow><TableCell>Merchant non-responsive</TableCell><TableCell>Follow-up + escalate via Sales/AM</TableCell><TableCell><Badge variant="outline">24 hrs</Badge></TableCell></TableRow>
-              <TableRow><TableCell>Merchant delay</TableCell><TableCell>Re-align timeline + highlight impact</TableCell><TableCell><Badge variant="outline">24 hrs</Badge></TableCell></TableRow>
-              <TableRow><TableCell>PG delays</TableCell><TableCell>Parallel escalation with PG + merchant</TableCell><TableCell><Badge variant="outline">24 hrs</Badge></TableCell></TableRow>
-              <TableRow><TableCell>Internal blockers</TableCell><TableCell>Escalate to Product/Tech leadership</TableCell><TableCell><Badge variant="outline">24 hrs</Badge></TableCell></TableRow>
-              <TableRow><TableCell>Project at risk</TableCell><TableCell>Escalate + define go/no-go decision</TableCell><TableCell><Badge variant="outline">48 hrs</Badge></TableCell></TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
 
       {/* Add/Edit Risk Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

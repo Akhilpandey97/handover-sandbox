@@ -18,6 +18,8 @@ import { EditProjectDialog } from "./EditProjectDialog";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { getProjectFunnelStage, funnelStageLabels, projectStateLabels } from "@/data/projectsData";
+import { RiskBadge } from "./RiskBadge";
+import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { arrCroreValue } from "@/lib/arr";
 
 type Project = {
@@ -95,6 +97,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const [aiLoading, setAiLoading] = useState(false);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const { projects: fullProjects, updateProject } = useProjects();
+  const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
   const editingProject = editProjectId ? fullProjects.find(p => p.id === editProjectId) : null;
 
   const arrLabel = getLabel("field_arr");
@@ -548,6 +551,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       >
                         {p.merchant_name}
                       </button>
+                      <RiskBadge verdict={riskVerdicts[p.id]} className="ml-1.5 align-middle" />
                     </TableCell>
                     {isVisible("arr") && <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>}
                     {isVisible("stage") && (
