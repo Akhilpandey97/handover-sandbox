@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PLATFORM_OPTIONS, INTEGRATION_TYPE_OPTIONS } from "@/data/projectFieldOptions";
 import {
   Select,
   SelectContent,
@@ -107,7 +108,7 @@ export const AddProjectDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh]">
+      <DialogContent className="flex h-[90vh] max-w-4xl flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -117,7 +118,7 @@ export const AddProjectDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh] pr-4">
+        <ScrollArea className="min-h-0 flex-1 pr-4">
           <Tabs defaultValue="info" className="w-full">
             <TabsList className={`grid w-full mb-4 ${customFields.length > 0 ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <TabsTrigger value="info" className="gap-1 text-xs">
@@ -177,10 +178,9 @@ export const AddProjectDialog = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
-                      <SelectItem value="Custom">Custom</SelectItem>
-                      <SelectItem value="Shopify">Shopify</SelectItem>
-                      <SelectItem value="Magento">Magento</SelectItem>
-                      <SelectItem value="WooCommerce">WooCommerce</SelectItem>
+                      {PLATFORM_OPTIONS.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -246,22 +246,36 @@ export const AddProjectDialog = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
-                      <SelectItem value="Standard">Standard</SelectItem>
-                      <SelectItem value="Advanced">Advanced</SelectItem>
-                      <SelectItem value="Enterprise">Enterprise</SelectItem>
+                      {INTEGRATION_TYPE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="pgOnboarding">{getLabel("field_pg_onboarding")}</Label>
-                <Input
-                  id="pgOnboarding"
-                  value={project.pgOnboarding}
-                  onChange={(e) => updateField("pgOnboarding", e.target.value)}
-                  placeholder={`Enter ${getLabel("field_pg_onboarding").toLowerCase()}`}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pgOnboarding">{getLabel("field_pg_onboarding")}</Label>
+                  <Input
+                    id="pgOnboarding"
+                    value={project.pgOnboarding}
+                    onChange={(e) => updateField("pgOnboarding", e.target.value)}
+                    placeholder={`Enter ${getLabel("field_pg_onboarding").toLowerCase()}`}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="goLivePercent">{getLabel("field_go_live_percent")}</Label>
+                  <Input
+                    id="goLivePercent"
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={project.goLivePercent || 0}
+                    onChange={(e) => updateField("goLivePercent", Number(e.target.value))}
+                    placeholder="0"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -327,6 +341,16 @@ export const AddProjectDialog = ({
                   type="url"
                   value={project.links.integrationChecklistLink || ""}
                   onChange={(e) => updateLinks("integrationChecklistLink", e.target.value)}
+                  placeholder="https://docs.google.com/..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sowLink">SOW Link</Label>
+                <Input
+                  id="sowLink"
+                  type="url"
+                  value={project.links.sowLink || ""}
+                  onChange={(e) => updateLinks("sowLink", e.target.value)}
                   placeholder="https://docs.google.com/..."
                 />
               </div>

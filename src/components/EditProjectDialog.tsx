@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PLATFORM_OPTIONS, INTEGRATION_TYPE_OPTIONS } from "@/data/projectFieldOptions";
 import {
   Select,
   SelectContent,
@@ -214,7 +215,7 @@ export const EditProjectDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[95vw] h-[95vh] max-h-[95vh] flex flex-col overflow-hidden">
+      <DialogContent className="flex h-[90vh] max-w-4xl flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -229,7 +230,7 @@ export const EditProjectDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh] pr-4">
+        <ScrollArea className="min-h-0 flex-1 pr-4">
           <Tabs defaultValue="info" className="w-full">
             <TabsList className="grid w-full grid-cols-7 mb-4">
               <TabsTrigger value="info" className="gap-1 text-xs">
@@ -265,7 +266,7 @@ export const EditProjectDialog = ({
             <TabsContent value="info" className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-merchantName">{getLabel("field_merchant_name")}</Label>
+                  <Label htmlFor="edit-merchantName">{getLabel("field_merchant_name")} *</Label>
                   <Input
                     id="edit-merchantName"
                     value={editedProject.merchantName}
@@ -273,7 +274,7 @@ export const EditProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-mid">{getLabel("field_mid")}</Label>
+                  <Label htmlFor="edit-mid">{getLabel("field_mid")} *</Label>
                   <Input
                     id="edit-mid"
                     value={editedProject.mid}
@@ -293,10 +294,9 @@ export const EditProjectDialog = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
-                      <SelectItem value="Custom">Custom</SelectItem>
-                      <SelectItem value="Shopify">Shopify</SelectItem>
-                      <SelectItem value="Magento">Magento</SelectItem>
-                      <SelectItem value="WooCommerce">WooCommerce</SelectItem>
+                      {PLATFORM_OPTIONS.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -360,9 +360,9 @@ export const EditProjectDialog = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
-                      <SelectItem value="Standard">Standard</SelectItem>
-                      <SelectItem value="Advanced">Advanced</SelectItem>
-                      <SelectItem value="Enterprise">Enterprise</SelectItem>
+                      {INTEGRATION_TYPE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -404,16 +404,6 @@ export const EditProjectDialog = ({
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-configId">Config ID (Merchant Validator)</Label>
-                <Input
-                  id="edit-configId"
-                  value={editedProject.configId || ""}
-                  onChange={(e) => updateField("configId", e.target.value)}
-                  placeholder="e.g. 69d89bcb8dfa9bc0e299fb62"
-                />
-                <p className="text-xs text-muted-foreground">Used by merchants in the Merchant Validator tool</p>
-              </div>
             </TabsContent>
 
             <TabsContent value="links" className="space-y-4">
@@ -555,7 +545,7 @@ export const EditProjectDialog = ({
                     <Input value={editedProject.sandboxBaseUrl || ""} onChange={(e) => updateField("sandboxBaseUrl", e.target.value)} placeholder="https://sandbox.api.gokwik.co" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Config ID (Validator)</Label>
+                    <Label>Sandbox Config ID</Label>
                     <Input value={editedProject.sandboxConfigId || ""} onChange={(e) => updateField("sandboxConfigId", e.target.value)} />
                   </div>
                   <div className="space-y-2">
@@ -595,7 +585,7 @@ export const EditProjectDialog = ({
                     <Input value={editedProject.prodBaseUrl || ""} onChange={(e) => updateField("prodBaseUrl", e.target.value)} placeholder="https://api.gokwik.co" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Config ID (MCP)</Label>
+                    <Label>Production Config ID</Label>
                     <Input value={editedProject.prodConfigId || ""} onChange={(e) => updateField("prodConfigId", e.target.value)} />
                   </div>
                   <div className="space-y-2">
