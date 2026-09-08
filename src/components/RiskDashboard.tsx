@@ -18,8 +18,8 @@ import {
 import { Project } from "@/data/projectsData";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
-import { useRiskInsights } from "@/hooks/useRiskInsights";
-import { Loader2, Sparkles } from "lucide-react";
+import { AttentionReasonBlock } from "@/components/AttentionReason";
+import { Sparkles } from "lucide-react";
 
 const CATEGORIES = [
   { value: "merchant_dependency", label: "Merchant Dependency" },
@@ -79,7 +79,10 @@ export const RiskDashboard = () => {
   // Verdicts come from the tenant's configured rules (Settings → Risk Rules), so
   // this tab, the project workspace and the at-risk lists cannot disagree.
   const { verdicts } = useProjectRiskVerdicts();
-  const { insightFor, generate, isGenerating } = useRiskInsights();
+  // AI prose is fetched per row, only once shown — the page can list many
+  // projects and explaining them all on load would be a request each.
+  const [explainAll, setExplainAll] = useState(false);
+  const [expandedExplanations, setExpandedExplanations] = useState<Set<string>>(new Set());
 
   const atRiskProjects = useMemo(
     () => activeProjects
@@ -264,11 +267,11 @@ export const RiskDashboard = () => {
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => generate(atRiskProjects, verdicts)}
-              disabled={isGenerating || atRiskProjects.length === 0}
+              onClick={() => setExplainAll((v) => !v)}
+              disabled={atRiskProjects.length === 0}
             >
-              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              Explain with AI
+              <Sparkles className="h-4 w-4" />
+              {explainAll ? "Hide AI explanations" : "Explain with AI"}
             </Button>
           </div>
         </CardHeader>
@@ -281,30 +284,37 @@ export const RiskDashboard = () => {
             <div className="space-y-2">
               {atRiskProjects.map((p) => {
                 const verdict = verdicts[p.id]!;
-                const insight = insightFor(p.id, verdict);
+                const reasons = verdict.findings.map((f) => f.detail);
+                const showExplanation = explainAll || expandedExplanations.has(p.id);
                 return (
                   <div key={p.id} className="rounded-lg border border-border/60 p-3 bg-card">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="font-semibold text-sm">{p.merchantName}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {verdict.findings.map((f) => f.detail).join(" · ")}
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{reasons.join(" · ")}</p>
                       </div>
                       <Badge className="bg-red-600 hover:bg-red-600 text-white shrink-0">High Risk</Badge>
                     </div>
-                    {insight ? (
-                      <div className="mt-2 space-y-1 text-xs leading-relaxed border-t pt-2">
-                        <p className="text-foreground/90">{insight.why}</p>
-                        <p className="text-muted-foreground">
-                          <span className="font-medium text-foreground/80">Next: </span>
-                          {insight.recommendation}
-                        </p>
+
+                    {showExplanation ? (
+                      <div className="mt-2 border-t pt-2">
+                        {/* Fetches only once shown, and the endpoint caches by
+                            reason hash, so reopening costs nothing. */}
+                        <AttentionReasonBlock
+                          projectId={p.id}
+                          kind="risk"
+                          reasons={reasons}
+                          enabled={showExplanation}
+                        />
                       </div>
                     ) : (
-                      <p className="mt-2 text-[11px] text-muted-foreground border-t pt-2">
-                        AI explanation not generated yet.
-                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedExplanations((prev) => new Set(prev).add(p.id))}
+                        className="mt-2 inline-flex items-center gap-1 border-t pt-2 text-[11px] text-muted-foreground hover:text-foreground"
+                      >
+                        <Sparkles className="h-3 w-3" /> Explain with AI
+                      </button>
                     )}
                   </div>
                 );
