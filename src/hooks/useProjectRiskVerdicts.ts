@@ -20,6 +20,8 @@ export const projectToRiskInput = (
   })),
   lastActivityAt: lastActivityAt ?? null,
   updatedAt: project.updatedAt ?? null,
+  pendingAcceptance: project.pendingAcceptance,
+  assignedOwner: project.assignedOwner ?? null,
 });
 
 export const evaluateProject = (

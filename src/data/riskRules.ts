@@ -14,7 +14,9 @@ export type RiskRuleType =
   | "checklist_overdue"
   | "golive_missed"
   | "no_activity"
-  | "project_state";
+  | "project_state"
+  | "pending_acceptance"
+  | "unassigned_owner";
 
 export type RiskSeverity = "low" | "medium" | "high" | "critical";
 
@@ -39,6 +41,8 @@ export const RISK_RULE_TYPE_LABELS: Record<RiskRuleType, string> = {
   golive_missed: "The expected go-live date has passed",
   no_activity: "No checklist comments for N days",
   project_state: "Project state is one of",
+  pending_acceptance: "A handover is waiting to be accepted",
+  unassigned_owner: "No owner is assigned",
 };
 
 export const DEFAULT_RISK_RULES: RiskRule[] = [
@@ -46,6 +50,8 @@ export const DEFAULT_RISK_RULES: RiskRule[] = [
   { id: "golive_missed", label: "Go-live date missed", type: "golive_missed", enabled: true, days: 0, severity: "critical" },
   { id: "no_activity", label: "No activity", type: "no_activity", enabled: true, days: 3, severity: "medium" },
   { id: "blocked", label: "Project blocked", type: "project_state", enabled: true, states: ["blocked"], severity: "high" },
+  { id: "pending_acceptance", label: "Handover not accepted", type: "pending_acceptance", enabled: true, severity: "medium" },
+  { id: "unassigned_owner", label: "Owner not assigned", type: "unassigned_owner", enabled: true, severity: "medium" },
 ];
 
 export interface RiskInput {
@@ -62,6 +68,9 @@ export interface RiskInput {
   lastActivityAt?: string | null;
   /** Fallback freshness signal when a project has no comments at all. */
   updatedAt?: string | null;
+  /** A transfer nobody has picked up yet. */
+  pendingAcceptance?: boolean;
+  assignedOwner?: string | null;
   now?: Date;
 }
 
@@ -157,6 +166,26 @@ export const evaluateRisk = (input: RiskInput, rules: RiskRule[]): RiskVerdict =
             ? `No checklist comments for ${plural(silent, "day")}`
             : `No checklist comments, and nothing changed for ${plural(silent, "day")}`,
           magnitude: silent,
+        });
+      }
+      continue;
+    }
+
+    if (rule.type === "pending_acceptance") {
+      if (input.pendingAcceptance) {
+        findings.push({
+          ruleId: rule.id, label: rule.label, type: rule.type, severity: rule.severity,
+          detail: "Handover has not been accepted",
+        });
+      }
+      continue;
+    }
+
+    if (rule.type === "unassigned_owner") {
+      if (!input.assignedOwner) {
+        findings.push({
+          ruleId: rule.id, label: rule.label, type: rule.type, severity: rule.severity,
+          detail: "No owner is assigned",
         });
       }
       continue;

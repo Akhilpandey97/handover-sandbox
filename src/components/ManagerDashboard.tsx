@@ -107,6 +107,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
 import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
+import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
 import { formatGoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { toast } from "sonner";
@@ -1377,6 +1378,8 @@ export const ManagerDashboard = () => {
                 onOpenChange={open => { if (!open) setUpdatesSelectedProject(null); }}
               />
             </div>
+
+            <AttentionRequiredDashlet />
 
             <EglRiskDashlet />
 
