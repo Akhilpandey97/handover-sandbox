@@ -30,6 +30,7 @@ import { Route as DashProjectsListRouteImport } from './routes/_dash.projects.li
 import { Route as DashReportsSubTabRouteImport } from './routes/_dash.reports.$subTab'
 import { Route as DashSettingsSubTabRouteImport } from './routes/_dash.settings.$subTab'
 import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-actions'
+import { Route as ApiPublicAiAttentionReasonRouteImport } from './routes/api/public/ai-attention-reason'
 import { Route as ApiPublicAiChatRouteImport } from './routes/api/public/ai-chat'
 import { Route as ApiPublicAiFieldMappingRouteImport } from './routes/api/public/ai-field-mapping'
 import { Route as ApiPublicAiProjectInsightsRouteImport } from './routes/api/public/ai-project-insights'
@@ -176,6 +177,12 @@ const ApiPublicAiActionsRoute = ApiPublicAiActionsRouteImport.update({
   path: '/api/public/ai-actions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAiAttentionReasonRoute =
+  ApiPublicAiAttentionReasonRouteImport.update({
+    id: '/api/public/ai-attention-reason',
+    path: '/api/public/ai-attention-reason',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicAiChatRoute = ApiPublicAiChatRouteImport.update({
   id: '/api/public/ai-chat',
   path: '/api/public/ai-chat',
@@ -428,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/reports/$subTab': typeof DashReportsSubTabRoute
   '/settings/$subTab': typeof DashSettingsSubTabRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
+  '/api/public/ai-attention-reason': typeof ApiPublicAiAttentionReasonRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
@@ -491,6 +499,7 @@ export interface FileRoutesByTo {
   '/reports/$subTab': typeof DashReportsSubTabRoute
   '/settings/$subTab': typeof DashSettingsSubTabRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
+  '/api/public/ai-attention-reason': typeof ApiPublicAiAttentionReasonRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
@@ -556,6 +565,7 @@ export interface FileRoutesById {
   '/_dash/reports/$subTab': typeof DashReportsSubTabRoute
   '/_dash/settings/$subTab': typeof DashSettingsSubTabRoute
   '/api/public/ai-actions': typeof ApiPublicAiActionsRoute
+  '/api/public/ai-attention-reason': typeof ApiPublicAiAttentionReasonRoute
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
@@ -621,6 +631,7 @@ export interface FileRouteTypes {
     | '/reports/$subTab'
     | '/settings/$subTab'
     | '/api/public/ai-actions'
+    | '/api/public/ai-attention-reason'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
@@ -684,6 +695,7 @@ export interface FileRouteTypes {
     | '/reports/$subTab'
     | '/settings/$subTab'
     | '/api/public/ai-actions'
+    | '/api/public/ai-attention-reason'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
@@ -748,6 +760,7 @@ export interface FileRouteTypes {
     | '/_dash/reports/$subTab'
     | '/_dash/settings/$subTab'
     | '/api/public/ai-actions'
+    | '/api/public/ai-attention-reason'
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
@@ -797,6 +810,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRouteWithChildren
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ApiPublicAiActionsRoute: typeof ApiPublicAiActionsRoute
+  ApiPublicAiAttentionReasonRoute: typeof ApiPublicAiAttentionReasonRoute
   ApiPublicAiChatRoute: typeof ApiPublicAiChatRoute
   ApiPublicAiFieldMappingRoute: typeof ApiPublicAiFieldMappingRoute
   ApiPublicAiProjectInsightsRoute: typeof ApiPublicAiProjectInsightsRoute
@@ -984,6 +998,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/ai-actions'
       fullPath: '/api/public/ai-actions'
       preLoaderRoute: typeof ApiPublicAiActionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/ai-attention-reason': {
+      id: '/api/public/ai-attention-reason'
+      path: '/api/public/ai-attention-reason'
+      fullPath: '/api/public/ai-attention-reason'
+      preLoaderRoute: typeof ApiPublicAiAttentionReasonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/ai-chat': {
@@ -1359,6 +1380,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRouteWithChildren,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ApiPublicAiActionsRoute: ApiPublicAiActionsRoute,
+  ApiPublicAiAttentionReasonRoute: ApiPublicAiAttentionReasonRoute,
   ApiPublicAiChatRoute: ApiPublicAiChatRoute,
   ApiPublicAiFieldMappingRoute: ApiPublicAiFieldMappingRoute,
   ApiPublicAiProjectInsightsRoute: ApiPublicAiProjectInsightsRoute,
