@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
 
 // Dispatches scheduled movement reports.
 // Triggered by pg_cron every minute, or manually with { schedule_id } to send immediately.
@@ -476,7 +476,8 @@ async function sendOne(supa: any, schedule: any): Promise<{ ok: boolean; error?:
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "MINT Updates <mintupdates@notifications.gokwik.co>",
+        from: resendFrom(__creds, "MINT Updates"),
+        ...resendReplyTo(__creds),
         to: schedule.recipients,
         bcc: ["custom_mint_sales-aaaaumgxqqu5dozs2yxm5ul62e@gokwik.slack.com"],
         subject,

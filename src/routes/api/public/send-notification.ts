@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import { getTenantIntegrations, tenantIdFromRequest, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
 import { projectUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
@@ -99,7 +99,8 @@ async function handler(req: Request): Promise<Response> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "MINT Updates <mintupdates@notifications.gokwik.co>",
+        from: resendFrom(creds, "MINT Updates"),
+        ...resendReplyTo(creds),
         to: [recipientEmail],
         ...(Array.isArray(cc) && cc.length > 0 ? { cc } : {}),
         subject,

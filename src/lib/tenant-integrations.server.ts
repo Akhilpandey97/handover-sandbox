@@ -110,6 +110,29 @@ export function invalidateTenantIntegrations(tenantId: string) {
   cache.delete(tenantId);
 }
 
+/** Platform sender, used only when a tenant has set no From Address of its own. */
+const DEFAULT_FROM_EMAIL = "mintupdates@notifications.gokwik.co";
+
+/**
+ * Resend `from` header, built from the tenant's Settings → Integrations values.
+ *
+ * Every sender used to hardcode the platform address, so a tenant whose Resend
+ * account did not own that domain had all mail rejected as unverified no matter
+ * what it configured. `defaultName` keeps each caller's own display name when
+ * the tenant has not chosen one.
+ */
+export function resendFrom(creds: TenantIntegrations, defaultName = "MINT Updates"): string {
+  const email = (creds.from_email || DEFAULT_FROM_EMAIL).trim();
+  // A tenant may paste a whole "Name <addr>" value into the field; take it as given.
+  if (email.includes("<")) return email;
+  return `${(creds.from_name || defaultName).trim()} <${email}>`;
+}
+
+/** Resend `reply_to`, spread into the body and omitted when the tenant set none. */
+export function resendReplyTo(creds: TenantIntegrations): { reply_to?: string } {
+  return creds.reply_to ? { reply_to: creds.reply_to } : {};
+}
+
 export class IntegrationNotConfiguredError extends Error {
   constructor(public integration: string) {
     super(

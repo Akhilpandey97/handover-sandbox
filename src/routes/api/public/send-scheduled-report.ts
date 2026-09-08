@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo, type TenantIntegrations } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -406,8 +406,9 @@ async function fetchReportProjects(supabase: any, tenantId: string | null): Prom
 async function sendReportEmail(
   supabase: any,
   report: any,
-  RESEND_API_KEY: string
+  creds: TenantIntegrations
 ): Promise<{ sent: number; failed: number; errors: string[]; execution_id?: string }> {
+  const RESEND_API_KEY = requireCred(creds, "resend_api_key", "Resend email");
   const recipients = report.recipients || [];
   if (recipients.length === 0) {
     return { sent: 0, failed: 0, errors: ["No recipients configured"] };
@@ -563,13 +564,15 @@ async function sendReportEmail(
   // Use Resend batch endpoint — single API call for up to 100 recipients
   // avoids the 2 req/sec rate limit that caused later recipients to be dropped.
   const subject = `📊 Report: ${report.name} — ${new Date().toLocaleDateString()}`;
-  const from = "MINT Updates <mintupdates@notifications.gokwik.co>";
+  const from = resendFrom(creds);
+  const replyTo = resendReplyTo(creds);
   const chunkSize = 100;
 
   for (let i = 0; i < recipients.length; i += chunkSize) {
     const chunk = recipients.slice(i, i + chunkSize);
     const payload = chunk.map((email: string) => ({
       from,
+      ...replyTo,
       to: [email],
       subject,
       html: htmlContent,
@@ -648,7 +651,7 @@ async function handler(req: Request): Promise<Response> {
 
       if (reportErr || !report) throw new Error("Report not found");
 
-      const result = await sendReportEmail(supabase, report, requireCred(await getTenantIntegrations(report.tenant_id), "resend_api_key", "Resend email"));
+      const result = await sendReportEmail(supabase, report, await getTenantIntegrations(report.tenant_id));
       return new Response(JSON.stringify({ success: result.errors.length === 0, ...result }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -680,7 +683,7 @@ async function handler(req: Request): Promise<Response> {
         continue;
       }
       console.log(`Sending report "${report.name}" to ${report.recipients.length} recipients`);
-      const result = await sendReportEmail(supabase, report, requireCred(await getTenantIntegrations(report.tenant_id), "resend_api_key", "Resend email"));
+      const result = await sendReportEmail(supabase, report, await getTenantIntegrations(report.tenant_id));
       results.push({ report_name: report.name, ...result });
     }
 

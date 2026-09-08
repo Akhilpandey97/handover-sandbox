@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
 import { brdUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
@@ -262,7 +262,8 @@ async function handler(req: Request): Promise<Response> {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              from: "MINT Updates <mintupdates@notifications.gokwik.co>",
+              from: resendFrom(tenantCreds, "MINT Updates"),
+              ...resendReplyTo(tenantCreds),
               to: [project.contact_email],
               subject: `📋 BRD Form Required: ${project.merchant_name}`,
               html: `

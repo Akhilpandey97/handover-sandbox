@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
 import { portalUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
@@ -174,7 +174,8 @@ async function handler(req: Request): Promise<Response> {
         method: "POST",
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "KwikAssist <mintupdates@notifications.gokwik.co>",
+          from: resendFrom(tenantCreds, "KwikAssist"),
+          ...resendReplyTo(tenantCreds),
           to: recipients,
           subject: `Your KwikAssist portal access — ${project.merchant_name}`,
           html,

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import { getTenantIntegrations, tenantIdFromRequest, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -125,7 +125,8 @@ ${senderMobile || ""}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "MINT Updates <mintupdates@notifications.gokwik.co>",
+        from: resendFrom(creds, "MINT Updates"),
+        ...resendReplyTo(creds),
         to,
         cc: cc.length ? cc : undefined,
         subject,

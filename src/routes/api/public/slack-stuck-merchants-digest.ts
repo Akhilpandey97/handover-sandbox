@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
 import { projectUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
@@ -23,8 +23,6 @@ interface StuckItem {
   hours_stuck: number;
   tag_comment_at: string;
 }
-
-const RESEND_FROM = "MINT Alerts <mintupdates@notifications.gokwik.co>";
 
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
@@ -110,7 +108,8 @@ async function handler(req: Request): Promise<Response> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: RESEND_FROM,
+          from: resendFrom(tenantCreds, "MINT Alerts"),
+          ...resendReplyTo(tenantCreds),
           to: [channelEmail],
           subject,
           html,

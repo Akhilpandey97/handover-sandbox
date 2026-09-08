@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred } from "@/lib/tenant-integrations.server";
+import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo, type TenantIntegrations } from "@/lib/tenant-integrations.server";
 
 // Dispatches scheduled TAT (Turn-around Time) reports.
 // Triggered by pg_cron every minute, or manually with { schedule_id } to send immediately.
@@ -173,7 +173,7 @@ function renderHtml(title: string, granularity: "monthly" | "quarterly", data: R
   return html;
 }
 
-async function sendEmail(subject: string, html: string, recipients: string[], RESEND_API_KEY: string) {
+async function sendEmail(subject: string, html: string, recipients: string[], RESEND_API_KEY: string, creds: TenantIntegrations) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -181,7 +181,8 @@ async function sendEmail(subject: string, html: string, recipients: string[], RE
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "MINT Updates <mintupdates@notifications.gokwik.co>",
+      from: resendFrom(creds),
+      ...resendReplyTo(creds),
       to: recipients,
       subject,
       html,
@@ -207,7 +208,7 @@ async function runSchedule(supa: any, schedule: any) {
   const subject = `${schedule.subject_prefix ? schedule.subject_prefix + " " : ""}${title} — ${new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })}`;
   const creds = await getTenantIntegrations(schedule.tenant_id);
   const resendKey = requireCred(creds, "resend_api_key", "Resend email");
-  await sendEmail(subject, html, schedule.recipients, resendKey);
+  await sendEmail(subject, html, schedule.recipients, resendKey, creds);
   await supa.from("tat_report_schedules").update({ last_sent_at: new Date().toISOString() }).eq("id", schedule.id);
 }
 
