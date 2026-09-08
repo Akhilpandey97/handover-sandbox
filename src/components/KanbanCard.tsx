@@ -10,6 +10,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
 import { RiskBadge } from "./RiskBadge";
+import { GoLiveDate } from "./GoLiveDate";
 import type { RiskVerdict } from "@/data/riskRules";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
 import { EditProjectDialog } from "./EditProjectDialog";
@@ -139,9 +140,18 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <Calendar className="h-3 w-3" />
           <span>{isLive ? "Actual Go-Live:" : "Expected Go-Live:"}</span>
-          <span className={cn("font-medium", (isLive ? goLiveDate : expectedGoLive) ? "text-foreground" : "text-muted-foreground/60 italic")}>
-            {(isLive ? goLiveDate : expectedGoLive) || "Not set"}
-          </span>
+          {isLive ? (
+            <span className={cn("font-medium", goLiveDate ? "text-foreground" : "text-muted-foreground/60 italic")}>
+              {goLiveDate || "Not set"}
+            </span>
+          ) : (
+            <GoLiveDate
+              project={project}
+              fallback="Not set"
+              format={(d) => new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+              className={cn("font-medium", expectedGoLive ? "text-foreground" : "text-muted-foreground/60 italic")}
+            />
+          )}
         </div>
 
 

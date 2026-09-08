@@ -635,7 +635,14 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       <div className="max-w-[160px] truncate">{owners[p.assigned_owner || ""] || "—"}</div>
                     </TableCell>
                     )}
-                    {isVisible("expected") && <TableCell className="whitespace-nowrap tabular-nums">{dateLabel(p.expected_go_live_date)}</TableCell>}
+                    {isVisible("expected") && (
+                      <TableCell className="whitespace-nowrap tabular-nums">
+                        {dateLabel(p.expected_go_live_date)}
+                        {fullProjects.find(fp => fp.id === p.id)?.dates?.expectedGoLiveDateIsDerived && (
+                          <span className="ml-1 text-[10px] text-muted-foreground" title="Estimated from the latest checklist due date — no go-live date has been set on this project">est.</span>
+                        )}
+                      </TableCell>
+                    )}
                     {isVisible("csm") && (
                     <TableCell onClick={e => e.stopPropagation()}>
                       <Input

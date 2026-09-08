@@ -106,6 +106,8 @@ import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomField
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
 import { RiskBadge } from "./RiskBadge";
+import { EglRiskDashlet } from "./EglRiskDashlet";
+import { formatGoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { toast } from "sonner";
 import { fetchAiInsights } from "@/utils/aiInsights";
@@ -1376,6 +1378,8 @@ export const ManagerDashboard = () => {
               />
             </div>
 
+            <EglRiskDashlet />
+
             {/* Delivery stages & health */}
             <div className="grid items-stretch gap-5 lg:grid-cols-2">
               <section className="rounded-lg border border-border bg-card shadow-sm">
@@ -1811,7 +1815,7 @@ export const ManagerDashboard = () => {
                               case "salesSpoc": return project.salesSpoc || "—";
                               case "kickOffDate": return project.dates.kickOffDate;
                               case "goLiveDate": return project.dates.goLiveDate || project.dates.expectedGoLiveDate || "—";
-                              case "expectedGoLiveDate": return project.dates.expectedGoLiveDate || "—";
+                              case "expectedGoLiveDate": return formatGoLiveDate(project);
                               case "integrationType": return project.integrationType || "—";
                               case "pgOnboarding": return project.pgOnboarding || "—";
                               case "goLivePercent": return `${project.goLivePercent || 0}%`;

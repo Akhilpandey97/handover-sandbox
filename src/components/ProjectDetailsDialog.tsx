@@ -8,6 +8,7 @@ import { CustomFieldsDisplay } from "./CustomFieldsRenderer";
 import { EmailThreadTimeline } from "./EmailThreadTimeline";
 import { JiraTicketsSection } from "./JiraTicketsSection";
 import { RiskBadge } from "./RiskBadge";
+import { formatGoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import {
   Dialog,
@@ -293,7 +294,7 @@ export const ProjectDetailsDialog = ({
                 <DetailRow
                   icon={Calendar}
                   label={getLabel("field_expected_go_live_date")}
-                  value={project.dates.expectedGoLiveDate ? format(new Date(project.dates.expectedGoLiveDate), "dd MMM yyyy") : "TBD"}
+                  value={formatGoLiveDate(project, (d) => format(new Date(d), "dd MMM yyyy"), "TBD")}
                 />
                 <DetailRow
                   icon={Calendar}

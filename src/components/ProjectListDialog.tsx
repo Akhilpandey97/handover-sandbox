@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useNavigate } from "@tanstack/react-router";
 import { RiskBadge } from "./RiskBadge";
+import { GoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 
 interface Props {
@@ -57,7 +58,7 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
                       <TableCell className="text-sm">{stateLabels[p.projectState] || p.projectState}</TableCell>
                       <TableCell className="text-sm">{teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}</TableCell>
                       <TableCell className="text-right font-semibold">{(p.arr || 0).toFixed(2)}</TableCell>
-                      <TableCell className="text-sm">{p.dates.expectedGoLiveDate || "—"}</TableCell>
+                      <TableCell className="text-sm"><GoLiveDate project={p} /></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

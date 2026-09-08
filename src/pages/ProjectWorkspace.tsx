@@ -44,6 +44,7 @@ import { fetchAiInsights } from "@/utils/aiInsights";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import type { RiskVerdict } from "@/data/riskRules";
 import { RiskBadge } from "@/components/RiskBadge";
+import { formatGoLiveDate } from "@/components/GoLiveDate";
 import { cn } from "@/lib/utils";
 import { WorkspaceSkeleton } from "@/components/skeletons/WorkspaceSkeleton";
 import { ProjectActivityHistoryPanel } from "@/components/ProjectActivityHistoryPanel";
@@ -555,7 +556,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     [getLabel("field_integration_type"), project.integrationType || "—"],
     [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"],
     [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"],
-    [getLabel("field_expected_go_live_date"), project.dates.expectedGoLiveDate || "—"],
+    [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)],
     [getLabel("field_current_responsibility"), responsibilityLabels[pendingOn] || pendingOn],
   ];
 
@@ -571,7 +572,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     ["Internal time", formatDuration(timeByParty.gokwik)],
     [getLabel("field_arr"), formatArrCr(project.arr)],
     [getLabel("field_platform"), project.platform],
-    [getLabel("field_expected_go_live_date"), project.dates.expectedGoLiveDate || "—"],
+    [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)],
   ];
 
   // Workspace-defined extra fields (Settings → Custom Fields)
@@ -811,7 +812,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 </div>
                 {[
                   [getLabel("field_project_stage"), funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)],
-                  [getLabel("field_expected_go_live_date"), project.dates.expectedGoLiveDate || "Not set"],
+                  [getLabel("field_expected_go_live_date"), formatGoLiveDate(project, undefined, "Not set")],
                   [getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"],
                   [getLabel("field_arr"), formatArrCr(project.arr)],
                 ].map(([label, value]) => (
@@ -825,7 +826,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
             {[
               { title: "Ownership", rows: [[getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"], ["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], [getLabel("field_sales_spoc"), project.salesSpoc || "—"]] },
-              { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"], [getLabel("field_expected_go_live_date"), project.dates.expectedGoLiveDate || "—"], [getLabel("field_actual_go_live_date"), project.dates.goLiveDate || "—"], ["Internal time", formatDuration(timeByParty.gokwik)], ["Merchant time", formatDuration(timeByParty.merchant)]] },
+              { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"], [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)], [getLabel("field_actual_go_live_date"), project.dates.goLiveDate || "—"], ["Internal time", formatDuration(timeByParty.gokwik)], ["Merchant time", formatDuration(timeByParty.merchant)]] },
               { title: "Business", rows: [[getLabel("field_platform"), project.platform], [getLabel("field_category"), project.category || "—"], [getLabel("field_arr"), formatArrCr(project.arr)], [getLabel("field_txns_per_day"), `${project.txnsPerDay}`], [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`], [getLabel("field_integration_type"), project.integrationType || "—"], [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
               ...(customFieldRows.length ? [{ title: "Custom Fields", rows: customFieldRows }] : []),
@@ -857,7 +858,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             {[
               { label: "Waiting on", value: waitingOnLabel },
               { label: "Next step", value: nextStepLabel },
-              { label: "Go-live", value: project.dates.expectedGoLiveDate || "Not set" },
+              { label: "Go-live", value: formatGoLiveDate(project, undefined, "Not set") },
               { label: "Risk", value: isAtRisk ? "High Risk" : "—" },
             ].map((item) => (
               <div key={item.label} className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-border dark:bg-card">
@@ -995,7 +996,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Project ID</span><Badge variant="outline" className="max-w-[175px] truncate px-1.5 py-0.5 text-[10px] font-semibold">MID {project.mid}</Badge></div>
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">State</span><span className="font-semibold text-sky-700">{stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span></div>
                       {isAtRisk && <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Risk</span><span className="font-semibold text-rose-600">High Risk</span></div>}
-                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Go-live</span><span className="font-semibold text-slate-700 dark:text-foreground">{project.dates.expectedGoLiveDate || "—"}</span></div>
+                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Go-live</span><span className="font-semibold text-slate-700 dark:text-foreground">{formatGoLiveDate(project)}</span></div>
                     </div>
                   </div>
 
@@ -1075,7 +1076,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                         <div className="space-y-1.5">
                           {[
                             [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"],
-                            [getLabel("field_expected_go_live_date"), project.dates.expectedGoLiveDate || "—"],
+                            [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)],
                             ["Go-live", project.dates.goLiveDate || "—"],
                             ["Last update", getLastUpdated(project)],
                           ].map(([label, value]) => (
