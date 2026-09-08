@@ -1276,15 +1276,18 @@ export const ManagerDashboard = () => {
                     }, {} as Record<string, number>);
 
                     const kpiCards = [
-                      { label: "All projects", value: totalProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
-                      { label: "Pending", value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked") },
-                      { label: "In delivery", value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ${arrLabel}: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
-                      { label: "Live", value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ${arrLabel}: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
+                      // All projects owns the whole population, so its count would
+                      // just restate the Projects Needing Attention dashlet. The
+                      // other three segment that total, which is the useful read.
+                      { label: "All projects", hideAttention: true, value: totalProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
+                      { label: "Pending", hideAttention: false, value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked") },
+                      { label: "In delivery", hideAttention: false, value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ${arrLabel}: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
+                      { label: "Live", hideAttention: false, value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ${arrLabel}: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
                     ].map((kpi) => ({
                       ...kpi,
                       // Risk read in context: how many of THIS card's projects are
                       // firing a rule, rather than one detached total.
-                      atRisk: kpi.list.filter((p: Project) => riskVerdicts[p.id]?.level === "high"),
+                      atRisk: kpi.hideAttention ? [] : kpi.list.filter((p: Project) => riskVerdicts[p.id]?.level === "high"),
                     }));
                     return kpiCards.map((kpi) => (
                       <div
