@@ -65,7 +65,7 @@ export const EglRiskDashlet = () => {
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center py-8 text-muted-foreground text-sm">
-                  No projects are at risk of missing their go-live {window === "week" ? "this week" : "this month"}.
+                  No projects need attention before go-live {window === "week" ? "this week" : "this month"}.
                 </TableCell>
               </TableRow>
             ) : (

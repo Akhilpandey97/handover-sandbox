@@ -472,7 +472,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const project = projects.find((entry) => entry.id === projectId) ?? null;
 
   // Same engine as the Risks tab and the at-risk lists, so a project cannot read
-  // "Low risk" here while appearing at risk elsewhere.
+  // as fine here while being flagged elsewhere.
   const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
 
   const activityFeed = useMemo(() => (project ? buildActivityFeed(project) : []), [project]);
@@ -564,7 +564,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     [getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"],
     ["Reporter", project.salesSpoc || currentUser?.name || "—"],
     ["Current team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam],
-    ["Risk", riskReasons || "—"],
+    ["Needs Attention", riskReasons || "—"],
     ["Last update", getLastUpdated(project)],
     [getLabel("field_current_responsibility"), responsibilityLabels[pendingOn] || pendingOn],
     ["Original estimate", formatDuration(timeByParty.gokwik + timeByParty.merchant)],
@@ -859,7 +859,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               { label: "Waiting on", value: waitingOnLabel },
               { label: "Next step", value: nextStepLabel },
               { label: "Go-live", value: formatGoLiveDate(project, undefined, "Not set") },
-              { label: "Risk", value: isAtRisk ? "High Risk" : "—" },
+              { label: "Needs Attention", value: isAtRisk ? "Yes" : "—" },
             ].map((item) => (
               <div key={item.label} className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-border dark:bg-card">
                 <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-muted-foreground">{item.label}</p>
@@ -894,7 +894,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     {[
                       { label: "Checklist Progress", value: `${completedChecklist}/${project.checklist.length}`, sub: `${project.checklist.length ? Math.round((completedChecklist / project.checklist.length) * 100) : 0}% complete` },
                       { label: "Go-Live %", value: `${project.goLivePercent}%`, sub: project.projectState === "live" ? "Live" : "In progress" },
-                      { label: "Risk", value: isAtRisk ? "High" : "None", sub: riskReasons || "No rules firing" },
+                      { label: "Needs Attention", value: isAtRisk ? "Yes" : "No", sub: riskReasons || "No rules firing" },
                       { label: "Handoffs", value: `${project.transferHistory.length}`, sub: `${activityFeed.length} total events` },
                     ].map((metric) => (
                       <div key={metric.label} className="rounded-lg border border-border/60 bg-card/80 p-3">
@@ -995,7 +995,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Project ID</span><Badge variant="outline" className="max-w-[175px] truncate px-1.5 py-0.5 text-[10px] font-semibold">MID {project.mid}</Badge></div>
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">State</span><span className="font-semibold text-sky-700">{stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span></div>
-                      {isAtRisk && <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Risk</span><span className="font-semibold text-rose-600">High Risk</span></div>}
+                      {isAtRisk && <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Needs Attention</span><span className="font-semibold text-rose-600">Yes</span></div>}
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Go-live</span><span className="font-semibold text-slate-700 dark:text-foreground">{formatGoLiveDate(project)}</span></div>
                     </div>
                   </div>

@@ -1299,11 +1299,11 @@ export const ManagerDashboard = () => {
                             type="button"
                             onClick={(event) => {
                               event.stopPropagation();
-                              setDrillDown({ title: `${kpi.label} — at risk`, description: `${kpi.atRisk.length} of ${kpi.value} at risk`, projects: kpi.atRisk });
+                              setDrillDown({ title: `${kpi.label} — needs attention`, description: `${kpi.atRisk.length} of ${kpi.value} need attention`, projects: kpi.atRisk });
                             }}
                             className="mt-1 text-xs font-semibold text-red-600 hover:underline dark:text-red-400"
                           >
-                            {kpi.atRisk.length} at risk
+                            {kpi.atRisk.length} need attention
                           </button>
                         )}
                       </div>

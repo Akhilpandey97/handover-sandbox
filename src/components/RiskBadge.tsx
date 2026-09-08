@@ -28,11 +28,11 @@ export const RiskBadge = ({
         <button
           type="button"
           onClick={(e) => e.stopPropagation()}
-          aria-label="Why this project is at risk"
+          aria-label="Why this project needs attention"
           className={cn("shrink-0 focus:outline-none focus:ring-2 focus:ring-ring rounded", className)}
         >
           <Badge className="bg-red-600 hover:bg-red-700 text-white border-transparent text-[10px] px-1.5 py-0 font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors">
-            High Risk
+            Needs Attention
             <Eye className="h-2.5 w-2.5 opacity-70" />
           </Badge>
         </button>
@@ -42,7 +42,7 @@ export const RiskBadge = ({
         className="w-72 p-3"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-xs font-semibold text-foreground mb-2">Why this is at risk</p>
+        <p className="text-xs font-semibold text-foreground mb-2">Why this needs attention</p>
         <ul className="space-y-1.5">
           {verdict.findings.map((f) => (
             <li key={f.ruleId} className="flex gap-2 text-xs text-muted-foreground leading-relaxed">

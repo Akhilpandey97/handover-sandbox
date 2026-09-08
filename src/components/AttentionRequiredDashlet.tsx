@@ -39,7 +39,7 @@ export const AttentionRequiredDashlet = () => {
             )}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Project health at risk — from Settings → Risk Rules
+            Projects needing attention — from Settings → Risk Rules
           </p>
         </div>
         <AlertTriangle className="h-5 w-5 text-primary shrink-0" />
