@@ -175,7 +175,7 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
 
       {/* Tooltip */}
       <div
-        className="absolute bg-white dark:bg-[#141e30] rounded-xl shadow-lift border border-slate-200 dark:border-[#253553] overflow-hidden"
+        className="absolute bg-white dark:bg-[#141e30] rounded-xl shadow-2xl border border-slate-200 dark:border-[#253553] overflow-hidden"
         style={tipStyle}
       >
         <div className="px-4 py-3 flex items-center justify-between gap-3" style={{ background: brandColor }}>
@@ -193,12 +193,12 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
         </div>
         <div className="px-5 py-4">
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">{step.title}</h3>
-          <p className="text-ui leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-line">{step.body}</p>
+          <p className="text-[13px] leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-line">{step.body}</p>
         </div>
         <div className="px-4 py-3 border-t border-slate-100 dark:border-[#253553] flex items-center justify-between bg-slate-50/60 dark:bg-[#0f1a2e]">
           <button
             onClick={onClose}
-            className="text-micro font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+            className="text-[11px] font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
           >
             Skip tour
           </button>

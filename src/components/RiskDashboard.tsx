@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from "react";
-import { tableHeaderClass, tableHeaderRowClass } from "@/components/TableSurface";
 import { useProjectRisks, ProjectRisk } from "@/hooks/useProjectRisks";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -303,7 +302,7 @@ export const RiskDashboard = () => {
                         </p>
                       </div>
                     ) : (
-                      <p className="mt-2 text-micro text-muted-foreground border-t pt-2">
+                      <p className="mt-2 text-[11px] text-muted-foreground border-t pt-2">
                         AI explanation not generated yet.
                       </p>
                     )}
@@ -350,8 +349,8 @@ export const RiskDashboard = () => {
       <Card>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className={tableHeaderClass}>
-              <TableRow className={tableHeaderRowClass}>
+            <TableHeader>
+              <TableRow>
                 <TableHead>Project</TableHead>
                 <TableHead>Risk</TableHead>
                 <TableHead>Category</TableHead>
@@ -396,7 +395,7 @@ export const RiskDashboard = () => {
                     <TableCell className="max-w-[200px]">
                       <div className="truncate font-medium">{risk.title}</div>
                       {risk.trigger_type === "auto" && (
-                        <Badge variant="outline" className="text-micro mt-0.5">Auto</Badge>
+                        <Badge variant="outline" className="text-[10px] mt-0.5">Auto</Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -428,8 +427,8 @@ export const RiskDashboard = () => {
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{ageStr(risk.created_at)}</TableCell>
                     <TableCell>
-                      {sla === "breached" && <Badge variant="destructive" className="text-micro">BREACHED</Badge>}
-                      {sla === "warning" && <Badge className="bg-orange-100 text-orange-800 text-micro">Due soon</Badge>}
+                      {sla === "breached" && <Badge variant="destructive" className="text-[10px]">BREACHED</Badge>}
+                      {sla === "warning" && <Badge className="bg-orange-100 text-orange-800 text-[10px]">Due soon</Badge>}
                       {sla === "ok" && risk.mitigation_due_at && (
                         <span className="text-xs text-muted-foreground">
                           {new Date(risk.mitigation_due_at).toLocaleDateString()}

@@ -1021,7 +1021,7 @@ export const ManagerDashboard = () => {
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group",
             isActive && !isReports && !isSettings
-              ? "gradient-primary text-primary-foreground shadow-soft"
+              ? "gradient-primary text-primary-foreground shadow-[var(--shadow-soft)]"
               : isParentActive
               ? "bg-primary/20 text-sidebar-foreground font-semibold"
               : "hover:bg-sidebar-accent/60 text-sidebar-foreground",
@@ -1102,15 +1102,15 @@ export const ManagerDashboard = () => {
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
             {appLabels.org_logo_url ? (
-              <img src={appLabels.org_logo_url} alt="Logo" className={cn("rounded-xl object-contain shadow-lift ring-2 ring-primary/20", sidebarCollapsed ? "h-8 w-8" : "h-12 w-12")} />
+              <img src={appLabels.org_logo_url} alt="Logo" className={cn("rounded-xl object-contain shadow-lg ring-2 ring-primary/20", sidebarCollapsed ? "h-8 w-8" : "h-12 w-12")} />
             ) : (
-              <div className={cn("rounded-xl gradient-primary flex items-center justify-center shadow-soft", sidebarCollapsed ? "h-8 w-8" : "h-11 w-11")}>
+              <div className={cn("rounded-xl gradient-primary flex items-center justify-center shadow-[var(--shadow-soft)]", sidebarCollapsed ? "h-8 w-8" : "h-11 w-11")}>
                 <BarChart3 className={cn(sidebarCollapsed ? "h-4 w-4" : "h-5 w-5", "text-primary-foreground")} />
               </div>
             )}
             {!sidebarCollapsed && (
               <div className="min-w-0">
-                <h1 className="font-semibold text-body leading-tight text-sidebar-foreground truncate">{appLabels.app_title}</h1>
+                <h1 className="font-semibold text-[16px] leading-tight text-sidebar-foreground truncate">{appLabels.app_title}</h1>
               </div>
             )}
           </div>
@@ -1119,7 +1119,7 @@ export const ManagerDashboard = () => {
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 overflow-y-auto">
           {!sidebarCollapsed && (
-            <p className="text-micro font-semibold text-sidebar-foreground uppercase tracking-widest mb-3 px-4">
+            <p className="text-[11px] font-semibold text-sidebar-foreground uppercase tracking-widest mb-3 px-4">
               Navigation
             </p>
           )}
@@ -1131,7 +1131,7 @@ export const ManagerDashboard = () => {
                 className={cn(
                   "w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200",
                   activeTab === tab
-                    ? "bg-primary text-primary-foreground shadow-lift shadow-primary/25"
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
                     : "hover:bg-sidebar-accent/60 text-sidebar-foreground"
                 )}
                 title={TAB_CONFIG[tab]?.label}
@@ -1202,7 +1202,7 @@ export const ManagerDashboard = () => {
                 </div>
                 <div className="hidden sm:block min-w-0">
                   <p className="font-medium text-xs text-foreground truncate leading-tight">{currentUser?.name}</p>
-                  <p className="text-micro text-muted-foreground leading-tight">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={logout} className="gap-1.5 h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10">
@@ -1366,7 +1366,7 @@ export const ManagerDashboard = () => {
                                     className={cn("cursor-pointer rounded-md px-2 py-2 transition-opacity hover:opacity-80", mc.tone)}
                                   >
                                     <p className="text-base font-semibold">{mc.value}</p>
-                                    <p className="text-micro opacity-80">{mc.label}</p>
+                                    <p className="text-[10px] opacity-80">{mc.label}</p>
                                   </div>
                                 ))}
                               </div>
@@ -1511,11 +1511,11 @@ export const ManagerDashboard = () => {
                         <Button variant="outline" size="sm" className="gap-2">
                           <ArrowUpDown className="h-4 w-4" />
                           Sort
-                          {listSortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-micro">1</Badge>}
+                          {listSortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>}
                           <ChevronDown className="h-3 w-3" />
                         </Button>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="absolute z-20 mt-2 left-0 top-full w-[320px] bg-card border rounded-lg shadow-lift p-4 space-y-3">
+                      <CollapsibleContent className="absolute z-20 mt-2 left-0 top-full w-[320px] bg-card border rounded-lg shadow-xl p-4 space-y-3">
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-sm font-semibold">Sort By</p>
                           {listSortField !== "none" && (
@@ -1560,11 +1560,11 @@ export const ManagerDashboard = () => {
                         <Button variant="outline" size="sm" className="gap-2">
                           <Search className="h-4 w-4" />
                           Filters
-                          {lvHasActiveFilters && <Badge variant="default" className="ml-1 h-5 px-1.5 text-micro">{[lvTeamFilter.length > 0, lvOwnerFilter.length > 0, lvPhaseFilter.length > 0, lvStateFilter.length > 0, lvKickOffFrom, lvKickOffTo, lvGoLiveFrom, lvGoLiveTo].filter(Boolean).length}</Badge>}
+                          {lvHasActiveFilters && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{[lvTeamFilter.length > 0, lvOwnerFilter.length > 0, lvPhaseFilter.length > 0, lvStateFilter.length > 0, lvKickOffFrom, lvKickOffTo, lvGoLiveFrom, lvGoLiveTo].filter(Boolean).length}</Badge>}
                           <ChevronDown className="h-3 w-3" />
                         </Button>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="absolute z-20 mt-2 left-0 top-full w-[600px] bg-card border rounded-lg shadow-lift p-4 space-y-3">
+                      <CollapsibleContent className="absolute z-20 mt-2 left-0 top-full w-[600px] bg-card border rounded-lg shadow-xl p-4 space-y-3">
                         <div className="flex items-center justify-between mb-2">
                           <p className="text-sm font-semibold">Filters</p>
                           {lvHasActiveFilters && (
@@ -1714,7 +1714,7 @@ export const ManagerDashboard = () => {
                         <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                           <ListChecks className="h-3.5 w-3.5" />
                           Select Columns
-                          <Badge variant="secondary" className="ml-1 text-micro px-1.5 py-0">{listViewColumns.length}</Badge>
+                          <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">{listViewColumns.length}</Badge>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-64 p-3" align="end" avoidCollisions={false} side="bottom">
@@ -1736,7 +1736,7 @@ export const ManagerDashboard = () => {
                           {customFields.length > 0 && (
                             <>
                               <div className="mt-2 pt-2 border-t">
-                                <p className="text-micro font-semibold text-muted-foreground uppercase tracking-wider mb-1">Custom Fields</p>
+                                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Custom Fields</p>
                               </div>
                               {customFields.map(cf => {
                                 const key = `custom_field_${cf.id}`;
@@ -2271,7 +2271,7 @@ export const ManagerDashboard = () => {
                           <div className="flex items-center gap-2">
                             {TAB_CONFIG[navKey]?.icon}
                             <span className="text-sm font-medium">{TAB_CONFIG[navKey]?.label || navKey}</span>
-                            {isLocked && <Badge variant="outline" className="text-micro px-1.5 py-0">Always Visible</Badge>}
+                            {isLocked && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Always Visible</Badge>}
                           </div>
                           <Checkbox
                             checked={isLocked ? true : navVisibility[navKey] !== false}
@@ -2313,7 +2313,7 @@ export const ManagerDashboard = () => {
                           <div key={navKey} className={cn("flex items-center justify-between p-3 border rounded-lg", isLocked && "bg-muted/40")}>
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium">{label}</span>
-                              {isLocked && <Badge variant="outline" className="text-micro px-1.5 py-0">Always Visible</Badge>}
+                              {isLocked && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Always Visible</Badge>}
                             </div>
                             <Checkbox
                               checked={isLocked ? true : navVisibility[navKey] !== false}
@@ -2383,9 +2383,9 @@ export const ManagerDashboard = () => {
                             <div className="flex-1 min-w-0 space-y-0.5">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium text-sm">{project.merchantName}</span>
-                                <Badge variant="outline" className="text-micro h-4 px-1.5">{project.mid}</Badge>
-                                {project.platform && <Badge variant="outline" className="text-micro h-4 px-1.5">{project.platform}</Badge>}
-                                <Badge variant="secondary" className="text-micro h-4 px-1.5">{project.projectState}</Badge>
+                                <Badge variant="outline" className="text-[10px] h-4 px-1.5">{project.mid}</Badge>
+                                {project.platform && <Badge variant="outline" className="text-[10px] h-4 px-1.5">{project.platform}</Badge>}
+                                <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{project.projectState}</Badge>
                               </div>
                               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                 <span>{arrLabel}: {formatArrCr(project.arr)}</span>

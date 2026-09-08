@@ -504,10 +504,10 @@ export const ProjectDetailsDialog = ({
                             <div className="flex items-start justify-between gap-2 mb-1">
                               <p className="text-sm font-medium leading-snug">{item.title}</p>
                               <div className="flex items-center gap-1 shrink-0">
-                                <span className={`text-micro px-1.5 py-0.5 rounded border ${priorityColor} uppercase font-medium`}>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded border ${priorityColor} uppercase font-medium`}>
                                   {priority}
                                 </span>
-                                <span className={`text-micro px-1.5 py-0.5 rounded border ${ownerColor} font-medium`}>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded border ${ownerColor} font-medium`}>
                                   {owner}
                                 </span>
                               </div>
@@ -516,7 +516,7 @@ export const ProjectDetailsDialog = ({
                               <p className="text-xs text-muted-foreground">{item.description}</p>
                             )}
                             {(item.source || item.reference) && (
-                              <p className="text-micro text-muted-foreground mt-1.5">
+                              <p className="text-[10px] text-muted-foreground mt-1.5">
                                 {item.source && <span className="uppercase tracking-wide">{item.source}</span>}
                                 {item.source && item.reference && " · "}
                                 {item.reference}

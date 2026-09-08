@@ -298,7 +298,7 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
                 <div key={report.id} className="flex items-center gap-1 border rounded-lg px-3 py-1.5 bg-muted/30">
                   <button onClick={() => loadReport(report)} className="text-sm font-medium hover:text-primary transition-colors">{report.name}</button>
                   {report.schedule !== "none" && (
-                    <Badge variant="outline" className="text-micro px-1 py-0 ml-1">{report.schedule}</Badge>
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 ml-1">{report.schedule}</Badge>
                   )}
                   <button onClick={() => handleDeleteReport(report.id)} className="ml-1 text-muted-foreground hover:text-destructive transition-colors">
                     <Trash2 className="h-3 w-3" />

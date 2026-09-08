@@ -301,7 +301,7 @@ export const WorkspaceActivityTimeline = ({ project }: WorkspaceActivityTimeline
                     <div className="min-w-0 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="text-sm font-semibold tracking-[-0.02em] text-foreground">{event.title}</p>
-                        <Badge variant={event.kind === "user" ? "secondary" : "outline"} className="text-micro font-semibold uppercase tracking-[0.16em]">
+                        <Badge variant={event.kind === "user" ? "secondary" : "outline"} className="text-[10px] font-semibold uppercase tracking-[0.16em]">
                           {getKindLabel(event.kind)}
                         </Badge>
                       </div>

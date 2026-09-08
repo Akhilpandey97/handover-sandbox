@@ -103,7 +103,7 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
                 className="focus:outline-none focus:ring-2 focus:ring-ring rounded"
                 title="Change project state"
               >
-                <Badge className={cn("text-micro px-1.5 py-0 cursor-pointer inline-flex items-center gap-0.5", projectStateColors[project.projectState])}>
+                <Badge className={cn("text-[10px] px-1.5 py-0 cursor-pointer inline-flex items-center gap-0.5", projectStateColors[project.projectState])}>
                   {stateLabel}
                   <ChevronDown className="h-2.5 w-2.5" />
                 </Badge>
@@ -122,7 +122,7 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
                   }}
                   className="text-xs"
                 >
-                  <Badge className={cn("text-micro px-1.5 py-0 mr-2", projectStateColors[s])}>
+                  <Badge className={cn("text-[10px] px-1.5 py-0 mr-2", projectStateColors[s])}>
                     {stateLabels[s] || projectStateLabels[s]}
                   </Badge>
                   {s === project.projectState && <Check className="h-3 w-3 ml-auto" />}
@@ -173,7 +173,7 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
             <span className="font-medium text-foreground">{tatInfo.net}d</span>
             <span className="text-muted-foreground/70">net</span>
             {!tatInfo.isLive && (
-              <span className="text-micro uppercase tracking-wide text-muted-foreground/60 ml-0.5">so far</span>
+              <span className="text-[9px] uppercase tracking-wide text-muted-foreground/60 ml-0.5">so far</span>
             )}
           </div>
         )}

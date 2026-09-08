@@ -1,12 +1,10 @@
 import { useMemo } from "react";
-import { tableHeaderClass, tableHeaderRowClass } from "@/components/TableSurface";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { GoLiveDate } from "./GoLiveDate";
-import { cn } from "@/lib/utils";
 
 /**
  * Project health from the Risk Rules engine — the same verdict behind the risk
@@ -49,8 +47,8 @@ export const AttentionRequiredDashlet = () => {
 
       <div className="max-h-[22rem] overflow-y-auto">
         <Table>
-          <TableHeader className={cn("sticky top-0 z-10", tableHeaderClass)}>
-            <TableRow className={tableHeaderRowClass}>
+          <TableHeader className="sticky top-0 bg-navy/5 z-10">
+            <TableRow className="hover:bg-navy/5 border-b">
               <TableHead className="text-navy font-semibold">Project</TableHead>
               <TableHead className="text-navy font-semibold whitespace-nowrap">Go-Live</TableHead>
               <TableHead className="text-navy font-semibold">Reason</TableHead>

@@ -129,14 +129,14 @@ const WorkflowRow = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-medium text-sm truncate">{workflow.name}</span>
-          <Badge variant={workflow.is_active ? "default" : "secondary"} className="text-micro">
+          <Badge variant={workflow.is_active ? "default" : "secondary"} className="text-[10px]">
             {workflow.is_active ? "Active" : "Paused"}
           </Badge>
         </div>
         {workflow.description && (
           <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{workflow.description}</p>
         )}
-        <div className="flex flex-wrap gap-2 text-micro text-muted-foreground">
+        <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <TriggerIcon className="h-3 w-3" />
             {TRIGGER_LABELS[workflow.trigger_type] || workflow.trigger_type}

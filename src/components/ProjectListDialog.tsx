@@ -1,5 +1,4 @@
 import { Project } from "@/data/projectsData";
-import { tableHeaderClass, tableHeaderRowClass } from "@/components/TableSurface";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -41,8 +40,8 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
               <p className="text-sm text-muted-foreground py-10 text-center">No projects in this segment.</p>
             ) : (
               <Table>
-                <TableHeader className={tableHeaderClass}>
-                  <TableRow className={tableHeaderRowClass}>
+                <TableHeader>
+                  <TableRow>
                     <TableHead>Merchant</TableHead>
                     <TableHead>MID</TableHead>
                     <TableHead>State</TableHead>

@@ -310,7 +310,7 @@ export const FieldMappingDialog = ({
                               <span className="flex items-center gap-1.5">
                                 {field.label}
                                 {field.required && (
-                                  <Badge variant="outline" className="text-micro px-1 py-0">
+                                  <Badge variant="outline" className="text-[10px] px-1 py-0">
                                     Required
                                   </Badge>
                                 )}

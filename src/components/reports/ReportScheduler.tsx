@@ -241,12 +241,12 @@ export const ReportScheduler = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm truncate">{report.name}</span>
-                        <Badge variant="secondary" className="text-micro px-1.5 py-0 shrink-0">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">
                           <Clock className="h-3 w-3 mr-0.5 inline" />
                           {parseSchedule(report.schedule)}
                         </Badge>
                         {!hasRecipients && (
-                          <Badge variant="outline" className="text-micro px-1.5 py-0 text-yellow-600 border-yellow-300">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-yellow-600 border-yellow-300">
                             No recipients
                           </Badge>
                         )}
@@ -323,7 +323,7 @@ export const ReportScheduler = () => {
               {unscheduledReports.map(report => (
                 <div key={report.id} className="flex items-center gap-2 border rounded-lg px-3 py-2 bg-muted/20">
                   <span className="text-sm">{report.name}</span>
-                  <Badge variant="outline" className="text-micro px-1.5 py-0">
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                     {report.columns.length} cols
                   </Badge>
                   <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={() => openEditDialog(report)}>
@@ -344,7 +344,7 @@ export const ReportScheduler = () => {
               <History className="h-4 w-4" />
               Execution History
               {selectedReport && (
-                <Badge variant="outline" className="text-micro gap-1">
+                <Badge variant="outline" className="text-[10px] gap-1">
                   {getReportName(selectedReport)}
                   <button onClick={() => setSelectedReport(null)} className="hover:text-destructive ml-0.5">✕</button>
                 </Badge>

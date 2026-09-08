@@ -79,7 +79,7 @@ const ChecklistTitlePicker = ({
           ))}
         </div>
       </ScrollArea>
-      <div className="border-t px-2 py-1.5 text-micro text-muted-foreground">
+      <div className="border-t px-2 py-1.5 text-[11px] text-muted-foreground">
         {selected.length} selected
       </div>
     </div>

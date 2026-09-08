@@ -15,30 +15,8 @@
   --font-display: "Outfit", "Figtree", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  /*
-    Type scale. Named by role so intent is explicit at the call site, and so the
-    sub-12px range has exactly one value instead of the four ad-hoc ones
-    (8/9/10/11px) that had grown across the app.
-  */
-  --text-micro: 0.6875rem;  /* 11px — inside badges and pills only */
-  --text-meta: 0.75rem;     /* 12px — metadata, secondary table text */
-  --text-ui: 0.875rem;      /* 14px — UI and table text */
-  --text-body: 1rem;        /* 16px */
-  --text-section: 1.125rem; /* 18px — section headings */
-  --text-title: 1.5rem;     /* 24px — page titles */
-  --text-hero: 1.75rem;     /* 28px — dashboard hero */
-
-  /*
-    Elevation. These alias the runtime vars in :root/.dark so `shadow-soft` and
-    `shadow-lift` are real utilities that still invert in dark mode. Without the
-    alias no utility was generated, which is why callers had resorted to
-    shadow-[var(--shadow-soft)] and to Tailwind's own shadow-lg/xl/2xl.
-  */
-  --shadow-soft: var(--elev-soft);
-  --shadow-lift: var(--elev-lift);
-
-  --color-navy: hsl(var(--navy));
-  --color-navy-foreground: hsl(var(--navy-foreground));
+  --color-navy: #30658F;
+  --color-navy-foreground: #ffffff;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -153,10 +131,6 @@
   --popover-foreground: 212 55% 15%;
 
   /* Ocean Deep */
-  /* Brand navy. Lightened in dark mode, with its foreground flipped to dark, so
-     both `bg-navy` (solid) and `text-navy` (on a bg-navy/5 tint) stay legible. */
-  --navy: 207 50% 37%;
-  --navy-foreground: 0 0% 100%;
   --primary: 206 58% 34%;
   --primary-foreground: 190 60% 97%;
   --primary-glow: 190 56% 40%;
@@ -216,8 +190,8 @@
 
   --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
   --gradient-hero: linear-gradient(150deg, hsl(212 55% 18%), hsl(200 52% 28%));
-  --elev-soft: 0 1px 2px hsl(var(--foreground) / 0.05), 0 8px 24px -16px hsl(var(--foreground) / 0.25);
-  --elev-lift: 0 2px 4px hsl(var(--foreground) / 0.04), 0 20px 40px -24px hsl(var(--foreground) / 0.28);
+  --shadow-soft: 0 1px 2px hsl(var(--foreground) / 0.05), 0 8px 24px -16px hsl(var(--foreground) / 0.25);
+  --shadow-lift: 0 2px 4px hsl(var(--foreground) / 0.04), 0 20px 40px -24px hsl(var(--foreground) / 0.28);
 }
 
 .dark {
@@ -230,8 +204,6 @@
   --popover: 210 34% 11%;
   --popover-foreground: 195 30% 93%;
 
-  --navy: 207 58% 62%;
-  --navy-foreground: 207 45% 12%;
   --primary: 190 56% 56%;
   --primary-foreground: 212 55% 10%;
   --primary-glow: 177 42% 58%;
@@ -289,8 +261,8 @@
 
   --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
   --gradient-hero: linear-gradient(150deg, hsl(212 48% 14%), hsl(200 38% 22%));
-  --elev-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 8px 24px -16px hsl(0 0% 0% / 0.6);
-  --elev-lift: 0 2px 4px hsl(0 0% 0% / 0.4), 0 20px 40px -24px hsl(0 0% 0% / 0.7);
+  --shadow-soft: 0 1px 2px hsl(0 0% 0% / 0.4), 0 8px 24px -16px hsl(0 0% 0% / 0.6);
+  --shadow-lift: 0 2px 4px hsl(0 0% 0% / 0.4), 0 20px 40px -24px hsl(0 0% 0% / 0.7);
 }
 
 @layer base {
@@ -334,7 +306,12 @@
 }
 
 @utility portal-label {
-  @apply text-micro font-bold uppercase tracking-widest text-muted-foreground;
+  @apply text-[10px] font-bold uppercase tracking-widest text-muted-foreground;
+}
+
+@utility portal-card {
+  @apply rounded-xl border border-border bg-card;
+  box-shadow: var(--shadow-soft);
 }
 
 @utility scrollbar-thin {
@@ -359,11 +336,48 @@
   }
 }
 
+@utility enterprise-shadow {
+  box-shadow: var(--shadow-soft);
+}
+
+@utility enterprise-shadow-md {
+  box-shadow: var(--shadow-lift);
+}
+
+@utility enterprise-panel {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-soft);
+}
+
 @utility app-shell-surface {
   background: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-2)) 100%);
+}
+
+@utility surface-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
+
+  &:hover {
+    box-shadow: var(--shadow-lift);
+    border-color: hsl(var(--primary) / 0.35);
+  }
 }
 
 @utility gradient-primary {
   background-image: var(--gradient-primary);
 }
 
+@utility gradient-hero {
+  background-image: var(--gradient-hero);
+}
+
+@utility enterprise-grid {
+  background-image:
+    linear-gradient(to right, hsl(var(--border) / 0.35) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--border) / 0.35) 1px, transparent 1px);
+  background-size: 44px 44px;
+}

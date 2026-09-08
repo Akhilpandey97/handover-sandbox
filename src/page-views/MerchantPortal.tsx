@@ -179,7 +179,7 @@ function KwikAssistLogo({ size = "md", onClick }: { size?: "sm" | "md" | "lg"; o
   return (
     <button onClick={onClick} className={cn("font-bold tracking-tight", sizes[size])}>
       <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
-      <span className="text-micro text-muted-foreground ml-1 font-medium">PORTAL</span>
+      <span className="text-[10px] text-muted-foreground ml-1 font-medium">PORTAL</span>
     </button>
   );
 }
@@ -242,7 +242,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
       <button
         onClick={() => setOpen(true)}
         data-tour="tour-ai"
-        className="fixed bottom-5 left-5 z-50 w-14 h-14 rounded-full shadow-lift flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
+        className="fixed bottom-5 left-5 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
         style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.accent})` }}
         title="Handover Assist Chat"
       >
@@ -252,7 +252,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
   }
 
   return (
-    <div className="fixed bottom-5 left-5 z-50 w-[380px] max-h-[560px] rounded-2xl shadow-lift border border-border bg-card flex flex-col overflow-hidden">
+    <div className="fixed bottom-5 left-5 z-50 w-[380px] max-h-[560px] rounded-2xl shadow-2xl border border-border bg-card flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border" style={{ background: BRAND.primary }}>
         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -260,7 +260,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-white">Handover Assist</p>
-          <p className="text-micro text-white/70">Integration Support</p>
+          <p className="text-[10px] text-white/70">Integration Support</p>
         </div>
         <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
           <ChevronDown className="w-5 h-5" />
@@ -673,7 +673,7 @@ export default function MerchantPortal() {
       <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-background via-muted/40 to-background">
         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #30658F 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         <div className="w-full max-w-md relative z-10">
-          <div className="bg-card rounded-2xl shadow-lift shadow-soft p-8 border border-border">
+          <div className="bg-card rounded-2xl shadow-xl shadow-[var(--shadow-soft)] p-8 border border-border">
             <div className="text-center mb-8">
               <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md" style={{ background: BRAND.primary }}>
                 <Zap className="w-7 h-7 text-white" fill="white" />
@@ -700,7 +700,7 @@ export default function MerchantPortal() {
                   placeholder="you@company.com"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-muted/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary transition-all text-sm"
                 />
-                <p className="text-micro text-muted-foreground mt-1.5">We use this to track your integration progress.</p>
+                <p className="text-[11px] text-muted-foreground mt-1.5">We use this to track your integration progress.</p>
               </div>
 
               {loginError && (
@@ -713,7 +713,7 @@ export default function MerchantPortal() {
               <button
                 onClick={handleMidLogin}
                 disabled={loginLoading || !emailInput.trim()}
-                className="w-full py-3 px-4 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] shadow-lift hover:shadow-lift"
+                className="w-full py-3 px-4 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] shadow-lg hover:shadow-xl"
                 style={{ background: BRAND.primary, boxShadow: `0 8px 24px -4px ${BRAND.primary}40` }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = BRAND.primaryLight)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = BRAND.primary)}
@@ -730,13 +730,13 @@ export default function MerchantPortal() {
             </div>
 
             <div className="mt-6 pt-5 border-t border-border">
-              <p className="text-center text-micro text-muted-foreground">
+              <p className="text-center text-[11px] text-muted-foreground">
                 Use the work email shared with your Handover integration team.
                 <br />Contact your project manager if you need assistance.
               </p>
             </div>
           </div>
-          <p className="text-center text-micro text-muted-foreground mt-4">Powered by Handover</p>
+          <p className="text-center text-[10px] text-muted-foreground mt-4">Powered by Handover</p>
         </div>
       </div>
     );
@@ -777,7 +777,7 @@ export default function MerchantPortal() {
         {/* Logo & Title */}
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-xl gradient-primary flex items-center justify-center shadow-soft shrink-0">
+            <div className="h-11 w-11 rounded-xl gradient-primary flex items-center justify-center shadow-[var(--shadow-soft)] shrink-0">
               <Zap className="h-5 w-5 text-primary-foreground" fill="currentColor" />
             </div>
             <div className="min-w-0">
@@ -787,7 +787,7 @@ export default function MerchantPortal() {
         </div>
 
         <nav className="flex-1 px-2 py-4 overflow-y-auto">
-          <p className="text-micro font-semibold text-sidebar-foreground uppercase tracking-widest mb-3 px-4">
+          <p className="text-[11px] font-semibold text-sidebar-foreground uppercase tracking-widest mb-3 px-4">
             Navigation
           </p>
           <div className="space-y-1">
@@ -833,7 +833,7 @@ export default function MerchantPortal() {
               </div>
               <div className="hidden sm:block min-w-0">
                 <p className="font-medium text-xs text-foreground truncate leading-tight">{project.merchant_name}</p>
-                <p className="text-micro text-muted-foreground leading-tight">Customer portal</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">Customer portal</p>
               </div>
             </div>
             <button
@@ -900,7 +900,7 @@ function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour }: {
       className={cn(
         "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group",
         active
-          ? "gradient-primary text-primary-foreground shadow-soft"
+          ? "gradient-primary text-primary-foreground shadow-[var(--shadow-soft)]"
           : "hover:bg-sidebar-accent/60 text-sidebar-foreground"
       )}
     >
@@ -912,7 +912,7 @@ function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour }: {
       </span>
       <span className="font-medium text-sm flex-1">{label}</span>
       {badge !== undefined && (
-        <span className="text-micro w-5 h-5 rounded-full flex items-center justify-center font-bold bg-primary-foreground/20">{badge}</span>
+        <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold bg-primary-foreground/20">{badge}</span>
       )}
     </button>
   );
@@ -995,7 +995,7 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
           <ClipboardList className="w-5 h-5 flex-shrink-0" style={{ color: BRAND.primary }} />
           <div className="min-w-0">
             <h1 className="text-base font-bold text-foreground truncate">BRD Form</h1>
-            <p className="text-micro text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               {info?.answered ?? 0}/{info?.total ?? 0} answered · {info?.percent ?? 0}% complete
               {info?.status === "completed" && " · Submitted"}
             </p>
@@ -1072,7 +1072,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                 <p className="text-sm font-bold" style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }}>
                   BRD Form · {brdProgress.percent}% complete
                 </p>
-                <p className="text-micro text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   {brdProgress.answered}/{brdProgress.total} answered {brdProgress.status === "completed" ? "· Submitted" : "· Click to continue"}
                 </p>
               </div>
@@ -1120,7 +1120,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                     {isDone ? <CheckCircle2 className="w-5 h-5" /> : stage.num}
                   </div>
                   <span className={cn(
-                    "mt-2 text-micro text-center leading-tight max-w-[60px]",
+                    "mt-2 text-[10px] text-center leading-tight max-w-[60px]",
                     isFuture && "text-muted-foreground"
                   )}
                     style={isDone ? { color: BRAND.green } : isCurrent ? { color: BRAND.accent, fontWeight: 700 } : {}}>
@@ -1252,8 +1252,8 @@ function NoteRow({ note, onEdit, onDelete }: { note: MerchantNote; onEdit: (text
             autoFocus
           />
           <div className="flex items-center gap-2">
-            <button onClick={save} className="text-micro font-bold text-white px-3 py-1 rounded" style={{ background: BRAND.primary }}>Save</button>
-            <button onClick={() => { setDraft(note.text); setEditing(false); }} className="text-micro font-medium text-muted-foreground hover:text-foreground px-2 py-1">Cancel</button>
+            <button onClick={save} className="text-[11px] font-bold text-white px-3 py-1 rounded" style={{ background: BRAND.primary }}>Save</button>
+            <button onClick={() => { setDraft(note.text); setEditing(false); }} className="text-[11px] font-medium text-muted-foreground hover:text-foreground px-2 py-1">Cancel</button>
           </div>
         </div>
       ) : (
@@ -1269,7 +1269,7 @@ function NoteRow({ note, onEdit, onDelete }: { note: MerchantNote; onEdit: (text
               </button>
             </div>
           </div>
-          <p className="text-micro text-muted-foreground mt-1">
+          <p className="text-[10px] text-muted-foreground mt-1">
             {d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}
           </p>
         </>
@@ -1339,7 +1339,7 @@ function CredentialField({ label, value, masked, sensitive }: { label: string; v
   const displayVal = showToggle && !visible ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" : value;
   return (
     <div>
-      <p className="text-micro font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</p>
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</p>
       <div className="bg-muted/40 border border-border rounded-lg px-4 py-3 flex items-center justify-between">
         <span className="text-sm text-foreground font-mono">{displayVal}</span>
         <div className="flex items-center gap-2">
@@ -1420,7 +1420,7 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
                 <p className="text-xs text-muted-foreground">{doc.desc}</p>
               </div>
               <span className={cn(
-                "text-micro font-bold px-2.5 py-1 rounded",
+                "text-[10px] font-bold px-2.5 py-1 rounded",
                 doc.badgeColor === "blue" ? "bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300" :
                 "bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-300"
               )}>{doc.badge}</span>
@@ -1620,7 +1620,7 @@ console.log(payload);
             <div key={i} className="bg-white/10 rounded-lg p-3 text-center">
               <span className="text-xl">{f.icon}</span>
               <p className="text-xs text-white font-medium mt-1">{f.label}</p>
-              <p className="text-micro text-white/60 mt-0.5">{f.desc}</p>
+              <p className="text-[10px] text-white/60 mt-0.5">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -1656,7 +1656,7 @@ console.log(payload);
           <div className="flex items-center gap-3">
             <h4 className="text-base font-bold text-foreground">{steps[activeStep].title}</h4>
             {(steps[activeStep] as any).badge && (
-              <span className={cn("text-micro font-bold px-2 py-0.5 rounded border",
+              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded border",
                 (steps[activeStep] as any).badgeColor === "red"
                   ? "bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-300 border-red-200 dark:border-red-500/30"
                   : "bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-500/30"
@@ -1681,7 +1681,7 @@ console.log(payload);
           {/* Environment-specific changes table */}
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-micro font-bold text-muted-foreground uppercase tracking-wider mb-2">Sandbox vs Production Changes</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Sandbox vs Production Changes</p>
               <div className="border border-border rounded-lg overflow-hidden text-xs">
                 <div className="grid grid-cols-3 bg-muted/40 font-bold">
                   <div className="px-3 py-2 text-muted-foreground">Field</div>
@@ -1715,7 +1715,7 @@ console.log(payload);
               <p className="text-xs font-bold text-foreground mb-2">SSO Button — What can & cannot be changed</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-micro font-bold text-green-600 dark:text-green-400 uppercase mb-1">✅ Can Customise</p>
+                  <p className="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase mb-1">✅ Can Customise</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
                     <li>✓ Button colour</li>
                     <li>✓ Button size & shape</li>
@@ -1724,7 +1724,7 @@ console.log(payload);
                   </ul>
                 </div>
                 <div>
-                  <p className="text-micro font-bold text-red-600 dark:text-red-400 uppercase mb-1">✕ Cannot Change</p>
+                  <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase mb-1">✕ Cannot Change</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
                     <li>✕ Text "Login with 98xxxxxxx34" (fetched dynamically)</li>
                     <li>✕ "Powered by KwikPass" logo (mandatory)</li>
@@ -2179,7 +2179,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-micro font-bold text-muted-foreground uppercase tracking-wider mb-2">Environment-Specific Configuration</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Environment-Specific Configuration</p>
               <div className="border border-border rounded-lg overflow-hidden text-xs">
                 <div className="grid grid-cols-3 bg-muted/40 font-bold">
                   <div className="px-3 py-2 text-muted-foreground">Field</div>
@@ -2372,7 +2372,7 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
 function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="bg-card rounded-2xl shadow-lift max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border">
+      <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border">
         <div className="px-7 py-6 border-b border-border flex items-start justify-between gap-4" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
           <div>
             <div className="flex items-center gap-2 mb-1">

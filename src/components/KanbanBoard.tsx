@@ -381,7 +381,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
               <Filter className="h-3.5 w-3.5" />
               Filters
               {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-micro">{activeFilterCount}</Badge>
+                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{activeFilterCount}</Badge>
               )}
             </Button>
           </PopoverTrigger>
@@ -517,7 +517,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                         onChange={e => setLiveThisYearOnly(e.target.checked)}
                         className="h-3 w-3"
                       />
-                      <span className="text-micro text-muted-foreground whitespace-nowrap">This year</span>
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">This year</span>
                     </label>
                   )}
                 </div>
@@ -530,13 +530,13 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                       <span
                         key={st}
                         title={`${labelize(st, "state")} ${labels.getLabel("field_arr")}`}
-                        className={cn("text-micro font-semibold px-1.5 py-0.5 rounded ring-1 whitespace-nowrap", s.bg, s.text, s.ring)}
+                        className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded ring-1 whitespace-nowrap", s.bg, s.text, s.ring)}
                       >
                         {formatArr(amt)}
                       </span>
                     );
                   })}
-                  <Badge variant="secondary" className="font-bold text-micro h-5 ml-1">
+                  <Badge variant="secondary" className="font-bold text-[11px] h-5 ml-1">
                     {col.projects.length}
                   </Badge>
                 </div>
@@ -565,7 +565,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <p className="text-micro font-semibold text-muted-foreground uppercase tracking-wide">{title}</p>
+      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{title}</p>
       {children}
     </div>
   );

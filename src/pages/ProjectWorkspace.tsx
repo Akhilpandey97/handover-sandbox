@@ -800,7 +800,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
                 <div className="col-span-2 min-w-0">
-                  <p className="text-micro font-bold uppercase tracking-[0.1em] text-muted-foreground">{getLabel("field_project_state")}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{getLabel("field_project_state")}</p>
                   <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
                     <SelectTrigger className={cn("mt-1 h-9 w-full text-sm font-semibold", stateSelectToneMap[project.projectState])}>
                       <SelectValue />
@@ -817,7 +817,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   [getLabel("field_arr"), formatArrCr(project.arr)],
                 ].map(([label, value]) => (
                   <div key={label} className="min-w-0">
-                    <p className="text-micro font-bold uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">{label}</p>
                     <p className="mt-1 truncate text-sm font-semibold text-foreground" title={value}>{value}</p>
                   </div>
                 ))}
@@ -862,7 +862,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               { label: "Risk", value: isAtRisk ? "High Risk" : "—" },
             ].map((item) => (
               <div key={item.label} className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-border dark:bg-card">
-                <p className="text-micro font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-muted-foreground">{item.label}</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-muted-foreground">{item.label}</p>
                 <p className="truncate text-sm font-semibold text-slate-900 dark:text-foreground" title={item.value}>{item.value}</p>
               </div>
             ))}
@@ -898,9 +898,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       { label: "Handoffs", value: `${project.transferHistory.length}`, sub: `${activityFeed.length} total events` },
                     ].map((metric) => (
                       <div key={metric.label} className="rounded-lg border border-border/60 bg-card/80 p-3">
-                        <p className="text-micro font-semibold uppercase tracking-[0.14em] text-muted-foreground">{metric.label}</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{metric.label}</p>
                         <p className="mt-1 text-xl font-bold tracking-tight text-foreground">{metric.value}</p>
-                        <p className="mt-0.5 text-micro text-muted-foreground">{metric.sub}</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">{metric.sub}</p>
                       </div>
                     ))}
                   </div>
@@ -909,7 +909,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   <div className="grid grid-cols-2 gap-2">
                     {/* Checklist breakdown */}
                     <div className="rounded-lg border border-border/60 bg-card/80 p-3">
-                      <p className="text-micro font-semibold uppercase tracking-[0.18em] text-muted-foreground">Checklist by team</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Checklist by team</p>
                       <div className="mt-2 space-y-1.5">
                         {Object.entries(
                           project.checklist.reduce(
@@ -926,7 +926,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           <div key={team}>
                             <div className="flex items-center justify-between mb-0.5">
                               <p className="text-xs font-semibold text-foreground">{teamLabels[team] || team}</p>
-                              <span className="text-micro font-semibold text-muted-foreground">{summary.done}/{summary.total}</span>
+                              <span className="text-[11px] font-semibold text-muted-foreground">{summary.done}/{summary.total}</span>
                             </div>
                             <Progress value={summary.total ? (summary.done / summary.total) * 100 : 0} className="h-1 bg-secondary" />
                           </div>
@@ -937,8 +937,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     {/* Recent activity snapshot */}
                     <div className="rounded-lg border border-border/60 bg-card/80 p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-micro font-semibold uppercase tracking-[0.18em] text-muted-foreground">Recent activity</p>
-                        <button type="button" onClick={() => setActiveTab("activity")} className="text-micro font-semibold text-primary hover:underline">View all</button>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Recent activity</p>
+                        <button type="button" onClick={() => setActiveTab("activity")} className="text-[11px] font-semibold text-primary hover:underline">View all</button>
                       </div>
                       <div className="space-y-1.5">
                         {activityFeed.slice(0, 4).map((item) => (
@@ -946,7 +946,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                             <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", activityToneMap[item.kind])} />
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-semibold text-foreground truncate">{item.title}</p>
-                              <p className="text-micro text-muted-foreground">{item.actor} · {item.timestampLabel}</p>
+                              <p className="text-[11px] text-muted-foreground">{item.actor} · {item.timestampLabel}</p>
                             </div>
                           </div>
                         ))}
@@ -981,7 +981,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 <div className="space-y-2">
                   {noteSections.map(([label, value]) => (
                     <div key={label} className="rounded-lg border border-border/60 bg-card/80 p-3">
-                      <p className="text-micro font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
                       <p className="mt-1.5 text-sm leading-relaxed text-foreground">{value}</p>
                     </div>
                   ))}
@@ -993,7 +993,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-border dark:bg-muted/30">
                     <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-muted-foreground">Project overview</p>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Project ID</span><Badge variant="outline" className="max-w-[175px] truncate px-1.5 py-0.5 text-micro font-semibold">MID {project.mid}</Badge></div>
+                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Project ID</span><Badge variant="outline" className="max-w-[175px] truncate px-1.5 py-0.5 text-[10px] font-semibold">MID {project.mid}</Badge></div>
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">State</span><span className="font-semibold text-sky-700">{stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span></div>
                       {isAtRisk && <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Risk</span><span className="font-semibold text-rose-600">High Risk</span></div>}
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Go-live</span><span className="font-semibold text-slate-700 dark:text-foreground">{formatGoLiveDate(project)}</span></div>
@@ -1059,11 +1059,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           <div className="grid grid-cols-2 gap-1.5 pt-1">
                             <div className="rounded-md border border-border/60 bg-card/80 px-2 py-1.5 text-center">
                               <p className="text-xs font-bold text-foreground">{formatDuration(timeByParty.gokwik)}</p>
-                              <p className="text-micro uppercase tracking-wide text-muted-foreground">Internal</p>
+                              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Internal</p>
                             </div>
                             <div className="rounded-md border border-border/60 bg-card/80 px-2 py-1.5 text-center">
                               <p className="text-xs font-bold text-foreground">{formatDuration(timeByParty.merchant)}</p>
-                              <p className="text-micro uppercase tracking-wide text-muted-foreground">Merchant</p>
+                              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Merchant</p>
                             </div>
                           </div>
                         </div>

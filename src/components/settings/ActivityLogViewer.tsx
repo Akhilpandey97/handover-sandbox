@@ -167,18 +167,18 @@ const LogEntry = ({ log }: { log: ActivityLog }) => {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <Badge className={`text-micro px-1.5 py-0 ${config.color}`}>
+              <Badge className={`text-[10px] px-1.5 py-0 ${config.color}`}>
                 <Icon className="h-3 w-3 mr-1" />{config.label}
               </Badge>
-              <Badge variant="outline" className="text-micro px-1.5 py-0">
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                 {log.category}
               </Badge>
               {log.entity_type && (
-                <span className="text-micro text-muted-foreground">{log.entity_type}</span>
+                <span className="text-[10px] text-muted-foreground">{log.entity_type}</span>
               )}
             </div>
             <p className="text-sm truncate">{log.description}</p>
-            <div className="flex gap-3 text-micro text-muted-foreground mt-0.5">
+            <div className="flex gap-3 text-[11px] text-muted-foreground mt-0.5">
               {log.user_name && <span>{log.user_name}</span>}
               <span>{format(new Date(log.created_at), "dd MMM yyyy HH:mm:ss")}</span>
             </div>
@@ -194,7 +194,7 @@ const LogEntry = ({ log }: { log: ActivityLog }) => {
       {hasMetadata && (
         <CollapsibleContent>
           <div className="ml-10 mr-4 mb-2 p-3 rounded-md bg-muted/50 border">
-            <p className="text-micro font-medium text-muted-foreground mb-1">Full Details (API Payload)</p>
+            <p className="text-[11px] font-medium text-muted-foreground mb-1">Full Details (API Payload)</p>
             <pre className="text-xs whitespace-pre-wrap font-mono max-h-[300px] overflow-auto">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>
