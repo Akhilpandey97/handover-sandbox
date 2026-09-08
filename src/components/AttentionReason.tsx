@@ -15,15 +15,37 @@ export const AttentionReasonBlock = ({
   kind,
   reasons,
   enabled = true,
+  compact = false,
   className,
 }: {
   projectId: string;
   kind: AttentionKind;
   reasons: string[];
   enabled?: boolean;
+  /** Prose only — for table cells, where the label, refresh, next step and
+   *  evidence would crowd the row. Detail views keep the full block. */
+  compact?: boolean;
   className?: string;
 }) => {
   const { reason, isLoading, error, regenerate } = useAttentionReason(projectId, kind, reasons, enabled);
+
+  if (compact) {
+    if (isLoading && !reason) {
+      return (
+        <p className={cn("flex items-center gap-2 text-xs text-muted-foreground", className)}>
+          <Loader2 className="h-3 w-3 animate-spin" /> Reading checklist, tasks and comments…
+        </p>
+      );
+    }
+    if (!reason) {
+      return (
+        <p className={cn("text-xs text-muted-foreground", className)}>
+          {error ? (error as Error).message : reasons.join(" · ")}
+        </p>
+      );
+    }
+    return <p className={cn("text-xs leading-relaxed text-foreground/90", className)}>{reason.why}</p>;
+  }
 
   return (
     <div className={cn("space-y-1.5 text-xs leading-relaxed", className)}>

@@ -107,6 +107,7 @@ export const EglRiskDashlet = () => {
                         kind="egl"
                         reasons={verdict.findings.map((f) => f.detail)}
                         enabled={showAi}
+                        compact
                       />
                     ) : (
                       <p>{verdict.findings.map((f) => f.detail).join(" · ")}</p>
