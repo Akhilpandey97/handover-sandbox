@@ -54,7 +54,7 @@ export const LoginScreen = () => {
           <CardContent className="pt-6">
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Email Address</Label>
+                <Label htmlFor="email" className="text-xs font-medium tracking-normal text-muted-foreground">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -67,7 +67,7 @@ export const LoginScreen = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Password</Label>
+                <Label htmlFor="password" className="text-xs font-medium tracking-normal text-muted-foreground">Password</Label>
                 <Input
                   id="password"
                   type="password"

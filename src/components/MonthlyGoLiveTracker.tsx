@@ -482,7 +482,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
               <ToolbarIconButton icon={<ListChecks className="h-3.5 w-3.5" />} label="Select columns" />
             </PopoverTrigger>
             <PopoverContent className={TOOLBAR_POPOVER.columns} align="end">
-              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Visible Columns</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-2 tracking-normal">Visible Columns</p>
               <div className="space-y-1 max-h-[300px] overflow-auto">
                 {ALL_COLUMNS.map(col => (
                   <label key={col.key} className="flex items-center gap-2 py-1.5 px-1 cursor-pointer text-sm hover:bg-muted/50 rounded">

@@ -99,11 +99,11 @@ export function PortalVisitsReport() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase text-muted-foreground">Total Visits</CardTitle></CardHeader>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Total Visits</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase text-muted-foreground">Unique Visitors</CardTitle></CardHeader>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Unique Visitors</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold">{stats.uniqueEmails}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-xs uppercase text-muted-foreground">Projects Tracked</CardTitle></CardHeader>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Projects Tracked</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold">{stats.uniqueProjects}</div></CardContent></Card>
       </div>
 

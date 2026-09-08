@@ -35,7 +35,7 @@ type Bucket = "wins" | "updates" | "lowlights";
 
 const FilterGroup = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="space-y-2">
-    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
+    <p className="text-xs font-semibold tracking-normal text-muted-foreground">{title}</p>
     <div className="space-y-1.5">{children}</div>
   </div>
 );
@@ -504,7 +504,7 @@ export const MovementReport = ({ timeframe }: Props) => {
                       ))}
                     </FilterGroup>
                     <div className="col-span-2 space-y-2">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">ARR Range</p>
+                      <p className="text-xs font-semibold tracking-normal text-muted-foreground">ARR Range</p>
                       <div className="flex gap-2">
                         <Input placeholder="Min" type="number" value={arrMin} onChange={(e) => setArrMin(e.target.value)} />
                         <Input placeholder="Max" type="number" value={arrMax} onChange={(e) => setArrMax(e.target.value)} />

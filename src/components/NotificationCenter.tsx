@@ -112,7 +112,7 @@ export const NotificationCenter = () => {
                 <div key={project.projectId || "none"} className="py-3">
                   <div className="flex items-center gap-2 px-5 pb-2 pt-1">
                     <Folder className="h-4 w-4 text-primary" />
-                    <p className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+                    <p className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold tracking-normal text-primary">
                       {project.projectName || "Project updates"}
                     </p>
                   </div>

@@ -173,7 +173,7 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
             <span className="font-medium text-foreground">{tatInfo.net}d</span>
             <span className="text-muted-foreground/70">net</span>
             {!tatInfo.isLive && (
-              <span className="text-[9px] uppercase tracking-wide text-muted-foreground/60 ml-0.5">so far</span>
+              <span className="text-[9px] tracking-normal text-muted-foreground/60 ml-0.5">so far</span>
             )}
           </div>
         )}

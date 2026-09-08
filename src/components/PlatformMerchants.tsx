@@ -601,7 +601,7 @@ export const PlatformMerchants = () => {
           return (
             <Card key={p} className="cursor-pointer hover:border-primary/40" onClick={() => setActivePlatform(p)}>
               <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">{p}</p>
+                <p className="text-xs text-muted-foreground tracking-normal">{p}</p>
                 <p className="text-2xl font-bold mt-1">{list.length}</p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{liveList.length} live</p>
                 <p className="text-xs font-medium text-foreground mt-1">Live ARR: ₹{liveArr.toFixed(2)} Cr</p>

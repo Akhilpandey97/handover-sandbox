@@ -82,7 +82,7 @@ export const RiskRulesSettings = () => {
                 onChange={(e) => update(idx, { label: e.target.value })}
                 className="h-8 max-w-xs text-sm font-medium"
               />
-              <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+              <Badge variant="outline" className="text-[10px] tracking-normal">
                 {rule.severity}
               </Badge>
               <Button

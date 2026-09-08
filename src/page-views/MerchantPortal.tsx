@@ -179,7 +179,7 @@ function KwikAssistLogo({ size = "md", onClick }: { size?: "sm" | "md" | "lg"; o
   return (
     <button onClick={onClick} className={cn("font-bold tracking-tight", sizes[size])}>
       <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
-      <span className="text-[10px] text-muted-foreground ml-1 font-medium">PORTAL</span>
+      <span className="text-[10px] text-muted-foreground ml-1 font-medium">Portal</span>
     </button>
   );
 }
@@ -681,7 +681,7 @@ export default function MerchantPortal() {
               </div>
               <h1 className="text-2xl font-bold tracking-tight">
                 <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
-                <span className="text-xs font-medium text-muted-foreground ml-1">PORTAL</span>
+                <span className="text-xs font-medium text-muted-foreground ml-1">Portal</span>
               </h1>
               <p className="text-muted-foreground text-sm mt-2 font-medium">
                 Your Complete Merchant Integration Workspace
@@ -788,7 +788,7 @@ export default function MerchantPortal() {
         </div>
 
         <nav className="flex-1 px-2 py-4 overflow-y-auto">
-          <p className="text-[11px] font-semibold text-sidebar-foreground uppercase tracking-widest mb-3 px-4">
+          <p className="text-[11px] font-semibold text-sidebar-foreground tracking-normal mb-3 px-4">
             Navigation
           </p>
           <div className="space-y-1">
@@ -1177,7 +1177,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         <Card className="p-5">
-          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Project Overview</h3>
+          <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Project Overview</h3>
           <div className="divide-y divide-border">
             <OverviewRow label={portalLabel("field_platform", "Platform")} value={project.platform || "—"} />
             {data.custom_fields.filter(f => f.key === "arr" || f.label.toLowerCase() === "arr").map(f => (
@@ -1200,7 +1200,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         {/* Notes & Updates with timestamps */}
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Notes & Updates</h3>
+            <h3 className="text-xs font-bold text-foreground tracking-normal">Notes & Updates</h3>
             <button onClick={onSaveNote} disabled={!noteText.trim()}
               className="text-xs font-bold text-white px-4 py-1.5 rounded transition-colors disabled:opacity-40"
               style={{ background: BRAND.primary }}>Save</button>
@@ -1311,7 +1311,7 @@ function CredentialsPage({ project, credentials }: { project: PortalData["projec
       </div>
 
       <Card className="p-6 space-y-5">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+        <h3 className="text-xs font-bold text-foreground tracking-normal">
           {env === "sandbox" ? "Sandbox" : "Production"} Credentials
         </h3>
         <CredentialField label="MERCHANT ID (MID)" value={creds?.mid || project.mid || "NA"} />
@@ -1340,7 +1340,7 @@ function CredentialField({ label, value, masked, sensitive }: { label: string; v
   const displayVal = showToggle && !visible ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" : value;
   return (
     <div>
-      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">{label}</p>
+      <p className="text-[10px] font-bold text-muted-foreground tracking-normal mb-1.5">{label}</p>
       <div className="bg-muted/40 border border-border rounded-lg px-4 py-3 flex items-center justify-between">
         <span className="text-sm text-foreground font-mono">{displayVal}</span>
         <div className="flex items-center gap-2">
@@ -1629,14 +1629,14 @@ console.log(payload);
 
       {/* JWE Keys */}
       <Card className="p-5 space-y-4">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Your JWE Decryption Keys</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal">Your JWE Decryption Keys</h3>
         <CredentialField label="SANDBOX JWE KEY" value={sandboxJweKey} masked sensitive />
         <CredentialField label="PRODUCTION JWE KEY" value={prodJweKey || "••••••••••••••••"} masked sensitive={!!prodJweKey} />
       </Card>
 
       {/* Step-by-step Guide */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Integration Steps</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Integration Steps</h3>
         <div className="flex gap-2 flex-wrap mb-5">
           {steps.map((s, i) => (
             <button key={i} onClick={() => setActiveStep(i)}
@@ -1682,7 +1682,7 @@ console.log(payload);
           {/* Environment-specific changes table */}
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Sandbox vs Production Changes</p>
+              <p className="text-[10px] font-bold text-muted-foreground tracking-normal mb-2">Sandbox vs Production Changes</p>
               <div className="border border-border rounded-lg overflow-hidden text-xs">
                 <div className="grid grid-cols-3 bg-muted/40 font-bold">
                   <div className="px-3 py-2 text-muted-foreground">Field</div>
@@ -1716,7 +1716,7 @@ console.log(payload);
               <p className="text-xs font-bold text-foreground mb-2">SSO Button — What can & cannot be changed</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-[10px] font-bold text-green-600 dark:text-green-400 uppercase mb-1">✅ Can Customise</p>
+                  <p className="text-[10px] font-bold text-green-600 dark:text-green-400 mb-1">✅ Can Customise</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
                     <li>✓ Button colour</li>
                     <li>✓ Button size & shape</li>
@@ -1725,7 +1725,7 @@ console.log(payload);
                   </ul>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-red-600 dark:text-red-400 uppercase mb-1">✕ Cannot Change</p>
+                  <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mb-1">✕ Cannot Change</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
                     <li>✕ Text "Login with 98xxxxxxx34" (fetched dynamically)</li>
                     <li>✕ "Powered by KwikPass" logo (mandatory)</li>
@@ -1760,10 +1760,10 @@ console.log(payload);
 
       {/* Do's & Don'ts */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Do's & Don'ts</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Do's & Don'ts</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase">✅ Do's</p>
+            <p className="text-xs font-bold text-green-600 dark:text-green-400">✅ Do's</p>
             {[
               "Load merchantInfo BEFORE the SDK script on every page",
               "Call handleKPLogout() on every logout event",
@@ -1779,7 +1779,7 @@ console.log(payload);
             ))}
           </div>
           <div className="space-y-2">
-            <p className="text-xs font-bold text-red-600 dark:text-red-400 uppercase">✕ Don'ts</p>
+            <p className="text-xs font-bold text-red-600 dark:text-red-400">✕ Don'ts</p>
             {[
               "Don't expose JWE secret key in client-side / frontend code",
               "Don't skip handleKPLogout() — sendOTP will break on next login",
@@ -1799,7 +1799,7 @@ console.log(payload);
 
       {/* Production vs Sandbox — all changes */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Production vs Sandbox — Full Change Reference</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Production vs Sandbox — Full Change Reference</h3>
         <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg px-4 py-2.5 flex items-center gap-2 mb-4">
           <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
           <p className="text-xs text-amber-700 dark:text-amber-300">
@@ -1830,7 +1830,7 @@ console.log(payload);
 
       {/* Testing Guide */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Testing Guide</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Testing Guide</h3>
         <div className="space-y-3">
           {[
             { title: "Test OTP Flow", desc: "Go to profile/account section → Enter mobile number → Receive Handover OTP → Verify OTP → You're logged in!", icon: "📱" },
@@ -2137,7 +2137,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* API Key */}
       <Card className="p-5 space-y-3">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Your API Key</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal">Your API Key</h3>
         <CredentialField label="X-API-KEY" value={apiKey} masked sensitive={apiKey !== "<USER_API_KEY>"} />
         <p className="text-xs text-muted-foreground">
           Same value as the Validator's <span className="font-semibold">Config ID</span>. If empty, request it from your Handover onboarding manager.
@@ -2146,7 +2146,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* Steps */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Setup Steps</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Setup Steps</h3>
         <div className="flex gap-2 flex-wrap mb-5">
           {steps.map((s, i) => (
             <button key={i} onClick={() => setActiveStep(i)}
@@ -2180,7 +2180,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Environment-Specific Configuration</p>
+              <p className="text-[10px] font-bold text-muted-foreground tracking-normal mb-2">Environment-Specific Configuration</p>
               <div className="border border-border rounded-lg overflow-hidden text-xs">
                 <div className="grid grid-cols-3 bg-muted/40 font-bold">
                   <div className="px-3 py-2 text-muted-foreground">Field</div>
@@ -2224,10 +2224,10 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* Do's & Don'ts */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Do's & Don'ts</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Do's & Don'ts</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <p className="text-xs font-bold text-green-600 dark:text-green-400 uppercase">✅ Do's</p>
+            <p className="text-xs font-bold text-green-600 dark:text-green-400">✅ Do's</p>
             {[
               "Use full path to node binary (>= v18) — never bare npx",
               "Set env.PATH so the correct Node comes first",
@@ -2243,7 +2243,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
             ))}
           </div>
           <div className="space-y-2">
-            <p className="text-xs font-bold text-red-600 dark:text-red-400 uppercase">❌ Don'ts</p>
+            <p className="text-xs font-bold text-red-600 dark:text-red-400">❌ Don'ts</p>
             {[
               "Don't use bare npx — it can resolve to the wrong Node",
               "Don't overwrite existing mcpServers entries — merge only",
@@ -2263,7 +2263,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* Troubleshooting */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Troubleshooting</h3>
+        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Troubleshooting</h3>
         <div className="border border-border rounded-lg overflow-hidden text-xs">
           <div className="grid grid-cols-2 bg-muted/40 font-bold">
             <div className="px-3 py-2 text-muted-foreground">Error</div>
@@ -2338,7 +2338,7 @@ function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]
 
       {apis.length > 0 && (
         <Card className="p-5">
-          <h3 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Mandatory API List</h3>
+          <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Mandatory API List</h3>
           <ol className="space-y-2">
             {apis.map((api, i) => {
               const href = MANDATORY_API_DOC_LINKS[api] || POSTMAN_COLLECTION_URL;

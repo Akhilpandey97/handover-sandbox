@@ -309,11 +309,11 @@
 }
 
 @utility portal-heading {
-  @apply text-xs font-bold uppercase tracking-wider text-foreground/80;
+  @apply text-xs font-bold tracking-normal text-foreground/80;
 }
 
 @utility portal-label {
-  @apply text-[10px] font-bold uppercase tracking-widest text-muted-foreground;
+  @apply text-[11px] font-semibold tracking-normal text-muted-foreground;
 }
 
 @utility portal-card {

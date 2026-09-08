@@ -50,7 +50,7 @@ export const AttentionReasonBlock = ({
   return (
     <div className={cn("space-y-1.5 text-xs leading-relaxed", className)}>
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-normal text-muted-foreground">
           <Sparkles className="h-3 w-3 text-primary" /> AI explanation
         </span>
         {reason && (

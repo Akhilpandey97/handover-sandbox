@@ -122,7 +122,7 @@ export const SalesDashboard = () => {
           <Card className="shadow-lg border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total ARR</span>
+                <span className="text-xs font-medium text-muted-foreground tracking-normal">Total ARR</span>
                 <TrendingUp className="h-4 w-4 text-primary" />
               </div>
               <p className="text-2xl font-bold text-foreground">₹{formatArrCr(totalArr)}</p>
@@ -132,7 +132,7 @@ export const SalesDashboard = () => {
           <Card className="shadow-lg border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Live ARR</span>
+                <span className="text-xs font-medium text-muted-foreground tracking-normal">Live ARR</span>
                 <Rocket className="h-4 w-4 text-emerald-500" />
               </div>
               <p className="text-2xl font-bold text-emerald-600">₹{formatArrCr(liveArr)}</p>
@@ -142,7 +142,7 @@ export const SalesDashboard = () => {
           <Card className="shadow-lg border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Active</span>
+                <span className="text-xs font-medium text-muted-foreground tracking-normal">Active</span>
                 <Clock className="h-4 w-4 text-amber-500" />
               </div>
               <p className="text-2xl font-bold text-foreground">{activeProjects}</p>
@@ -152,7 +152,7 @@ export const SalesDashboard = () => {
           <Card className="shadow-lg border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Progress</span>
+                <span className="text-xs font-medium text-muted-foreground tracking-normal">Progress</span>
                 <CheckCircle2 className="h-4 w-4 text-primary" />
               </div>
               <p className="text-2xl font-bold text-foreground">{totalProjects > 0 ? Math.round((liveProjects / totalProjects) * 100) : 0}%</p>

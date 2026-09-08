@@ -437,7 +437,7 @@ export const RiskDashboard = () => {
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{ageStr(risk.created_at)}</TableCell>
                     <TableCell>
-                      {sla === "breached" && <Badge variant="destructive" className="text-[10px]">BREACHED</Badge>}
+                      {sla === "breached" && <Badge variant="destructive" className="text-[10px]">Breached</Badge>}
                       {sla === "warning" && <Badge className="bg-orange-100 text-orange-800 text-[10px]">Due soon</Badge>}
                       {sla === "ok" && risk.mitigation_due_at && (
                         <span className="text-xs text-muted-foreground">

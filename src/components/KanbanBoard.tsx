@@ -455,7 +455,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                 </div>
               </div>
               <div className="pt-2 border-t space-y-1.5">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Project Stage</p>
+                <p className="text-xs font-semibold text-muted-foreground tracking-normal">Project Stage</p>
                 <div className="flex flex-wrap gap-x-3 gap-y-1.5">
                   {(["sales","pre_integration","under_integration","live","none"] as const).map(stage => (
                     <label key={stage} className="flex items-center gap-1.5 cursor-pointer">
@@ -567,7 +567,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{title}</p>
+      <p className="text-[11px] font-semibold text-muted-foreground tracking-normal">{title}</p>
       {children}
     </div>
   );

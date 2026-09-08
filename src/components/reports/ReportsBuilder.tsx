@@ -688,7 +688,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
               >
                 <div className="flex items-center gap-1 mb-1">
                   <GripVertical className="h-3 w-3 text-muted-foreground/50" />
-                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{group}</p>
+                  <p className="text-[10px] font-semibold text-muted-foreground tracking-normal">{group}</p>
                 </div>
                 {columnGroups[group].map(col => (
                   <label key={col.key} className="flex items-center gap-1.5 py-0.5 cursor-pointer text-xs hover:text-primary transition-colors">

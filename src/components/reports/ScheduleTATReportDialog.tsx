@@ -151,7 +151,7 @@ export const ScheduleTATReportDialog = ({ open, onOpenChange, defaultGranularity
         </DialogHeader>
 
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="text-xs font-semibold tracking-normal text-muted-foreground">
             Saved schedules ({schedules.length})
           </p>
           {loading ? (
@@ -208,7 +208,7 @@ export const ScheduleTATReportDialog = ({ open, onOpenChange, defaultGranularity
         <Separator />
 
         <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">New schedule</p>
+          <p className="text-xs font-semibold tracking-normal text-muted-foreground">New schedule</p>
           <div>
             <Label>Name</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />

@@ -55,17 +55,17 @@ export const TATDashlet = ({ projects }: Props) => {
       <div className="flex min-h-0 flex-1 flex-col gap-4 p-5">
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-md bg-sky-50 p-3 dark:bg-sky-950/40">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Merchants</p>
+            <p className="text-[10px] font-semibold tracking-normal text-sky-700 dark:text-sky-300">Merchants</p>
             <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-sky-900 dark:text-sky-200">{overall.count}</p>
             <p className="mt-0.5 text-[10px] text-sky-700 dark:text-sky-300">live</p>
           </div>
           <div className="min-w-0 rounded-md bg-muted p-3">
-            <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Total {arrLabel}</p>
+            <p className="truncate text-[10px] font-semibold tracking-normal text-muted-foreground">Total {arrLabel}</p>
             <p className="mt-1 truncate text-2xl font-semibold tracking-tight tabular-nums text-foreground">{formatCr(overall.totalArr)}</p>
             <p className="mt-0.5 text-[10px] text-muted-foreground">Cr</p>
           </div>
           <div className="rounded-md bg-emerald-50 p-3 dark:bg-emerald-950/40">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Avg TAT</p>
+            <p className="text-[10px] font-semibold tracking-normal text-emerald-700 dark:text-emerald-300">Avg TAT</p>
             <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-emerald-900 dark:text-emerald-200">{overall.avgTat.toFixed(1)}</p>
             <p className="mt-0.5 text-[10px] text-emerald-700 dark:text-emerald-300">days</p>
           </div>

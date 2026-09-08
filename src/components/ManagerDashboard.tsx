@@ -1792,7 +1792,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
                         </div>
                         {customFields.length > 0 && (
                           <div className="pt-2 border-t space-y-2">
-                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Custom Fields</p>
+                            <p className="text-xs font-semibold text-muted-foreground tracking-normal">Custom Fields</p>
                             <div className="grid grid-cols-2 gap-3">
                               {customFields.map(cf => {
                                 const vals = lvCustomFieldFilters[cf.id] || [];
@@ -1865,7 +1865,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
                         <ToolbarIconButton icon={<ListChecks className="h-3.5 w-3.5" />} label="Select columns" />
                       </PopoverTrigger>
                       <PopoverContent className={TOOLBAR_POPOVER.columns} align="end" avoidCollisions={false} side="bottom">
-                        <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Visible Columns</p>
+                        <p className="text-xs font-semibold text-muted-foreground mb-2 tracking-normal">Visible Columns</p>
                         <div className="space-y-1 max-h-[300px] overflow-auto">
                           {LIST_VIEW_COLUMNS.map(col => {
                             const active = listViewColumns.includes(col.key);
@@ -1883,7 +1883,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
                           {customFields.length > 0 && (
                             <>
                               <div className="mt-2 pt-2 border-t">
-                                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Custom Fields</p>
+                                <p className="text-[10px] font-semibold text-muted-foreground tracking-normal mb-1">Custom Fields</p>
                               </div>
                               {customFields.map(cf => {
                                 const key = `custom_field_${cf.id}`;
@@ -1943,13 +1943,13 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
                               onDragStart={() => handleColDragStart(colKey)}
                               onDragOver={(e) => { e.preventDefault(); handleColDragOver(colKey); }}
                               onDragEnd={() => handleColDragEnd(listViewColumns)}
-                              className={cn("whitespace-nowrap text-xs uppercase tracking-wider cursor-grab select-none font-semibold text-navy", draggedCol === colKey && "opacity-40")}
+                              className={cn("whitespace-nowrap text-xs tracking-normal cursor-grab select-none font-semibold text-navy", draggedCol === colKey && "opacity-40")}
                             >
                               {label}
                             </TableHead>
                           );
                         })}
-                        {!isGokwikGeneral && <TableHead className="w-20 text-xs uppercase tracking-wider text-sidebar-foreground">Action</TableHead>}
+                        {!isGokwikGeneral && <TableHead className="w-20 text-xs tracking-normal text-sidebar-foreground">Action</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>

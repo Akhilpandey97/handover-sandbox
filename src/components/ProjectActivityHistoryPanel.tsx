@@ -175,7 +175,7 @@ export const ProjectActivityHistoryPanel = ({
             {grouped.map(([dateKey, items]) => (
               <div key={dateKey}>
                 <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm pb-2 mb-2.5">
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <p className="text-[11px] font-semibold text-muted-foreground tracking-normal">
                     {format(new Date(dateKey), "EEEE, MMM d, yyyy")}
                   </p>
                 </div>

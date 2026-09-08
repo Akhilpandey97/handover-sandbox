@@ -788,7 +788,7 @@ export const ChecklistManagement = () => {
         <CardContent className="p-6">
           {/* System Teams */}
           <div className="mb-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">System Teams</p>
+            <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">System Teams</p>
             <div className="space-y-2">
               {teams.map(team => (
                 <div key={team} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
@@ -805,7 +805,7 @@ export const ChecklistManagement = () => {
           {/* Custom Teams */}
           {customTeams.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Custom Teams</p>
+              <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">Custom Teams</p>
               <div className="space-y-2">
                 {customTeams.map(team => (
                   <div key={team.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50 group">
