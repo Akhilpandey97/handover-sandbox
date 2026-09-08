@@ -723,7 +723,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0 dark:text-muted-foreground" />
             <div className="flex items-center gap-2 min-w-0">
               <h1 className="max-w-[34vw] truncate text-2xl font-semibold leading-none tracking-tight text-slate-950 dark:text-foreground">{project.merchantName}</h1>
-              <RiskBadge verdict={riskVerdicts[project.id]} className="ml-2" />
+              <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} className="ml-2" />
               {/* Prev/Next navigation inline */}
               {inModal && projectIds && projectIds.length > 1 && onNavigate && (() => {
                 const currentIndex = projectIds.indexOf(project.id);

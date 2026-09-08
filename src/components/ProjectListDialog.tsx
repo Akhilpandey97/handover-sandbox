@@ -53,7 +53,7 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
                 <TableBody>
                   {list.map((p) => (
                     <TableRow key={p.id} className="cursor-pointer" onClick={() => { onOpenChange(false); navigate({ to: "/projects/$projectId", params: { projectId: p.id } }); }}>
-                      <TableCell className="font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge verdict={verdicts[p.id]} /></span></TableCell>
+                      <TableCell className="font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge projectId={p.id} verdict={verdicts[p.id]} /></span></TableCell>
                       <TableCell className="text-xs text-muted-foreground">{p.mid}</TableCell>
                       <TableCell className="text-sm">{stateLabels[p.projectState] || p.projectState}</TableCell>
                       <TableCell className="text-sm">{teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}</TableCell>

@@ -552,7 +552,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       >
                         {p.merchant_name}
                       </button>
-                      <RiskBadge verdict={riskVerdicts[p.id]} className="ml-1.5 align-middle" />
+                      <RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} className="ml-1.5 align-middle" />
                     </TableCell>
                     {isVisible("arr") && <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>}
                     {isVisible("stage") && (
