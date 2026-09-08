@@ -62,8 +62,10 @@ export const AttentionRequiredDashlet = () => {
         </div>
       </div>
 
-      <div className="min-h-[16rem] flex-1 overflow-y-auto">
-        <Table>
+      <div className="min-h-[16rem] flex-1 overflow-auto">
+        {/* Flush with the card: the Table primitive draws its own
+            rounded, bordered surface, which reads as a table inside a card. */}
+        <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
           <TableHeader className="sticky top-0 bg-navy/5 z-10">
             <TableRow className="hover:bg-navy/5 border-b">
               <TableHead className="text-navy font-semibold">Project</TableHead>
