@@ -90,15 +90,17 @@ export const AttentionRequiredDashlet = () => {
                     <GoLiveDate project={project} />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground align-top">
-                    <p>{verdict.findings.map((f) => f.detail).join(" · ")}</p>
-                    {showAi && (
+                    {/* The AI explanation replaces the rule reason rather than
+                        stacking on top of it — it already restates the reason. */}
+                    {showAi ? (
                       <AttentionReasonBlock
                         projectId={project.id}
                         kind="risk"
                         reasons={verdict.findings.map((f) => f.detail)}
                         enabled={showAi}
-                        className="mt-2 border-t pt-2"
                       />
+                    ) : (
+                      <p>{verdict.findings.map((f) => f.detail).join(" · ")}</p>
                     )}
                   </TableCell>
                 </TableRow>
