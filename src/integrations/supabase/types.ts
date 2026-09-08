@@ -1895,6 +1895,54 @@ export type Database = {
           },
         ]
       }
+      project_risk_insights: {
+        Row: {
+          findings_hash: string
+          generated_at: string
+          kind: string
+          model: string | null
+          project_id: string
+          recommendation: string
+          tenant_id: string | null
+          why: string
+        }
+        Insert: {
+          findings_hash: string
+          generated_at?: string
+          kind?: string
+          model?: string | null
+          project_id: string
+          recommendation: string
+          tenant_id?: string | null
+          why: string
+        }
+        Update: {
+          findings_hash?: string
+          generated_at?: string
+          kind?: string
+          model?: string | null
+          project_id?: string
+          recommendation?: string
+          tenant_id?: string | null
+          why?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_risk_insights_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_risk_insights_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_risks: {
         Row: {
           assigned_to: string | null
@@ -1981,6 +2029,7 @@ export type Database = {
           enable_kp: boolean
           enable_mcp_document: boolean
           expected_go_live_date: string | null
+          expected_go_live_is_manual: boolean
           external_id: string | null
           faq_help: Json
           go_live_date: string | null
@@ -2046,6 +2095,7 @@ export type Database = {
           enable_kp?: boolean
           enable_mcp_document?: boolean
           expected_go_live_date?: string | null
+          expected_go_live_is_manual?: boolean
           external_id?: string | null
           faq_help?: Json
           go_live_date?: string | null
@@ -2111,6 +2161,7 @@ export type Database = {
           enable_kp?: boolean
           enable_mcp_document?: boolean
           expected_go_live_date?: string | null
+          expected_go_live_is_manual?: boolean
           external_id?: string | null
           faq_help?: Json
           go_live_date?: string | null
@@ -2737,6 +2788,17 @@ export type Database = {
       is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
+      project_last_activity: {
+        Args: { _tenant_id: string }
+        Returns: {
+          last_comment_at: string
+          project_id: string
+        }[]
+      }
+      recompute_expected_go_live: {
+        Args: { _project_id: string }
+        Returns: undefined
+      }
       role: { Args: never; Returns: string }
       uid: { Args: never; Returns: string }
     }

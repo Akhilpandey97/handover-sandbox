@@ -1876,7 +1876,7 @@ export const ManagerDashboard = () => {
                                   {colKey === "merchantName" ? (
                                     <span className="inline-flex items-center gap-1.5">
                                       {getColValue(colKey)}
-                                      <RiskBadge verdict={riskVerdicts[project.id]} />
+                                      <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} />
                                     </span>
                                   ) : ["mintNotes", "projectNotes", "opsComment", "phase2Comment"].includes(colKey) ? (
                                     <span className="truncate block max-w-[200px]" title={getColValue(colKey)}>{getColValue(colKey)}</span>

@@ -166,7 +166,7 @@ export const ProjectDetailsDialog = ({
             <div className="flex-1">
               <span className="inline-flex items-center gap-2">
                 {project.merchantName}
-                <RiskBadge verdict={riskVerdicts[project.id]} />
+                <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} />
               </span>
               <p className="text-sm font-normal text-muted-foreground mt-0.5">
                 {getLabel("field_mid")}: {project.mid}

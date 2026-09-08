@@ -553,7 +553,7 @@ export const TeamDashboard = () => {
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
                         >
-                          <TableCell className="text-xs font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge verdict={riskVerdicts[p.id]} /></span></TableCell>
+                          <TableCell className="text-xs font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} /></span></TableCell>
                           <TableCell className="text-xs font-mono text-muted-foreground">{p.mid}</TableCell>
                           <TableCell className="text-xs">{p.platform || "—"}</TableCell>
                           <TableCell className="text-xs">

@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useProjects } from "@/contexts/ProjectContext";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { GoLiveDate } from "./GoLiveDate";
+import { AttentionReasonPopover } from "./AttentionReason";
+
 
 /**
  * Project health from the Risk Rules engine — the same verdict behind the risk
@@ -73,10 +75,25 @@ export const AttentionRequiredDashlet = () => {
                     <GoLiveDate project={project} />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {verdict.findings.map((f) => f.detail).join(" · ")}
+                    <AttentionReasonPopover
+                      projectId={project.id}
+                      kind="risk"
+                      reasons={verdict.findings.map((f) => f.detail)}
+                      title="Why this needs attention"
+                      footer="Rules from Settings → Risk Rules"
+                    >
+                      <button
+                        type="button"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-left hover:text-foreground underline decoration-dotted underline-offset-2"
+                      >
+                        {verdict.findings.map((f) => f.detail).join(" · ")}
+                      </button>
+                    </AttentionReasonPopover>
                   </TableCell>
                 </TableRow>
               ))
+
             )}
           </TableBody>
         </Table>
