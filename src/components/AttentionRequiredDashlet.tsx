@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { AlertTriangle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProjects } from "@/contexts/ProjectContext";
+import { useLabels } from "@/contexts/LabelsContext";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { GoLiveDate } from "./GoLiveDate";
 import { AttentionReasonBlock } from "./AttentionReason";
@@ -19,6 +20,7 @@ import { Sparkles } from "lucide-react";
 export const AttentionRequiredDashlet = () => {
   const navigate = useNavigate();
   const [showAi, setShowAi] = useState(false);
+  const { getLabel } = useLabels();
   const { projects } = useProjects();
   const { verdicts } = useProjectRiskVerdicts();
 
@@ -69,7 +71,9 @@ export const AttentionRequiredDashlet = () => {
           <TableHeader className="sticky top-0 z-10 bg-card bg-[linear-gradient(hsl(var(--navy)/0.05),hsl(var(--navy)/0.05))]">
             <TableRow className="hover:bg-navy/5 border-b">
               <TableHead className="text-navy font-semibold">Project</TableHead>
-              <TableHead className="text-navy font-semibold whitespace-nowrap">Go-Live</TableHead>
+              <TableHead className="text-navy font-semibold whitespace-nowrap">
+                {getLabel("field_expected_go_live_date")}
+              </TableHead>
               <TableHead className="text-navy font-semibold">Reason</TableHead>
             </TableRow>
           </TableHeader>
