@@ -181,6 +181,9 @@ export const ManagerDashboard = () => {
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
+  // Search is an icon in the sidebar that reveals its input, rather than a
+  // permanent field in a global bar.
+  const [searchOpen, setSearchOpen] = useState(false);
   // Tab state is derived from the URL, never stored — that is what keeps the two
   // from drifting apart. "" means the path names no tab, so `/` resolves a default.
   const activeTab = routeState.tab;
@@ -985,12 +988,6 @@ export const ManagerDashboard = () => {
     .filter(tab => navVisibility[tab] !== false || tab === "tenants" || tab === "settings" || tab === "archived")
     .filter(tab => !isGokwikGeneral || GOKWIK_GENERAL_TABS.includes(tab));
 
-  const activeTabLabel = activeTab === "settings" 
-    ? `Settings — ${SETTINGS_SUB_CONFIG[settingsSubTab]?.label || "General"}`
-    : activeTab === "reports"
-    ? `Reports — ${REPORTS_SUB_CONFIG[reportSubTab]?.label || "Pre Defined"}`
-    : TAB_CONFIG[activeTab]?.label || "Dashboard";
-
   const openProjectView = (view: ProjectView) => {
     navigate({ to: projectViewPath(view) });
   };
@@ -1118,12 +1115,55 @@ export const ManagerDashboard = () => {
               </div>
             )}
             {!sidebarCollapsed && (
-              <div className="min-w-0">
-                <h1 className="font-semibold text-[16px] leading-tight text-sidebar-foreground truncate">{appLabels.app_title}</h1>
-              </div>
+              <>
+                <div className="min-w-0 flex-1">
+                  <h1 className="font-semibold text-[16px] leading-tight text-sidebar-foreground truncate">{appLabels.app_title}</h1>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen((o) => !o)}
+                  title="Search projects"
+                  aria-label="Search projects"
+                  aria-expanded={searchOpen}
+                  className={cn(
+                    "shrink-0 rounded-md p-1.5 transition-colors hover:bg-sidebar-accent/60",
+                    searchOpen || searchQuery ? "text-primary" : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
+                  )}
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+              </>
             )}
           </div>
         </div>
+
+        {/* Revealed by the icon above. Kept mounted only while open so the
+            sidebar stays compact, but the query itself survives closing. */}
+        {!sidebarCollapsed && searchOpen && (
+          <div className="px-3 pb-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-foreground/50" />
+              <Input
+                autoFocus
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") { setSearchQuery(""); setSearchOpen(false); } }}
+                className="h-8 border-sidebar-border bg-sidebar-accent/40 pl-8 pr-7 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/50"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-sidebar-foreground/50 hover:text-sidebar-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 overflow-y-auto">
@@ -1133,6 +1173,19 @@ export const ManagerDashboard = () => {
             </p>
           )}
           <div className="space-y-1">
+            {/* Collapsed rail: search sits above the tabs and expands the
+                sidebar, since there is nowhere to put the input otherwise. */}
+            {sidebarCollapsed && (
+              <button
+                type="button"
+                onClick={() => { setSidebarCollapsed(false); setSearchOpen(true); }}
+                title="Search projects"
+                aria-label="Search projects"
+                className="w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            )}
             {sidebarTabs.map((tab) => sidebarCollapsed ? (
               <button
                 key={tab}
@@ -1151,6 +1204,58 @@ export const ManagerDashboard = () => {
           </div>
         </nav>
 
+        {/* Account — identity and session controls, kept out of the way of the
+            work. NotificationCenter and ThemeToggle are ghost buttons styled for
+            a light header, so the sidebar's own foreground colour is forced onto
+            them here rather than editing the shared components. */}
+        <div className="border-t border-sidebar-border px-2 py-3 [&_button]:text-sidebar-foreground/80 [&_button:hover]:text-sidebar-foreground">
+          {sidebarCollapsed ? (
+            <div className="flex flex-col items-center gap-1">
+              <div
+                className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm"
+                title={`${currentUser?.name} — ${teamLabels[currentUser?.team ?? ""] || "Manager"}`}
+              >
+                {currentUser?.name.charAt(0)}
+              </div>
+              <NotificationCenter />
+              <ThemeToggle />
+              <button
+                type="button"
+                onClick={logout}
+                title="Logout"
+                aria-label="Logout"
+                className="rounded-md p-2 !text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 px-1 pb-1">
+                <div className="h-7 w-7 shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
+                  {currentUser?.name.charAt(0)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-medium leading-tight text-sidebar-foreground">{currentUser?.name}</p>
+                  <p className="text-[10px] leading-tight text-sidebar-foreground/60">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-0.5 px-1">
+                <NotificationCenter />
+                <ThemeToggle />
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium !text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  Logout
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Collapse/Expand arrow button - centered vertically */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -1162,65 +1267,6 @@ export const ManagerDashboard = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex min-h-0 flex-col min-w-0">
-        {/* Header */}
-        <header className="h-16 border-b border-border bg-card/95 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold">{activeTabLabel}</h2>
-            </div>
-            {activeTab !== "projects" && <span className="text-xs text-muted-foreground">{appLabels.app_subtitle}</span>}
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Search */}
-            <div className="w-64">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search projects..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 bg-muted/40 border-border/50 focus:ring-2 focus:ring-primary/20 text-sm"
-                />
-              </div>
-            </div>
-
-            {!isGokwikGeneral && (
-              <div className="flex items-center gap-1.5">
-                <Button onClick={() => exportProjectsToCSV(projects, { teamLabels, stateLabels: stateLabelsFromCtx, responsibilityLabels, getLabel: (k: string) => appLabels[k] || k }, { fields: customFields, valuesMap: customValuesMap })} variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
-                  <Download className="h-3.5 w-3.5" />
-                  Export
-                </Button>
-                <Button onClick={() => setCsvDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
-                  <Upload className="h-3.5 w-3.5" />
-                  Import
-                </Button>
-                <Button onClick={() => setAddDialogOpen(true)} size="sm" className="gap-1.5 h-8 text-xs">
-                  <Plus className="h-3.5 w-3.5" />
-                  Add Project
-                </Button>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 pl-3 border-l border-border/50">
-              <NotificationCenter />
-              <ThemeToggle />
-              <div className="flex items-center gap-2 pl-2 border-l border-border/50">
-                <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
-                  {currentUser?.name.charAt(0)}
-                </div>
-                <div className="hidden sm:block min-w-0">
-                  <p className="font-medium text-xs text-foreground truncate leading-tight">{currentUser?.name}</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" onClick={logout} className="gap-1.5 h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10">
-                <LogOut className="h-3.5 w-3.5" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </header>
 
         {/* Content Area */}
         <ScrollArea className="flex-1 app-shell-surface">
@@ -1257,6 +1303,42 @@ export const ManagerDashboard = () => {
                 ))}
               </div>
               <div ref={setProjectToolbarHost} className="flex flex-wrap items-center gap-2" />
+              {/* Project-wide actions, icon-only to keep the row on one line.
+                  They used to sit in the global bar and so were reachable from
+                  every tab; they belong with the projects they act on. */}
+              {!isGokwikGeneral && (
+                <div className="flex items-center gap-1 border-l border-border/60 pl-2">
+                  <Button
+                    onClick={() => exportProjectsToCSV(projects, { teamLabels, stateLabels: stateLabelsFromCtx, responsibilityLabels, getLabel: (k: string) => appLabels[k] || k }, { fields: customFields, valuesMap: customValuesMap })}
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Export CSV"
+                    aria-label="Export CSV"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    onClick={() => setCsvDialogOpen(true)}
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Import CSV"
+                    aria-label="Import CSV"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    onClick={() => setAddDialogOpen(true)}
+                    size="icon"
+                    className="h-8 w-8"
+                    title="Add project"
+                    aria-label="Add project"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
