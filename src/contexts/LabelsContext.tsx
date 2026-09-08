@@ -59,6 +59,31 @@ const DEFAULT_LABELS: Record<string, string> = {
   field_mint_notes: "MINT Notes",
   field_current_phase_comment: "Current Phase Comment",
   field_phase2_comment: "Phase 2 Comment",
+  field_contact_email: "Merchant Contact Email",
+  field_sow_link: "SOW Link",
+
+  // Credentials — defaults match what the Edit dialog already showed, so
+  // adding them changes nothing on screen until a tenant renames one. The
+  // product names here (KwikPass, MCP, KP) are exactly what a white-labelled
+  // tenant needs to be able to change.
+  field_sandbox_mid: "Sandbox MID",
+  field_sandbox_app_id: "App ID",
+  field_sandbox_app_secret: "App Secret",
+  field_sandbox_base_url: "Base URL",
+  field_sandbox_config_id: "Sandbox Config ID",
+  field_sandbox_kwikpass_jwe_key: "KwikPass JWE Key",
+  field_payment_simulator_link: "Payment Simulator Link",
+  field_prod_mid: "Production MID",
+  field_prod_app_id: "App ID",
+  field_prod_app_secret: "App Secret",
+  field_prod_base_url: "Base URL",
+  field_prod_config_id: "Production Config ID",
+  field_prod_kwikpass_jwe_key: "KwikPass JWE Key (Production)",
+  field_mcp_config_id: "MCP Config ID",
+  field_mcp_enabled: "Enable MCP Document for Merchant",
+  field_kp_enabled: "Enable KP for Merchant",
+  field_kp_prod_jwe_key: "KP Production JWE Key",
+  field_kp_sandbox_jwe_key: "KP Sandbox JWE Key",
 
   // Color settings - team badge colors
   color_team_mint_badge: "#3b82f6",

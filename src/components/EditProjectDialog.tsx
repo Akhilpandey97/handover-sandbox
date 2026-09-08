@@ -391,7 +391,7 @@ export const EditProjectDialog = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-contactEmail">Merchant Contact Email *</Label>
+                <Label htmlFor="edit-contactEmail">{getLabel("field_contact_email")} *</Label>
                 <Input
                   id="edit-contactEmail"
                   type="text"
@@ -419,7 +419,7 @@ export const EditProjectDialog = ({
               <LinkFieldWithUpload label={getLabel("field_brd_link")} linkField="brdLink" dbField="brd_link" value={editedProject.links.brdLink || ""} />
               <LinkFieldWithUpload label={getLabel("field_mint_checklist_link")} linkField="mintChecklistLink" dbField="mint_checklist_link" value={editedProject.links.mintChecklistLink || ""} />
               <LinkFieldWithUpload label={getLabel("field_integration_checklist_link")} linkField="integrationChecklistLink" dbField="integration_checklist_link" value={editedProject.links.integrationChecklistLink || ""} />
-              <LinkFieldWithUpload label="SOW Link" linkField="sowLink" dbField="sow_link" value={editedProject.links.sowLink || ""} />
+              <LinkFieldWithUpload label={getLabel("field_sow_link")} linkField="sowLink" dbField="sow_link" value={editedProject.links.sowLink || ""} />
             </TabsContent>
 
             <TabsContent value="dates" className="space-y-4">
@@ -529,31 +529,31 @@ export const EditProjectDialog = ({
                 <h3 className="text-sm font-semibold mb-3">Sandbox Credentials</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Sandbox MID</Label>
+                    <Label>{getLabel("field_sandbox_mid")}</Label>
                     <Input value={editedProject.sandboxMid || ""} onChange={(e) => updateField("sandboxMid", e.target.value)} placeholder="e.g. 10008" />
                   </div>
                   <div className="space-y-2">
-                    <Label>App ID</Label>
+                    <Label>{getLabel("field_sandbox_app_id")}</Label>
                     <Input value={editedProject.sandboxAppId || ""} onChange={(e) => updateField("sandboxAppId", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label>App Secret</Label>
+                    <Label>{getLabel("field_sandbox_app_secret")}</Label>
                     <Input value={editedProject.sandboxAppSecret || ""} onChange={(e) => updateField("sandboxAppSecret", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Base URL</Label>
+                    <Label>{getLabel("field_sandbox_base_url")}</Label>
                     <Input value={editedProject.sandboxBaseUrl || ""} onChange={(e) => updateField("sandboxBaseUrl", e.target.value)} placeholder="https://sandbox.api.gokwik.co" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Sandbox Config ID</Label>
+                    <Label>{getLabel("field_sandbox_config_id")}</Label>
                     <Input value={editedProject.sandboxConfigId || ""} onChange={(e) => updateField("sandboxConfigId", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label>KwikPass JWE Key</Label>
+                    <Label>{getLabel("field_sandbox_kwikpass_jwe_key")}</Label>
                     <Input value={editedProject.sandboxKwikpassJweKey || ""} onChange={(e) => updateField("sandboxKwikpassJweKey", e.target.value)} />
                   </div>
                   <div className="space-y-2 col-span-2">
-                    <Label>Payment Simulator Link</Label>
+                    <Label>{getLabel("field_payment_simulator_link")}</Label>
                     <Input
                       type="url"
                       value={editedProject.paymentSimulatorLink || ""}
@@ -569,27 +569,27 @@ export const EditProjectDialog = ({
                 <h3 className="text-sm font-semibold mb-3">Production Credentials</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Production MID</Label>
+                    <Label>{getLabel("field_prod_mid")}</Label>
                     <Input value={editedProject.prodMid || ""} onChange={(e) => updateField("prodMid", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label>App ID</Label>
+                    <Label>{getLabel("field_prod_app_id")}</Label>
                     <Input value={editedProject.prodAppId || ""} onChange={(e) => updateField("prodAppId", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label>App Secret</Label>
+                    <Label>{getLabel("field_prod_app_secret")}</Label>
                     <Input value={editedProject.prodAppSecret || ""} onChange={(e) => updateField("prodAppSecret", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label>Base URL</Label>
+                    <Label>{getLabel("field_prod_base_url")}</Label>
                     <Input value={editedProject.prodBaseUrl || ""} onChange={(e) => updateField("prodBaseUrl", e.target.value)} placeholder="https://api.gokwik.co" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Production Config ID</Label>
+                    <Label>{getLabel("field_prod_config_id")}</Label>
                     <Input value={editedProject.prodConfigId || ""} onChange={(e) => updateField("prodConfigId", e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label>KwikPass JWE Key (Production)</Label>
+                    <Label>{getLabel("field_prod_kwikpass_jwe_key")}</Label>
                     <Input value={editedProject.prodKwikpassJweKey || ""} onChange={(e) => updateField("prodKwikpassJweKey", e.target.value)} />
                   </div>
                 </div>
@@ -599,7 +599,7 @@ export const EditProjectDialog = ({
                 <h3 className="text-sm font-semibold mb-3">MCP Configuration</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>MCP Config ID</Label>
+                    <Label>{getLabel("field_mcp_config_id")}</Label>
                     <Input value={editedProject.mcpConfigId || ""} onChange={(e) => updateField("mcpConfigId", e.target.value)} />
                   </div>
                   <div className="space-y-2 flex items-end gap-3">
@@ -608,7 +608,7 @@ export const EditProjectDialog = ({
                         checked={editedProject.enableMcpDocument || false}
                         onCheckedChange={(checked) => updateField("enableMcpDocument", checked)}
                       />
-                      <Label>Enable MCP Document for Merchant</Label>
+                      <Label>{getLabel("field_mcp_enabled")}</Label>
                     </div>
                   </div>
                 </div>
@@ -623,15 +623,15 @@ export const EditProjectDialog = ({
                         checked={editedProject.enableKp || false}
                         onCheckedChange={(checked) => updateField("enableKp", checked)}
                       />
-                      <Label>Enable KP for Merchant</Label>
+                      <Label>{getLabel("field_kp_enabled")}</Label>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label>KP Production JWE Key</Label>
+                    <Label>{getLabel("field_kp_prod_jwe_key")}</Label>
                     <Input value={editedProject.kpProdJweKey || ""} onChange={(e) => updateField("kpProdJweKey", e.target.value)} placeholder="Production JWE key" />
                   </div>
                   <div className="space-y-2 col-span-2">
-                    <Label>KP Sandbox JWE Key</Label>
+                    <Label>{getLabel("field_kp_sandbox_jwe_key")}</Label>
                     <Input value={editedProject.kpSandboxJweKey || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI"} onChange={(e) => updateField("kpSandboxJweKey", e.target.value)} />
                     <p className="text-xs text-muted-foreground">Default sandbox key is pre-filled for all merchants</p>
                   </div>

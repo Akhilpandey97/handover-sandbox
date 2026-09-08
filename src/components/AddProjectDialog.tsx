@@ -279,7 +279,7 @@ export const AddProjectDialog = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contactEmail">Merchant Contact Email *</Label>
+                <Label htmlFor="contactEmail">{getLabel("field_contact_email")} *</Label>
                 <Input
                   id="contactEmail"
                   type="text"
@@ -345,7 +345,7 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sowLink">SOW Link</Label>
+                <Label htmlFor="sowLink">{getLabel("field_sow_link")}</Label>
                 <Input
                   id="sowLink"
                   type="url"
