@@ -358,12 +358,12 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const visibleColCount = 1 + visibleColumns.length;
 
   const toolbar = (
-      <div className="flex w-full flex-wrap items-center justify-end gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2">
           {/* Sort */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
                 <ArrowUpDown className="h-4 w-4" />
                 Sort
                 {sortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>}
@@ -410,7 +410,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
           {/* Filters */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
                 <Filter className="h-4 w-4" />
                 Filters
                 {activeFilterCount > 0 && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{activeFilterCount}</Badge>}
@@ -481,7 +481,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
           {/* Select Columns */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
                 <ListChecks className="h-4 w-4" />
                 Select Columns
                 <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">{visibleColumns.length}</Badge>
@@ -503,16 +503,16 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
 
         <div className="flex items-center gap-3">
           <Select value={month} onValueChange={setMonth}>
-            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               {monthOptions.map(m => <SelectItem key={m} value={m}>{ymToLabel(m)}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" onClick={runAiRefresh} disabled={aiLoading}>
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={runAiRefresh} disabled={aiLoading}>
             {aiLoading ? <RefreshCw className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
             Refresh AI
           </Button>
-          <Button variant="outline" size="sm" onClick={exportCsv}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={exportCsv}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
         </div>
       </div>
   );

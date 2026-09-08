@@ -1227,12 +1227,16 @@ export const ManagerDashboard = () => {
           <div className="p-4 sm:p-6">
 
           {activeTab === "projects" && (
-            <div className="mb-4 flex min-h-10 flex-wrap items-center gap-x-3 gap-y-2 border-b border-border">
+            // One centred row: the view tabs and that view's own controls sit
+            // together on a single centre line, with no divider under them. The
+            // active tab is a filled pill rather than an underline, which needs
+            // a baseline to read against.
+            <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
               <div className="flex items-center gap-1" role="tablist" aria-label="Project views">
                 {[
-                  { value: "kanban", label: "Kanban", icon: <GripVertical className="h-4 w-4" /> },
-                  { value: "list", label: "List", icon: <List className="h-4 w-4" /> },
-                  { value: "golive", label: "Go-Live Tracker", icon: <CalendarDays className="h-4 w-4" /> },
+                  { value: "kanban", label: "Kanban", icon: <GripVertical className="h-3.5 w-3.5" /> },
+                  { value: "list", label: "List", icon: <List className="h-3.5 w-3.5" /> },
+                  { value: "golive", label: "Go-Live Tracker", icon: <CalendarDays className="h-3.5 w-3.5" /> },
                 ].map(({ value, label, icon }) => (
                   <button
                     key={value}
@@ -1241,10 +1245,10 @@ export const ManagerDashboard = () => {
                     aria-selected={projectView === value}
                      onClick={() => openProjectView(value as "kanban" | "list" | "golive")}
                     className={cn(
-                      "flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm font-medium transition-colors",
+                      "flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors",
                       projectView === value
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground",
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     {icon}
@@ -1252,7 +1256,7 @@ export const ManagerDashboard = () => {
                   </button>
                 ))}
               </div>
-              <div ref={setProjectToolbarHost} className="flex min-w-0 flex-1 items-center justify-end" />
+              <div ref={setProjectToolbarHost} className="flex flex-wrap items-center gap-2" />
             </div>
           )}
 
@@ -1536,12 +1540,12 @@ export const ManagerDashboard = () => {
           {activeTab === "projects" && projectView === "list" && <div className="space-y-4">
             <Card className="shadow-sm border-border">
               {projectToolbarHost ? createPortal(<CardHeader className="w-full border-0 bg-transparent p-0">
-                <div className="flex items-center justify-end flex-wrap gap-3">
-                  <div className="flex items-center gap-3 relative">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2 relative">
                     {/* Sort Dropdown - left side */}
                     <Collapsible>
                       <CollapsibleTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
                           <ArrowUpDown className="h-4 w-4" />
                           Sort
                           {listSortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>}
@@ -1590,7 +1594,7 @@ export const ManagerDashboard = () => {
                     {/* Filters - left side */}
                     <Collapsible>
                       <CollapsibleTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
                           <Search className="h-4 w-4" />
                           Filters
                           {lvHasActiveFilters && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{[lvTeamFilter.length > 0, lvOwnerFilter.length > 0, lvPhaseFilter.length > 0, lvStateFilter.length > 0, lvKickOffFrom, lvKickOffTo, lvGoLiveFrom, lvGoLiveTo].filter(Boolean).length}</Badge>}
@@ -1734,15 +1738,15 @@ export const ManagerDashboard = () => {
                     {selectedProjects.size > 0 && (
                       <>
                         <Badge variant="secondary" className="text-xs">{selectedProjects.size} selected</Badge>
-                        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setBulkAssignDialogOpen(true)}>
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setBulkAssignDialogOpen(true)}>
                           <UserPlus className="h-3.5 w-3.5" />
                           Assign
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setBulkEditDialogOpen(true)}>
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setBulkEditDialogOpen(true)}>
                           <Pencil className="h-3.5 w-3.5" />
                           Edit
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => setBulkStateDialogOpen(true)}>
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setBulkStateDialogOpen(true)}>
                           <RefreshCw className="h-3.5 w-3.5" />
                           State
                         </Button>
@@ -1753,7 +1757,7 @@ export const ManagerDashboard = () => {
                     {/* Select Columns Popover */}
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
                           <ListChecks className="h-3.5 w-3.5" />
                           Select Columns
                           <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">{listViewColumns.length}</Badge>
