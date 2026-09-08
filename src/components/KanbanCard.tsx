@@ -130,7 +130,7 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <RiskBadge verdict={riskVerdict} />
+          <RiskBadge projectId={project.id} verdict={riskVerdict} />
         </div>
 
         <div className="text-muted-foreground">

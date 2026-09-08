@@ -262,7 +262,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                     >
                       {project.merchantName}
                     </button>
-                    <RiskBadge verdict={riskVerdict} />
+                    <RiskBadge projectId={project.id} verdict={riskVerdict} />
                     {isPending && (
                       <Badge className="bg-amber-500 text-white animate-pulse px-2 py-0.5 text-xs font-semibold">
                         <Sparkles className="h-3 w-3 mr-1" />

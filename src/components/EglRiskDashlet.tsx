@@ -6,6 +6,8 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { useEglRisk } from "@/hooks/useEglRisk";
 import type { EglWindow } from "@/data/eglRisk";
 import { GoLiveDate } from "./GoLiveDate";
+import { AttentionReasonPopover } from "./AttentionReason";
+
 import { cn } from "@/lib/utils";
 
 const WINDOWS: { key: EglWindow; label: string }[] = [
@@ -85,8 +87,23 @@ export const EglRiskDashlet = () => {
                     )}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {verdict.findings.map((f) => f.detail).join(" · ")}
+                    <AttentionReasonPopover
+                      projectId={project.id}
+                      kind="egl"
+                      reasons={verdict.findings.map((f) => f.detail)}
+                      title="Why this go-live is at risk"
+                      footer="Rules from Settings → Go-Live Risk"
+                    >
+                      <button
+                        type="button"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-left hover:text-foreground underline decoration-dotted underline-offset-2"
+                      >
+                        {verdict.findings.map((f) => f.detail).join(" · ")}
+                      </button>
+                    </AttentionReasonPopover>
                   </TableCell>
+
                 </TableRow>
               ))
             )}
