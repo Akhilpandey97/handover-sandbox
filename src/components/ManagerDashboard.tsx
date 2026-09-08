@@ -243,6 +243,7 @@ export const ManagerDashboard = () => {
   const [lvCategoryFilter, setLvCategoryFilter] = useState<string[]>([]);
   const [lvResponsibilityFilter, setLvResponsibilityFilter] = useState<string[]>([]);
   const [lvFunnelStageFilter, setLvFunnelStageFilter] = useState<string[]>([]);
+  const [lvNeedsAttentionOnly, setLvNeedsAttentionOnly] = useState(false);
   const [lvArrMin, setLvArrMin] = useState<string>("");
   const [lvArrMax, setLvArrMax] = useState<string>("");
   const [lvKickOffFrom, setLvKickOffFrom] = useState<string>("");
@@ -259,6 +260,7 @@ export const ManagerDashboard = () => {
   // Column headers follow the names configured in Settings → Field Labels.
   const LIST_VIEW_COLUMNS = [
     { key: "merchantName", label: getLabel("field_merchant_name") },
+    { key: "needsAttention", label: "Needs Attention" },
     { key: "mid", label: getLabel("field_mid") },
     { key: "platform", label: getLabel("field_platform") },
     { key: "category", label: getLabel("field_category") },
@@ -771,7 +773,8 @@ export const ManagerDashboard = () => {
       return vals.includes(v);
     });
     const matchesFunnelStage = lvFunnelStageFilter.length === 0 || lvFunnelStageFilter.includes(getProjectFunnelStage(p));
-    return matchesSearch && matchesTeam && matchesOwner && matchesPhase && matchesState && matchesPlatform && matchesCategory && matchesResponsibility && matchesArrMin && matchesArrMax && matchesKickOffFrom && matchesKickOffTo && matchesGoLiveFrom && matchesGoLiveTo && matchesCustomFields && matchesFunnelStage;
+    const matchesNeedsAttention = !lvNeedsAttentionOnly || riskVerdicts[p.id]?.level === "high";
+    return matchesSearch && matchesTeam && matchesOwner && matchesPhase && matchesState && matchesPlatform && matchesCategory && matchesResponsibility && matchesArrMin && matchesArrMax && matchesKickOffFrom && matchesKickOffTo && matchesGoLiveFrom && matchesGoLiveTo && matchesCustomFields && matchesFunnelStage && matchesNeedsAttention;
   });
 
   const clearLvFilters = () => {
@@ -790,6 +793,7 @@ export const ManagerDashboard = () => {
     setLvGoLiveTo("");
     setLvCustomFieldFilters({});
     setLvFunnelStageFilter([]);
+    setLvNeedsAttentionOnly(false);
   };
 
   const lvFilteredProjectIds = lvFilteredProjects.map((project) => project.id);
@@ -797,7 +801,7 @@ export const ManagerDashboard = () => {
 
   const lvActiveCustomFieldCount = Object.values(lvCustomFieldFilters).filter(v => v && v.length > 0).length;
   const activeCustomFieldCount = Object.values(customFieldFilters).filter(v => v && v.length > 0).length;
-  const lvHasActiveFilters = lvTeamFilter.length > 0 || lvOwnerFilter.length > 0 || lvPhaseFilter.length > 0 || lvStateFilter.length > 0 || lvPlatformFilter.length > 0 || lvCategoryFilter.length > 0 || lvResponsibilityFilter.length > 0 || lvArrMin || lvArrMax || lvKickOffFrom || lvKickOffTo || lvGoLiveFrom || lvGoLiveTo || lvActiveCustomFieldCount > 0 || lvFunnelStageFilter.length > 0;
+  const lvHasActiveFilters = lvTeamFilter.length > 0 || lvOwnerFilter.length > 0 || lvPhaseFilter.length > 0 || lvStateFilter.length > 0 || lvPlatformFilter.length > 0 || lvCategoryFilter.length > 0 || lvResponsibilityFilter.length > 0 || lvArrMin || lvArrMax || lvKickOffFrom || lvKickOffTo || lvGoLiveFrom || lvGoLiveTo || lvActiveCustomFieldCount > 0 || lvFunnelStageFilter.length > 0 || lvNeedsAttentionOnly;
 
 
   // Tab config for sidebar
@@ -1592,6 +1596,15 @@ export const ManagerDashboard = () => {
                             <Button variant="ghost" size="sm" onClick={clearLvFilters} className="text-xs h-7">Clear All</Button>
                           )}
                         </div>
+                        <label className="flex items-center gap-2 cursor-pointer border-b pb-2">
+                          <input
+                            type="checkbox"
+                            checked={lvNeedsAttentionOnly}
+                            onChange={(e) => setLvNeedsAttentionOnly(e.target.checked)}
+                            className="h-3.5 w-3.5"
+                          />
+                          <span className="text-xs text-muted-foreground">Needs attention only</span>
+                        </label>
                         <div className="grid grid-cols-2 gap-3">
                           {[
                             { label: "Team", values: lvTeamFilter, setter: setLvTeamFilter, options: [{ value: "mint", label: teamLabels.mint }, { value: "integration", label: teamLabels.integration }, { value: "ms", label: teamLabels.ms }] },
@@ -1867,6 +1880,7 @@ export const ManagerDashboard = () => {
                               case "salesSpoc": return project.salesSpoc || "—";
                               case "kickOffDate": return project.dates.kickOffDate;
                               case "goLiveDate": return project.dates.goLiveDate || project.dates.expectedGoLiveDate || "—";
+                              case "needsAttention": return riskVerdicts[project.id]?.level === "high" ? "Needs attention" : "";
                               case "expectedGoLiveDate": return formatGoLiveDate(project);
                               case "integrationType": return project.integrationType || "—";
                               case "pgOnboarding": return project.pgOnboarding || "—";
@@ -1894,11 +1908,8 @@ export const ManagerDashboard = () => {
                               </TableCell>
                               {listViewColumns.map(colKey => (
                                 <TableCell key={colKey} className={cn("text-sm", colKey === "status" && statusColor, colKey === "recentComments" && "max-w-[200px]")}>
-                                  {colKey === "merchantName" ? (
-                                    <span className="inline-flex items-center gap-1.5">
-                                      {getColValue(colKey)}
-                                      <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} />
-                                    </span>
+                                  {colKey === "needsAttention" ? (
+                                    <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} />
                                   ) : ["mintNotes", "projectNotes", "opsComment", "phase2Comment"].includes(colKey) ? (
                                     <span className="truncate block max-w-[200px]" title={getColValue(colKey)}>{getColValue(colKey)}</span>
                                   ) : colKey === "recentComments" ? (

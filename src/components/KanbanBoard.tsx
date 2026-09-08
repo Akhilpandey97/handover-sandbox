@@ -130,6 +130,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
   const [goLiveMin, setGoLiveMin] = useState("");
   const [goLiveMax, setGoLiveMax] = useState("");
   const [goLiveInProgressOnly, setGoLiveInProgressOnly] = useState(false);
+  const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
   const [liveThisYearOnly, setLiveThisYearOnly] = useState(false);
 
   // Column arrangement, per grouping, remembered per browser.
@@ -204,9 +205,10 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
       const matchesGoLiveMin = !goLiveMin || pct >= parseFloat(goLiveMin);
       const matchesGoLiveMax = !goLiveMax || pct <= parseFloat(goLiveMax);
       const matchesGoLiveInProgress = !goLiveInProgressOnly || (pct > 0 && pct < 100);
-      return matchesSearch && matchesFunnel && matchesTeam && matchesPhase && matchesState && matchesPlatform && matchesCategory && matchesResponsibility && matchesCsm && matchesOwner && matchesArrMin && matchesArrMax && matchesGoLiveMin && matchesGoLiveMax && matchesGoLiveInProgress;
+      const matchesNeedsAttention = !needsAttentionOnly || riskVerdicts[p.id]?.level === "high";
+      return matchesSearch && matchesFunnel && matchesTeam && matchesPhase && matchesState && matchesPlatform && matchesCategory && matchesResponsibility && matchesCsm && matchesOwner && matchesArrMin && matchesArrMax && matchesGoLiveMin && matchesGoLiveMax && matchesGoLiveInProgress && matchesNeedsAttention;
     });
-  }, [activeProjects, searchQuery, funnelStageFilter, teamFilter, phaseFilter, stateFilter, platformFilter, categoryFilter, responsibilityFilter, csmFilter, ownerFilter, arrMin, arrMax, goLiveMin, goLiveMax, goLiveInProgressOnly, customFields, customValuesMap]);
+  }, [activeProjects, searchQuery, funnelStageFilter, teamFilter, phaseFilter, stateFilter, platformFilter, categoryFilter, responsibilityFilter, csmFilter, ownerFilter, arrMin, arrMax, goLiveMin, goLiveMax, goLiveInProgressOnly, needsAttentionOnly, riskVerdicts, customFields, customValuesMap]);
 
   const allFieldOptions = useMemo(() => {
     const customOptions = customFields.map(f => ({ key: `custom_field_${f.id}`, label: f.field_label }));
@@ -320,11 +322,12 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
     platformFilter.length + categoryFilter.length + responsibilityFilter.length + csmFilter.length +
     ownerFilter.length +
     (arrMin ? 1 : 0) + (arrMax ? 1 : 0) +
-    (goLiveMin ? 1 : 0) + (goLiveMax ? 1 : 0) + (goLiveInProgressOnly ? 1 : 0);
+    (goLiveMin ? 1 : 0) + (goLiveMax ? 1 : 0) + (goLiveInProgressOnly ? 1 : 0) + (needsAttentionOnly ? 1 : 0);
 
   const hasFilters = activeFilterCount > 0;
 
   const clearAllFilters = () => {
+    setNeedsAttentionOnly(false);
     setFunnelStageFilter([]);
     setTeamFilter([]);
     setPhaseFilter([]);
@@ -449,6 +452,10 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                   <label className="flex items-center gap-2 mt-1 cursor-pointer">
                     <input type="checkbox" checked={goLiveInProgressOnly} onChange={e => setGoLiveInProgressOnly(e.target.checked)} className="h-3.5 w-3.5" />
                     <span className="text-xs text-muted-foreground">In progress only (exclude 0% &amp; 100%)</span>
+                  </label>
+                  <label className="flex items-center gap-2 mt-1 cursor-pointer">
+                    <input type="checkbox" checked={needsAttentionOnly} onChange={e => setNeedsAttentionOnly(e.target.checked)} className="h-3.5 w-3.5" />
+                    <span className="text-xs text-muted-foreground">Needs attention only</span>
                   </label>
                 </div>
               </div>

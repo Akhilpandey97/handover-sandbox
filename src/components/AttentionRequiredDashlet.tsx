@@ -32,7 +32,7 @@ export const AttentionRequiredDashlet = () => {
   );
 
   return (
-    <section className="flex h-full flex-col rounded-lg border border-border bg-card shadow-sm">
+    <section className="flex h-full max-h-[30rem] flex-col rounded-lg border border-border bg-card shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">
@@ -62,7 +62,7 @@ export const AttentionRequiredDashlet = () => {
         </div>
       </div>
 
-      <div className="min-h-[16rem] flex-1 overflow-auto">
+      <div className="min-h-0 flex-1 overflow-auto">
         {/* Flush with the card: the Table primitive draws its own
             rounded, bordered surface, which reads as a table inside a card. */}
         <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">

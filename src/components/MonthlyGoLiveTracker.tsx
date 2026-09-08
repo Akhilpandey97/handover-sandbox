@@ -114,6 +114,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   }, [fullProjects]);
 
   const ALL_COLUMNS = useMemo(() => ([
+    { key: "needs_attention", label: "Needs Attention" },
     { key: "arr", label: `${arrLabel} Cr.` },
     { key: "stage", label: stageLabel },
     { key: "blocker", label: "Blocker" },
@@ -135,7 +136,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
         }
       } catch { /* ignore */ }
     }
-    return ["arr", "stage", "blocker", "blocked_on", "deadline", "confidence", "owner", "expected", "csm"];
+    return ["needs_attention", "arr", "stage", "blocker", "blocked_on", "deadline", "confidence", "owner", "expected", "csm"];
   });
   const isVisible = (key: string) => visibleColumns.includes(key);
   const toggleColumn = (key: string) => {
@@ -152,6 +153,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [stateFilter, setStateFilter] = useState<string[]>([]);
   const [confidenceFilter, setConfidenceFilter] = useState<string[]>([]);
+  const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false);
   const [arrMin, setArrMin] = useState("");
   const [arrMax, setArrMax] = useState("");
   const [expectedFrom, setExpectedFrom] = useState("");
@@ -159,10 +161,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
 
   const activeFilterCount =
     stageFilter.length + stateFilter.length + confidenceFilter.length +
-    (arrMin ? 1 : 0) + (arrMax ? 1 : 0) + (expectedFrom ? 1 : 0) + (expectedTo ? 1 : 0);
+    (arrMin ? 1 : 0) + (arrMax ? 1 : 0) + (expectedFrom ? 1 : 0) + (expectedTo ? 1 : 0) + (needsAttentionOnly ? 1 : 0);
 
   const clearFilters = () => {
-    setStageFilter([]); setStateFilter([]); setConfidenceFilter([]);
+    setStageFilter([]); setStateFilter([]); setConfidenceFilter([]); setNeedsAttentionOnly(false);
     setArrMin(""); setArrMax(""); setExpectedFrom(""); setExpectedTo("");
   };
 
@@ -303,6 +305,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
       if (stageFilter.length > 0 && !stageFilter.includes(stageOf(p.id))) return false;
       if (stateFilter.length > 0 && !stateFilter.includes(p.project_state || "")) return false;
       if (confidenceFilter.length > 0 && !confidenceFilter.includes(insights[p.id]?.confidence || "")) return false;
+      if (needsAttentionOnly && riskVerdicts[p.id]?.level !== "high") return false;
       const arrCr = p.arr != null ? Number(arrCroreValue(p.arr)) : null;
       if (arrMin && (arrCr == null || arrCr < parseFloat(arrMin))) return false;
       if (arrMax && (arrCr == null || arrCr > parseFloat(arrMax))) return false;
@@ -333,7 +336,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
       return (a.expected_go_live_date || "").localeCompare(b.expected_go_live_date || "");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projects, searchQuery, stageFilter, stateFilter, confidenceFilter, arrMin, arrMax, expectedFrom, expectedTo, sortField, sortDir, insights, owners, funnelStages]);
+  }, [projects, searchQuery, stageFilter, stateFilter, confidenceFilter, needsAttentionOnly, riskVerdicts, arrMin, arrMax, expectedFrom, expectedTo, sortField, sortDir, insights, owners, funnelStages]);
 
   const monthOptions = useMemo(() => {
     const opts: string[] = [];
@@ -422,6 +425,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                   <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={clearFilters}><X className="h-3 w-3" /> Reset</Button>
                 )}
               </div>
+              <label className="flex items-center gap-2 cursor-pointer border-b pb-2">
+                <Checkbox checked={needsAttentionOnly} onCheckedChange={v => setNeedsAttentionOnly(!!v)} className="h-3.5 w-3.5" />
+                <span className="text-xs text-muted-foreground">Needs attention only</span>
+              </label>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: stageLabel, values: stageFilter, setter: setStageFilter, options: stageOptions.map(s => ({ value: s, label: funnelStageLabels[s] || s })) },
@@ -521,6 +528,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
               <TableHeader className="sticky top-0 bg-navy/5 z-10">
                 <TableRow className="hover:bg-navy/5 border-b">
                   <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">Opportunity</TableHead>
+                  {isVisible("needs_attention") && <TableHead className="font-semibold whitespace-nowrap text-navy">Needs Attention</TableHead>}
                   {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy">{arrLabel} Cr.</TableHead>}
                   {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stageLabel}</TableHead>}
                   {isVisible("blocker") && <TableHead className="font-semibold min-w-[200px] text-navy">Blocker</TableHead>}
@@ -552,8 +560,12 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       >
                         {p.merchant_name}
                       </button>
-                      <RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} className="ml-1.5 align-middle" />
                     </TableCell>
+                    {isVisible("needs_attention") && (
+                      <TableCell className="whitespace-nowrap">
+                        <RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} />
+                      </TableCell>
+                    )}
                     {isVisible("arr") && <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>}
                     {isVisible("stage") && (
                       <TableCell className="whitespace-nowrap">
