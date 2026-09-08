@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sparkles, Download, RefreshCw, ExternalLink, ArrowUpDown, Filter, ListChecks, X, ChevronDown } from "lucide-react";
+import { Sparkles, RefreshCw, ExternalLink, ArrowUpDown, Filter, ListChecks, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { EditProjectDialog } from "./EditProjectDialog";
@@ -94,7 +94,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const [projects, setProjects] = useState<Project[]>([]);
   const [insights, setInsights] = useState<Record<string, Insight>>({});
   const [owners, setOwners] = useState<Record<string, string>>({});
-  const [platformCsm, setPlatformCsm] = useState<Record<string, string>>({}); // merchant_name -> CSM name
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
@@ -108,7 +107,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
 
   const arrLabel = getLabel("field_arr");
   const stageLabel = getLabel("field_project_stage");
-  const ownerLabel = getLabel("field_assigned_owner");
+  // This view names the field Project Owner; Settings → Field Labels
+  // still calls it Assigned Owner everywhere else.
+  const ownerLabel = "Project Owner";
   const expectedLabel = getLabel("field_expected_go_live_date");
   const stateLabel = getLabel("field_project_state");
 
@@ -118,6 +119,40 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     fullProjects.forEach(p => { map[p.id] = getProjectFunnelStage(p); });
     return map;
   }, [fullProjects]);
+
+  const fullById = useMemo(
+    () => Object.fromEntries(fullProjects.map(fp => [fp.id, fp])),
+    [fullProjects],
+  );
+
+  const SYSTEM_COLUMNS = useMemo(() => ([
+    { key: "mid", label: getLabel("field_mid") },
+    { key: "platform", label: getLabel("field_platform") },
+    { key: "category", label: getLabel("field_category") },
+    { key: "salesSpoc", label: getLabel("field_sales_spoc") },
+    { key: "kickOffDate", label: getLabel("field_kick_off_date") },
+    { key: "actualGoLive", label: getLabel("field_actual_go_live_date") },
+    { key: "integrationType", label: getLabel("field_integration_type") },
+    { key: "pgOnboarding", label: getLabel("field_pg_onboarding") },
+    { key: "goLivePercent", label: getLabel("field_go_live_percent") },
+  ]), [getLabel]);
+
+  const systemValue = (projectId: string, key: string): string => {
+    const fp = fullById[projectId];
+    if (!fp) return "—";
+    switch (key) {
+      case "mid": return fp.mid || "—";
+      case "platform": return fp.platform || "—";
+      case "category": return fp.category || "—";
+      case "salesSpoc": return fp.salesSpoc || "—";
+      case "kickOffDate": return fp.dates?.kickOffDate || "—";
+      case "actualGoLive": return fp.dates?.goLiveDate || "—";
+      case "integrationType": return fp.integrationType || "—";
+      case "pgOnboarding": return fp.pgOnboarding || "—";
+      case "goLivePercent": return fp.goLivePercent != null ? `${fp.goLivePercent}%` : "—";
+      default: return "—";
+    }
+  };
 
   const ALL_COLUMNS = useMemo(() => ([
     { key: "arr", label: `${arrLabel} Cr.` },
@@ -129,9 +164,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     { key: "confidence", label: "Confidence" },
     { key: "owner", label: ownerLabel },
     { key: "expected", label: expectedLabel },
-    { key: "csm", label: "CSM" },
+    ...SYSTEM_COLUMNS,
     ...customFields.map(cf => ({ key: `custom_field_${cf.id}`, label: cf.field_label })),
-  ]), [arrLabel, stageLabel, stateLabel, ownerLabel, expectedLabel, customFields]);
+  ]), [arrLabel, stageLabel, stateLabel, ownerLabel, expectedLabel, SYSTEM_COLUMNS, customFields]);
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
@@ -143,7 +178,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
         }
       } catch { /* ignore */ }
     }
-    return ["arr", "stage", "blocker", "blocked_on", "deadline", "confidence", "owner", "expected", "csm"];
+    return ["arr", "stage", "blocker", "blocked_on", "deadline", "confidence", "owner", "expected"];
   });
   const isVisible = (key: string) => visibleColumns.includes(key);
   const toggleColumn = (key: string) => {
@@ -194,10 +229,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
 
       const ids = list.map(p => p.id);
       if (ids.length > 0) {
-        const [{ data: iData }, { data: profData }, { data: pmData }] = await Promise.all([
+        const [{ data: iData }, { data: profData }] = await Promise.all([
           supabase.from("project_ai_insights").select("*").eq("month", month).in("project_id", ids),
           supabase.from("profiles").select("id, name").in("id", list.map(p => p.assigned_owner).filter(Boolean) as string[]),
-          supabase.from("platform_merchants").select("merchant_name, csm_id"),
         ]);
         const iMap: Record<string, Insight> = {};
         (iData || []).forEach((r: any) => { iMap[r.project_id] = r; });
@@ -206,18 +240,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
         (profData || []).forEach((p: any) => { oMap[p.id] = p.name; });
         setOwners(oMap);
 
-        // Map merchant_name -> CSM name via profiles
-        const csmIds = (pmData || []).map((p: any) => p.csm_id).filter(Boolean);
-        const csmNames: Record<string, string> = {};
-        if (csmIds.length) {
-          const { data: csmProf } = await supabase.from("profiles").select("id, name").in("id", csmIds);
-          (csmProf || []).forEach((p: any) => { csmNames[p.id] = p.name; });
-        }
-        const pmMap: Record<string, string> = {};
-        (pmData || []).forEach((pm: any) => {
-          if (pm.csm_id && csmNames[pm.csm_id]) pmMap[pm.merchant_name.toLowerCase()] = csmNames[pm.csm_id];
-        });
-        setPlatformCsm(pmMap);
       } else {
         setInsights({});
         setOwners({});
@@ -278,32 +300,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const stageOf = (id: string) => funnelStages[id] || "none";
   const stageText = (id: string) => funnelStageLabels[stageOf(id)] || "—";
 
-  const exportCsv = () => {
-    const rows = [["Opportunity Name", `${arrLabel} Cr.`, stageLabel, "Blocker", "Blocked On", "Deadline", "Confidence", ownerLabel, expectedLabel, "PG Creds", "DB Walkthrough", "CSM Alignment"]];
-    sortedRows.forEach(p => {
-      const i = insights[p.id];
-      rows.push([
-        p.merchant_name,
-        String(p.arr ?? ""),
-        stageText(p.id),
-        i?.blocker || "",
-        i?.blocked_on || "",
-        i?.deadline || "",
-        i?.confidence || "",
-        owners[p.assigned_owner || ""] || "",
-        p.expected_go_live_date ? `${p.expected_go_live_date} ${weekOfMonth(p.expected_go_live_date)}` : "",
-        i?.pg_creds || "",
-        i?.db_walkthrough || "",
-        i?.csm_alignment || platformCsm[p.merchant_name.toLowerCase()] || "",
-      ]);
-    });
-    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `golive-tracker-${month}.csv`; a.click();
-    URL.revokeObjectURL(url);
-  };
 
   const sortedRows = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -363,7 +359,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects, funnelStages]);
 
-  const visibleColCount = 1 + visibleColumns.length;
+  // Count only columns that still exist: "csm" was removed and may linger in a
+  // saved arrangement, which would widen the empty-state colspan.
+  const visibleColCount = 1 + ALL_COLUMNS.filter(c => visibleColumns.includes(c.key)).length;
 
   const toolbar = (
       <div className="flex flex-wrap items-center gap-2">
@@ -497,18 +495,19 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
           </Popover>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Select value={month} onValueChange={setMonth}>
             <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               {monthOptions.map(m => <SelectItem key={m} value={m}>{ymToLabel(m)}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={runAiRefresh} disabled={aiLoading}>
-            {aiLoading ? <RefreshCw className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
-            Refresh AI
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={exportCsv}><Download className="h-4 w-4 mr-1" />Export CSV</Button>
+          <ToolbarIconButton
+            icon={aiLoading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            label="Refresh AI"
+            onClick={runAiRefresh}
+            disabled={aiLoading}
+          />
         </div>
       </div>
   );
@@ -527,13 +526,15 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                   {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy">{arrLabel} Cr.</TableHead>}
                   {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stageLabel}</TableHead>}
                   {isVisible("status") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stateLabel}</TableHead>}
-                  {isVisible("blocker") && <TableHead className="font-semibold min-w-[200px] text-navy">Blocker</TableHead>}
+                  {isVisible("blocker") && <TableHead className="font-semibold min-w-[240px] max-w-[340px] text-navy">Blocker</TableHead>}
                   {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-navy">Blocked On</TableHead>}
                   {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-navy">Deadline</TableHead>}
                   {isVisible("confidence") && <TableHead className="font-semibold whitespace-nowrap text-navy">Confidence</TableHead>}
                   {isVisible("owner") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy">{ownerLabel}</TableHead>}
                   {isVisible("expected") && <TableHead className="font-semibold whitespace-nowrap text-navy">{expectedLabel}</TableHead>}
-                  {isVisible("csm") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy">CSM</TableHead>}
+                  {SYSTEM_COLUMNS.map(col => isVisible(col.key) && (
+                    <TableHead key={col.key} className="font-semibold whitespace-nowrap text-navy">{col.label}</TableHead>
+                  ))}
                   {customFields.map(cf => isVisible(`custom_field_${cf.id}`) && (
                     <TableHead key={cf.id} className="font-semibold whitespace-nowrap text-navy">{cf.field_label}</TableHead>
                   ))}
@@ -573,7 +574,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       </TableCell>
                     )}
                     {isVisible("blocker") && (
-                    <TableCell className="align-top">
+                    <TableCell className="align-top max-w-[340px]">
                       {isUrl ? (
                         <a href={blockerText.split(" ")[0]} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline break-all">
                           <span>{blockerText.split(" — ")[0].replace(/^https?:\/\/[^/]+\/browse\//, "")}</span>
@@ -582,6 +583,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       ) : (
                         <textarea
                           value={blockerText}
+                          // Grow to fit on mount too, not only while typing —
+                          // otherwise saved text loads clipped to a single row.
+                          ref={el => { if (el) { el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; } }}
                           onChange={e => {
                             setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), blocker: e.target.value } }));
                             e.currentTarget.style.height = "auto";
@@ -589,7 +593,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                           }}
                           onBlur={e => updateInsight(p.id, "blocker", e.target.value)}
                           onClick={e => e.stopPropagation()}
-                          className="w-full min-h-[28px] resize-none border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                          className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
                           placeholder="—"
                           rows={1}
                         />
@@ -607,7 +611,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                         }}
                         onBlur={e => updateInsight(p.id, "blocked_on", e.target.value)}
                         onClick={e => e.stopPropagation()}
-                        className="w-full min-h-[28px] resize-none border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
                         placeholder="—"
                         rows={1}
                       />
@@ -624,7 +628,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                         }}
                         onBlur={e => updateInsight(p.id, "deadline", e.target.value)}
                         onClick={e => e.stopPropagation()}
-                        className="w-full min-h-[28px] resize-none border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
                         placeholder="—"
                         rows={1}
                       />
@@ -655,16 +659,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                         )}
                       </TableCell>
                     )}
-                    {isVisible("csm") && (
-                    <TableCell onClick={e => e.stopPropagation()}>
-                      <Input
-                        value={i?.csm_alignment ?? platformCsm[p.merchant_name.toLowerCase()] ?? ""}
-                        onChange={e => setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), csm_alignment: e.target.value } }))}
-                        onBlur={e => updateInsight(p.id, "csm_alignment", e.target.value)}
-                        className="h-8 border-0 bg-transparent focus-visible:ring-1 px-2" placeholder="—"
-                      />
-                    </TableCell>
-                    )}
+                    {SYSTEM_COLUMNS.map(col => isVisible(col.key) && (
+                      <TableCell key={col.key} className="whitespace-nowrap text-sm">{systemValue(p.id, col.key)}</TableCell>
+                    ))}
                     {customFields.map(cf => isVisible(`custom_field_${cf.id}`) && (
                       <TableCell key={cf.id} className="whitespace-nowrap text-sm">
                         {customValuesMap[p.id]?.[cf.id] || "—"}
