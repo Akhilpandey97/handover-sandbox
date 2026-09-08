@@ -118,7 +118,15 @@ export const AttentionReasonPopover = ({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent align={align} className="w-80 p-3" onClick={(e) => e.stopPropagation()}>
+      {/* Above the dialog layer: PopoverContent defaults to z-50 while the
+          dialog overlay sits at z-120, so a badge clicked inside the drill-down
+          list opened its popover behind the dialog. pointer-events-auto because
+          a modal dialog disables them on everything portalled outside itself. */}
+      <PopoverContent
+        align={align}
+        className="z-[140] w-80 p-3 pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <p className="text-xs font-semibold text-foreground mb-2">{title || "Why this needs attention"}</p>
         <ul className="space-y-1.5">
           {reasons.map((r, i) => (

@@ -1336,6 +1336,7 @@ export const ManagerDashboard = () => {
                           const completedCount = teamProjects.filter(isTeamCompleted).length;
                           const activeCount = totalCount - pendingCount - completedCount;
                           const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                          const teamNeedsAttention = teamProjects.filter(p => riskVerdicts[p.id]?.level === "high");
                           const miniCards = [
                             { label: "active", value: activeCount, tone: "bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300", list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
                             { label: "pending", value: pendingCount, tone: "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300", list: teamProjects.filter(p => p.pendingAcceptance) },
@@ -1352,8 +1353,23 @@ export const ManagerDashboard = () => {
                                 )}>
                                   {team.teamLabel.charAt(0)}
                                 </div>
-                                <div>
-                                  <p className="text-sm font-semibold text-foreground">{team.teamLabel}</p>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-semibold text-foreground">{team.teamLabel}</p>
+                                    {teamNeedsAttention.length > 0 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setDrillDown({
+                                          title: `${team.teamLabel} — needs attention`,
+                                          description: `${teamNeedsAttention.length} of ${totalCount} need attention`,
+                                          projects: teamNeedsAttention,
+                                        })}
+                                        className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/25"
+                                      >
+                                        {teamNeedsAttention.length} needs attention
+                                      </button>
+                                    )}
+                                  </div>
                                   <p className="text-xs text-muted-foreground">{totalCount} owned projects</p>
                                 </div>
                               </div>
