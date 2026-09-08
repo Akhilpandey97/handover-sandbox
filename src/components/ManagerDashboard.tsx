@@ -1886,7 +1886,7 @@ export const ManagerDashboard = () => {
                 {/* rounded + clipping so the accent bar and header follow the card's corners */}
                 <div className="h-1 w-full shrink-0 bg-navy" />
                 <div className="min-h-0 flex-1 overflow-auto">
-                  <Table>
+                  <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
                     {/* Opaque: the header sits over scrolling rows, and bg-navy/5
                         is only a 5% tint on its own. */}
                     <TableHeader className="sticky top-0 z-10 bg-card bg-[linear-gradient(hsl(var(--navy)/0.05),hsl(var(--navy)/0.05))]">
