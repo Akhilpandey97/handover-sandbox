@@ -222,7 +222,7 @@ export const ProjectActivityHistory = ({
                                   {entry.metadata?.changes && Array.isArray(entry.metadata.changes) && entry.metadata.changes.length > 0 && (
                                     <div className="mt-1.5 space-y-0.5">
                                       {entry.metadata.changes.map((c: { field: string; from: string; to: string }, ci: number) => (
-                                        <div key={ci} className="flex items-center gap-1.5 text-[11px]">
+                                        <div key={ci} className="flex items-center gap-1.5 text-micro">
                                           <span className="font-medium text-muted-foreground">{c.field}:</span>
                                           {c.from && (
                                             <span className="line-through text-red-500/70 max-w-[120px] truncate" title={c.from}>
@@ -240,19 +240,19 @@ export const ProjectActivityHistory = ({
 
                                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                                     {entry.userName && (
-                                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                      <span className="inline-flex items-center gap-1 text-micro text-muted-foreground">
                                         <User className="h-3 w-3" />
                                         {entry.userName}
                                       </span>
                                     )}
-                                    <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                    <span className="inline-flex items-center gap-1 text-micro text-muted-foreground">
                                       <Clock className="h-3 w-3" />
                                       {format(new Date(entry.timestamp), "h:mm a")}
                                       <span className="opacity-60">
                                         ({formatDistanceToNow(new Date(entry.timestamp), { addSuffix: true })})
                                       </span>
                                     </span>
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 capitalize">
+                                    <Badge variant="outline" className="text-micro px-1.5 py-0 h-4 capitalize">
                                       {entry.category}
                                     </Badge>
                                   </div>

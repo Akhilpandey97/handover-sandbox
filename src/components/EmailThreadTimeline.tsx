@@ -63,7 +63,7 @@ const MessageBubble = ({ msg }: { msg: ProjectEmailMessage }) => {
       >
         <div className="flex items-baseline justify-between gap-3 mb-1">
           <span className="text-xs font-semibold text-foreground truncate">{sender}</span>
-          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{dateLabel}</span>
+          <span className="text-micro text-muted-foreground whitespace-nowrap">{dateLabel}</span>
         </div>
         <pre className="text-xs whitespace-pre-wrap font-sans text-foreground/90 leading-relaxed">
           {cleanBody || "(empty message)"}

@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles, Download, RefreshCw, ExternalLink, ArrowUpDown, Filter, ListChecks, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { toneBadge } from "@/lib/statusTone";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -56,9 +57,9 @@ const STAGE_BADGE: Record<string, string> = {
 };
 
 const CONF_BADGE: Record<string, string> = {
-  High: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
-  Medium: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
-  Low: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+  High: toneBadge.success,
+  Medium: toneBadge.warning,
+  Low: toneBadge.danger,
 };
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -364,7 +365,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
               <Button variant="outline" size="sm" className="gap-2">
                 <ArrowUpDown className="h-4 w-4" />
                 Sort
-                {sortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>}
+                {sortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-micro">1</Badge>}
                 <ChevronDown className="h-3 w-3" />
               </Button>
             </PopoverTrigger>
@@ -411,7 +412,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
               <Button variant="outline" size="sm" className="gap-2">
                 <Filter className="h-4 w-4" />
                 Filters
-                {activeFilterCount > 0 && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{activeFilterCount}</Badge>}
+                {activeFilterCount > 0 && <Badge variant="default" className="ml-1 h-5 px-1.5 text-micro">{activeFilterCount}</Badge>}
                 <ChevronDown className="h-3 w-3" />
               </Button>
             </PopoverTrigger>
@@ -478,7 +479,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
               <Button variant="outline" size="sm" className="gap-1.5">
                 <ListChecks className="h-4 w-4" />
                 Select Columns
-                <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">{visibleColumns.length}</Badge>
+                <Badge variant="secondary" className="ml-1 text-micro px-1.5 py-0">{visibleColumns.length}</Badge>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-64 p-3" align="end">
@@ -639,7 +640,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       <TableCell className="whitespace-nowrap tabular-nums">
                         {dateLabel(p.expected_go_live_date)}
                         {fullProjects.find(fp => fp.id === p.id)?.dates?.expectedGoLiveDateIsDerived && (
-                          <span className="ml-1 text-[10px] text-muted-foreground" title="Estimated from the latest checklist due date — no go-live date has been set on this project">est.</span>
+                          <span className="ml-1 text-micro text-muted-foreground" title="Estimated from the latest checklist due date — no go-live date has been set on this project">est.</span>
                         )}
                       </TableCell>
                     )}

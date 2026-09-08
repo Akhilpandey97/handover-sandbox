@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useRef, useState } from "react";
+import { toneBadge } from "@/lib/statusTone";
 import { useQueryClient } from "@tanstack/react-query";
 import { Project, calculateTimeByParty, formatDuration, ResponsibilityParty } from "@/data/projectsData";
 import { useProjects } from "@/contexts/ProjectContext";
@@ -275,9 +276,9 @@ export const ChecklistDialog = ({
   };
 
   const priorityColors: Record<string, string> = {
-    low: "text-emerald-600 bg-emerald-500/10",
-    medium: "text-amber-600 bg-amber-500/10",
-    high: "text-red-600 bg-red-500/10",
+    low: toneBadge.success,
+    medium: toneBadge.warning,
+    high: toneBadge.danger,
   };
 
   return (
@@ -286,7 +287,7 @@ export const ChecklistDialog = ({
         {variant === "dialog" && (
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lift">
                 <ClipboardList className="h-6 w-6 text-primary-foreground" />
               </div>
               <div className="flex-1">
@@ -620,17 +621,17 @@ export const ChecklistDialog = ({
                                           <span className={`flex-1 text-sm ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
                                             {task.title}
                                           </span>
-                                          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${priorityColors[task.priority] || ""}`}>
+                                          <Badge variant="outline" className={`text-micro px-1.5 py-0 ${priorityColors[task.priority] || ""}`}>
                                             <Flag className="h-2.5 w-2.5 mr-0.5" />
                                             {task.priority}
                                           </Badge>
                                           {task.assigned_to && (
-                                            <span className="text-[10px] text-muted-foreground">
+                                            <span className="text-micro text-muted-foreground">
                                               {profiles.find(p => p.id === task.assigned_to)?.name || task.assigned_to}
                                             </span>
                                           )}
                                           {task.due_date && (
-                                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                            <span className="text-micro text-muted-foreground flex items-center gap-0.5">
                                               <Calendar className="h-2.5 w-2.5" />
                                               {new Date(task.due_date).toLocaleDateString()}
                                             </span>

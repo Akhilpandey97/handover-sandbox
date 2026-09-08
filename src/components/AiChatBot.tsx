@@ -445,14 +445,14 @@ export const AiChatBot = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 left-6 z-50 h-14 w-14 rounded-full bg-[hsl(142,71%,45%)] text-white shadow-xl hover:shadow-2xl transition-all hover:scale-105 flex items-center justify-center"
+          className="fixed bottom-6 left-6 z-50 h-14 w-14 rounded-full bg-[hsl(142,71%,45%)] text-white shadow-lift hover:shadow-lift transition-all hover:scale-105 flex items-center justify-center"
         >
           <MessageCircle className="h-6 w-6" />
         </button>
       )}
 
       {isOpen && (
-        <div className="fixed bottom-6 left-6 z-50 w-[420px] h-[600px] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300 border border-border">
+        <div className="fixed bottom-6 left-6 z-50 w-[420px] h-[600px] rounded-2xl shadow-lift flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300 border border-border">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-[hsl(142,71%,35%)] text-white">
             <div className="flex items-center gap-3">
@@ -461,7 +461,7 @@ export const AiChatBot = () => {
               </div>
               <div>
                 <p className="font-semibold text-sm">AI Assistant</p>
-                <p className="text-[11px] text-white/70">{isLoading ? "typing..." : "online"}</p>
+                <p className="text-micro text-white/70">{isLoading ? "typing..." : "online"}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -542,7 +542,7 @@ export const AiChatBot = () => {
                     <span className="whitespace-pre-wrap">{msg.content}</span>
                   )}
                   <div className={cn("flex items-center gap-1 mt-1", msg.role === "user" ? "justify-end" : "justify-start")}>
-                    <span className="text-[10px] text-muted-foreground">{msg.time}</span>
+                    <span className="text-micro text-muted-foreground">{msg.time}</span>
                     {msg.role === "user" && <CheckCheck className="h-3 w-3 text-blue-500" />}
                   </div>
                 </div>

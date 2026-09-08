@@ -312,7 +312,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
                     <tr key={r.id} className="hover:bg-muted/20">
                       <td className="sticky left-0 bg-background border-b border-r p-2 font-medium z-10">
                         <div className="truncate max-w-[200px]" title={r.name}>{r.name}</div>
-                        <div className="text-[10px] text-muted-foreground truncate">{r.mid}</div>
+                        <div className="text-micro text-muted-foreground truncate">{r.mid}</div>
                       </td>
                       {columns.map((c) => {
                         const cell = r.cells[c];

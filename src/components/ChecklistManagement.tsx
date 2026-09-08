@@ -769,7 +769,8 @@ export const ChecklistManagement = () => {
       </Dialog>
 
       {/* Dynamic Teams Management */}
-      <Card className="mt-6 shadow-sm border-border">
+      {/* Sits inside the outer card, so it carries no chrome of its own. */}
+      <Card className="mt-6 border-0 bg-transparent shadow-none">
         <CardHeader className="border-b bg-muted/30">
           <div className="flex items-center justify-between">
             <CardTitle className="portal-heading flex items-center gap-2">

@@ -187,8 +187,8 @@ export const ChecklistCommentThread = ({
           />
 
           {mentionQuery !== null && mentionCandidates.length > 0 && (
-            <div className="absolute bottom-full left-0 z-50 mb-1 w-64 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
-              <p className="flex items-center gap-1 border-b border-border/60 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <div className="absolute bottom-full left-0 z-50 mb-1 w-64 overflow-hidden rounded-lg border border-border bg-popover shadow-lift">
+              <p className="flex items-center gap-1 border-b border-border/60 px-2 py-1 text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                 <AtSign className="h-3 w-3" /> Tag a teammate
               </p>
               {mentionCandidates.map((p) => (

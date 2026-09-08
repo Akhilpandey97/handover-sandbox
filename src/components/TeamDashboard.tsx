@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { tableHeaderClass, tableHeaderRowClass } from "@/components/TableSurface";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
@@ -472,7 +473,7 @@ export const TeamDashboard = () => {
                     <Filter className="h-3.5 w-3.5" />
                     Filters
                     {activeFilterCount > 0 && (
-                      <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
+                      <Badge variant="secondary" className="ml-1 text-micro px-1.5 py-0">
                         {activeFilterCount}
                       </Badge>
                     )}
@@ -533,8 +534,8 @@ export const TeamDashboard = () => {
               ) : (
                 <div className="rounded-xl border bg-card overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-navy">
-                      <TableRow className="hover:bg-navy">
+                    <TableHeader className={tableHeaderClass}>
+                      <TableRow className={tableHeaderRowClass}>
                         <TableHead className="text-xs text-navy-foreground">Merchant</TableHead>
                         <TableHead className="text-xs text-navy-foreground">MID</TableHead>
                         <TableHead className="text-xs text-navy-foreground">Platform</TableHead>

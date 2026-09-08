@@ -96,7 +96,7 @@ export const EglRulesSettings = () => {
                                 : [...(rule.states || []), s],
                             })
                           }
-                          className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                          className={`text-micro px-2 py-0.5 rounded-full border transition-colors ${
                             on
                               ? "bg-primary text-primary-foreground border-primary"
                               : "border-border text-muted-foreground hover:bg-muted"

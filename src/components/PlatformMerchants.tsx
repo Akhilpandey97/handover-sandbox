@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Pencil, Server, Upload, Download, FileSpreadsheet, Mail, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { toneBadge } from "@/lib/statusTone";
 import * as XLSX from "xlsx";
 import { arrToCrore, arrCroreValue } from "@/lib/arr";
 
@@ -40,9 +41,9 @@ const STATUS_OPTIONS: { value: Status; label: string }[] = [
 ];
 
 const statusStyles: Record<Status, string> = {
-  live: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-  inprogress: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  blocked: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30",
+  live: toneBadge.success,
+  inprogress: toneBadge.warning,
+  blocked: toneBadge.danger,
 };
 
 interface PlatformMerchant {

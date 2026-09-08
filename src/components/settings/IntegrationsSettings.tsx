@@ -206,7 +206,7 @@ export function IntegrationsSettings() {
                     }
                   />
                   {field.help && (
-                    <p className="text-[11px] text-muted-foreground">{field.help}</p>
+                    <p className="text-micro text-muted-foreground">{field.help}</p>
                   )}
                 </div>
               ))}

@@ -162,7 +162,7 @@ export function ApiKeysSettings() {
                       {k.revoked_at ? "Revoked" : "Active"}
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-micro text-muted-foreground">
                     {k.key_prefix}…
                     {k.last_used_at
                       ? ` · last used ${new Date(k.last_used_at).toLocaleString()}`

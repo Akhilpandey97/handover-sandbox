@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { toneBadge } from "@/lib/statusTone";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -45,10 +46,10 @@ interface ParsedEmail {
 }
 
 const statusColors: Record<string, string> = {
-  new: "bg-blue-500/10 text-blue-600 border-blue-200",
-  reviewed: "bg-amber-500/10 text-amber-600 border-amber-200",
-  project_created: "bg-green-500/10 text-green-600 border-green-200",
-  dismissed: "bg-muted text-muted-foreground border-muted",
+  new: toneBadge.info,
+  reviewed: toneBadge.warning,
+  project_created: toneBadge.success,
+  dismissed: toneBadge.neutral,
 };
 
 export const ParsedEmailsTab = () => {

@@ -116,12 +116,12 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
               <ArrowUpDown className="h-3 w-3" />
               Sort
               {sortField !== "none" && (
-                <Badge variant="default" className="ml-0.5 h-4 px-1 text-[10px]">1</Badge>
+                <Badge variant="default" className="ml-0.5 h-4 px-1 text-micro">1</Badge>
               )}
               <ChevronDown className="h-3 w-3" />
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="absolute z-30 mt-1 left-0 top-full w-72 bg-card border rounded-lg shadow-xl p-4 space-y-3">
+          <CollapsibleContent className="absolute z-30 mt-1 left-0 top-full w-72 bg-card border rounded-lg shadow-lift p-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">Sort By</p>
               {sortField !== "none" && (
@@ -177,12 +177,12 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
               <SlidersHorizontal className="h-3 w-3" />
               Filters
               {activeFilterCount > 0 && (
-                <Badge variant="default" className="ml-0.5 h-4 px-1 text-[10px]">{activeFilterCount}</Badge>
+                <Badge variant="default" className="ml-0.5 h-4 px-1 text-micro">{activeFilterCount}</Badge>
               )}
               <ChevronDown className="h-3 w-3" />
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="absolute z-30 mt-1 left-0 top-full w-[580px] bg-card border rounded-lg shadow-xl p-4 space-y-3">
+          <CollapsibleContent className="absolute z-30 mt-1 left-0 top-full w-[580px] bg-card border rounded-lg shadow-lift p-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold">Filters</p>
               {activeFilterCount > 0 && (

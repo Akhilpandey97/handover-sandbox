@@ -306,7 +306,7 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
                 {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                 {aiLoading ? "AI Mapping…" : "Auto-Map with AI"}
               </Button>
-              {aiMapped && <Badge variant="secondary" className="text-[10px]">AI mapped</Badge>}
+              {aiMapped && <Badge variant="secondary" className="text-micro">AI mapped</Badge>}
             </div>
 
             {/* Field Mapping Section */}
@@ -326,7 +326,7 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
                       <div className="text-sm">
                         <span className="font-medium">{ef.label}</span>
                         {ef.value && (
-                          <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0 max-w-[120px] truncate">
+                          <Badge variant="secondary" className="ml-2 text-micro px-1.5 py-0 max-w-[120px] truncate">
                             {ef.value}
                           </Badge>
                         )}

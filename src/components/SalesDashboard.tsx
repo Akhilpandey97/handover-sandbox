@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { toneBadge, projectStateTone } from "@/lib/statusTone";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -98,7 +99,7 @@ export const SalesDashboard = () => {
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur border-b border-border px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lg">
+            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-lift">
               <BarChart3 className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
@@ -119,7 +120,7 @@ export const SalesDashboard = () => {
       <main className="p-6 max-w-7xl mx-auto space-y-6">
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="shadow-lg border-border/50">
+          <Card className="shadow-lift border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total ARR</span>
@@ -129,7 +130,7 @@ export const SalesDashboard = () => {
               <p className="text-xs text-muted-foreground mt-1">{totalProjects} projects</p>
             </CardContent>
           </Card>
-          <Card className="shadow-lg border-border/50">
+          <Card className="shadow-lift border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Live ARR</span>
@@ -139,7 +140,7 @@ export const SalesDashboard = () => {
               <p className="text-xs text-muted-foreground mt-1">{liveProjects} live</p>
             </CardContent>
           </Card>
-          <Card className="shadow-lg border-border/50">
+          <Card className="shadow-lift border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Active</span>
@@ -149,7 +150,7 @@ export const SalesDashboard = () => {
               <p className="text-xs text-muted-foreground mt-1">{blockedProjects} blocked</p>
             </CardContent>
           </Card>
-          <Card className="shadow-lg border-border/50">
+          <Card className="shadow-lift border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Progress</span>
@@ -163,7 +164,7 @@ export const SalesDashboard = () => {
 
         {/* Task Status Widget + Time Distribution */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="shadow-lg border-border/50">
+          <Card className="shadow-lift border-border/50">
             <CardHeader className="pb-3">
               <CardTitle className="portal-heading flex items-center gap-2">
                 <ListChecks className="h-5 w-5 text-primary" />
@@ -202,7 +203,7 @@ export const SalesDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg border-border/50">
+          <Card className="shadow-lift border-border/50">
             <CardHeader className="pb-3">
               <CardTitle className="portal-heading flex items-center gap-2">
                 <Clock className="h-5 w-5 text-primary" />
@@ -248,7 +249,7 @@ export const SalesDashboard = () => {
         </div>
 
         {/* Project State Breakdown */}
-        <Card className="shadow-lg border-border/50">
+        <Card className="shadow-lift border-border/50">
           <CardHeader className="pb-3">
             <CardTitle className="portal-heading flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-primary" />
@@ -259,13 +260,9 @@ export const SalesDashboard = () => {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {(["not_started", "in_progress", "on_hold", "blocked", "live"] as const).map(state => {
                 const count = projects.filter(p => p.projectState === state).length;
-                const stateColors: Record<string, string> = {
-                  not_started: "bg-muted text-muted-foreground",
-                  in_progress: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400",
-                  on_hold: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
-                  blocked: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
-                  live: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400",
-                };
+                const stateColors: Record<string, string> = Object.fromEntries(
+                  Object.entries(projectStateTone).map(([state, tone]) => [state, toneBadge[tone]]),
+                );
                 return (
                   <div key={state} className={cn("rounded-lg p-4 text-center", stateColors[state])}>
                     <p className="text-2xl font-bold">{count}</p>

@@ -113,7 +113,7 @@ export const ResponsibilityToggle = ({
             <Building2 className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">{responsibilityLabels.gokwik}</span>
             {project.currentResponsibility === "gokwik" && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">
+              <Badge variant="secondary" className="text-micro px-1.5 py-0 bg-primary text-primary-foreground">
                 Active
               </Badge>
             )}
@@ -133,7 +133,7 @@ export const ResponsibilityToggle = ({
             <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             <span className="text-sm font-medium">{responsibilityLabels.merchant}</span>
             {project.currentResponsibility === "merchant" && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-amber-500 text-white">
+              <Badge variant="secondary" className="text-micro px-1.5 py-0 bg-amber-500 text-white">
                 Active
               </Badge>
             )}

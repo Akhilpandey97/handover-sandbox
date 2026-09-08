@@ -515,7 +515,7 @@ export const ShopifyLtEmailComms = () => {
                     </Select>
                     {!infoOf(r)?.status && (
                       <p
-                        className="mt-0.5 text-[10px] text-muted-foreground truncate max-w-[230px]"
+                        className="mt-0.5 text-micro text-muted-foreground truncate max-w-[230px]"
                         title={infoOf(r)?.ai_evidence || ""}
                       >
                         {infoOf(r)?.ai_status
@@ -538,7 +538,7 @@ export const ShopifyLtEmailComms = () => {
                     <p className="text-sm">{sender.name}</p>
                     <Badge
                       variant="outline"
-                      className={`mt-0.5 text-[10px] ${
+                      className={`mt-0.5 text-micro ${
                         role === "Onboarding Manager"
                           ? "border-blue-300 text-blue-700 dark:text-blue-300"
                           : role === "Merchant"

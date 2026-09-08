@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toneSolid, toneText } from "@/lib/statusTone";
 import type { RiskVerdict } from "@/data/riskRules";
 
 /**
@@ -31,7 +32,7 @@ export const RiskBadge = ({
           aria-label="Why this project is at risk"
           className={cn("shrink-0 focus:outline-none focus:ring-2 focus:ring-ring rounded", className)}
         >
-          <Badge className="bg-red-600 hover:bg-red-700 text-white border-transparent text-[10px] px-1.5 py-0 font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors">
+          <Badge className={cn(toneSolid.danger, "text-micro px-1.5 py-0 font-semibold inline-flex items-center gap-1 cursor-pointer transition-opacity hover:opacity-90")}>
             High Risk
             <Eye className="h-2.5 w-2.5 opacity-70" />
           </Badge>
@@ -46,12 +47,12 @@ export const RiskBadge = ({
         <ul className="space-y-1.5">
           {verdict.findings.map((f) => (
             <li key={f.ruleId} className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
-              <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-red-500" />
+              <span className={cn("mt-1 h-1 w-1 shrink-0 rounded-full bg-current", toneText.danger)} />
               <span>{f.detail}</span>
             </li>
           ))}
         </ul>
-        <p className="mt-2 pt-2 border-t text-[10px] text-muted-foreground">
+        <p className="mt-2 pt-2 border-t text-micro text-muted-foreground">
           From Settings → Risk Rules
         </p>
       </PopoverContent>

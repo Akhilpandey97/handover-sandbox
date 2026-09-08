@@ -78,7 +78,7 @@ export const NotificationCenter = () => {
         <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
           <Bell className="h-5 w-5" />
           {unread.length > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-micro font-bold text-destructive-foreground">
               {unread.length > 99 ? "99+" : unread.length}
             </span>
           )}
@@ -131,7 +131,7 @@ export const NotificationCenter = () => {
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-2">
                             <span className="truncate text-sm font-semibold text-foreground">{n.title}</span>
-                            {!n.read_at && <Badge className="h-4 px-1.5 text-[9px]">New</Badge>}
+                            {!n.read_at && <Badge className="h-4 px-1.5 text-micro">New</Badge>}
                           </span>
                           {n.checklist_item_title && (
                             <span className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
@@ -142,7 +142,7 @@ export const NotificationCenter = () => {
                           {n.body && (
                             <span className="mt-0.5 block line-clamp-1 text-xs text-muted-foreground">{n.body}</span>
                           )}
-                          <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                          <span className="mt-0.5 block text-micro text-muted-foreground">
                             {n.actor_name ? `${n.actor_name} · ` : ""}
                             {timeAgo(n.created_at)}
                           </span>

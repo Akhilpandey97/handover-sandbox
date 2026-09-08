@@ -241,7 +241,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
   return (
     <>
       <Card
-        className="border border-slate-200 bg-slate-50/80 shadow-sm transition-all duration-300 overflow-hidden cursor-pointer hover:bg-white hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-900/70"
+        className="border border-slate-200 bg-slate-50/80 shadow-sm transition-all duration-300 overflow-hidden cursor-pointer hover:bg-white hover:shadow-lift dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-900/70"
         onClick={(e) => {
           const el = e.target as HTMLElement;
           if (el.closest("button,a,input,label,select,textarea,[role='menuitem'],[role='dialog'],[data-radix-popper-content-wrapper]")) return;
@@ -362,7 +362,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                           size="sm"
                           className={`text-sm px-4 py-2 h-9 font-semibold rounded-lg transition-all duration-300 ${
                             isTransferReady 
-                              ? "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 hover:scale-105 animate-fade-in" 
+                              ? "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lift shadow-indigo-500/30 hover:shadow-lift hover:shadow-indigo-500/40 hover:scale-105 animate-fade-in" 
                               : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
                           }`}
                           onClick={() => isTransferReady && setTransferOpen(true)}

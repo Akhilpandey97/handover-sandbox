@@ -278,7 +278,7 @@ const BrdForm = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-red-50 p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-lift p-8 text-center">
           <div className="h-14 w-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
             <FileText className="h-7 w-7 text-red-500" />
           </div>
@@ -292,7 +292,7 @@ const BrdForm = () => {
   if (completed) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4">
-        <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl p-10 text-center">
+        <div className="max-w-lg w-full bg-white rounded-2xl shadow-lift p-10 text-center">
           <div className="relative mx-auto w-20 h-20 mb-6">
             <div className="absolute inset-0 bg-green-400/20 rounded-full animate-ping" />
             <div className="relative h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
@@ -421,9 +421,9 @@ const BrdForm = () => {
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-100">
           <h2 className="text-sm font-bold text-foreground">{form?.name || "BRD Form"}</h2>
-          <p className="text-[10px] text-muted-foreground mt-0.5">{session?.merchantName} • MID: {session?.mid}</p>
+          <p className="text-micro text-muted-foreground mt-0.5">{session?.merchantName} • MID: {session?.mid}</p>
           <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-            <div className="flex justify-between text-[10px] font-medium mb-1">
+            <div className="flex justify-between text-micro font-medium mb-1">
               <span className="text-blue-700">{answeredCount}/{fields.length}</span>
               <span className="text-blue-600">{Math.round(progress)}%</span>
             </div>
@@ -463,7 +463,7 @@ const BrdForm = () => {
                     )}
                   </span>
                   <span className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-[10px] opacity-60">{answered}/{total}</span>
+                    <span className="text-micro opacity-60">{answered}/{total}</span>
                     <ChevronRight className={cn("h-3 w-3 transition-transform", isExpanded && group.categories.length > 1 && "rotate-90")} />
                   </span>
                 </button>
@@ -484,7 +484,7 @@ const BrdForm = () => {
                             if (idx >= 0) jumpToField(idx);
                           }}
                           className={cn(
-                            "w-full text-left px-2 py-1.5 rounded text-[11px] transition-all truncate",
+                            "w-full text-left px-2 py-1.5 rounded text-micro transition-all truncate",
                             catActive
                               ? "bg-blue-100 text-blue-800 font-medium"
                               : catDone
@@ -505,7 +505,7 @@ const BrdForm = () => {
           })}
         </nav>
 
-        <div className="p-3 border-t border-gray-100 text-[10px] text-center text-muted-foreground">
+        <div className="p-3 border-t border-gray-100 text-micro text-center text-muted-foreground">
           {saving ? (
             <span className="flex items-center justify-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" /> Saving...
@@ -525,9 +525,9 @@ const BrdForm = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-sm font-bold">{form?.name || "BRD Form"}</h1>
-              <p className="text-[10px] text-muted-foreground">{session?.merchantName}</p>
+              <p className="text-micro text-muted-foreground">{session?.merchantName}</p>
             </div>
-            <Badge variant="outline" className="text-[10px]">{answeredCount}/{fields.length}</Badge>
+            <Badge variant="outline" className="text-micro">{answeredCount}/{fields.length}</Badge>
           </div>
           <Progress value={progress} className="h-1.5 mt-2" />
         </div>
@@ -539,12 +539,12 @@ const BrdForm = () => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">BRD Assistant</p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-micro text-muted-foreground">
               {currentSection} • Q{currentIndex + 1}/{fields.length}
             </p>
           </div>
           {saving && (
-            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <span className="text-micro text-muted-foreground flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" /> Saving...
             </span>
           )}
@@ -560,7 +560,7 @@ const BrdForm = () => {
               <div key={field.id}>
                 {showSectionDivider && (
                   <div className="flex justify-center my-2">
-                    <span className="bg-white/80 text-[10px] text-muted-foreground px-3 py-1 rounded-full shadow-sm">
+                    <span className="bg-white/80 text-micro text-muted-foreground px-3 py-1 rounded-full shadow-sm">
                       {getAbbreviation(field.category)} — {field.category}
                     </span>
                   </div>
@@ -579,7 +579,7 @@ const BrdForm = () => {
                     title="Click to edit"
                   >
                     {responses[field.id]}
-                    <span className="text-[8px] opacity-60 ml-2">✓✓</span>
+                    <span className="text-micro opacity-60 ml-2">✓✓</span>
                   </div>
                 </div>
               </div>
@@ -593,7 +593,7 @@ const BrdForm = () => {
               const showDivider = !lastHistoryField || lastHistoryField.category !== currentField.category;
               return showDivider ? (
                 <div className="flex justify-center my-2">
-                  <span className="bg-white/80 text-[10px] text-muted-foreground px-3 py-1 rounded-full shadow-sm">
+                  <span className="bg-white/80 text-micro text-muted-foreground px-3 py-1 rounded-full shadow-sm">
                     {getAbbreviation(currentField.category)} — {currentField.category}
                   </span>
                 </div>
@@ -660,8 +660,8 @@ const BrdForm = () => {
               )}
             </div>
           </div>
-          <p className="text-[9px] text-center text-muted-foreground mt-1 hidden md:block">
-            Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[8px] font-mono">Enter</kbd> to continue • Click any answer to edit
+          <p className="text-micro text-center text-muted-foreground mt-1 hidden md:block">
+            Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-micro font-mono">Enter</kbd> to continue • Click any answer to edit
           </p>
         </div>
       </main>

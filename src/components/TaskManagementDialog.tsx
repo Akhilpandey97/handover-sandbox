@@ -110,7 +110,7 @@ export const TaskManagementDialog = ({
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lift">
               <ListTodo className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -169,11 +169,11 @@ export const TaskManagementDialog = ({
                         <span className={`font-medium text-sm ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
                           {task.title}
                         </span>
-                        <Badge className={`text-[10px] px-1.5 py-0 ${pc.color} border-0`}>
+                        <Badge className={`text-micro px-1.5 py-0 ${pc.color} border-0`}>
                           <Flag className="h-2.5 w-2.5 mr-0.5" />
                           {pc.label}
                         </Badge>
-                        <Badge className={`text-[10px] px-1.5 py-0 ${sc.color} border-0`}>{sc.label}</Badge>
+                        <Badge className={`text-micro px-1.5 py-0 ${sc.color} border-0`}>{sc.label}</Badge>
                       </div>
                       {task.description && (
                         <p className="text-xs text-muted-foreground mt-1">{task.description}</p>

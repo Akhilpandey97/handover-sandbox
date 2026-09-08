@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { tableHeaderClass, tableHeaderRowClass } from "@/components/TableSurface";
 import { useNavigate } from "@tanstack/react-router";
 import { CalendarClock } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -52,8 +53,8 @@ export const EglRiskDashlet = () => {
 
       <div className="max-h-[22rem] overflow-y-auto">
         <Table>
-          <TableHeader className="sticky top-0 bg-navy/5 z-10">
-            <TableRow className="hover:bg-navy/5 border-b">
+          <TableHeader className={cn("sticky top-0 z-10", tableHeaderClass)}>
+            <TableRow className={tableHeaderRowClass}>
               <TableHead className="text-navy font-semibold">Project</TableHead>
               <TableHead className="text-navy font-semibold whitespace-nowrap">
                 {getLabel("field_expected_go_live_date")}

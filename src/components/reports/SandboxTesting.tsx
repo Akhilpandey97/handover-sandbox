@@ -299,7 +299,7 @@ export const SandboxTesting = () => {
                 Chat
               </Button>
               <Button variant={view === "results" ? "default" : "outline"} size="sm" className="text-xs h-7" onClick={() => setView("results")} disabled={checklist.length === 0 && !isRunning}>
-                Results {checklist.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px] px-1">{checklist.length}</Badge>}
+                Results {checklist.length > 0 && <Badge variant="secondary" className="ml-1 text-micro px-1">{checklist.length}</Badge>}
               </Button>
               {allConfigured && !isRunning && !isDone && (
                 <Button size="sm" className="text-xs h-7 gap-1" onClick={handleRunTests}>
@@ -335,7 +335,7 @@ export const SandboxTesting = () => {
             <div className="p-4 space-y-3">
               {messages.map(msg => (
                 <div key={msg.id} className={cn("flex gap-2 items-start", msg.role === "user" ? "flex-row-reverse" : "flex-row")}>
-                  <div className={cn("h-7 w-7 rounded-full shrink-0 flex items-center justify-center text-[11px] font-bold shadow-sm mt-0.5", msg.role === "assistant" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
+                  <div className={cn("h-7 w-7 rounded-full shrink-0 flex items-center justify-center text-micro font-bold shadow-sm mt-0.5", msg.role === "assistant" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
                     {msg.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-3.5 w-3.5" />}
                   </div>
                   <div className={cn("max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm", msg.role === "assistant" ? "bg-card border border-border/60 text-foreground" : "bg-primary text-primary-foreground")}>
@@ -452,8 +452,8 @@ export const SandboxTesting = () => {
                     <div className="flex-1 min-w-0 space-y-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium truncate">{test.testCase}</span>
-                        <Badge variant="outline" className="text-[10px] h-4 px-1.5 shrink-0">{test.category}</Badge>
-                        <Badge className={cn("text-[10px] h-4 px-1.5 border shrink-0", STATUS_COLORS[test.status])}>
+                        <Badge variant="outline" className="text-micro h-4 px-1.5 shrink-0">{test.category}</Badge>
+                        <Badge className={cn("text-micro h-4 px-1.5 border shrink-0", STATUS_COLORS[test.status])}>
                           {test.status}
                         </Badge>
                       </div>
