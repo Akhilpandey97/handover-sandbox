@@ -34,7 +34,8 @@ const transformDbProject = (row: any): Project => ({
     kickOffDate: row.kick_off_date,
     goLiveDate: row.go_live_date || undefined,
     expectedGoLiveDate: row.expected_go_live_date || undefined,
-    expectedGoLiveDateIsDerived: Boolean((row as any).expected_go_live_date_is_derived),
+    // Automatic until a person takes ownership of the date.
+    expectedGoLiveDateIsDerived: !(row as any).expected_go_live_is_manual,
   },
   notes: {
     mintNotes: row.mint_notes || "",
@@ -239,18 +240,10 @@ export const useProjectsQuery = () => {
       return (projects || []).map((project) => {
         const checklistForProject = checklistByProject.get(project.id) || [];
         const items = checklistForProject.map(transformDbChecklistItem);
-        // Auto-calculate Expected Go-Live from the latest checklist due date
-        // when it has not been set manually on the project.
-        const derivedExpectedGoLive = items
-          .filter((i) => !i.isTask && i.dueDate)
-          .map((i) => i.dueDate as string)
-          .sort()
-          .pop()
-          ?.slice(0, 10);
+        // Expected Go-Live is stored, not derived here: the database keeps it in
+        // step with the checklist until somebody sets the date themselves.
         return transformDbProject({
           ...project,
-          expected_go_live_date: project.expected_go_live_date || derivedExpectedGoLive || null,
-          expected_go_live_date_is_derived: !project.expected_go_live_date && !!derivedExpectedGoLive,
           checklist_items: items,
           responsibility_logs: logsByProject.get(project.id) || [],
           transfer_history: transfersByProject.get(project.id) || [],
