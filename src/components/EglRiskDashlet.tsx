@@ -92,7 +92,6 @@ export const EglRiskDashlet = () => {
                       kind="egl"
                       reasons={verdict.findings.map((f) => f.detail)}
                       title="Why this go-live is at risk"
-                      footer="Rules from Settings → Go-Live Risk"
                     >
                       <button
                         type="button"

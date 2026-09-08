@@ -76,6 +76,21 @@ async function handler(req: Request): Promise<Response> {
 
     if (!project) return json({ error: "Project not found" }, 404);
 
+    // Teams are renameable per tenant (Settings → Checklist → Team Management),
+    // so the slug stored on a project is not what anyone calls that team. Resolve
+    // to the configured label before it reaches the model, or it repeats "mint"
+    // back to a tenant who renamed that team months ago.
+    const { data: teamRows } = await supabase
+      .from("teams")
+      .select("slug, name")
+      .eq("tenant_id", project.tenant_id);
+
+    const teamLabels = new Map<string, string>(
+      ((teamRows || []) as Array<{ slug: string; name: string }>).map((t) => [t.slug, t.name]),
+    );
+    const teamLabel = (slug: string | null | undefined): string =>
+      (slug && (teamLabels.get(slug) || slug.replace(/_/g, " "))) || "unassigned";
+
     const { data: items } = await supabase
       .from("checklist_items")
       .select("id, title, completed, due_date, owner_team, current_responsibility, is_task, comment")
@@ -124,7 +139,7 @@ async function handler(req: Request): Promise<Response> {
 
     const context = `Merchant: ${project.merchant_name} (MID: ${project.mid})
 Platform: ${project.platform || "N/A"} | Category: ${project.category || "N/A"} | ARR: ${arrCr.toFixed(2)} Cr
-State: ${project.project_state || "not_started"} | Owner team: ${project.current_owner_team || "N/A"} | Pending with: ${project.current_responsibility || "neutral"} | Handover accepted: ${project.pending_acceptance ? "NO" : "yes"}
+State: ${(project.project_state || "not_started").replace(/_/g, " ")} | Owner team: ${teamLabel(project.current_owner_team)} | Pending with: ${project.current_responsibility || "neutral"} | Handover accepted: ${project.pending_acceptance ? "NO" : "yes"}
 Kick-off: ${project.kick_off_date || "N/A"} | Expected go-live: ${project.expected_go_live_date || "not set"} | Actual go-live: ${project.go_live_date || "not live"}
 Integration type: ${project.integration_type || "N/A"} | PG onboarding: ${project.pg_onboarding || "N/A"} | Sales SPOC: ${project.sales_spoc || "N/A"}
 Notes: ${[project.project_notes, project.mint_notes, project.current_phase_comment].filter(Boolean).join(" | ") || "none"}
@@ -132,7 +147,7 @@ Today: ${today}
 
 Checklist progress: ${done.length}/${done.length + open.length} complete.
 OPEN checklist items (name | due | owner | pending with):
-${open.slice(0, 30).map((i) => `- ${i.title} | due ${i.due_date || "no due date"}${i.due_date && i.due_date < today ? " (OVERDUE)" : ""} | ${i.owner_team || "?"} | ${i.current_responsibility || "neutral"}${i.comment ? ` | note: ${i.comment}` : ""}`).join("\n") || "- none"}
+${open.slice(0, 30).map((i) => `- ${i.title} | due ${i.due_date || "no due date"}${i.due_date && i.due_date < today ? " (OVERDUE)" : ""} | ${teamLabel(i.owner_team)} | ${i.current_responsibility || "neutral"}${i.comment ? ` | note: ${i.comment}` : ""}`).join("\n") || "- none"}
 Overdue count: ${overdue.length}
 Recently completed: ${done.slice(-6).map((i) => i.title).join(", ") || "none"}
 

@@ -81,7 +81,6 @@ export const AttentionReasonPopover = ({
   kind,
   reasons,
   title,
-  footer,
   children,
   align = "start",
 }: {
@@ -89,7 +88,6 @@ export const AttentionReasonPopover = ({
   kind: AttentionKind;
   reasons: string[];
   title?: string;
-  footer?: string;
   children: ReactNode;
   align?: "start" | "center" | "end";
 }) => {
@@ -111,7 +109,6 @@ export const AttentionReasonPopover = ({
         <div className="mt-2 border-t pt-2">
           <AttentionReasonBlock projectId={projectId} kind={kind} reasons={reasons} enabled={open} />
         </div>
-        {footer && <p className="mt-2 pt-2 border-t text-[10px] text-muted-foreground">{footer}</p>}
       </PopoverContent>
     </Popover>
   );

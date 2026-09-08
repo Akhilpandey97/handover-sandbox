@@ -80,7 +80,6 @@ export const AttentionRequiredDashlet = () => {
                       kind="risk"
                       reasons={verdict.findings.map((f) => f.detail)}
                       title="Why this needs attention"
-                      footer="Rules from Settings → Risk Rules"
                     >
                       <button
                         type="button"

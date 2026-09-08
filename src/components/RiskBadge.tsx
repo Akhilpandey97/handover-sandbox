@@ -49,7 +49,6 @@ export const RiskBadge = ({
       kind="risk"
       reasons={reasons}
       title="Why this needs attention"
-      footer="Rules from Settings → Risk Rules"
     >
       {trigger}
     </AttentionReasonPopover>
