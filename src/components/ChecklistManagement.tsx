@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamRole } from "@/data/teams";
+import { checklistDueDate } from "@/lib/checklistDueDate";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useTeams } from "@/hooks/useTeams";
@@ -143,11 +144,12 @@ export const ChecklistManagement = () => {
       // Also add to all existing projects in the target tenants
       const { data: projects, error: projectsError } = await supabase
         .from("projects")
-        .select("id, tenant_id")
+        .select("id, tenant_id, kick_off_date")
         .in("tenant_id", tenantIds);
       if (projectsError) throw projectsError;
 
-
+      // The seed trigger only fires on project creation, so items added to
+      // existing projects have to derive their own due date the same way.
       const itemsToInsert = (projects || []).map((p) => ({
         project_id: p.id,
         title,
@@ -157,6 +159,7 @@ export const ChecklistManagement = () => {
         completed: false,
         current_responsibility: "neutral" as const,
         tenant_id: p.tenant_id,
+        due_date: checklistDueDate(p.kick_off_date, standardDuration),
       }));
 
       if (itemsToInsert.length > 0) {
