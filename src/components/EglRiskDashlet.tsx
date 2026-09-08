@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Sparkles } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useEglRisk } from "@/hooks/useEglRisk";
 import type { EglWindow } from "@/data/eglRisk";
 import { GoLiveDate } from "./GoLiveDate";
-import { AttentionReasonPopover } from "./AttentionReason";
+import { AttentionReasonBlock } from "./AttentionReason";
+import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
 
@@ -19,10 +20,11 @@ export const EglRiskDashlet = () => {
   const navigate = useNavigate();
   const { getLabel } = useLabels();
   const [window, setWindow] = useState<EglWindow>("month");
+  const [showAi, setShowAi] = useState(false);
   const { rows } = useEglRisk(window);
 
   return (
-    <section className="rounded-lg border border-border bg-card shadow-sm">
+    <section className="flex h-full flex-col rounded-lg border border-border bg-card shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">Projects at Risk of Missing EGL</p>
@@ -48,11 +50,21 @@ export const EglRiskDashlet = () => {
               </button>
             ))}
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 text-xs"
+            onClick={() => setShowAi((v) => !v)}
+            disabled={rows.length === 0}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {showAi ? "Hide AI" : "AI insights"}
+          </Button>
           <CalendarClock className="h-5 w-5 text-primary" />
         </div>
       </div>
 
-      <div className="max-h-[22rem] overflow-y-auto">
+      <div className="min-h-[16rem] flex-1 overflow-y-auto">
         <Table>
           <TableHeader className="sticky top-0 bg-navy/5 z-10">
             <TableRow className="hover:bg-navy/5 border-b">
@@ -86,21 +98,17 @@ export const EglRiskDashlet = () => {
                       </span>
                     )}
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    <AttentionReasonPopover
-                      projectId={project.id}
-                      kind="egl"
-                      reasons={verdict.findings.map((f) => f.detail)}
-                      title="Why this go-live is at risk"
-                    >
-                      <button
-                        type="button"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-left hover:text-foreground underline decoration-dotted underline-offset-2"
-                      >
-                        {verdict.findings.map((f) => f.detail).join(" · ")}
-                      </button>
-                    </AttentionReasonPopover>
+                  <TableCell className="text-xs text-muted-foreground align-top">
+                    <p>{verdict.findings.map((f) => f.detail).join(" · ")}</p>
+                    {showAi && (
+                      <AttentionReasonBlock
+                        projectId={project.id}
+                        kind="egl"
+                        reasons={verdict.findings.map((f) => f.detail)}
+                        enabled={showAi}
+                        className="mt-2 border-t pt-2"
+                      />
+                    )}
                   </TableCell>
 
                 </TableRow>

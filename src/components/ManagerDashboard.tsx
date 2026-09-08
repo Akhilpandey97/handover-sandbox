@@ -1249,7 +1249,8 @@ export const ManagerDashboard = () => {
 
 
           {/* ========= OVERVIEW TAB ========= */}
-          {activeTab === "dashboard" && <div className="mx-auto grid max-w-[1600px] grid-cols-1 items-start gap-5 lg:grid-cols-2">
+          {/* items-stretch so the two half-width dashlets match each other's height */}
+          {activeTab === "dashboard" && <div className="mx-auto grid max-w-[1600px] grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
             {(() => {
               // Each dashboard section is a named slot so the order can be
               // rearranged and remembered; see useDashletOrder.
