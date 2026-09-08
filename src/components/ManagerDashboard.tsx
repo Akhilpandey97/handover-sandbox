@@ -260,7 +260,6 @@ export const ManagerDashboard = () => {
   // Column headers follow the names configured in Settings → Field Labels.
   const LIST_VIEW_COLUMNS = [
     { key: "merchantName", label: getLabel("field_merchant_name") },
-    { key: "needsAttention", label: "Needs Attention" },
     { key: "mid", label: getLabel("field_mid") },
     { key: "platform", label: getLabel("field_platform") },
     { key: "category", label: getLabel("field_category") },
@@ -286,7 +285,13 @@ export const ManagerDashboard = () => {
   const [listViewColumns, setListViewColumns] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem("listview_columns");
-      return saved ? JSON.parse(saved) : ["merchantName", "platform", "category", "merchantState", "mintComment", "liveDate", "recentComments", "status"];
+      // "needsAttention" was briefly a column of its own. The badge is inline
+      // beside the merchant name again, so drop the key from saved
+      // arrangements — the header and body both map over this list, and a key
+      // with no column left would render an empty one. Only this key is
+      // pruned: saved arrangements also hold custom-field keys, which are
+      // valid and absent from LIST_VIEW_COLUMNS.
+      return saved ? (JSON.parse(saved) as string[]).filter((c) => c !== "needsAttention") : ["merchantName", "platform", "category", "merchantState", "mintComment", "liveDate", "recentComments", "status"];
     } catch { return ["merchantName", "platform", "category", "merchantState", "mintComment", "liveDate", "recentComments", "status"]; }
   });
   const [listViewPage, setListViewPage] = useState(1);
@@ -1880,7 +1885,6 @@ export const ManagerDashboard = () => {
                               case "salesSpoc": return project.salesSpoc || "—";
                               case "kickOffDate": return project.dates.kickOffDate;
                               case "goLiveDate": return project.dates.goLiveDate || project.dates.expectedGoLiveDate || "—";
-                              case "needsAttention": return riskVerdicts[project.id]?.level === "high" ? "Needs attention" : "";
                               case "expectedGoLiveDate": return formatGoLiveDate(project);
                               case "integrationType": return project.integrationType || "—";
                               case "pgOnboarding": return project.pgOnboarding || "—";
@@ -1908,8 +1912,11 @@ export const ManagerDashboard = () => {
                               </TableCell>
                               {listViewColumns.map(colKey => (
                                 <TableCell key={colKey} className={cn("text-sm", colKey === "status" && statusColor, colKey === "recentComments" && "max-w-[200px]")}>
-                                  {colKey === "needsAttention" ? (
-                                    <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} />
+                                  {colKey === "merchantName" ? (
+                                    <span className="inline-flex items-center gap-1.5">
+                                      {getColValue(colKey)}
+                                      <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} />
+                                    </span>
                                   ) : ["mintNotes", "projectNotes", "opsComment", "phase2Comment"].includes(colKey) ? (
                                     <span className="truncate block max-w-[200px]" title={getColValue(colKey)}>{getColValue(colKey)}</span>
                                   ) : colKey === "recentComments" ? (

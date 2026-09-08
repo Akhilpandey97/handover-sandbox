@@ -114,7 +114,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   }, [fullProjects]);
 
   const ALL_COLUMNS = useMemo(() => ([
-    { key: "needs_attention", label: "Needs Attention" },
     { key: "arr", label: `${arrLabel} Cr.` },
     { key: "stage", label: stageLabel },
     { key: "blocker", label: "Blocker" },
@@ -136,7 +135,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
         }
       } catch { /* ignore */ }
     }
-    return ["needs_attention", "arr", "stage", "blocker", "blocked_on", "deadline", "confidence", "owner", "expected", "csm"];
+    return ["arr", "stage", "blocker", "blocked_on", "deadline", "confidence", "owner", "expected", "csm"];
   });
   const isVisible = (key: string) => visibleColumns.includes(key);
   const toggleColumn = (key: string) => {
@@ -528,7 +527,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
               <TableHeader className="sticky top-0 bg-navy/5 z-10">
                 <TableRow className="hover:bg-navy/5 border-b">
                   <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">Opportunity</TableHead>
-                  {isVisible("needs_attention") && <TableHead className="font-semibold whitespace-nowrap text-navy">Needs Attention</TableHead>}
                   {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy">{arrLabel} Cr.</TableHead>}
                   {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stageLabel}</TableHead>}
                   {isVisible("blocker") && <TableHead className="font-semibold min-w-[200px] text-navy">Blocker</TableHead>}
@@ -560,12 +558,8 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       >
                         {p.merchant_name}
                       </button>
+                      <RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} className="ml-1.5 align-middle" />
                     </TableCell>
-                    {isVisible("needs_attention") && (
-                      <TableCell className="whitespace-nowrap">
-                        <RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} />
-                      </TableCell>
-                    )}
                     {isVisible("arr") && <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>}
                     {isVisible("stage") && (
                       <TableCell className="whitespace-nowrap">
