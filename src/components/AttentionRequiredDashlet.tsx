@@ -36,7 +36,7 @@ export const AttentionRequiredDashlet = () => {
       <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">
-            Attention Required
+            Projects Needing Attention
             {rows.length > 0 && (
               <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-500/15 dark:text-red-300">
                 {rows.length}
@@ -44,7 +44,7 @@ export const AttentionRequiredDashlet = () => {
             )}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Projects needing attention — from Settings → Risk Rules
+            Evaluated from Settings → Risk Rules
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
