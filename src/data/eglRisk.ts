@@ -13,8 +13,57 @@
 
 export type EglWindow = "week" | "month";
 
-/** No checklist comment in this many days reads as stalled. */
-const STALL_DAYS = 5;
+export type EglRuleId =
+  | "golive_passed"
+  | "state"
+  | "pending_acceptance"
+  | "checklist_overdue"
+  | "work_after_golive"
+  | "work_remaining"
+  | "stalled";
+
+export interface EglRule {
+  id: EglRuleId;
+  label: string;
+  enabled: boolean;
+  /** Stall threshold, for the `stalled` rule. */
+  days?: number;
+  /** Which project states count, for the `state` rule. */
+  states?: string[];
+}
+
+export const EGL_SETTINGS_KEY = "egl_risk_config";
+
+export const EGL_RULE_DESCRIPTIONS: Record<EglRuleId, string> = {
+  golive_passed: "The go-live date has passed and the project is not live",
+  state: "Project is in a state that blocks progress",
+  pending_acceptance: "A handover has not been accepted",
+  checklist_overdue: "Open checklist items are already past due",
+  work_after_golive: "Open checklist items are due after the go-live date",
+  work_remaining: "More open items than working days left",
+  stalled: "No checklist comments for N days",
+};
+
+export const DEFAULT_EGL_RULES: EglRule[] = [
+  { id: "golive_passed", label: "Go-live date passed", enabled: true },
+  { id: "state", label: "Blocked or on hold", enabled: true, states: ["blocked", "on_hold"] },
+  { id: "pending_acceptance", label: "Handover not accepted", enabled: true },
+  { id: "checklist_overdue", label: "Checklist items overdue", enabled: true },
+  { id: "work_after_golive", label: "Work due after go-live", enabled: true },
+  { id: "work_remaining", label: "Too much work left", enabled: true },
+  { id: "stalled", label: "No recent activity", enabled: true, days: 5 },
+];
+
+export const parseEglRules = (raw: string | null | undefined): EglRule[] => {
+  if (!raw) return DEFAULT_EGL_RULES;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed as EglRule[];
+  } catch {
+    /* fall through to defaults */
+  }
+  return DEFAULT_EGL_RULES;
+};
 
 export interface EglRiskInput {
   projectState: string;
@@ -97,7 +146,12 @@ export const isInWindow = (
   return day >= startOfDayUtc(start) && day <= startOfDayUtc(end);
 };
 
-export const evaluateEglRisk = (input: EglRiskInput): EglRiskVerdict => {
+export const evaluateEglRisk = (
+  input: EglRiskInput,
+  rules: EglRule[] = DEFAULT_EGL_RULES,
+): EglRiskVerdict => {
+  const byId = new Map(rules.map((r) => [r.id, r]));
+  const on = (id: EglRuleId) => byId.get(id)?.enabled === true;
   const now = input.now ?? new Date();
   const findings: EglRiskFinding[] = [];
   const egl = parseDate(input.expectedGoLiveDate);
@@ -110,14 +164,15 @@ export const evaluateEglRisk = (input: EglRiskInput): EglRiskVerdict => {
   const openItems = input.checklist.filter((c) => !c.isTask && !c.completed);
 
   // The date itself has already slipped.
-  if (daysRemaining < 0) {
+  if (on("golive_passed") && daysRemaining < 0) {
     findings.push({
       ruleId: "golive_passed",
       detail: `Go-live was ${plural(Math.abs(daysRemaining), "day")} ago and the project is not live`,
     });
   }
 
-  if (input.projectState === "blocked" || input.projectState === "on_hold") {
+  const watchedStates = byId.get("state")?.states ?? ["blocked", "on_hold"];
+  if (on("state") && watchedStates.includes(input.projectState)) {
     const state = input.projectState.replace(/_/g, " ");
     findings.push({
       ruleId: "state",
@@ -127,7 +182,7 @@ export const evaluateEglRisk = (input: EglRiskInput): EglRiskVerdict => {
     });
   }
 
-  if (input.pendingAcceptance) {
+  if (on("pending_acceptance") && input.pendingAcceptance) {
     findings.push({ ruleId: "pending_acceptance", detail: "Handover has not been accepted yet" });
   }
 
@@ -136,7 +191,7 @@ export const evaluateEglRisk = (input: EglRiskInput): EglRiskVerdict => {
     const due = parseDate(c.dueDate);
     return due !== null && daysBetween(now, due) < 0;
   });
-  if (overdue.length > 0) {
+  if (on("checklist_overdue") && overdue.length > 0) {
     findings.push({
       ruleId: "checklist_overdue",
       detail: `${plural(overdue.length, "checklist item")} already past due`,
@@ -148,7 +203,7 @@ export const evaluateEglRisk = (input: EglRiskInput): EglRiskVerdict => {
     const due = parseDate(c.dueDate);
     return due !== null && daysBetween(egl, due) > 0;
   });
-  if (dueAfterEgl.length > 0) {
+  if (on("work_after_golive") && dueAfterEgl.length > 0) {
     findings.push({
       ruleId: "work_after_golive",
       detail: `${plural(dueAfterEgl.length, "checklist item")} due after the go-live date`,
@@ -156,7 +211,7 @@ export const evaluateEglRisk = (input: EglRiskInput): EglRiskVerdict => {
   }
 
   // More open work than working days left to do it in.
-  if (daysRemaining >= 0 && openItems.length > 0) {
+  if (on("work_remaining") && daysRemaining >= 0 && openItems.length > 0) {
     const workingDays = workingDaysUntil(now, egl);
     if (openItems.length > workingDays) {
       findings.push({
@@ -169,9 +224,10 @@ export const evaluateEglRisk = (input: EglRiskInput): EglRiskVerdict => {
   // Momentum. No comments at all falls back to the project's own timestamp so a
   // brand new project isn't flagged for silence it hasn't had time to break.
   const lastTouch = parseDate(input.lastActivityAt ?? input.updatedAt);
-  if (lastTouch) {
+  if (on("stalled") && lastTouch) {
+    const stallDays = byId.get("stalled")?.days ?? 5;
     const silentFor = Math.abs(daysBetween(lastTouch, now));
-    if (silentFor >= STALL_DAYS) {
+    if (silentFor >= stallDays) {
       findings.push({
         ruleId: "stalled",
         detail: input.lastActivityAt

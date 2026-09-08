@@ -17,6 +17,7 @@ import { ActivityLogViewer } from "./settings/ActivityLogViewer";
 import { SlackAlertsSettings } from "./settings/SlackAlertsSettings";
 import { FunnelStagesSettings } from "./settings/FunnelStagesSettings";
 import { RiskRulesSettings } from "./settings/RiskRulesSettings";
+import { EglRulesSettings } from "./settings/EglRulesSettings";
 import { IntegrationsSettings } from "./settings/IntegrationsSettings";
 import { usePermissions } from "@/hooks/usePermissions";
 import { NoAccessCard } from "@/components/NoAccessCard";
@@ -464,7 +465,10 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
 
         {/* Risk Rules Tab */}
         <TabsContent value="risk-rules">
-          <RiskRulesSettings />
+          <div className="space-y-6">
+            <RiskRulesSettings />
+            <EglRulesSettings />
+          </div>
         </TabsContent>
 
         {/* Activity Log Tab */}

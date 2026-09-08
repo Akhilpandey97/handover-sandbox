@@ -3,6 +3,7 @@ import type { Project } from "@/data/projectsData";
 import { EglRiskVerdict, EglWindow, evaluateEglRisk, isInWindow } from "@/data/eglRisk";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLastChecklistActivity } from "@/hooks/useLastChecklistActivity";
+import { useEglRules } from "@/hooks/useEglRules";
 
 export interface EglRiskRow {
   project: Project;
@@ -17,6 +18,7 @@ export interface EglRiskRow {
 export const useEglRisk = (window: EglWindow) => {
   const { projects } = useProjects();
   const { lastActivityByProject } = useLastChecklistActivity();
+  const { rules } = useEglRules();
 
   const rows = useMemo<EglRiskRow[]>(() => {
     const now = new Date();
@@ -37,12 +39,12 @@ export const useEglRisk = (window: EglWindow) => {
           lastActivityAt: lastActivityByProject[p.id] ?? null,
           updatedAt: p.updatedAt ?? null,
           now,
-        }),
+        }, rules),
       }))
       .filter((r) => r.verdict.atRisk)
       // Soonest (and most overdue) first — that is the order to act in.
       .sort((a, b) => a.verdict.daysRemaining - b.verdict.daysRemaining);
-  }, [projects, lastActivityByProject, window]);
+  }, [projects, lastActivityByProject, rules, window]);
 
   return { rows };
 };
