@@ -15,17 +15,20 @@ export const DashletSlot = ({
   onDragStart,
   onDragOver,
   onDragEnd,
+  className,
   children,
 }: {
   isDragging?: boolean;
   onDragStart: () => void;
   onDragOver: () => void;
   onDragEnd: () => void;
+  /** Grid span — the dashboard lays slots out in two columns. */
+  className?: string;
   children: ReactNode;
 }) => (
   <div
     onDragOver={(e) => { e.preventDefault(); onDragOver(); }}
-    className={cn("group relative transition-opacity", isDragging && "opacity-50")}
+    className={cn("group relative transition-opacity", isDragging && "opacity-50", className)}
   >
     <button
       type="button"

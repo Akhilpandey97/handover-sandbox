@@ -1249,7 +1249,7 @@ export const ManagerDashboard = () => {
 
 
           {/* ========= OVERVIEW TAB ========= */}
-          {activeTab === "dashboard" && <div className="mx-auto max-w-[1600px] space-y-5">
+          {activeTab === "dashboard" && <div className="mx-auto grid max-w-[1600px] grid-cols-1 items-start gap-5 lg:grid-cols-2">
             {(() => {
               // Each dashboard section is a named slot so the order can be
               // rearranged and remembered; see useDashletOrder.
@@ -1476,9 +1476,13 @@ export const ManagerDashboard = () => {
                 </div>
                 </>),
               };
+              // The two attention lists sit side by side on wide screens; the
+              // rest span the full width. Everything stacks below lg.
+              const halfWidth = new Set(["attention", "egl"]);
               return dashletOrder.map((id) => dashlets[id] ? (
                 <DashletSlot
                   key={id}
+                  className={halfWidth.has(id) ? "lg:col-span-1" : "lg:col-span-2"}
                   isDragging={draggingDashlet === id}
                   onDragStart={() => onDashletDragStart(id)}
                   onDragOver={() => onDashletDragOver(id)}
