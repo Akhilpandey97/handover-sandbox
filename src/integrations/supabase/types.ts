@@ -1899,6 +1899,7 @@ export type Database = {
         Row: {
           findings_hash: string
           generated_at: string
+          kind: string
           model: string | null
           project_id: string
           recommendation: string
@@ -1908,6 +1909,7 @@ export type Database = {
         Insert: {
           findings_hash: string
           generated_at?: string
+          kind?: string
           model?: string | null
           project_id: string
           recommendation: string
@@ -1917,6 +1919,7 @@ export type Database = {
         Update: {
           findings_hash?: string
           generated_at?: string
+          kind?: string
           model?: string | null
           project_id?: string
           recommendation?: string
@@ -1927,7 +1930,7 @@ export type Database = {
           {
             foreignKeyName: "project_risk_insights_project_id_fkey"
             columns: ["project_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
