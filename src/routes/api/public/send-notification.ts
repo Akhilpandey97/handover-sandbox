@@ -35,7 +35,7 @@ async function handler(req: Request): Promise<Response> {
     if (type === "project_assignment") {
       subject = `🎯 New Project Assigned: ${projectName}`;
       htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 20px; border-radius: 12px 12px 0 0; color: white;">
             <h1 style="margin: 0; font-size: 20px;">🎯 New Project Assignment</h1>
           </div>
@@ -53,7 +53,7 @@ async function handler(req: Request): Promise<Response> {
     } else if (type === "project_transfer") {
       subject = `📦 Incoming Project Transfer: ${projectName}`;
       htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #f59e0b, #ef4444); padding: 20px; border-radius: 12px 12px 0 0; color: white;">
             <h1 style="margin: 0; font-size: 20px;">📦 Incoming Project Transfer</h1>
           </div>
@@ -72,7 +72,7 @@ async function handler(req: Request): Promise<Response> {
     } else if (type === "project_rejection") {
       subject = `🔴 Project Rejected: ${projectName}`;
       htmlContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 20px; border-radius: 12px 12px 0 0; color: white;">
             <h1 style="margin: 0; font-size: 20px;">🔴 Project Rejected — Action Needed</h1>
           </div>

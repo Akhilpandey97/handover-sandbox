@@ -294,7 +294,7 @@ function buildDigestHtml(
   creds: { app_base_url: string | null },
 ): string {
   if (items.length === 0) {
-    return `<div style="font-family:Arial,sans-serif;padding:16px;color:#111">
+    return `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;padding:16px;color:#111">
       <p>✅ No stuck merchants matched <code>${escapeHtml(tag)}</code> (>${hours}h).</p>
       <p style="color:#666;font-size:12px">This is a test digest.</p>
     </div>`;
@@ -327,7 +327,7 @@ function buildDigestHtml(
     })
     .join("");
 
-  return `<div style="font-family:Arial,sans-serif;background:#f9fafb;padding:16px;color:#111">
+  return `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#f9fafb;padding:16px;color:#111">
     <h2 style="margin:0 0 12px;font-size:17px">🚨 Merchants pending response (${hours}h+)</h2>
     <p style="margin:0 0 14px;color:#374151;font-size:13px">
       ${items.length} merchant${items.length > 1 ? "s have" : " has"} a checklist note tagged <code>${escapeHtml(tag)}</code> older than ${hours}h with no follow-up.

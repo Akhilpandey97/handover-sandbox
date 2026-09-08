@@ -185,7 +185,7 @@ const buildFunnelEmailHtml = (
   const totalActive = filtered.filter(isActive).length;
   const totalInactive = filtered.length - totalActive;
 
-  let html = `<div style="font-family:Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
+  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
   html += `<p style="margin:0 0 14px;color:#64748b;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</p>`;
   html += `<div style="background:#f1f5f9;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;">
@@ -254,7 +254,7 @@ const buildBucketedEmailHtml = (
     </div>`;
   };
 
-  let html = `<div style="font-family:Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
+  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
   html += `<p style="margin:0 0 18px;color:#64748b;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</p>`;
   html += section("Wins", "#059669", activeBuckets.wins, "No new wins this period.");

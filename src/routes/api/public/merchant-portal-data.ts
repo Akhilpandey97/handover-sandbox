@@ -150,7 +150,7 @@ async function handler(req: Request): Promise<Response> {
       if (!RESEND_API_KEY) return json({ error: "Resend email is not configured for this tenant" }, 500);
 
       const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #003c71, #0066b3); padding: 24px; border-radius: 12px 12px 0 0; color: white;">
             <h1 style="margin: 0; font-size: 22px;">⚡ Your KwikAssist Portal Access</h1>
           </div>

@@ -341,7 +341,7 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
     </div>`;
   };
 
-  let html = `<div style="font-family:Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
+  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
   html += `<p style="margin:0 0 14px;color:#64748b;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata" })}</p>`;
   html += `<div style="background:#f1f5f9;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;">

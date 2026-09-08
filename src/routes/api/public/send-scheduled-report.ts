@@ -521,7 +521,9 @@ async function sendReportEmail(
 <meta name="x-apple-disable-message-reformatting">
 <title>${report.name}</title>
 <style>
-  body { margin:0; padding:0; background:#f1f5f9; }
+  body { margin:0; padding:0; background:#f1f5f9; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+  /* Outlook ignores the body font on tables, so restate it there. */
+  table, td, th, div, p, h1 { font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
   .wrap { max-width:900px; margin:0 auto; padding:16px; }
   .desktop-table { display:block; }
   .mobile-cards { display:none; }

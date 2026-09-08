@@ -6,13 +6,13 @@
 
 /*
   Handover design system — "Ocean Deep":
-  deep navy hero surfaces, teal/cyan accents, Outfit display + Figtree body,
+  deep navy hero surfaces, teal/cyan accents, Inter throughout,
   soft layered shadows and translucent cards.
 */
 
 @theme inline {
-  --font-sans: "Figtree", system-ui, -apple-system, sans-serif;
-  --font-display: "Outfit", "Figtree", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   --color-navy: #30658F;
@@ -271,7 +271,7 @@
   }
 
   html {
-    font-family: "Figtree", system-ui, -apple-system, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
 
   body {
@@ -286,7 +286,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Outfit", "Figtree", system-ui, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     letter-spacing: -0.015em;
   }
 

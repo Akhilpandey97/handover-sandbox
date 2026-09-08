@@ -116,7 +116,7 @@ function buildReport(projects: any[], granularity: "monthly" | "quarterly") {
 function renderHtml(title: string, granularity: "monthly" | "quarterly", data: ReturnType<typeof buildReport>) {
   const th = `background:#f1f5f9;padding:8px 10px;text-align:left;font-size:12px;color:#334155;border-bottom:1px solid #cbd5e1;`;
   const td = `padding:8px 10px;font-size:13px;color:#1e293b;border-bottom:1px solid #e2e8f0;`;
-  let html = `<div style="font-family:Arial,sans-serif;max-width:900px;margin:0 auto;padding:20px;color:#1e293b;">`;
+  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:900px;margin:0 auto;padding:20px;color:#1e293b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
   html += `<p style="margin:0 0 14px;color:#64748b;font-size:12px;">Grouped by ${granularity} · Generated ${new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata" })} IST</p>`;
   html += `<div style="background:#f1f5f9;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;">

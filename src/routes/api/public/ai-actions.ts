@@ -266,7 +266,7 @@ async function handler(req: Request): Promise<Response> {
               to: [project.contact_email],
               subject: `📋 BRD Form Required: ${project.merchant_name}`,
               html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                   <div style="background: linear-gradient(135deg, #3b82f6, #6366f1); padding: 20px; border-radius: 12px 12px 0 0; color: white;">
                     <h1 style="margin: 0; font-size: 20px;">📋 BRD Form Required</h1>
                   </div>
