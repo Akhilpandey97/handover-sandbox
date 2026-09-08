@@ -1029,7 +1029,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
           onDragOver={(e) => handleTabDragOver(e, tab)}
           onDragEnd={handleTabDragEnd}
           className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group",
+            "w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 text-left group",
             isActive && !isReports && !isSettings
               ? "gradient-primary text-primary-foreground shadow-[var(--shadow-soft)]"
               : isParentActive
@@ -1039,7 +1039,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
           )}
         >
           <span className={cn(
-            "flex items-center justify-center h-8 w-8 rounded-lg shrink-0 transition-colors",
+            "flex items-center justify-center h-7 w-7 rounded-md shrink-0 transition-colors",
             isActive && !isReports && !isSettings
               ? "bg-primary-foreground/20 text-primary-foreground"
               : isParentActive
@@ -1059,13 +1059,13 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
 
         {/* Reports sub-menu */}
         {isReports && reportsExpanded && (
-          <div className="ml-6 mt-1 mb-1 space-y-1 pl-4">
+          <div className="ml-4 mt-0.5 mb-1 space-y-0.5 border-l border-sidebar-border/60 pl-2">
             {Object.entries(REPORTS_SUB_CONFIG).filter(([key]) => navVisibility[`reports:${key}`] !== false).map(([key, cfg]) => (
               <button
                 key={key}
                 onClick={() => navigate({ to: pathForTab("reports", { reportSubTab: key, reportType }) })}
                 className={cn(
-                  "w-full flex items-center gap-2.5 text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
+                  "w-full flex items-center gap-2 text-left px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
                   reportSubTab === key && activeTab === "reports"
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
@@ -1080,13 +1080,13 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
 
         {/* Settings sub-menu */}
         {isSettings && settingsExpanded && (
-          <div className="ml-6 mt-1 mb-1 space-y-1 pl-4">
+          <div className="ml-4 mt-0.5 mb-1 space-y-0.5 border-l border-sidebar-border/60 pl-2">
             {Object.entries(SETTINGS_SUB_CONFIG).filter(([key]) => (key === "navigation" || navVisibility[`settings:${key}`] !== false) && (!ADMIN_ONLY_SETTINGS.includes(key) || perms.canManageUsers)).map(([key, { label }]) => (
               <button
                 key={key}
                 onClick={() => navigate({ to: pathForTab("settings", { settingsSubTab: key }) })}
                 className={cn(
-                  "w-full flex items-center gap-2.5 text-left px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
+                  "w-full flex items-center gap-2 text-left px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
                   settingsSubTab === key && activeTab === "settings"
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
@@ -1208,14 +1208,14 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 px-2 py-4 overflow-y-auto">
-          <div className="space-y-1">
+        <nav className="flex-1 px-2 py-2 overflow-y-auto">
+          <div className="space-y-0.5">
             {sidebarTabs.map((tab) => sidebarCollapsed ? (
               <button
                 key={tab}
                 onClick={() => openTab(tab)}
                 className={cn(
-                  "w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200",
+                  "w-full flex items-center justify-center p-2.5 rounded-lg transition-all duration-200",
                   activeTab === tab
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25"
                     : "hover:bg-sidebar-accent/60 text-sidebar-foreground"
@@ -1233,7 +1233,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
                 onClick={onOpenAssistant}
                 title="Hi there — ask the AI assistant"
                 aria-label="Hi there — ask the AI assistant"
-                className="w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
+                className="w-full flex items-center justify-center p-2.5 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
               >
                 <span className="animate-wave text-base leading-none">👋</span>
               </button>
@@ -1241,9 +1241,9 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
               <button
                 type="button"
                 onClick={onOpenAssistant}
-                className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
+                className="group w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-left transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sidebar-accent">
                   <span className="animate-wave text-base leading-none">👋</span>
                 </span>
                 <span className="flex-1 text-sm font-medium">Hi there</span>
