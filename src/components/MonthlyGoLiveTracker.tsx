@@ -21,6 +21,8 @@ import { getProjectFunnelStage, funnelStageLabels, projectStateLabels } from "@/
 import { RiskBadge } from "./RiskBadge";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { arrCroreValue } from "@/lib/arr";
+import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
+import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
 
 type Project = {
   id: string;
@@ -98,6 +100,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const [editProjectId, setEditProjectId] = useState<string | null>(null);
   const { projects: fullProjects, updateProject } = useProjects();
   const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
+  // Column parity with the List view: status and the tenant's custom fields
+  // were selectable there but absent here.
+  const { fields: customFields } = useCustomFields();
+  const { valuesMap: customValuesMap } = useAllCustomFieldValues(useMemo(() => projects.map(p => p.id), [projects]));
   const editingProject = editProjectId ? fullProjects.find(p => p.id === editProjectId) : null;
 
   const arrLabel = getLabel("field_arr");
@@ -116,6 +122,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const ALL_COLUMNS = useMemo(() => ([
     { key: "arr", label: `${arrLabel} Cr.` },
     { key: "stage", label: stageLabel },
+    { key: "status", label: stateLabel },
     { key: "blocker", label: "Blocker" },
     { key: "blocked_on", label: "Blocked On" },
     { key: "deadline", label: "Deadline" },
@@ -123,7 +130,8 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     { key: "owner", label: ownerLabel },
     { key: "expected", label: expectedLabel },
     { key: "csm", label: "CSM" },
-  ]), [arrLabel, stageLabel, ownerLabel, expectedLabel]);
+    ...customFields.map(cf => ({ key: `custom_field_${cf.id}`, label: cf.field_label })),
+  ]), [arrLabel, stageLabel, stateLabel, ownerLabel, expectedLabel, customFields]);
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
@@ -363,14 +371,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
           {/* Sort */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                <ArrowUpDown className="h-4 w-4" />
-                Sort
-                {sortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>}
-                <ChevronDown className="h-3 w-3" />
-              </Button>
+              <ToolbarIconButton icon={<ArrowUpDown className="h-3.5 w-3.5" />} label="Sort" count={sortField !== "none" ? 1 : 0} />
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-[320px] p-4 space-y-3">
+            <PopoverContent align="start" className={TOOLBAR_POPOVER.sort}>
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">Sort By</p>
                 {sortField !== "none" && (
@@ -410,20 +413,16 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
           {/* Filters */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                <Filter className="h-4 w-4" />
-                Filters
-                {activeFilterCount > 0 && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{activeFilterCount}</Badge>}
-                <ChevronDown className="h-3 w-3" />
-              </Button>
+              <ToolbarIconButton icon={<Filter className="h-3.5 w-3.5" />} label="Filters" count={activeFilterCount} />
             </PopoverTrigger>
-            <PopoverContent align="start" collisionPadding={16} className="w-[560px] p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Filters</p>
+            <PopoverContent align="start" collisionPadding={16} className={TOOLBAR_POPOVER.filters} style={TOOLBAR_PANEL_MAX_H}>
+              <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
+                <p className="text-xs font-semibold">Filters</p>
                 {activeFilterCount > 0 && (
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={clearFilters}><X className="h-3 w-3" /> Reset</Button>
+                  <Button variant="ghost" size="sm" className="h-6 text-[11px] gap-1" onClick={clearFilters}><X className="h-3 w-3" /> Reset</Button>
                 )}
               </div>
+              <div className="overflow-y-auto flex-1 min-h-0 p-3 space-y-2.5">
               <label className="flex items-center gap-2 cursor-pointer border-b pb-2">
                 <Checkbox checked={needsAttentionOnly} onCheckedChange={v => setNeedsAttentionOnly(!!v)} className="h-3.5 w-3.5" />
                 <span className="text-xs text-muted-foreground">Needs attention only</span>
@@ -438,7 +437,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                     <label className="text-xs text-muted-foreground font-medium">{label}</label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between h-10 text-sm font-normal">
+                        <Button variant="outline" className="w-full justify-between h-8 text-xs font-normal">
                           <span className="truncate">{values.length === 0 ? `All` : `${values.length} selected`}</span>
                           <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
                         </Button>
@@ -475,19 +474,16 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                   </div>
                 </div>
               </div>
+              </div>
             </PopoverContent>
           </Popover>
 
           {/* Select Columns */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                <ListChecks className="h-4 w-4" />
-                Select Columns
-                <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">{visibleColumns.length}</Badge>
-              </Button>
+              <ToolbarIconButton icon={<ListChecks className="h-3.5 w-3.5" />} label="Select columns" />
             </PopoverTrigger>
-            <PopoverContent className="w-64 p-3" align="end">
+            <PopoverContent className={TOOLBAR_POPOVER.columns} align="end">
               <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Visible Columns</p>
               <div className="space-y-1 max-h-[300px] overflow-auto">
                 {ALL_COLUMNS.map(col => (
@@ -518,17 +514,19 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   );
 
   return (
-    <div className="space-y-4">
+    <div className="flex min-h-0 flex-1 flex-col">
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
-      <Card className="w-full">
-        <CardContent className="p-0 overflow-auto rounded-t-lg">
-            <div className="h-1 w-full bg-navy" />
+      <Card className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
+        <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+            <div className="h-1 w-full shrink-0 bg-navy" />
+            <div className="min-h-0 flex-1 overflow-auto">
             <Table className="text-sm w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
-              <TableHeader className="sticky top-0 bg-navy/5 z-10">
+              <TableHeader className="sticky top-0 z-10 bg-card bg-[linear-gradient(hsl(var(--navy)/0.05),hsl(var(--navy)/0.05))]">
                 <TableRow className="hover:bg-navy/5 border-b">
                   <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">Opportunity</TableHead>
                   {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy">{arrLabel} Cr.</TableHead>}
                   {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stageLabel}</TableHead>}
+                  {isVisible("status") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stateLabel}</TableHead>}
                   {isVisible("blocker") && <TableHead className="font-semibold min-w-[200px] text-navy">Blocker</TableHead>}
                   {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-navy">Blocked On</TableHead>}
                   {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-navy">Deadline</TableHead>}
@@ -536,6 +534,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                   {isVisible("owner") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy">{ownerLabel}</TableHead>}
                   {isVisible("expected") && <TableHead className="font-semibold whitespace-nowrap text-navy">{expectedLabel}</TableHead>}
                   {isVisible("csm") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy">CSM</TableHead>}
+                  {customFields.map(cf => isVisible(`custom_field_${cf.id}`) && (
+                    <TableHead key={cf.id} className="font-semibold whitespace-nowrap text-navy">{cf.field_label}</TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
             <TableBody>
@@ -564,6 +565,11 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                     {isVisible("stage") && (
                       <TableCell className="whitespace-nowrap">
                         <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", STAGE_BADGE[stage] || "bg-navy text-navy-foreground")}>{funnelStageLabels[stage] || "—"}</span>
+                      </TableCell>
+                    )}
+                    {isVisible("status") && (
+                      <TableCell className="whitespace-nowrap text-sm">
+                        {projectStateLabels[p.project_state as keyof typeof projectStateLabels] || "—"}
                       </TableCell>
                     )}
                     {isVisible("blocker") && (
@@ -659,11 +665,17 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
                       />
                     </TableCell>
                     )}
+                    {customFields.map(cf => isVisible(`custom_field_${cf.id}`) && (
+                      <TableCell key={cf.id} className="whitespace-nowrap text-sm">
+                        {customValuesMap[p.id]?.[cf.id] || "—"}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
+            </div>
         </CardContent>
       </Card>
 

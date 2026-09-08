@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown } from "lucide-react";
 import { Search, Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
 
 const KANBAN_FIELD_OPTIONS = [
   { key: "funnelStage", label: "Project Stage" },
@@ -380,15 +381,9 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
-              <Filter className="h-3.5 w-3.5" />
-              Filters
-              {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{activeFilterCount}</Badge>
-              )}
-            </Button>
+            <ToolbarIconButton icon={<Filter className="h-3.5 w-3.5" />} label="Filters" count={activeFilterCount} />
           </PopoverTrigger>
-          <PopoverContent align="start" collisionPadding={16} className="w-[600px] p-0 flex flex-col" style={{ maxHeight: 'calc(100vh - 100px)' }}>
+          <PopoverContent align="start" collisionPadding={16} className={TOOLBAR_POPOVER.filters} style={TOOLBAR_PANEL_MAX_H}>
             <div className="flex items-center justify-between px-4 py-2.5 border-b shrink-0">
               <p className="text-sm font-semibold">Filters</p>
               {activeFilterCount > 0 && (
@@ -490,7 +485,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
   );
 
   return (
-    <div className="flex flex-col h-full w-full gap-4 min-h-0">
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       {/* Board */}
       <div className="flex gap-3 w-full flex-1 min-h-0 overflow-x-auto pb-2">

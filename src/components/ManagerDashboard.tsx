@@ -44,7 +44,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -99,12 +98,14 @@ import {
   MessageCircle,
   Server,
   ShoppingBag,
+  Filter,
 } from "lucide-react";
 import { exportProjectsToCSV } from "@/utils/exportProjects";
 import { exportProjectChecklistCSV, exportTeamOwnerCSV } from "@/utils/reportExportCSV";
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
+import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
 import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
 import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
@@ -271,6 +272,7 @@ export const ManagerDashboard = () => {
     { key: "liveDate", label: getLabel("field_actual_go_live_date") },
     { key: "recentComments", label: "Recent Comments" },
     { key: "status", label: "Status" },
+    { key: "projectStage", label: getLabel("field_project_stage") },
     { key: "arr", label: getLabel("field_arr") },
     { key: "owner", label: getLabel("field_assigned_owner") },
     { key: "salesSpoc", label: getLabel("field_sales_spoc") },
@@ -1268,16 +1270,17 @@ export const ManagerDashboard = () => {
       {/* Main Content */}
       <main className="flex-1 flex min-h-0 flex-col min-w-0">
 
-        {/* Content Area */}
-        <ScrollArea className="flex-1 app-shell-surface">
-          <div className="p-4 sm:p-6">
+        {/* Content Area — the projects tab fills the viewport and scrolls
+            inside its board/tables; every other tab scrolls the page. */}
+        <div className={cn("min-h-0 flex-1 app-shell-surface", activeTab === "projects" ? "flex flex-col overflow-hidden" : "overflow-auto")}>
+          <div className={cn("p-4 sm:p-6", activeTab === "projects" && "flex min-h-0 flex-1 flex-col")}>
 
           {activeTab === "projects" && (
             // One centred row: the view tabs and that view's own controls sit
             // together on a single centre line, with no divider under them. The
             // active tab is a filled pill rather than an underline, which needs
             // a baseline to read against.
-            <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
+            <div className="mb-3 flex shrink-0 flex-wrap items-center justify-center gap-2">
               <div className="flex items-center gap-1" role="tablist" aria-label="Project views">
                 {[
                   { value: "kanban", label: "Kanban", icon: <GripVertical className="h-3.5 w-3.5" /> },
@@ -1619,24 +1622,19 @@ export const ManagerDashboard = () => {
 
 
           {/* ========= LIST VIEW TAB ========= */}
-          {activeTab === "projects" && projectView === "list" && <div className="space-y-4">
-            <Card className="shadow-sm border-border">
+          {activeTab === "projects" && projectView === "list" && <div className="flex min-h-0 flex-1 flex-col">
+            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden shadow-sm border-border">
               {projectToolbarHost ? createPortal(<CardHeader className="w-full border-0 bg-transparent p-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-2 relative">
                     {/* Sort Dropdown - left side */}
-                    <Collapsible>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                          <ArrowUpDown className="h-4 w-4" />
-                          Sort
-                          {listSortField !== "none" && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>}
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="absolute z-20 mt-2 left-0 top-full w-[320px] bg-card border rounded-lg shadow-xl p-4 space-y-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-semibold">Sort By</p>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <ToolbarIconButton icon={<ArrowUpDown className="h-3.5 w-3.5" />} label="Sort" count={listSortField !== "none" ? 1 : 0} />
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className={TOOLBAR_POPOVER.sort}>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold">Sort by</p>
                           {listSortField !== "none" && (
                             <Button variant="ghost" size="sm" onClick={() => { setListSortField("none"); setListSortDir("asc"); }} className="text-xs h-7">Clear</Button>
                           )}
@@ -1668,28 +1666,21 @@ export const ManagerDashboard = () => {
                             </Select>
                           </div>
                         </div>
-                        <div className="flex justify-end mt-3 pt-3 border-t">
-                          <CollapsibleTrigger asChild><Button size="sm" className="text-xs">Done</Button></CollapsibleTrigger>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
+                      </PopoverContent>
+                    </Popover>
                     {/* Filters - left side */}
-                    <Collapsible>
-                      <CollapsibleTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                          <Search className="h-4 w-4" />
-                          Filters
-                          {lvHasActiveFilters && <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{[lvTeamFilter.length > 0, lvOwnerFilter.length > 0, lvPhaseFilter.length > 0, lvStateFilter.length > 0, lvKickOffFrom, lvKickOffTo, lvGoLiveFrom, lvGoLiveTo].filter(Boolean).length}</Badge>}
-                          <ChevronDown className="h-3 w-3" />
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="absolute z-20 mt-2 left-0 top-full w-[600px] bg-card border rounded-lg shadow-xl p-4 space-y-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-semibold">Filters</p>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <ToolbarIconButton icon={<Filter className="h-3.5 w-3.5" />} label="Filters" count={[lvTeamFilter.length > 0, lvOwnerFilter.length > 0, lvPhaseFilter.length > 0, lvStateFilter.length > 0, lvKickOffFrom, lvKickOffTo, lvGoLiveFrom, lvGoLiveTo, lvNeedsAttentionOnly].filter(Boolean).length} />
+                      </PopoverTrigger>
+                      <PopoverContent align="start" collisionPadding={16} className={TOOLBAR_POPOVER.filters} style={TOOLBAR_PANEL_MAX_H}>
+                        <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
+                          <p className="text-xs font-semibold">Filters</p>
                           {lvHasActiveFilters && (
-                            <Button variant="ghost" size="sm" onClick={clearLvFilters} className="text-xs h-7">Clear All</Button>
+                            <Button variant="ghost" size="sm" onClick={clearLvFilters} className="h-6 text-[11px] gap-1"><X className="h-3 w-3" /> Reset</Button>
                           )}
                         </div>
+                        <div className="overflow-y-auto flex-1 min-h-0 p-3 space-y-2.5">
                         <label className="flex items-center gap-2 cursor-pointer border-b pb-2">
                           <input
                             type="checkbox"
@@ -1810,13 +1801,11 @@ export const ManagerDashboard = () => {
                             </div>
                           </div>
                         )}
-                        <div className="flex justify-end mt-3 pt-3 border-t">
-                          <CollapsibleTrigger asChild><Button size="sm" className="text-xs">Done</Button></CollapsibleTrigger>
                         </div>
-                      </CollapsibleContent>
-                    </Collapsible>
+                      </PopoverContent>
+                    </Popover>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     {selectedProjects.size > 0 && (
                       <>
                         <Badge variant="secondary" className="text-xs">{selectedProjects.size} selected</Badge>
@@ -1839,13 +1828,9 @@ export const ManagerDashboard = () => {
                     {/* Select Columns Popover */}
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                          <ListChecks className="h-3.5 w-3.5" />
-                          Select Columns
-                          <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">{listViewColumns.length}</Badge>
-                        </Button>
+                        <ToolbarIconButton icon={<ListChecks className="h-3.5 w-3.5" />} label="Select columns" />
                       </PopoverTrigger>
-                      <PopoverContent className="w-64 p-3" align="end" avoidCollisions={false} side="bottom">
+                      <PopoverContent className={TOOLBAR_POPOVER.columns} align="end" avoidCollisions={false} side="bottom">
                         <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Visible Columns</p>
                         <div className="space-y-1 max-h-[300px] overflow-auto">
                           {LIST_VIEW_COLUMNS.map(col => {
@@ -1897,12 +1882,14 @@ export const ManagerDashboard = () => {
                   </div>
                 </div>
               </CardHeader>, projectToolbarHost) : null}
-              <CardContent className="p-0">
+              <CardContent className="flex min-h-0 flex-1 flex-col p-0">
                 {/* rounded + clipping so the accent bar and header follow the card's corners */}
-                <div className="overflow-auto rounded-t-lg">
-                  <div className="h-1 w-full bg-navy" />
+                <div className="h-1 w-full shrink-0 bg-navy" />
+                <div className="min-h-0 flex-1 overflow-auto">
                   <Table>
-                    <TableHeader className="bg-navy/5">
+                    {/* Opaque: the header sits over scrolling rows, and bg-navy/5
+                        is only a 5% tint on its own. */}
+                    <TableHeader className="sticky top-0 z-10 bg-card bg-[linear-gradient(hsl(var(--navy)/0.05),hsl(var(--navy)/0.05))]">
                       <TableRow className="hover:bg-navy/5 border-b">
                         <TableHead className="w-10 text-navy">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
@@ -1974,6 +1961,7 @@ export const ManagerDashboard = () => {
                               case "salesSpoc": return project.salesSpoc || "—";
                               case "kickOffDate": return project.dates.kickOffDate;
                               case "goLiveDate": return project.dates.goLiveDate || project.dates.expectedGoLiveDate || "—";
+                              case "projectStage": return funnelStageLabels[getProjectFunnelStage(project)] || "—";
                               case "expectedGoLiveDate": return formatGoLiveDate(project);
                               case "integrationType": return project.integrationType || "—";
                               case "pgOnboarding": return project.pgOnboarding || "—";
@@ -2086,12 +2074,12 @@ export const ManagerDashboard = () => {
             <AssignOwnerDialog project={listAssignProject || undefined} open={!!listAssignProject} onOpenChange={(open) => { if (!open) setListAssignProject(null); }} />
           </div>}
 
-          {activeTab === "projects" && projectView === "golive" && <div className="space-y-6">
+          {activeTab === "projects" && projectView === "golive" && <div className="flex min-h-0 flex-1 flex-col">
             <MonthlyGoLiveTracker toolbarContainer={projectToolbarHost} searchQuery={searchQuery} />
           </div>}
 
           {activeTab === "projects" && projectView === "kanban" && (
-            <div className="h-[calc(100vh-11rem)] min-h-[36rem]">
+            <div className="flex min-h-0 flex-1 flex-col">
               <KanbanBoard toolbarContainer={projectToolbarHost} searchQuery={searchQuery} />
             </div>
           )}
@@ -2382,7 +2370,7 @@ export const ManagerDashboard = () => {
             ) : settingsSubTab === "users" ? (
               <UserManagement />
             ) : settingsSubTab === "navigation" ? (
-              <Card className="shadow-sm border-border">
+              <Card className="flex min-h-0 flex-1 flex-col overflow-hidden shadow-sm border-border">
                 <CardHeader className="border-b bg-muted/30">
                   <CardTitle className="portal-heading flex items-center gap-2">
                     <Settings className="h-5 w-5 text-primary" />
@@ -2463,7 +2451,6 @@ export const ManagerDashboard = () => {
           {/* Risks Tab */}
           {activeTab === "risks" && <RiskDashboard />}
 
-          {/* Kanban Tab handled outside ScrollArea for full-screen layout */}
 
 
           {/* Emails Tab */}
@@ -2486,7 +2473,7 @@ export const ManagerDashboard = () => {
             const archivedProjects = projects.filter(p => p.archived);
             return (
               <div className="space-y-4">
-                <Card className="shadow-sm border-border">
+                <Card className="flex min-h-0 flex-1 flex-col overflow-hidden shadow-sm border-border">
                   <CardHeader className="border-b bg-muted/30 py-3">
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <CardTitle className="portal-heading flex items-center gap-2">
@@ -2552,7 +2539,7 @@ export const ManagerDashboard = () => {
           })()}
 
           </div>
-        </ScrollArea>
+        </div>
       </main>
 
 
