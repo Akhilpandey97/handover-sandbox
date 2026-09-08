@@ -25,7 +25,7 @@ export const RiskBadge = ({
   if (!verdict || verdict.level !== "high") return null;
 
   const reasons = verdict.findings.map((f) => f.detail);
-  const id = projectId ?? verdict.projectId;
+  const id = projectId;
 
   const trigger = (
     <button
