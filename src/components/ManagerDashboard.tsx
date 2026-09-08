@@ -1208,7 +1208,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 px-2 py-2 overflow-y-auto">
+        <nav className="flex-1 px-2 pb-2 pt-4 overflow-y-auto">
           <div className="space-y-0.5">
             {sidebarTabs.map((tab) => sidebarCollapsed ? (
               <button
