@@ -350,6 +350,23 @@
   box-shadow: var(--shadow-soft);
 }
 
+/*
+  Sticky table headers: opaque so scrolling rows cannot show through, tinted
+  the same navy 5% as the Kanban column headers.
+
+  The colour has to come from --color-navy (a hex in @theme); there is no
+  --navy HSL triplet, so hsl(var(--navy)/.05) silently paints nothing. The
+  tint rides as a background-image over the card colour, since background-image
+  and background-color compose rather than one replacing the other.
+*/
+@utility table-header-tint {
+  background-color: hsl(var(--card));
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--color-navy) 5%, transparent),
+    color-mix(in oklab, var(--color-navy) 5%, transparent)
+  );
+}
+
 @utility app-shell-surface {
   background: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-2)) 100%);
 }

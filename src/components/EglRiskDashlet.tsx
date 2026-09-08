@@ -68,7 +68,7 @@ export const EglRiskDashlet = () => {
         {/* Flush with the card: the Table primitive draws its own
             rounded, bordered surface, which reads as a table inside a card. */}
         <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
-          <TableHeader className="sticky top-0 z-10 bg-card bg-[linear-gradient(hsl(var(--navy)/0.05),hsl(var(--navy)/0.05))]">
+          <TableHeader className="sticky top-0 z-10 table-header-tint">
             <TableRow className="hover:bg-navy/5 border-b">
               <TableHead className="text-navy font-semibold">Project</TableHead>
               <TableHead className="text-navy font-semibold whitespace-nowrap">

@@ -520,7 +520,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
             <div className="h-1 w-full shrink-0 bg-navy" />
             <div className="min-h-0 flex-1 overflow-auto">
             <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-sm w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
-              <TableHeader className="sticky top-0 z-10 bg-card bg-[linear-gradient(hsl(var(--navy)/0.05),hsl(var(--navy)/0.05))]">
+              <TableHeader className="sticky top-0 z-10 table-header-tint">
                 <TableRow className="hover:bg-navy/5 border-b">
                   <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">Opportunity</TableHead>
                   {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy">{arrLabel} Cr.</TableHead>}
