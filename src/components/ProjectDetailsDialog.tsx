@@ -508,7 +508,7 @@ export const ProjectDetailsDialog = ({
                                   {priority}
                                 </span>
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded border ${ownerColor} font-medium`}>
-                                  {owner}
+                                  {owner === "GoKwik" ? responsibilityLabels.gokwik : owner}
                                 </span>
                               </div>
                             </div>

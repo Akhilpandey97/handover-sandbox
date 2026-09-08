@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { adminClient } from "@/lib/tenant-integrations.server";
+import { getTenantBranding } from "@/lib/tenant-branding.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,18 +11,40 @@ async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, merchant_name, faqs = [] } = await req.json();
+    const { messages, merchant_name, faqs = [], token } = await req.json();
+
+    // This assistant faces the merchant, so speaking as the wrong company is
+    // the most visible leak of all. Resolve the tenant behind the portal token.
+    let tenantId: string | null = null;
+    if (token) {
+      const { data: row } = await adminClient()
+        .from("merchant_portal_tokens")
+        .select("project_id")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
+      const projectId = (row as { project_id: string | null } | null)?.project_id;
+      if (projectId) {
+        const { data: proj } = await adminClient()
+          .from("projects")
+          .select("tenant_id")
+          .eq("id", projectId)
+          .maybeSingle();
+        tenantId = (proj as { tenant_id: string | null } | null)?.tenant_id ?? null;
+      }
+    }
+    const { orgName } = await getTenantBranding(tenantId);
     const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are KwikAssist AI, a helpful integration support assistant for GoKwik merchants. The merchant name is "${merchant_name || "Unknown"}".
+    const systemPrompt = `You are a helpful integration support assistant for ${orgName}'s merchants. The merchant name is "${merchant_name || "Unknown"}".
 
 You help with:
-- GoKwik API integration questions (checkout, KwikPass, KwikCOD)
+- API integration questions (checkout, authentication, payments)
 - Debugging common API errors (403, 401, checksum issues)
-- Merchant Validator guidance
+- Validator and configuration guidance
 - Setup & configuration help
-- KwikPass OTP/SSO integration steps
+- OTP/SSO integration steps
 
 Merchant-specific FAQ & Help content maintained by the CE team:
 ${Array.isArray(faqs) && faqs.length > 0 ? faqs.map((f: any, i: number) => `${i + 1}. Q: ${String(f.question || "").trim()}\nA: ${String(f.answer || "").trim()}`).join("\n\n") : "No merchant-specific FAQs are configured yet."}

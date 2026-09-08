@@ -393,7 +393,7 @@ async function handler(req: Request): Promise<Response> {
             { id: "create_workflow", label: "Create Workflow", description: "Create an automated workflow rule", needsApproval: true },
             { id: "bulk_update_projects", label: "Bulk Update Projects", description: "Update a field across multiple projects at once", needsApproval: true },
             { id: "trigger_brd", label: "Trigger BRD", description: "Send BRD form to merchant via email", needsApproval: true },
-            { id: "toggle_responsibility", label: "Toggle Responsibility", description: "Change project responsibility between GoKwik, Merchant, or Neutral", needsApproval: true },
+            { id: "toggle_responsibility", label: "Toggle Responsibility", description: "Change which party is responsible: internal, merchant or neutral", needsApproval: true },
             { id: "analyze_risks", label: "Analyze Risks", description: "Identify at-risk projects based on timelines and blockers", needsApproval: false },
             { id: "suggest_workflows", label: "Suggest Workflows", description: "Get AI-recommended automation workflows", needsApproval: false },
             { id: "team_workload", label: "Team Workload Summary", description: "Get a summary of workloads across teams", needsApproval: false },

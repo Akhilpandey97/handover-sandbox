@@ -217,6 +217,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
         body: JSON.stringify({
           messages: newMsgs.slice(-10).map(m => ({ role: m.role, content: m.content })),
           merchant_name: merchantName,
+          token,
           faqs: faqs.filter(f => f.question.trim() && f.answer.trim()).slice(0, 25),
         }),
       });

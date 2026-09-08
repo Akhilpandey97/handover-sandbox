@@ -60,7 +60,7 @@ async function handler(req: Request): Promise<Response> {
 {"blocker": string, "blocked_on": string, "deadline": string, "confidence": "High"|"Medium"|"Low"}
 
 - "blocker": one-line description of the current blocker. If no blocker, return "Unblocked".
-- "blocked_on": who is responsible to unblock — e.g. "Tech/KP Team", "Merchant", "Sales", "GoKwik", or person name if mentioned. Empty if unblocked.
+- "blocked_on": who is responsible to unblock — e.g. "Tech Team", "Merchant", "Sales", or a person name if mentioned. Empty if unblocked.
 - "deadline": date string mentioned in context (e.g. "17th June") for blocker resolution, else "".
 - "confidence": High/Medium/Low confidence that merchant goes live on expected date.
 

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantBranding, tenantIdForProject } from "@/lib/tenant-branding.server";
 
 // AI Project Insights Edge Function
 import { createClient } from "@supabase/supabase-js";
@@ -33,8 +34,9 @@ async function handler(req: Request): Promise<Response> {
         entries: Array<{ ts: string; category: string; description: string }>;
       }>;
       const timeframe = body.timeframe || "weekly";
+      const { orgName: insightsOrgName } = await getTenantBranding(body.tenant_id ?? null);
 
-      const systemPrompt = `You are a project status analyst for GoKwik's merchant integration team. You receive recent project activity (MINT notes, checklist updates, comments, state/phase changes) over the last ${timeframe === "daily" ? "24 hours" : "7 days"} for multiple merchants.
+      const systemPrompt = `You are a project status analyst for ${insightsOrgName}. You receive recent project activity (internal notes, checklist updates, comments, state/phase changes) over the last ${timeframe === "daily" ? "24 hours" : "7 days"} for multiple merchants.
 
 The bucket (wins/updates/lowlights) has ALREADY been deterministically classified for you — do NOT re-classify. Just echo back the provided bucket and write the 2-line prose summary.
 
@@ -216,6 +218,7 @@ For EACH merchant, produce:
     // Email context: generate summary, test cases, and go-live checklist context from email threads
     if (type === "email_context") {
       const { project_id, tenant_id, threads } = body;
+      const { orgName: actionsOrgName } = await getTenantBranding(tenant_id ?? (project_id ? await tenantIdForProject(project_id) : null));
 
       const supabase = createClient(
         process.env['SUPABASE_URL']!,
@@ -248,7 +251,7 @@ For EACH merchant, produce:
           ).join("\n")
         : "No open Jira tickets.";
 
-      const systemPrompt = `You are a technical project management AI for an e-commerce payment integration company (GoKwik). Given email threads and Jira tickets for a merchant integration project, extract concrete pending ACTION ITEMS that the team or merchant must complete to move the project forward.
+      const systemPrompt = `You are a technical project management AI working for ${actionsOrgName}. Given email threads and Jira tickets for a merchant integration project, extract concrete pending ACTION ITEMS that the team or merchant must complete to move the project forward.
 
 Return ONLY valid JSON in this exact format:
 {
@@ -257,7 +260,7 @@ Return ONLY valid JSON in this exact format:
     {
       "title": "Short imperative action (e.g. 'Share production API keys')",
       "description": "1-2 sentence detail explaining what needs to be done and why",
-      "owner": "GoKwik" | "Merchant" | "Unknown",
+      "owner": "GoKwik" | "Merchant" | "Unknown",   // fixed tokens; the UI renders the tenant's own label for these
       "priority": "high" | "medium" | "low",
       "source": "email" | "jira" | "both",
       "reference": "Optional: Jira key or short email subject this came from"

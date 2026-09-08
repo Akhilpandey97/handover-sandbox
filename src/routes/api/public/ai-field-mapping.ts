@@ -15,7 +15,7 @@ const PROJECT_FIELDS = [
   { key: "txns_per_day", label: "Transactions per Day" },
   { key: "aov", label: "Average Order Value (AOV)" },
   { key: "sales_spoc", label: "Sales SPOC / Contact" },
-  { key: "mint_notes", label: "MINT / Presales Notes" },
+  { key: "mint_notes", label: "Pre-Sales Notes" },
   { key: "project_notes", label: "Project Notes" },
   { key: "current_phase_comment", label: "Current Phase Comment" },
   { key: "integration_type", label: "Integration Type" },

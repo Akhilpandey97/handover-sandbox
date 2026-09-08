@@ -134,7 +134,7 @@ const TOOLS = [
           project_state: { type: "string", enum: ["not_started", "on_hold", "in_progress", "live", "blocked"], description: "Defaults to 'not_started'." },
           expected_go_live_date: { type: "string", description: "Expected go-live date in YYYY-MM-DD format" },
           project_notes: { type: "string", description: "Initial project notes" },
-          mint_notes: { type: "string", description: "MINT team notes" },
+          mint_notes: { type: "string", description: "Internal pre-sales team notes (mint_notes column)" },
           jira_link: { type: "string" },
           sow_link: { type: "string" },
           brd_link: { type: "string" },
@@ -219,7 +219,7 @@ CAPABILITIES - You can:
 5. **Create automated workflows** using the create_workflow tool
 6. **Bulk update** multiple projects using bulk_update_projects tool
 7. **Trigger BRD** - Send a BRD form to a merchant using the trigger_brd tool
-8. **Toggle Responsibility** - Switch between GoKwik, Merchant, or Neutral using toggle_responsibility tool
+8. **Toggle Responsibility** - Switch the responsible party (internal, merchant or neutral) using toggle_responsibility tool
 
 GUIDELINES:
 - Be concise and actionable

@@ -15,7 +15,7 @@ async function handler(req: Request): Promise<Response> {
   try {
     const { config, test } = await req.json();
 
-    const prompt = `You are a GoKwik QA automation expert. Analyze whether the following test is likely to pass or fail based on the configuration provided.
+    const prompt = `You are a QA automation expert. Analyze whether the following test is likely to pass or fail based on the configuration provided.
 
 Sandbox Configuration:
 - Website: ${config.websiteUrl}

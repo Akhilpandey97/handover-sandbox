@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Project,
   FunnelStage,
@@ -275,6 +276,7 @@ const buildBucketedEmailHtml = (
 export const MovementReport = ({ timeframe }: Props) => {
   const { projects } = useProjects();
   const { teamLabels } = useLabels();
+  const { currentUser } = useAuth();
   const { stages } = useFunnelConfig();
   const { data: movementMap = {}, isLoading, refetch, isFetching, dataUpdatedAt } = useMovementReport(timeframe);
 
@@ -415,7 +417,7 @@ export const MovementReport = ({ timeframe }: Props) => {
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-          body: JSON.stringify({ type: "movement_summary", timeframe, items: chunk }),
+          body: JSON.stringify({ type: "movement_summary", timeframe, items: chunk, tenant_id: currentUser?.tenantId ?? null }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "AI request failed");
