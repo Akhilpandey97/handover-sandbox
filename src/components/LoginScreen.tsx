@@ -43,7 +43,7 @@ export const LoginScreen = () => {
             <Shield className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Welcome back</h1>
+            <h1 className="text-xl font-bold tracking-tight">Handover</h1>
             <p className="text-sm text-muted-foreground mt-1">
               Enter your credentials to access the dashboard
             </p>
