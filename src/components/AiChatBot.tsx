@@ -39,8 +39,23 @@ const ACTION_SUGGESTIONS = [
   { emoji: "💡", text: "Suggest automations", message: "What automated workflows would you suggest for my current projects?", actionOnly: false },
 ];
 
-export const AiChatBot = () => {
-  const [isOpen, setIsOpen] = useState(false);
+/**
+ * The assistant panel. Uncontrolled by default (its own floating launcher);
+ * pass `open`/`onOpenChange` to drive it from elsewhere — the manager sidebar
+ * opens it from its "Hi there" entry and hides the launcher.
+ */
+export const AiChatBot = ({
+  open,
+  onOpenChange,
+  hideLauncher = false,
+}: {
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
+  hideLauncher?: boolean;
+} = {}) => {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isOpen = open ?? uncontrolledOpen;
+  const setIsOpen = onOpenChange ?? setUncontrolledOpen;
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -442,7 +457,7 @@ export const AiChatBot = () => {
 
   return (
     <>
-      {!isOpen && (
+      {!isOpen && !hideLauncher && (
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-6 left-6 z-50 h-14 w-14 rounded-full bg-[hsl(142,71%,45%)] text-white shadow-xl hover:shadow-2xl transition-all hover:scale-105 flex items-center justify-center"

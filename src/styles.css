@@ -119,6 +119,13 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
+/* Waving hand on the assistant's sidebar entry. Rests for most of the cycle
+   so it reads as a greeting rather than constant motion. */
+@keyframes wave-hand {
+  0%, 65%, 100% { transform: rotate(0deg); }
+  70%, 82% { transform: rotate(16deg); }
+  76%, 88% { transform: rotate(-10deg); }
+}
 
 :root {
   --background: 205 38% 98%;
@@ -359,6 +366,15 @@
   tint rides as a background-image over the card colour, since background-image
   and background-color compose rather than one replacing the other.
 */
+@utility animate-wave {
+  animation: wave-hand 3s ease-in-out infinite;
+  transform-origin: 70% 75%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-wave { animation: none; }
+}
+
 @utility table-header-tint {
   background-color: hsl(var(--card));
   background-image: linear-gradient(

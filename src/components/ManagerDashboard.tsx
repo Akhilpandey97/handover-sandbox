@@ -161,7 +161,7 @@ const readLastProjectView = (): ProjectView => {
   return DEFAULT_PROJECT_VIEW;
 };
 
-export const ManagerDashboard = () => {
+export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => void } = {}) => {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const routeState = useMemo(() => parseDashboardPath(pathname), [pathname]);
@@ -1203,6 +1203,30 @@ export const ManagerDashboard = () => {
                 {TAB_CONFIG[tab]?.icon}
               </button>
             ) : renderNavItem(tab))}
+
+            {/* The AI assistant, previously a floating button over the board. */}
+            {onOpenAssistant && (sidebarCollapsed ? (
+              <button
+                type="button"
+                onClick={onOpenAssistant}
+                title="Hi there — ask the AI assistant"
+                aria-label="Hi there — ask the AI assistant"
+                className="w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
+              >
+                <span className="animate-wave text-base leading-none">👋</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenAssistant}
+                className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent">
+                  <span className="animate-wave text-base leading-none">👋</span>
+                </span>
+                <span className="flex-1 text-sm font-medium">Hi there</span>
+              </button>
+            ))}
           </div>
         </nav>
 
