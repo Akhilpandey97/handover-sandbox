@@ -64,6 +64,8 @@ import {
   FolderKanban,
   LogOut,
   Search,
+  PanelLeftClose,
+  PanelLeftOpen,
   Users,
   TrendingUp,
   CheckCircle2,
@@ -1121,22 +1123,60 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
                 <div className="min-w-0 flex-1">
                   <h1 className="font-semibold text-[16px] leading-tight text-sidebar-foreground truncate">{appLabels.app_title}</h1>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSearchOpen((o) => !o)}
-                  title="Search projects"
-                  aria-label="Search projects"
-                  aria-expanded={searchOpen}
-                  className={cn(
-                    "shrink-0 rounded-md p-1.5 transition-colors hover:bg-sidebar-accent/60",
-                    searchOpen || searchQuery ? "text-primary" : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
-                  )}
-                >
-                  <Search className="h-4 w-4" />
-                </button>
+                <div className="flex shrink-0 items-center gap-0.5 [&_button]:text-sidebar-foreground/70 [&_button:hover]:text-sidebar-foreground">
+                  <button
+                    type="button"
+                    onClick={() => setSearchOpen((o) => !o)}
+                    title="Search projects"
+                    aria-label="Search projects"
+                    aria-expanded={searchOpen}
+                    className={cn(
+                      "rounded-md p-1.5 transition-colors hover:bg-sidebar-accent/60",
+                      searchOpen || searchQuery ? "!text-primary" : "",
+                    )}
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
+                  <NotificationCenter />
+                  <button
+                    type="button"
+                    onClick={() => setSidebarCollapsed(true)}
+                    title="Collapse sidebar"
+                    aria-label="Collapse sidebar"
+                    className="rounded-md p-1.5 transition-colors hover:bg-sidebar-accent/60"
+                  >
+                    <PanelLeftClose className="h-4 w-4" />
+                  </button>
+                </div>
               </>
             )}
           </div>
+
+          {/* Collapsed rail: the same three, stacked, since 16 columns cannot
+              hold them in a row. */}
+          {sidebarCollapsed && (
+            <div className="mt-3 flex flex-col items-center gap-1 [&_button]:text-sidebar-foreground/70 [&_button:hover]:text-sidebar-foreground">
+              <button
+                type="button"
+                onClick={() => { setSidebarCollapsed(false); setSearchOpen(true); }}
+                title="Search projects"
+                aria-label="Search projects"
+                className="rounded-md p-2 transition-colors hover:bg-sidebar-accent/60"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+              <NotificationCenter />
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(false)}
+                title="Expand sidebar"
+                aria-label="Expand sidebar"
+                className="rounded-md p-2 transition-colors hover:bg-sidebar-accent/60"
+              >
+                <PanelLeftOpen className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Revealed by the icon above. Kept mounted only while open so the
@@ -1169,25 +1209,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
 
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 overflow-y-auto">
-          {!sidebarCollapsed && (
-            <p className="text-[11px] font-semibold text-sidebar-foreground uppercase tracking-widest mb-3 px-4">
-              Navigation
-            </p>
-          )}
           <div className="space-y-1">
-            {/* Collapsed rail: search sits above the tabs and expands the
-                sidebar, since there is nowhere to put the input otherwise. */}
-            {sidebarCollapsed && (
-              <button
-                type="button"
-                onClick={() => { setSidebarCollapsed(false); setSearchOpen(true); }}
-                title="Search projects"
-                aria-label="Search projects"
-                className="w-full flex items-center justify-center p-3 rounded-xl transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
-              >
-                <Search className="h-4 w-4" />
-              </button>
-            )}
             {sidebarTabs.map((tab) => sidebarCollapsed ? (
               <button
                 key={tab}
@@ -1230,65 +1252,53 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
           </div>
         </nav>
 
-        {/* Account — identity and session controls, kept out of the way of the
-            work. NotificationCenter and ThemeToggle are ghost buttons styled for
-            a light header, so the sidebar's own foreground colour is forced onto
-            them here rather than editing the shared components. */}
-        <div className="border-t border-sidebar-border px-2 py-3 [&_button]:text-sidebar-foreground/80 [&_button:hover]:text-sidebar-foreground">
-          {sidebarCollapsed ? (
-            <div className="flex flex-col items-center gap-1">
-              <div
-                className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm"
+        {/* Account — the avatar opens everything else: identity, theme and
+            logout, so the sidebar itself stays down to navigation. */}
+        <div className="p-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
                 title={`${currentUser?.name} — ${teamLabels[currentUser?.team ?? ""] || "Manager"}`}
+                aria-label="Account"
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-lg p-1 transition-colors hover:bg-sidebar-accent/60",
+                  sidebarCollapsed && "justify-center",
+                )}
               >
-                {currentUser?.name.charAt(0)}
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm">
+                  {currentUser?.name.charAt(0)}
+                </span>
+                {!sidebarCollapsed && (
+                  <span className="min-w-0 flex-1 text-left">
+                    <span className="block truncate text-xs font-medium leading-tight text-sidebar-foreground">{currentUser?.name}</span>
+                    <span className="block text-[10px] leading-tight text-sidebar-foreground/60">{teamLabels[currentUser?.team ?? ""] || "Manager"}</span>
+                  </span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="right" align="end" className="w-56 p-1.5">
+              <div className="px-2 py-1.5">
+                <p className="truncate text-sm font-medium text-foreground">{currentUser?.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
               </div>
-              <NotificationCenter />
-              <ThemeToggle />
+              <div className="my-1 h-px bg-border" />
+              <div className="flex items-center justify-between rounded-md px-2 py-1 text-sm text-foreground">
+                <span>Theme</span>
+                <ThemeToggle />
+              </div>
               <button
                 type="button"
                 onClick={logout}
-                title="Logout"
-                aria-label="Logout"
-                className="rounded-md p-2 !text-destructive hover:bg-destructive/10"
+                className="mt-0.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
               >
                 <LogOut className="h-4 w-4" />
+                Logout
               </button>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-2 px-1 pb-1">
-                <div className="h-7 w-7 shrink-0 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
-                  {currentUser?.name.charAt(0)}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium leading-tight text-sidebar-foreground">{currentUser?.name}</p>
-                  <p className="text-[10px] leading-tight text-sidebar-foreground/60">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-0.5 px-1">
-                <NotificationCenter />
-                <ThemeToggle />
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="ml-auto inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium !text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  Logout
-                </button>
-              </div>
-            </>
-          )}
+            </PopoverContent>
+          </Popover>
         </div>
 
-        {/* Collapse/Expand arrow button - centered vertically */}
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary text-primary-foreground shadow-md flex items-center justify-center hover:bg-primary/90 transition-colors z-10"
-        >
-          {sidebarCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-        </button>
       </aside>
 
       {/* Main Content */}
