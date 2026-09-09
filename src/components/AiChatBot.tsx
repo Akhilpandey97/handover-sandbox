@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,6 +64,7 @@ export const AiChatBot = () => {
     Array<{ id: string | null; title: string; at: string }>
   >([]);
   const [pendingApproval, setPendingApproval] = useState<{ toolCall: ToolCall; msgIndex: number } | null>(null);
+  const queryClient = useQueryClient();
   const [isListening, setIsListening] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(false);
@@ -337,6 +339,21 @@ export const AiChatBot = () => {
     return `Total projects: ${scopedProjects.length}\n${summary}`;
   }, [scopedProjects, teamLabels, responsibilityLabels]);
 
+  /**
+   * Pull the app's data back in after an action changed it.
+   *
+   * Nothing here invalidated anything, so an assignment succeeded in the
+   * database while the project page kept showing its cached copy — the owner
+   * name is resolved from profiles at query time, so only a refetch reveals it.
+   */
+  const refreshAfterAction = (action: string) => {
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
+    if (action.includes("workflow")) {
+      queryClient.invalidateQueries({ queryKey: ["ai_workflows"] });
+      queryClient.invalidateQueries({ queryKey: ["workflow_runs"] });
+    }
+  };
+
   const executeToolCall = async (toolCall: ToolCall): Promise<string> => {
     // Role check - only managers/super_admin can execute actions
     if (!canUseActions(currentUser?.team)) {
@@ -514,6 +531,7 @@ export const AiChatBot = () => {
             tc.status = "executing";
             const resultMsg = await executeToolCall(tc);
             tc.status = "done";
+            refreshAfterAction(tc.name);
             tc.result = resultMsg;
             results.push(`✅ **${tc.name}**: ${resultMsg}`);
           }
@@ -560,6 +578,7 @@ export const AiChatBot = () => {
     if (approved) {
       setIsLoading(true);
       const resultMsg = await executeToolCall(toolCall);
+      refreshAfterAction(toolCall.name);
       const content = `✅ **Approved & Executed** - ${toolCall.name}: ${resultMsg}`;
       setMessages(prev => [...prev, { role: "assistant", content, time: getTime() }]);
       saveMessage("assistant", content);
