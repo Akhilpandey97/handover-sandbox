@@ -444,15 +444,11 @@ export const ChecklistManagement = () => {
 
   const deleteTeamMutation = useMutation({
     mutationFn: async ({ id, slug }: { id: string; slug: string }) => {
-      // Checklist rows reference the team by slug, not by FK, so they must be
-      // removed here or they linger as items owned by a team that no longer exists.
-      const { error: templatesError } = await supabase.from("checklist_templates").delete().eq("owner_team", slug);
-      if (templatesError) throw templatesError;
-
-      const { error: itemsError } = await supabase.from("checklist_items").delete().eq("owner_team", slug);
-      if (itemsError) throw itemsError;
-
-      const { error } = await supabase.from("teams").delete().eq("id", id);
+      // One transaction, in dependency order. Done as three separate deletes
+      // this failed on the items — their comments, tasks, logs and form
+      // responses have foreign keys that do not cascade — after the templates
+      // had already gone, leaving the team's items stranded on every project.
+      const { error } = await supabase.rpc("delete_team_cascade", { _slug: slug, _team_id: id });
       if (error) throw error;
     },
     onSuccess: async () => {
