@@ -13,6 +13,7 @@ import {
 } from "@/data/projectsData";
 import { ProjectCardNew } from "./ProjectCardNew";
 import { KanbanBoard } from "./KanbanBoard";
+import { AiChatBot } from "./AiChatBot";
 import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ import { NotificationCenter } from "./NotificationCenter";
 import { RiskBadge } from "./RiskBadge";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 
-type TabType = "pending" | "active" | "all";
+type TabType = "pending" | "active" | "all" | "hi-there";
 type ViewType = "cards" | "kanban" | "list";
 type SortKey =
   | "merchantName"
@@ -229,6 +230,8 @@ export const TeamDashboard = () => {
     { key: "pending", label: "Pending", icon: <AlertCircle className="h-4 w-4" />, count: pendingForUser.length, color: "text-amber-500" },
     { key: "active", label: "Active", icon: <Rocket className="h-4 w-4" />, count: activeForUser.length, color: "text-emerald-500" },
     { key: "all", label: "All Projects", icon: <Layers className="h-4 w-4" />, count: userProjects.length, color: "text-primary" },
+    // The assistant, scoped to this user's own projects by AiChatBot itself.
+    { key: "hi-there", label: "Hi there", icon: <span className="animate-wave text-base leading-none">👋</span>, count: -1, color: "text-primary" },
   ];
 
   const filterGroup = (
@@ -293,6 +296,7 @@ export const TeamDashboard = () => {
                   <span className={activeTab === item.key ? "text-primary" : item.color}>{item.icon}</span>
                   <span className="font-medium">{item.label}</span>
                 </div>
+                {item.count >= 0 && (
                 <Badge
                   variant={activeTab === item.key ? "secondary" : "outline"}
                   className={cn(
@@ -304,6 +308,7 @@ export const TeamDashboard = () => {
                 >
                   {item.count}
                 </Badge>
+                )}
               </button>
             ))}
           </div>
@@ -382,9 +387,12 @@ export const TeamDashboard = () => {
               {activeTab === "pending" && "Pending Acceptance"}
               {activeTab === "active" && "Active Projects"}
               {activeTab === "all" && "All Projects"}
+              {activeTab === "hi-there" && "Hi there"}
             </h2>
             <p className="text-xs text-muted-foreground">
-              {displayProjects.length} project{displayProjects.length !== 1 ? "s" : ""} found
+              {activeTab === "hi-there"
+                ? "Ask about your projects"
+                : `${displayProjects.length} project${displayProjects.length !== 1 ? "s" : ""} found`}
             </p>
           </div>
 
@@ -416,6 +424,12 @@ export const TeamDashboard = () => {
           </div>
         </header>
 
+        {activeTab === "hi-there" ? (
+          <div className="flex min-h-0 flex-1 flex-col p-6">
+            <AiChatBot />
+          </div>
+        ) : (
+        <>
         {/* Toolbar: view / sort / filters */}
         <div className="border-b bg-card/50 px-6 py-2.5 flex flex-wrap items-center gap-2 shrink-0">
           <div className="flex items-center rounded-lg border bg-background p-0.5">
@@ -575,6 +589,8 @@ export const TeamDashboard = () => {
               )}
             </div>
           </ScrollArea>
+        )}
+        </>
         )}
       </main>
 

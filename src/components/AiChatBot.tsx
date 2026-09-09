@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,12 @@ const APPROVAL_ACTIONS = new Set(["create_workflow", "bulk_update_projects", "as
 // Roles that can use AI action capabilities
 const ACTION_ROLES = new Set(["manager", "admin", "super_admin"]);
 const canUseActions = (team?: string) => ACTION_ROLES.has(team || "");
+
+// Roles whose dashboard shows the whole portfolio. Everyone else works from
+// their own assigned projects, and the assistant must not widen that: it would
+// otherwise describe every merchant in the tenant to someone who cannot see
+// them on any screen.
+const PORTFOLIO_ROLES = new Set(["manager", "admin", "super_admin", "gokwik_general"]);
 
 const ACTION_SUGGESTIONS = [
   { emoji: "➕", text: "Create a new project", message: "Create a new project — ask me for merchant name, MID, and kick-off date", actionOnly: true },
@@ -192,16 +198,24 @@ export const AiChatBot = () => {
     if (inputRef.current) inputRef.current.focus();
   }, []);
 
+  const scopedProjects = useMemo(
+    () =>
+      PORTFOLIO_ROLES.has(currentUser?.team || "")
+        ? projects
+        : projects.filter((p) => p.assignedOwner === currentUser?.id),
+    [projects, currentUser?.team, currentUser?.id],
+  );
+
   const getProjectContext = useCallback(() => {
-    if (!projects.length) return "";
-    const summary = projects.slice(0, 20).map(p => {
+    if (!scopedProjects.length) return "";
+    const summary = scopedProjects.slice(0, 20).map(p => {
       const time = calculateTimeFromChecklist(p.checklist);
       const completed = p.checklist.filter(c => c.completed).length;
       const total = p.checklist.length;
       return `- ${p.merchantName} (${p.mid}, ID=${p.id}): Phase=${p.currentPhase}, State=${p.projectState}, Team=${teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}, Owner=${p.assignedOwnerName || "Unassigned"}, OwnerID=${p.assignedOwner || "none"}, Tasks=${completed}/${total}, ${responsibilityLabels.gokwik}Time=${formatDuration(time.gokwik)}, ${responsibilityLabels.merchant}Time=${formatDuration(time.merchant)}, ARR=${arrCroreValue(p.arr)}Cr`;
     }).join("\n");
-    return `Total projects: ${projects.length}\n${summary}`;
-  }, [projects, teamLabels, responsibilityLabels]);
+    return `Total projects: ${scopedProjects.length}\n${summary}`;
+  }, [scopedProjects, teamLabels, responsibilityLabels]);
 
   const executeToolCall = async (toolCall: ToolCall): Promise<string> => {
     // Role check - only managers/super_admin can execute actions
