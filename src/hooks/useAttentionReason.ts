@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 
 export type AttentionKind = "risk" | "egl";
 
@@ -20,8 +21,7 @@ const call = async (
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"]}`,
-      apikey: import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"],
+      ...(await apiAuthHeaders()),
     },
     body: JSON.stringify({ projectId, kind, reasons, force }),
   });

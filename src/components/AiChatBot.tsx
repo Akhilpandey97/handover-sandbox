@@ -11,6 +11,7 @@ import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
 import { logActivity } from "@/hooks/useActivityLogs";
 import { arrCroreValue } from "@/lib/arr";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 
 type Msg = { role: "user" | "assistant"; content: string; time: string; toolCalls?: ToolCall[] };
 type ToolCall = { id: string; name: string; arguments: any; status?: "pending" | "executing" | "done" | "failed"; result?: string };
@@ -276,7 +277,7 @@ export const AiChatBot = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          ...(await apiAuthHeaders()),
         },
         body: JSON.stringify({ messages: allMessages, projectContext: getProjectContext(), enableActions: canUseActions(currentUser?.team) }),
       });

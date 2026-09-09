@@ -24,6 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
+import { apiAuthHeaders } from "@/lib/api-invoke";
   Clock,
   FolderKanban,
   LogOut,
@@ -207,7 +208,7 @@ export const TeamDashboard = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            ...(await apiAuthHeaders()),
           },
           body: JSON.stringify({ projects: userProjects, type: "next_actions" }),
         }

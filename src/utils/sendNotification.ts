@@ -1,3 +1,4 @@
+import { apiAuthHeaders } from "@/lib/api-invoke";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
@@ -24,8 +25,7 @@ export const sendNotification = async (payload: NotificationPayload) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        apikey: SUPABASE_KEY,
+        ...(await apiAuthHeaders()),
       },
       body: JSON.stringify(payload),
     });

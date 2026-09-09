@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { ShoppingBag, RefreshCw, Eye, X, Loader2, Inbox, UserPlus } from "lucide-react";
 import { format } from "date-fns";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 
 interface SmeRow {
   id: string;
@@ -87,7 +88,7 @@ export const ShopifySmeTab = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          ...(await apiAuthHeaders()),
         },
         body: JSON.stringify({ tenant_id: currentUser.tenantId }),
       });
@@ -113,7 +114,7 @@ export const ShopifySmeTab = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          ...(await apiAuthHeaders()),
         },
         body: JSON.stringify({ id, owner_email }),
       });

@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+import { apiAuthHeaders } from "@/lib/api-invoke";
   Select,
   SelectContent,
   SelectItem,
@@ -211,7 +212,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            ...(await apiAuthHeaders()),
           },
           body: JSON.stringify({ project, type }),
         }

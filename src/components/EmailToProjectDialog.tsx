@@ -12,6 +12,7 @@ import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 
 interface ParsedEmail {
   id: string;
@@ -144,8 +145,7 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-          apikey: SUPABASE_KEY,
+          ...(await apiAuthHeaders()),
         },
         body: JSON.stringify({
           type: "map_email_fields",

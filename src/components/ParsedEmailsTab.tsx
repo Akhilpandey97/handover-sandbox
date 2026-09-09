@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Mail, RefreshCw, Plus, Eye, CheckCircle2, X, Loader2, Inbox } from "lucide-react";
 import { format } from "date-fns";
 import { EmailToProjectDialog } from "./EmailToProjectDialog";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 
 
 interface ParsedEmail {
@@ -96,7 +97,7 @@ export const ParsedEmailsTab = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          ...(await apiAuthHeaders()),
         },
         body: JSON.stringify({ tenant_id: currentUser.tenantId }),
       });

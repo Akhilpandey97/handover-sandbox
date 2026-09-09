@@ -26,6 +26,7 @@ import { EmailReportDialog } from "./EmailReportDialog";
 import { ScheduleMovementReportDialog } from "./ScheduleMovementReportDialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 
 interface Props {
   timeframe: "daily" | "weekly";
@@ -414,8 +415,7 @@ export const MovementReport = ({ timeframe }: Props) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            ...(await apiAuthHeaders()),
           },
           body: JSON.stringify({ type: "movement_summary", timeframe, items: chunk, tenant_id: currentUser?.tenantId ?? null }),
         });

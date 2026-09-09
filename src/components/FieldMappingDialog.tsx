@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Wand2, ArrowRight, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useCustomFields, CustomField } from "@/hooks/useCustomFields";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 
 const BASE_PROJECT_FIELDS = [
   { key: "merchant_name", label: "Merchant/Brand Name", required: true },
@@ -164,8 +165,7 @@ export const FieldMappingDialog = ({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            ...(await apiAuthHeaders()),
           },
           body: JSON.stringify({
             csvHeaders,
