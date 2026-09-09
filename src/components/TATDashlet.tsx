@@ -87,7 +87,6 @@ export const TATDashlet = ({ projects }: Props) => {
                 ))}
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">Based on {overall.count} live project{overall.count === 1 ? "" : "s"} with kick-off and go-live dates.</p>
           </>
         )}
       </div>
