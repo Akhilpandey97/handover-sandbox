@@ -66,17 +66,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Handover — Onboarding Command Center" },
+      { title: "Handover — Onboarding/Integrations Command Center" },
       {
         name: "description",
         content:
-          "Merchant onboarding tracker for projects, checklists, risks and go-live timelines.",
+          "Customer onboarding/Integration software to track projects, checklists, risks and go-live timelines.",
       },
-      { property: "og:title", content: "Handover — Onboarding Command Center" },
+      { property: "og:title", content: "Handover — Onboarding/Integrations Command Center" },
       {
         property: "og:description",
         content:
-          "Merchant onboarding tracker for projects, checklists, risks and go-live timelines.",
+          "Customer onboarding/Integration software to track projects, checklists, risks and go-live timelines.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

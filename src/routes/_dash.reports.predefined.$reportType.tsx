@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_dash/reports/predefined/$reportType")({
   },
   head: ({ params }) => {
     const label = LABELS[params.reportType] || "Reports";
-    const title = `${label} — Handover`;
+    const title = `${label} — Handover — Onboarding/Integrations Command Center`;
     const description = `${label} across merchant onboarding projects.`;
     return {
       meta: [

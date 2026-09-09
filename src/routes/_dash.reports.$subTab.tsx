@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_dash/reports/$subTab")({
   },
   head: ({ params }) => {
     const label = LABELS[params.subTab] || "Reports";
-    const title = `${label} — Handover`;
+    const title = `${label} — Handover — Onboarding/Integrations Command Center`;
     const description = `${label} for merchant onboarding projects.`;
     return {
       meta: [

@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_dash/settings/$subTab")({
   },
   head: ({ params }) => {
     const label = LABELS[params.subTab] || "Settings";
-    const title = `${label} — Handover`;
+    const title = `${label} — Handover — Onboarding/Integrations Command Center`;
     const description = `${label} for this Handover workspace.`;
     return {
       meta: [

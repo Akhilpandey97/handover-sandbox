@@ -5,13 +5,13 @@ export const Route = createFileRoute("/portal/$mid")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Merchant Onboarding Portal | Handover" },
+      { title: "Merchant Onboarding Portal | Handover — Onboarding/Integrations Command Center" },
       {
         name: "description",
         content:
           "Track your onboarding progress, pending actions, documents and go-live date in your merchant portal.",
       },
-      { property: "og:title", content: "Merchant Onboarding Portal" },
+      { property: "og:title", content: "Merchant Onboarding Portal | Handover — Onboarding/Integrations Command Center" },
       {
         property: "og:description",
         content: "Live view of your onboarding progress and pending actions.",
