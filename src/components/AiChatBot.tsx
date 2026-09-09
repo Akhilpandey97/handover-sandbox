@@ -65,6 +65,8 @@ export const AiChatBot = () => {
   >([]);
   const [pendingApproval, setPendingApproval] = useState<{ toolCall: ToolCall; msgIndex: number } | null>(null);
   const queryClient = useQueryClient();
+  const silenceTimerRef = useRef<number | null>(null);
+  const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(false);
@@ -99,6 +101,17 @@ export const AiChatBot = () => {
 
     recognition.onstart = () => setIsListening(true);
 
+    // Chrome only ends a continuous session after its own long silence
+    // timeout, so the message sat there for seconds after you stopped talking.
+    // Close it ourselves once speech has actually paused.
+    const SILENCE_MS = 1600;
+    const armSilenceTimer = () => {
+      if (silenceTimerRef.current) window.clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = window.setTimeout(() => {
+        try { recognition.stop(); } catch { /* already stopped */ }
+      }, SILENCE_MS);
+    };
+
     recognition.onresult = (event: any) => {
       let interim = "";
       let final = finalTranscriptRef.current;
@@ -112,9 +125,11 @@ export const AiChatBot = () => {
       fullTranscriptRef.current = full;
       setLiveTranscript(full);
       setInput(full);
+      armSilenceTimer();
     };
 
     recognition.onend = () => {
+      if (silenceTimerRef.current) window.clearTimeout(silenceTimerRef.current);
       setIsListening(false);
       const text = fullTranscriptRef.current || finalTranscriptRef.current.trim();
       setLiveTranscript("");
@@ -145,14 +160,55 @@ export const AiChatBot = () => {
   useEffect(() => () => { recognitionRef.current?.stop(); window.speechSynthesis?.cancel(); }, []);
 
   // ── Text-to-Speech ──────────────────────────────────────────────────────────
+  /**
+   * Pick the least synthetic voice the browser offers.
+   *
+   * Nothing was chosen before, so it fell back to the platform default, which
+   * is the robotic one. Network voices (Google, Neural, Natural) are markedly
+   * better than the built-in ones; among those, prefer a female voice. Voices
+   * load asynchronously, hence the voiceschanged listener.
+   */
+  useEffect(() => {
+    if (!window.speechSynthesis) return;
+    const pick = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+      const score = (v: SpeechSynthesisVoice) => {
+        const n = v.name.toLowerCase();
+        if (!v.lang.toLowerCase().startsWith("en")) return -1;
+        let s = 0;
+        if (/google|natural|neural|premium|enhanced/.test(n)) s += 6;
+        if (/female|samantha|zira|aria|jenny|sonia|libby|serena|karen|moira|tessa|fiona/.test(n)) s += 4;
+        if (!v.localService) s += 2;
+        if (/en-gb|en-in/.test(v.lang.toLowerCase())) s += 1;
+        return s;
+      };
+      const best = voices
+        .map((v) => ({ v, s: score(v) }))
+        .filter((x) => x.s >= 0)
+        .sort((a, b) => b.s - a.s)[0];
+      voiceRef.current = best?.v ?? null;
+    };
+    pick();
+    window.speechSynthesis.addEventListener("voiceschanged", pick);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", pick);
+  }, []);
+
   const speak = useCallback((text: string) => {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     // Strip markdown for cleaner speech
     const clean = text.replace(/\*\*|__|~~|\[([^\]]+)\]\([^)]+\)|`{1,3}[^`]*`{1,3}|#{1,6}\s/g, "").trim();
     const utt = new SpeechSynthesisUtterance(clean);
-    utt.lang = "en-IN";
-    utt.rate = 1.05;
+    if (voiceRef.current) {
+      utt.voice = voiceRef.current;
+      utt.lang = voiceRef.current.lang;
+    } else {
+      utt.lang = "en-IN";
+    }
+    // Slightly under natural pace, and a touch of pitch, reads far less flat.
+    utt.rate = 0.98;
+    utt.pitch = 1.05;
     window.speechSynthesis.speak(utt);
   }, []);
 
@@ -705,9 +761,6 @@ export const AiChatBot = () => {
           >
             {messages.length === 0 && (
               <div className="text-center py-4">
-                <div className="h-14 w-14 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Bot className="h-7 w-7 text-primary" />
-                </div>
                 <div className="space-y-1.5">
                   {ACTION_SUGGESTIONS
                     .filter(s => !s.actionOnly || canUseActions(currentUser?.team))
