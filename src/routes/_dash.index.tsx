@@ -3,17 +3,17 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/_dash/")({
   head: () => ({
     meta: [
-      { title: "Handover — Onboarding Command Center" },
+      { title: "Handover — Onboarding/Integrations Command Center" },
       {
         name: "description",
         content:
-          "Track merchant onboarding projects, checklists, risks and go-live timelines across Mint, Integration and Merchant Success teams.",
+          "Customer onboarding/Integration software to track projects, checklists, risks and go-live timelines.",
       },
-      { property: "og:title", content: "Handover — Onboarding Command Center" },
+      { property: "og:title", content: "Handover — Onboarding/Integrations Command Center" },
       {
         property: "og:description",
         content:
-          "Track merchant onboarding projects, checklists, risks and go-live timelines in one workspace.",
+          "Customer onboarding/Integration software to track projects, checklists, risks and go-live timelines.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
