@@ -7,15 +7,18 @@ import { toast } from "sonner";
 import { LogIn, Shield } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
+import { SignupLeadForm } from "./SignupLeadForm";
 
 /**
- * Sign-in only. Accounts are created by an admin under Settings → Users, so
- * there is no self-registration path here.
+ * Sign-in, plus a sign-up enquiry form. The enquiry creates no account — it
+ * records interest for follow-up. Accounts are still made by an admin under
+ * Settings → Users.
  */
 export const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
   const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -37,7 +40,7 @@ export const LoginScreen = () => {
         <ThemeToggle />
       </div>
 
-      <div className="w-full max-w-[420px] space-y-8">
+      <div className={showSignup ? "w-full max-w-[560px] space-y-8" : "w-full max-w-[420px] space-y-8"}>
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
             <Shield className="h-6 w-6 text-primary-foreground" />
@@ -45,13 +48,19 @@ export const LoginScreen = () => {
           <div>
             <h1 className="text-xl font-bold tracking-tight">Handover</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Enter your credentials to access the dashboard
+              {showSignup
+                ? "Tell us about yourself and we'll be in touch"
+                : "Enter your credentials to access the dashboard"}
             </p>
           </div>
         </div>
 
         <Card className="border-border/50 shadow-sm">
           <CardContent className="pt-6">
+            {showSignup ? (
+              <SignupLeadForm onBack={() => setShowSignup(false)} />
+            ) : (
+              <>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-xs font-medium tracking-normal text-muted-foreground">Email Address</Label>
@@ -91,6 +100,18 @@ export const LoginScreen = () => {
                 )}
               </Button>
             </form>
+
+            <div className="mt-6 border-t pt-4 text-center">
+              <button
+                type="button"
+                onClick={() => setShowSignup(true)}
+                className="text-sm text-muted-foreground transition-colors hover:text-primary"
+              >
+                Don't have access? Sign up
+              </button>
+            </div>
+              </>
+            )}
           </CardContent>
         </Card>
 

@@ -62,6 +62,7 @@ import { Route as ApiPublicSendScheduledReportRouteImport } from './routes/api/p
 import { Route as ApiPublicSendScheduledTatReportRouteImport } from './routes/api/public/send-scheduled-tat-report'
 import { Route as ApiPublicSetPasswordRouteImport } from './routes/api/public/set-password'
 import { Route as ApiPublicShopifyLtEmailCommsRouteImport } from './routes/api/public/shopify-lt-email-comms'
+import { Route as ApiPublicSignupLeadRouteImport } from './routes/api/public/signup-lead'
 import { Route as ApiPublicSlackStuckMerchantsDigestRouteImport } from './routes/api/public/slack-stuck-merchants-digest'
 import { Route as ApiPublicTenantIntegrationsRouteImport } from './routes/api/public/tenant-integrations'
 import { Route as ApiPublicUpdateUserRouteImport } from './routes/api/public/update-user'
@@ -358,6 +359,11 @@ const ApiPublicShopifyLtEmailCommsRoute =
     path: '/api/public/shopify-lt-email-comms',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSignupLeadRoute = ApiPublicSignupLeadRouteImport.update({
+  id: '/api/public/signup-lead',
+  path: '/api/public/signup-lead',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSlackStuckMerchantsDigestRoute =
   ApiPublicSlackStuckMerchantsDigestRouteImport.update({
     id: '/api/public/slack-stuck-merchants-digest',
@@ -467,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/api/public/send-scheduled-tat-report': typeof ApiPublicSendScheduledTatReportRoute
   '/api/public/set-password': typeof ApiPublicSetPasswordRoute
   '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
+  '/api/public/signup-lead': typeof ApiPublicSignupLeadRoute
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
@@ -531,6 +538,7 @@ export interface FileRoutesByTo {
   '/api/public/send-scheduled-tat-report': typeof ApiPublicSendScheduledTatReportRoute
   '/api/public/set-password': typeof ApiPublicSetPasswordRoute
   '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
+  '/api/public/signup-lead': typeof ApiPublicSignupLeadRoute
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
@@ -597,6 +605,7 @@ export interface FileRoutesById {
   '/api/public/send-scheduled-tat-report': typeof ApiPublicSendScheduledTatReportRoute
   '/api/public/set-password': typeof ApiPublicSetPasswordRoute
   '/api/public/shopify-lt-email-comms': typeof ApiPublicShopifyLtEmailCommsRoute
+  '/api/public/signup-lead': typeof ApiPublicSignupLeadRoute
   '/api/public/slack-stuck-merchants-digest': typeof ApiPublicSlackStuckMerchantsDigestRoute
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
@@ -663,6 +672,7 @@ export interface FileRouteTypes {
     | '/api/public/send-scheduled-tat-report'
     | '/api/public/set-password'
     | '/api/public/shopify-lt-email-comms'
+    | '/api/public/signup-lead'
     | '/api/public/slack-stuck-merchants-digest'
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
@@ -727,6 +737,7 @@ export interface FileRouteTypes {
     | '/api/public/send-scheduled-tat-report'
     | '/api/public/set-password'
     | '/api/public/shopify-lt-email-comms'
+    | '/api/public/signup-lead'
     | '/api/public/slack-stuck-merchants-digest'
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
@@ -792,6 +803,7 @@ export interface FileRouteTypes {
     | '/api/public/send-scheduled-tat-report'
     | '/api/public/set-password'
     | '/api/public/shopify-lt-email-comms'
+    | '/api/public/signup-lead'
     | '/api/public/slack-stuck-merchants-digest'
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
@@ -842,6 +854,7 @@ export interface RootRouteChildren {
   ApiPublicSendScheduledTatReportRoute: typeof ApiPublicSendScheduledTatReportRoute
   ApiPublicSetPasswordRoute: typeof ApiPublicSetPasswordRoute
   ApiPublicShopifyLtEmailCommsRoute: typeof ApiPublicShopifyLtEmailCommsRoute
+  ApiPublicSignupLeadRoute: typeof ApiPublicSignupLeadRoute
   ApiPublicSlackStuckMerchantsDigestRoute: typeof ApiPublicSlackStuckMerchantsDigestRoute
   ApiPublicTenantIntegrationsRoute: typeof ApiPublicTenantIntegrationsRoute
   ApiPublicUpdateUserRoute: typeof ApiPublicUpdateUserRoute
@@ -1224,6 +1237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicShopifyLtEmailCommsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/signup-lead': {
+      id: '/api/public/signup-lead'
+      path: '/api/public/signup-lead'
+      fullPath: '/api/public/signup-lead'
+      preLoaderRoute: typeof ApiPublicSignupLeadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/slack-stuck-merchants-digest': {
       id: '/api/public/slack-stuck-merchants-digest'
       path: '/api/public/slack-stuck-merchants-digest'
@@ -1416,6 +1436,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSendScheduledTatReportRoute: ApiPublicSendScheduledTatReportRoute,
   ApiPublicSetPasswordRoute: ApiPublicSetPasswordRoute,
   ApiPublicShopifyLtEmailCommsRoute: ApiPublicShopifyLtEmailCommsRoute,
+  ApiPublicSignupLeadRoute: ApiPublicSignupLeadRoute,
   ApiPublicSlackStuckMerchantsDigestRoute:
     ApiPublicSlackStuckMerchantsDigestRoute,
   ApiPublicTenantIntegrationsRoute: ApiPublicTenantIntegrationsRoute,
