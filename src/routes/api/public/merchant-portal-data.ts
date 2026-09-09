@@ -574,12 +574,8 @@ async function handler(req: Request): Promise<Response> {
 
       // Try to remove storage file (best-effort)
       try {
-        const marker = "/merchant-portal-files/";
-        const idx = upload.file_url.indexOf(marker);
-        if (idx > -1) {
-          const path = upload.file_url.substring(idx + marker.length);
-          await supabase.storage.from("merchant-portal-files").remove([path]);
-        }
+        const path = storageObjectPath("merchant-portal-files", upload.file_url);
+        if (path) await supabase.storage.from("merchant-portal-files").remove([path]);
       } catch (e) { console.error("storage remove failed:", e); }
 
       await supabase.from("merchant_portal_uploads").delete().eq("id", upload_id);
