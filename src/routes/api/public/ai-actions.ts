@@ -22,18 +22,29 @@ async function handler(req: Request): Promise<Response> {
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     
-    const userClient = createClient(SUPABASE_URL, process.env['SUPABASE_ANON_KEY']!, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
-    const { data: { user }, error: authError } = await userClient.auth.getUser(token);
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      // Fail with something that names the missing setting. Passing an
+      // undefined key into createClient only yields "supabaseKey is required".
+      console.error("ai-actions: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not configured");
+      return new Response(JSON.stringify({ error: "Server is not configured for AI actions" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Validate the caller's token with the service-role client, as every other
+    // endpoint here does. This used to build a second client from
+    // SUPABASE_ANON_KEY — a name set nowhere in this project, so createClient
+    // threw "supabaseKey is required" and every approved action failed.
+    const { data: { user }, error: authError } = await adminClient.auth.getUser(token);
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Get user profile for tenant_id
     const { data: profile } = await adminClient
