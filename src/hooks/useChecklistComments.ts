@@ -63,11 +63,9 @@ export const useAddChecklistComment = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data: urlData } = supabase.storage
-          .from("checklist-attachments")
-          .getPublicUrl(filePath);
-
-        attachmentUrl = urlData.publicUrl;
+        // The bucket is private: store the object path and sign a short-lived
+        // link at read time instead of keeping a permanent public URL.
+        attachmentUrl = filePath;
         attachmentName = file.name;
       }
 
