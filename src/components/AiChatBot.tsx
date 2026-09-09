@@ -628,7 +628,7 @@ export const AiChatBot = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold text-foreground">Hi There</p>
-                <p className="text-xs text-muted-foreground">{isLoading ? "Thinking…" : "Ask about your projects, or ask me to change one"}</p>
+                <p className="text-xs text-muted-foreground">{isLoading ? "Thinking…" : "My name is Buddy, you can ask about your projects and tell me to take any action on your behalf"}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -668,10 +668,6 @@ export const AiChatBot = () => {
                 <div className="h-14 w-14 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
                   <Bot className="h-7 w-7 text-primary" />
                 </div>
-                <p className="text-sm font-semibold mb-1">Hey there! 👋</p>
-                <p className="text-xs text-muted-foreground mb-3 max-w-[280px] mx-auto">
-                  I can answer questions AND take actions on your projects. Here's what I can do:
-                </p>
                 <div className="space-y-1.5">
                   {ACTION_SUGGESTIONS
                     .filter(s => !s.actionOnly || canUseActions(currentUser?.team))
