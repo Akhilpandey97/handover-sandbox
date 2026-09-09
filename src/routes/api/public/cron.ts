@@ -94,14 +94,14 @@ async function handler(req: Request): Promise<Response> {
         try {
           results.push({
             tenant: tenant.name,
-            ...(await callJob(origin, job, { tenant_id: tenant.id })),
+            ...(await callJob(origin, job, { tenant_id: tenant.id }, cronToken)),
           });
         } catch (err) {
           results.push({ tenant: tenant.name, error: (err as Error).message });
         }
       }
     } else {
-      results.push(await callJob(origin, job, {}));
+      results.push(await callJob(origin, job, {}, cronToken));
     }
     return json({ success: true, job, ran_at: new Date().toISOString(), results });
   } catch (err) {
