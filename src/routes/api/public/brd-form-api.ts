@@ -48,12 +48,17 @@ async function generateAndUploadExcel(adminClient: any, session: any) {
       upsert: true,
     });
 
-  const { data: urlData } = adminClient.storage.from("brd-exports").getPublicUrl(fileName);
-  const csvUrl = urlData.publicUrl;
+  // The bucket is private. Store the object path on the session (re-signed on
+  // every read) and a long-lived signed link on the project's BRD field so the
+  // existing "BRD Link" stays clickable.
+  const { data: signed } = await adminClient.storage
+    .from("brd-exports")
+    .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+  const csvUrl = signed?.signedUrl || fileName;
 
   // Update session and project brd_link
   await adminClient.from("brd_sessions")
-    .update({ csv_url: csvUrl, updated_at: new Date().toISOString() })
+    .update({ csv_url: fileName, updated_at: new Date().toISOString() })
     .eq("id", session.id);
 
   await adminClient.from("projects")
