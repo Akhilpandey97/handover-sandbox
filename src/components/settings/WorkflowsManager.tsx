@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAiWorkflows, useToggleWorkflow, useDeleteWorkflow, useUpdateWorkflow, AiWorkflow } from "@/hooks/useAiWorkflows";
+import { TriggerConfigFields, ActionConfigFields, type ConfigValue } from "./WorkflowConfigFields";
 import { Zap, Trash2, Clock, GitBranch, Activity, MousePointerClick, Pencil, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -198,26 +199,39 @@ const EditWorkflowDialog = ({
   const [triggerType, setTriggerType] = useState(workflow.trigger_type);
   const [actionType, setActionType] = useState(workflow.action_type);
   const [isActive, setIsActive] = useState(workflow.is_active);
-  const [triggerConfigStr, setTriggerConfigStr] = useState(JSON.stringify(workflow.trigger_config, null, 2));
-  const [actionConfigStr, setActionConfigStr] = useState(JSON.stringify(workflow.action_config, null, 2));
+  const [triggerConfig, setTriggerConfig] = useState<ConfigValue>(
+    (workflow.trigger_config as ConfigValue) || {},
+  );
+  const [actionConfig, setActionConfig] = useState<ConfigValue>(
+    (workflow.action_config as ConfigValue) || {},
+  );
   const [configError, setConfigError] = useState("");
 
+  // The fields can no longer produce malformed JSON, so this checks the thing
+  // that actually matters: that the settings the runtime needs are present.
+  const missingSetting = (): string | null => {
+    if (triggerType === "event" && !triggerConfig.event_name) return "Choose the event that starts this workflow.";
+    if (triggerType === "field_change" && !triggerConfig.field) return "Choose the field to watch.";
+    if (actionType === "assign_owner" && !actionConfig.owner_id) return "Choose who to assign.";
+    if (actionType === "transfer_project" && !actionConfig.to_team) return "Choose the team to transfer to.";
+    if (actionType === "update_field" && (!actionConfig.field || actionConfig.value === "")) return "Choose a field and the value to set.";
+    if (actionType === "send_notification" && !actionConfig.message) return "Write the notification message.";
+    return null;
+  };
+
   const handleSave = () => {
-    setConfigError("");
-    let trigger_config: any, action_config: any;
-    try {
-      trigger_config = JSON.parse(triggerConfigStr);
-    } catch {
-      setConfigError("Trigger config is not valid JSON");
-      return;
-    }
-    try {
-      action_config = JSON.parse(actionConfigStr);
-    } catch {
-      setConfigError("Action config is not valid JSON");
-      return;
-    }
-    onSave({ name, description: description || null, trigger_type: triggerType, action_type: actionType, is_active: isActive, trigger_config, action_config });
+    const problem = missingSetting();
+    setConfigError(problem || "");
+    if (problem) return;
+    onSave({
+      name,
+      description: description || null,
+      trigger_type: triggerType,
+      action_type: actionType,
+      is_active: isActive,
+      trigger_config: triggerConfig,
+      action_config: actionConfig,
+    });
   };
 
   return (
@@ -242,7 +256,7 @@ const EditWorkflowDialog = ({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Trigger Type</Label>
-              <Select value={triggerType} onValueChange={setTriggerType}>
+              <Select value={triggerType} onValueChange={(v) => { setTriggerType(v); setTriggerConfig({}); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="time_based">Time-Based</SelectItem>
@@ -254,7 +268,7 @@ const EditWorkflowDialog = ({
             </div>
             <div className="space-y-1.5">
               <Label>Action Type</Label>
-              <Select value={actionType} onValueChange={setActionType}>
+              <Select value={actionType} onValueChange={(v) => { setActionType(v); setActionConfig({}); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="assign_owner">Assign Owner</SelectItem>
@@ -266,14 +280,14 @@ const EditWorkflowDialog = ({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Trigger Config (JSON)</Label>
-            <Textarea value={triggerConfigStr} onChange={(e) => setTriggerConfigStr(e.target.value)} rows={4} className="font-mono text-xs" />
+          <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
+            <Label className="text-xs font-semibold">Trigger</Label>
+            <TriggerConfigFields triggerType={triggerType} value={triggerConfig} onChange={setTriggerConfig} />
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Action Config (JSON)</Label>
-            <Textarea value={actionConfigStr} onChange={(e) => setActionConfigStr(e.target.value)} rows={4} className="font-mono text-xs" />
+          <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
+            <Label className="text-xs font-semibold">Action</Label>
+            <ActionConfigFields actionType={actionType} value={actionConfig} onChange={setActionConfig} />
           </div>
 
           <div className="flex items-center gap-3">
