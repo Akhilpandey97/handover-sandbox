@@ -302,7 +302,7 @@ const CommentBubble = ({
         >
           <FileText className="h-3 w-3" />
           <span>{comment.attachment_name || "Attachment"}</span>
-        </a>
+        </button>
       )}
     </div>
   );
