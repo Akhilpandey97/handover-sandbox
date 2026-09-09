@@ -67,6 +67,14 @@ export const AiChatBot = () => {
   const queryClient = useQueryClient();
   const silenceTimerRef = useRef<number | null>(null);
   const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
+
+  // "@" mentions: pick a project or a person to point Buddy at something
+  // specific, rather than relying on it to guess from twenty projects of
+  // context.
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const [people, setPeople] = useState<Array<{ id: string; name: string }>>([]);
+  const mentionedRef = useRef<Map<string, { kind: "project" | "person"; id: string; name: string }>>(new Map());
   const [isListening, setIsListening] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [autoSpeak, setAutoSpeak] = useState(false);
@@ -168,6 +176,14 @@ export const AiChatBot = () => {
    * better than the built-in ones; among those, prefer a female voice. Voices
    * load asynchronously, hence the voiceschanged listener.
    */
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from("profiles").select("id, name").order("name").then(({ data }) => {
+      if (!cancelled) setPeople((data || []) as Array<{ id: string; name: string }>);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     if (!window.speechSynthesis) return;
     const pick = () => {
@@ -455,6 +471,23 @@ export const AiChatBot = () => {
   };
 
   const sendMessageRef = useRef<(override?: string) => void>(async () => {});
+  /**
+   * Names the user @-mentioned, with their ids.
+   *
+   * The model otherwise has to guess which "Urban Threads" is meant from twenty
+   * projects of context, and an action needs the id, not the name.
+   */
+  const mentionContext = (text: string): string => {
+    const used = Array.from(mentionedRef.current.values()).filter((m) => text.includes(`@${m.name}`));
+    if (used.length === 0) return "";
+    const lines = used.map((m) =>
+      m.kind === "project"
+        ? `- Project "${m.name}" (ID=${m.id})`
+        : `- Person "${m.name}" (user ID=${m.id})`,
+    );
+    return `The user referred to these specifically — act on them unless they say otherwise:\n${lines.join("\n")}\n\n`;
+  };
+
   const sendMessage = async (overrideInput?: string) => {
     const text = overrideInput || input.trim();
     if (!text || isLoading) return;
@@ -476,7 +509,11 @@ export const AiChatBot = () => {
           "Content-Type": "application/json",
           ...(await apiAuthHeaders()),
         },
-        body: JSON.stringify({ messages: allMessages, projectContext: getProjectContext(), enableActions: canUseActions(currentUser?.team) }),
+        body: JSON.stringify({
+          messages: allMessages,
+          projectContext: mentionContext(text) + getProjectContext(),
+          enableActions: canUseActions(currentUser?.team),
+        }),
       });
 
       if (resp.status === 429) { toast.error("Rate limit exceeded."); setIsLoading(false); return; }
@@ -648,7 +685,59 @@ export const AiChatBot = () => {
     }
   };
 
+  /** The "@word" being typed at the caret, or null when there is not one. */
+  const readMentionQuery = (value: string, caret: number): string | null => {
+    const upto = value.slice(0, caret);
+    const at = upto.lastIndexOf("@");
+    if (at === -1) return null;
+    // Only a fresh word counts, so an email address does not open the picker.
+    if (at > 0 && !/\s/.test(upto[at - 1]!)) return null;
+    const term = upto.slice(at + 1);
+    if (/\s/.test(term)) return null;
+    return term;
+  };
+
+  const mentionMatches = useMemo(() => {
+    if (mentionQuery === null) return [];
+    const q = mentionQuery.toLowerCase();
+    const projects = scopedProjects
+      .filter((p) => p.merchantName.toLowerCase().includes(q))
+      .slice(0, 5)
+      .map((p) => ({ kind: "project" as const, id: p.id, name: p.merchantName, sub: p.mid }));
+    const persons = people
+      .filter((p) => p.name.toLowerCase().includes(q))
+      .slice(0, 5)
+      .map((p) => ({ kind: "person" as const, id: p.id, name: p.name, sub: "" }));
+    return [...projects, ...persons];
+  }, [mentionQuery, scopedProjects, people]);
+
+  const applyMention = (m: { kind: "project" | "person"; id: string; name: string }) => {
+    const el = inputRef.current;
+    const caret = el?.selectionStart ?? input.length;
+    const upto = input.slice(0, caret);
+    const at = upto.lastIndexOf("@");
+    if (at === -1) return;
+    const next = `${input.slice(0, at)}@${m.name} ${input.slice(caret)}`;
+    mentionedRef.current.set(m.name, m);
+    setInput(next);
+    setMentionQuery(null);
+    setMentionIndex(0);
+    requestAnimationFrame(() => {
+      el?.focus();
+      const pos = at + m.name.length + 2;
+      el?.setSelectionRange(pos, pos);
+    });
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // The picker owns these keys while it is open, or Enter would send the
+    // half-typed name instead of choosing from the list.
+    if (mentionQuery !== null && mentionMatches.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setMentionIndex((i) => (i + 1) % mentionMatches.length); return; }
+      if (e.key === "ArrowUp")   { e.preventDefault(); setMentionIndex((i) => (i - 1 + mentionMatches.length) % mentionMatches.length); return; }
+      if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); applyMention(mentionMatches[mentionIndex]!); return; }
+      if (e.key === "Escape")    { e.preventDefault(); setMentionQuery(null); return; }
+    }
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
@@ -850,7 +939,31 @@ export const AiChatBot = () => {
           </div>
 
           {/* Input */}
-          <div className="px-3 py-2.5 border-t bg-card">
+          <div className="relative px-3 py-2.5 border-t bg-card">
+            {mentionQuery !== null && mentionMatches.length > 0 && (
+              <div className="absolute bottom-full left-3 right-3 z-20 mb-2 max-h-56 overflow-y-auto rounded-lg border bg-popover shadow-lg">
+                {mentionMatches.map((m, i) => (
+                  <button
+                    key={`${m.kind}-${m.id}`}
+                    type="button"
+                    // onMouseDown, not onClick: blur fires first and would close
+                    // the list before a click could land.
+                    onMouseDown={(e) => { e.preventDefault(); applyMention(m); }}
+                    onMouseEnter={() => setMentionIndex(i)}
+                    className={cn(
+                      "flex w-full items-center gap-2 px-3 py-2 text-left text-xs",
+                      i === mentionIndex ? "bg-primary/10 text-primary" : "hover:bg-muted",
+                    )}
+                  >
+                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
+                      {m.kind === "project" ? "Project" : "Person"}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate font-medium">{m.name}</span>
+                    {m.sub && <span className="shrink-0 text-[10px] text-muted-foreground">{m.sub}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
             {/* Live transcript indicator */}
             {isListening && (
               <div className="flex items-center gap-2 mb-2 px-1">
@@ -864,10 +977,15 @@ export const AiChatBot = () => {
               <textarea
                 ref={inputRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  setMentionQuery(readMentionQuery(e.target.value, e.target.selectionStart ?? 0));
+                  setMentionIndex(0);
+                }}
                 onKeyDown={handleKeyDown}
+                onBlur={() => setTimeout(() => setMentionQuery(null), 120)}
                 onInput={handleTextareaInput}
-                placeholder="Ask a question or request an action..."
+                placeholder="Ask a question or request an action — @ to mention a project or person"
                 rows={1}
                 disabled={isLoading || isListening}
                 className="flex-1 resize-none rounded-2xl border bg-muted/50 px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 max-h-[120px]"
