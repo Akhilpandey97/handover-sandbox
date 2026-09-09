@@ -5,7 +5,7 @@ export const Route = createFileRoute("/portal")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Merchant Onboarding Portal | Handover" },
+      { title: "Merchant Onboarding Portal | Handover — Onboarding/Integrations Command Center" },
       {
         name: "description",
         content:

@@ -5,7 +5,7 @@ export const Route = createFileRoute("/brd")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Business Requirements Form | Handover" },
+      { title: "Business Requirements Form | Handover — Onboarding/Integrations Command Center" },
       {
         name: "description",
         content:
