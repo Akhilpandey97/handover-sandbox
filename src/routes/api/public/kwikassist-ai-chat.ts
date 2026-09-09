@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminClient } from "@/lib/tenant-integrations.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
+import { portalCaller, userCaller, unauthorized } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
