@@ -84,7 +84,7 @@ export const NotificationCenter = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[440px] p-0">
+      <PopoverContent side="right" align="start" sideOffset={12} collisionPadding={12} className="w-[440px] p-0">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <p className="text-base font-semibold">Notifications</p>
