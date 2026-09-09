@@ -108,7 +108,14 @@ async function handler(req: Request): Promise<Response> {
 
     // Forward to the sheet. Never fatal to the visitor.
     const webhook = await sheetWebhookUrl();
-    if (webhook) {
+    if (!webhook) {
+      // Say so on the row. Silence here is indistinguishable from a forward
+      // that ran and did nothing, which is the wrong thing to be guessing at
+      // when a lead is missing from the sheet.
+      await supabase.from("signup_leads")
+        .update({ sync_error: "No sheet webhook configured (SIGNUP_SHEET_WEBHOOK_URL or app_settings.signup_sheet_webhook_url with tenant_id NULL)" })
+        .eq("id", (inserted as { id: string }).id);
+    } else {
       try {
         const res = await fetch(webhook, {
           method: "POST",
