@@ -9,6 +9,7 @@ import { createFileRoute } from "@tanstack/react-router";
 //   POST /get-project-links   { "id": "<uuid>" }  or  { "mid": "<mid>" }
 
 import { createClient } from "@supabase/supabase-js";
+import { requireCaller } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +28,9 @@ async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
+  const denied = await requireCaller(req, corsHeaders);
+  if (denied) return denied;
 
   try {
     let id: string | null = null;

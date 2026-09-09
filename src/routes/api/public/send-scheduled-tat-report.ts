@@ -4,6 +4,7 @@ import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo, type Ten
 // Dispatches scheduled TAT (Turn-around Time) reports.
 // Triggered by pg_cron every minute, or manually with { schedule_id } to send immediately.
 import { createClient } from "@supabase/supabase-js";
+import { requireInternalCaller } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -214,6 +215,9 @@ async function runSchedule(supa: any, schedule: any) {
 
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const denied = await requireInternalCaller(req, corsHeaders);
+  if (denied) return denied;
 
   const supa = createClient(SUPABASE_URL, SERVICE_KEY);
 

@@ -3,6 +3,7 @@ import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@
 import { projectUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
+import { requireInternalCaller } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,6 +29,9 @@ async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const denied = await requireInternalCaller(req, corsHeaders);
+  if (denied) return denied;
 
   try {
 

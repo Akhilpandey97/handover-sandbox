@@ -4,6 +4,7 @@ import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@
 // Dispatches scheduled movement reports.
 // Triggered by pg_cron every minute, or manually with { schedule_id } to send immediately.
 import { createClient } from "@supabase/supabase-js";
+import { requireInternalCaller } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -522,6 +523,9 @@ function isDue(schedule: any, nowIst: Date): boolean {
 
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  const denied = await requireInternalCaller(req, corsHeaders);
+  if (denied) return denied;
   try {
     const supa = createClient(SUPABASE_URL, SERVICE_KEY);
     let body: any = {};

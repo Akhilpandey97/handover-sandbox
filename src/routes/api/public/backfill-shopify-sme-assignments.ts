@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { createClient } from "@supabase/supabase-js";
 import { corsHeaders } from "@/lib/api-cors";
+import { requireInternalCaller } from "@/lib/api-auth.server";
 
 const SUPABASE_URL = process.env['SUPABASE_URL']!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
@@ -17,6 +18,9 @@ function ownerFor(size: string, arrRaw: number): string {
 
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const denied = await requireInternalCaller(req, corsHeaders);
+  if (denied) return denied;
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
   const { dryRun = false } = await req.json().catch(() => ({}));
 
