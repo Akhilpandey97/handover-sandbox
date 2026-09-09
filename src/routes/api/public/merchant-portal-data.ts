@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { portalUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
@@ -150,18 +151,22 @@ async function handler(req: Request): Promise<Response> {
       const RESEND_API_KEY = tenantCreds.resend_api_key;
       if (!RESEND_API_KEY) return json({ error: "Resend email is not configured for this tenant" }, 500);
 
+      // The workspace is named after whoever runs it, not after one company's
+      // product. org_name comes from Settings and defaults to Handover.
+      const { orgName } = await getTenantBranding(project.tenant_id);
+
       const html = `
         <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #003c71, #0066b3); padding: 24px; border-radius: 12px 12px 0 0; color: white;">
-            <h1 style="margin: 0; font-size: 22px;">⚡ Your KwikAssist Portal Access</h1>
+            <h1 style="margin: 0; font-size: 22px;">Your ${orgName} Portal Access</h1>
           </div>
           <div style="background: #f8fafc; padding: 28px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;">
             <p style="margin: 0 0 16px; font-size: 15px; color: #1e293b;">Hi <strong>${project.merchant_name}</strong> team,</p>
             <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.6;">
-              Click the secure link below to access your GoKwik integration workspace — credentials, validators, documentation, and integration status — all in one place.
+              Click the secure link below to access your integration workspace — credentials, validators, documentation, and integration status — all in one place.
             </p>
             <div style="text-align: center; margin: 28px 0;">
-              <a href="${magicUrl}" style="display:inline-block;background:linear-gradient(135deg,#003c71,#0066b3);color:white;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;">Open KwikAssist Portal →</a>
+              <a href="${magicUrl}" style="display:inline-block;background:linear-gradient(135deg,#003c71,#0066b3);color:white;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;">Open ${orgName} Portal →</a>
             </div>
             <p style="margin: 16px 0 0; font-size: 12px; color: #94a3b8; text-align: center;">
               If the button doesn't work, copy this link:<br/>
@@ -175,10 +180,10 @@ async function handler(req: Request): Promise<Response> {
         method: "POST",
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: resendFrom(tenantCreds, "KwikAssist"),
+          from: resendFrom(tenantCreds, orgName),
           ...resendReplyTo(tenantCreds),
           to: recipients,
-          subject: `Your KwikAssist portal access — ${project.merchant_name}`,
+          subject: `Your ${orgName} portal access — ${project.merchant_name}`,
           html,
         }),
       });

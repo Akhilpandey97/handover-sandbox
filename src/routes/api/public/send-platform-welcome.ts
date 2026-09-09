@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, tenantIdFromRequest, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { requireInternalCaller } from "@/lib/api-auth.server";
 
 const corsHeaders = {
@@ -40,6 +41,7 @@ async function handler(req: Request): Promise<Response> {
     // Where merchants should reply: the tenant's configured Reply-To, then its
     // From Address, rather than a support inbox belonging to one company.
     const supportEmail = creds.reply_to || creds.from_email || "";
+    const { orgName } = await getTenantBranding(await tenantIdFromRequest(req));
     const to = (brandPocEmails as string[]).filter(Boolean);
     const ccSet = new Set<string>((platformPocEmails as string[]).filter(Boolean));
     if (csmEmail && typeof csmEmail === "string" && csmEmail.trim()) ccSet.add(csmEmail.trim());
@@ -52,7 +54,7 @@ async function handler(req: Request): Promise<Response> {
       throw new Error("At least one Brand POC email is required");
     }
 
-    const subject = `Welcome to GoKwik, ${brandName}! | Dashboard Access & Next Steps`;
+    const subject = `Welcome to ${orgName}, ${brandName}! | Dashboard Access & Next Steps`;
 
     const walkthroughVideos = [
       { title: "Executive Dashboard", url: "https://app.trupeer.ai/view/PAwyCbXEk/go-kwik-dashboard-overview-executive-summary" },
@@ -77,7 +79,7 @@ async function handler(req: Request): Promise<Response> {
 
     const text = `Hi ${brandPocName || "there"},
 
-Welcome aboard! We're thrilled to have ${brandName} live on GoKwik Checkout.
+Welcome aboard! We're thrilled to have ${brandName} live on ${orgName}.
 Here's everything you need to get started.
 
 YOUR DASHBOARD ACCESS
@@ -96,13 +98,13 @@ For any queries, write to ${supportEmail} and our Merchant Success team will con
 We look forward to partnering with you.
 
 Warm regards,
-${senderName || "[POC Name]"} | MINT | GoKwik
+${senderName || "[POC Name]"} | ${orgName}
 ${senderMobile || ""}`;
 
     const html = `
       <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; color:#1e293b;">
         <p>Hi <strong>${brandPocName || "there"}</strong>,</p>
-        <p>Welcome aboard! We're thrilled to have <strong>${brandName}</strong> live on GoKwik Checkout.<br/>
+        <p>Welcome aboard! We're thrilled to have <strong>${brandName}</strong> live on ${orgName}.<br/>
         Here's everything you need to get started.</p>
 
         <h3 style="margin-top:24px;">YOUR DASHBOARD ACCESS</h3>
@@ -122,7 +124,7 @@ ${senderMobile || ""}`;
         <p>We look forward to partnering with you.</p>
 
         <p style="margin-top:24px;">Warm regards,<br/>
-        <strong>${senderName || "[POC Name]"}</strong> | MINT | GoKwik<br/>
+        <strong>${senderName || "[POC Name]"}</strong> | ${orgName}<br/>
         ${senderMobile || ""}</p>
       </div>
     `;

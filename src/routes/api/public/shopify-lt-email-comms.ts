@@ -326,7 +326,7 @@ async function handler(req: Request): Promise<Response> {
       ];
 
       const prompt =
-        `You are an analyst for an internal GoKwik merchant-onboarding dashboard. Accuracy matters more than ` +
+        `You are an analyst for an internal merchant-onboarding dashboard. Accuracy matters more than ` +
         `completeness: a wrong status is worse than "Needs Review".\n\n` +
         `For EACH thread below, read ONLY that thread's latest message and return:\n` +
         `1. "summary": 1-2 crisp lines on the current state — what the latest message says, any blocker, and who ` +
