@@ -117,8 +117,11 @@ BEGIN
   UPDATE public.projects p
   SET
     assigned_owner        = COALESCE((_patch->>'assigned_owner')::uuid, p.assigned_owner),
-    project_state         = COALESCE(_patch->>'project_state', p.project_state),
-    current_phase         = COALESCE(_patch->>'current_phase', p.current_phase),
+    -- Both are enums. ->> yields text, and COALESCE will not mix the two, so
+    -- the cast is required — and because a SET clause evaluates every
+    -- assignment, missing it broke every action, not just these fields.
+    project_state         = COALESCE((_patch->>'project_state')::project_state, p.project_state),
+    current_phase         = COALESCE((_patch->>'current_phase')::project_phase, p.current_phase),
     current_owner_team    = COALESCE(_patch->>'current_owner_team', p.current_owner_team),
     expected_go_live_date = COALESCE((_patch->>'expected_go_live_date')::date, p.expected_go_live_date),
     go_live_percent       = COALESCE((_patch->>'go_live_percent')::int, p.go_live_percent),
