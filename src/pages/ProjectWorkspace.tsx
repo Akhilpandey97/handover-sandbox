@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useParams } from "@/lib/router-compat";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import { LoginScreen } from "@/components/LoginScreen";
 import { AssignOwnerDialog } from "@/components/AssignOwnerDialog";
@@ -650,10 +651,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     }
     setSendingMagic(true);
     try {
-      const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const response = await fetch("/api/public/merchant-portal-data/send-magic-link", {
         method: "POST",
-        headers: { "Content-Type": "application/json", apikey: key, Authorization: `Bearer ${key}` },
+        headers: await apiAuthHeaders(),
         body: JSON.stringify({ project_id: project.id }),
       });
       const result = await response.json();

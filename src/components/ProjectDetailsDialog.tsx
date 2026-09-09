@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 import { toast } from "sonner";
 
 interface ProjectDetailsDialogProps {
@@ -106,11 +107,9 @@ export const ProjectDetailsDialog = ({
     }
     setSendingMagic(true);
     try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const res = await fetch(`/api/public/merchant-portal-data/send-magic-link`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        headers: await apiAuthHeaders(),
         body: JSON.stringify({ project_id: project.id }),
       });
       const result = await res.json();

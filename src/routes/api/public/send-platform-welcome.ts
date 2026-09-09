@@ -33,7 +33,13 @@ async function handler(req: Request): Promise<Response> {
       senderMobile,
     } = await req.json();
 
-    const GLOBAL_CC = ["abhishek.yadav@gokwik.co", "akhil.pandey@gokwik.co"];
+    // Was two personal addresses, hardcoded — so every tenant's welcome email
+    // to its own merchants copied the same two people at another company. The
+    // tenant's configured Reply-To stands in for "keep us in the loop".
+    const GLOBAL_CC = creds.reply_to ? [creds.reply_to] : [];
+    // Where merchants should reply: the tenant's configured Reply-To, then its
+    // From Address, rather than a support inbox belonging to one company.
+    const supportEmail = creds.reply_to || creds.from_email || "";
     const to = (brandPocEmails as string[]).filter(Boolean);
     const ccSet = new Set<string>((platformPocEmails as string[]).filter(Boolean));
     if (csmEmail && typeof csmEmail === "string" && csmEmail.trim()) ccSet.add(csmEmail.trim());
@@ -85,7 +91,7 @@ ${videosText}
 These videos will cover every section of the Dashboard and show you how to read your metrics.
 
 SUPPORT
-For any queries, write to platforms@gokwik.co and our Merchant Success team will connect with you directly.
+For any queries, write to ${supportEmail} and our Merchant Success team will connect with you directly.
 
 We look forward to partnering with you.
 
@@ -111,7 +117,7 @@ ${senderMobile || ""}`;
         <p>These videos will cover every section of the Dashboard and show you how to read your metrics.</p>
 
         <h3 style="margin-top:24px;">SUPPORT</h3>
-        <p>For any queries, write to <a href="mailto:platforms@gokwik.co">platforms@gokwik.co</a> and our Merchant Success team will connect with you directly.</p>
+        <p>For any queries, write to <a href="mailto:${supportEmail}">${supportEmail}</a> and our Merchant Success team will connect with you directly.</p>
 
         <p>We look forward to partnering with you.</p>
 

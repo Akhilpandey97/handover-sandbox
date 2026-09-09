@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { apiAuthHeaders } from "@/lib/api-invoke";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -224,11 +225,7 @@ export const PlatformMerchants = () => {
         `/api/public/poll-platform-golive-emails`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${sess?.session?.access_token}`,
-            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6c3BscnpmZXBlemNwZnZ1aXlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NzQyMDIsImV4cCI6MjA4NTA1MDIwMn0.bXy1DDXZ7IMu8gIxKlpjs0rF8QrKZ4bC2pEXkHapNTk",
-          },
+          headers: await apiAuthHeaders(),
           body: JSON.stringify({ tenant_id: profile?.tenant_id, lookback_days: 7 }),
         }
       );
@@ -336,11 +333,7 @@ export const PlatformMerchants = () => {
       const url = `/api/public/send-platform-welcome`;
       const res = await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6c3BscnpmZXBlemNwZnZ1aXlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NzQyMDIsImV4cCI6MjA4NTA1MDIwMn0.bXy1DDXZ7IMu8gIxKlpjs0rF8QrKZ4bC2pEXkHapNTk",
-        },
+        headers: await apiAuthHeaders(),
         body: JSON.stringify({
           brandName: payload.brand_name || payload.merchant_name,
           brandPocName: payload.brand_poc_name,
