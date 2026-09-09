@@ -247,12 +247,49 @@ export const AiChatBot = () => {
     });
   };
 
+  /**
+   * Delete one thread. Scoped by user_id as well as the conversation, so a
+   * crafted id cannot reach someone else's messages even if RLS were ever
+   * loosened. The NULL group is addressable too — it is a real thread to
+   * whoever has one.
+   */
+  const deleteConversation = async (id: string | null) => {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) return;
+
+    let q = supabase.from("chat_messages").delete().eq("user_id", session.session.user.id);
+    q = id === null ? q.is("conversation_id", null) : q.eq("conversation_id", id);
+    const { error } = await q;
+    if (error) {
+      toast.error("Could not delete that chat");
+      return;
+    }
+
+    const remaining = conversations.filter((c) => c.id !== id);
+    setConversations(remaining);
+
+    // Only move the user if they were reading the thread that just went.
+    if (id === conversationId) {
+      const next = remaining[0]?.id ?? null;
+      setPendingApproval(null);
+      if (remaining.length) {
+        await openConversation(next);
+      } else {
+        setConversationId(crypto.randomUUID());
+        setMessages([]);
+      }
+    }
+    toast.success("Chat deleted");
+  };
+
   const clearHistory = async () => {
     const { data: session } = await supabase.auth.getSession();
     if (!session?.session?.user) return;
     await supabase.from("chat_messages").delete().eq("user_id", session.session.user.id);
     setMessages([]);
     setPendingApproval(null);
+    setConversations([]);
+    setConversationId(crypto.randomUUID());
     toast.success("Chat history cleared");
   };
 
@@ -545,20 +582,38 @@ export const AiChatBot = () => {
             <p className="px-2 py-2 text-xs text-muted-foreground">No conversations yet.</p>
           ) : (
             conversations.map((c) => (
-              <button
+              // The delete sits beside the row, not inside it: a button cannot
+              // contain another button, and the row is already the open action.
+              <div
                 key={c.id ?? "legacy"}
-                type="button"
-                onClick={() => openConversation(c.id)}
-                title={c.title}
                 className={cn(
-                  "w-full truncate rounded-md px-2.5 py-2 text-left text-xs transition-colors",
-                  c.id === conversationId
-                    ? "bg-primary/10 font-medium text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "group flex items-center gap-1 rounded-md pr-1 transition-colors",
+                  c.id === conversationId ? "bg-primary/10" : "hover:bg-muted",
                 )}
               >
-                {c.title}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => openConversation(c.id)}
+                  title={c.title}
+                  className={cn(
+                    "min-w-0 flex-1 truncate px-2.5 py-2 text-left text-xs transition-colors",
+                    c.id === conversationId
+                      ? "font-medium text-primary"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  )}
+                >
+                  {c.title}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { if (confirm(`Delete "${c.title}"? This cannot be undone.`)) void deleteConversation(c.id); }}
+                  title="Delete this chat"
+                  aria-label={`Delete ${c.title}`}
+                  className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:text-destructive focus:opacity-100 group-hover:opacity-100"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))
           )}
         </div>
