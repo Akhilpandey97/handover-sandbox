@@ -159,9 +159,10 @@ export const AiChatBot = () => {
   // per-user handful of rows.
   const RECENT_WINDOW = 400;
 
-  const loadHistory = useCallback(async () => {
+  /** Fetch the recent window and group it into threads. */
+  const fetchThreads = async () => {
     const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.user) return;
+    if (!session?.session?.user) return null;
     const { data } = await supabase
       .from("chat_messages")
       .select("role, content, created_at, conversation_id")
@@ -182,11 +183,17 @@ export const AiChatBot = () => {
 
     const list = Array.from(byConversation.entries()).map(([id, msgs]) => {
       const firstUser = msgs.find((m) => m.role === "user");
-      const title = id === null
-        ? "Earlier messages"
-        : (firstUser?.content || "New chat").slice(0, 60);
+      const title = id === null ? "Earlier messages" : (firstUser?.content || "New chat").slice(0, 60);
       return { id, title, at: msgs[msgs.length - 1]!.created_at };
     }).sort((a, b) => b.at.localeCompare(a.at));
+
+    return { byConversation, list };
+  };
+
+  const loadHistory = useCallback(async () => {
+    const result = await fetchThreads();
+    if (!result) return;
+    const { byConversation, list } = result;
 
     setConversations(list);
 
@@ -208,8 +215,17 @@ export const AiChatBot = () => {
     loadHistory();
   }, [currentUser, historyLoaded, loadHistory]);
 
-  // Keep the rail in step once a thread has its first exchange.
-  const refreshConversations = () => { setHistoryLoaded(false); };
+  /**
+   * Refresh only the thread list. It used to reset historyLoaded, which reran
+   * loadHistory and replaced the open thread with what is in the database —
+   * wiping any message held only in memory. The approval prompt is exactly
+   * that, so it appeared and then vanished, leaving the buttons with nothing
+   * to explain what they would do.
+   */
+  const refreshConversations = async () => {
+    const result = await fetchThreads();
+    if (result) setConversations(result.list);
+  };
 
   const startNewChat = () => {
     setConversationId(crypto.randomUUID());
@@ -507,7 +523,11 @@ export const AiChatBot = () => {
           const finalContent = (assistantSoFar ? assistantSoFar + "\n\n" : "") + results.join("\n\n");
           setMessages(prev => {
             const last = prev[prev.length - 1];
-            if (last?.role === "assistant") {
+            // Never overwrite an approval prompt: when a reply mixes an action
+            // needing approval with one that ran outright, the prompt is the
+            // last message, and replacing it leaves the buttons unexplained.
+            const isApprovalPrompt = !!last?.toolCalls?.length;
+            if (last?.role === "assistant" && !isApprovalPrompt) {
               return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: finalContent } : m));
             }
             return [...prev, { role: "assistant", content: finalContent, time: assistantTime }];
@@ -713,13 +733,33 @@ export const AiChatBot = () => {
             {/* Approval buttons */}
             {pendingApproval && (
               <div className="flex justify-start">
-                <div className="flex gap-2 mt-1">
-                  <Button size="sm" variant="default" className="h-8 text-xs" onClick={() => handleApproval(true)}>
-                    ✅ Approve & Execute
-                  </Button>
-                  <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleApproval(false)}>
-                    ❌ Cancel
-                  </Button>
+                {/* What is being approved sits with the buttons rather than in a
+                    separate message, so the two cannot become separated. */}
+                <div className="max-w-[90%] rounded-2xl rounded-bl-md border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
+                  <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
+                    Approve this action?
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-foreground">
+                    {pendingApproval.toolCall.name.replace(/_/g, " ")}
+                  </p>
+                  <dl className="mt-1.5 space-y-0.5">
+                    {Object.entries(pendingApproval.toolCall.arguments || {}).map(([k, v]) => (
+                      <div key={k} className="flex gap-2 text-[11px]">
+                        <dt className="shrink-0 text-muted-foreground">{k.replace(/_/g, " ")}</dt>
+                        <dd className="min-w-0 break-words text-foreground/90">
+                          {typeof v === "object" ? JSON.stringify(v) : String(v)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  <div className="mt-2.5 flex gap-2">
+                    <Button size="sm" variant="default" className="h-8 text-xs" onClick={() => handleApproval(true)}>
+                      Approve &amp; execute
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => handleApproval(false)}>
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
