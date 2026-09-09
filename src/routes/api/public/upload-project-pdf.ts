@@ -94,11 +94,13 @@ async function handler(req: Request): Promise<Response> {
       throw new Error(`Upload failed: ${uploadError.message}`);
     }
 
-    const { data: urlData } = supabase.storage
+    // Bucket is private — store a long-lived signed link so the saved
+    // document stays openable from the project record.
+    const { data: urlData } = await supabase.storage
       .from("checklist-attachments")
-      .getPublicUrl(storagePath);
+      .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
 
-    const publicUrl = urlData.publicUrl;
+    const publicUrl = urlData?.signedUrl ?? storagePath;
 
     const { error: updateError } = await supabase
       .from("projects")
