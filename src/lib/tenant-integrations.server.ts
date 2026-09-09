@@ -152,29 +152,27 @@ export function requireCred<K extends keyof TenantIntegrations>(
 }
 
 /**
- * Best-effort resolution of the calling user's tenant from the request's
- * bearer token, with an optional explicit override (e.g. body.tenant_id).
+ * Resolve the tenant a request is allowed to act on.
+ *
+ * A client-supplied `tenant_id` is only honoured when the caller has been
+ * verified and actually belongs to that tenant (or is the scheduler / a
+ * super admin). Otherwise the caller's own tenant is used, and unverified
+ * callers get `null` so credential lookups fall back to platform defaults
+ * instead of borrowing another tenant's saved Jira/Gmail/Resend accounts.
  */
 export async function tenantIdFromRequest(
   req: Request,
   explicit?: string | null,
 ): Promise<string | null> {
-  if (explicit) return explicit;
-  const auth = req.headers.get("authorization") || "";
-  const token = auth.replace(/^Bearer\s+/i, "").trim();
-  if (!token || token.split(".").length !== 3) return null;
-  try {
-    const admin = adminClient();
-    const { data } = await admin.auth.getUser(token);
-    const userId = data.user?.id;
-    if (!userId) return null;
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("tenant_id")
-      .eq("id", userId)
-      .maybeSingle();
-    return (profile as { tenant_id: string | null } | null)?.tenant_id ?? null;
-  } catch {
-    return null;
-  }
+  const { authenticateRequest } = await import("@/lib/api-auth.server");
+  const caller = await authenticateRequest(req);
+  if (!caller) return null;
+
+  if (caller.kind === "cron") return explicit ?? null;
+
+  const isSuperAdmin = caller.roles.some((r) => r === "super_admin" || r === "superadmin");
+  if (explicit && (isSuperAdmin || explicit === caller.tenantId)) return explicit;
+
+  return caller.tenantId ?? null;
 }
+
