@@ -2,6 +2,24 @@ import { getActiveFunnelStages, resolveFunnelStage } from "@/data/funnelConfig";
 import { TeamRole } from "./teams";
 
 export type ProjectPhase = "mint" | "integration" | "ms" | "completed";
+
+/**
+ * A checklist template's phase, from the team that owns it.
+ *
+ * `phase` is a Postgres enum with four values, while a team can be anything a
+ * tenant creates. Writing the slug straight through worked only for the three
+ * system teams whose slugs happen to match; a custom team put an invalid value
+ * in the column, and seed_project_checklist casts it on every project insert —
+ * so one template for a custom team blocked creating any project at all.
+ *
+ * Custom teams have no true phase. `owner_team` carries the real grouping, so
+ * this maps them to a valid value rather than inventing one.
+ */
+export const teamToProjectPhase = (team: string): ProjectPhase => {
+  if (team === "mint" || team === "integration" || team === "ms") return team;
+  if (team === "completed") return "completed";
+  return "integration";
+};
 export type ResponsibilityParty = "gokwik" | "merchant" | "neutral";
 export type ProjectState = "not_started" | "on_hold" | "in_progress" | "live" | "blocked";
 

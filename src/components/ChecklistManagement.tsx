@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamRole } from "@/data/teams";
+import { teamToProjectPhase } from "@/data/projectsData";
 import { checklistDueDate } from "@/lib/checklistDueDate";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -124,7 +125,7 @@ export const ChecklistManagement = () => {
   const addItemMutation = useMutation({
     mutationFn: async ({ title, team, standardDuration }: { title: string; team: TeamRole; standardDuration: number | null }) => {
       const maxOrder = teamTemplates.reduce((max, t) => Math.max(max, t.sortOrder), -1) + 1;
-      const phase = team === "manager" ? "ms" : team;
+      const phase = teamToProjectPhase(team === "manager" ? "ms" : team);
 
       // Target tenants (all tenants when super admin)
       const tenantIds = await resolveTargetTenantIds();
@@ -134,7 +135,7 @@ export const ChecklistManagement = () => {
         .insert(tenantIds.map((tenantId) => ({
           title,
           owner_team: team,
-          phase: phase as "mint" | "integration" | "ms",
+          phase,
           sort_order: maxOrder,
           tenant_id: tenantId,
           standard_duration: standardDuration,
@@ -154,7 +155,7 @@ export const ChecklistManagement = () => {
         project_id: p.id,
         title,
         owner_team: team,
-        phase: phase as "mint" | "integration" | "ms",
+        phase,
         sort_order: maxOrder,
         completed: false,
         current_responsibility: "neutral" as const,
@@ -340,12 +341,12 @@ export const ChecklistManagement = () => {
       });
 
       const templateInserts = newItems.map((item) => {
-        const phase = item.team === "manager" ? "ms" : item.team;
+        const phase = teamToProjectPhase(item.team === "manager" ? "ms" : item.team);
         teamMaxOrders[item.team] = (teamMaxOrders[item.team] ?? -1) + 1;
         return {
           title: item.title,
           owner_team: item.team,
-          phase: phase as "mint" | "integration" | "ms",
+          phase,
           sort_order: teamMaxOrders[item.team],
         };
       });
