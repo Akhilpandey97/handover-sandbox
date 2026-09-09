@@ -1,3 +1,4 @@
+import { apiAuthHeaders } from "@/lib/api-invoke";
 import { useState } from "react";
 import { RiskBadge } from "./RiskBadge";
 import type { RiskVerdict } from "@/data/riskRules";
@@ -34,7 +35,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-import { apiAuthHeaders } from "@/lib/api-invoke";
   Select,
   SelectContent,
   SelectItem,
