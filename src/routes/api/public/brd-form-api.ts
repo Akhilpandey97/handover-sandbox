@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { createClient } from "@supabase/supabase-js";
 import * as XLSX from "xlsx";
+import { signStorageUrl } from "@/lib/storage-sign.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,12 +49,17 @@ async function generateAndUploadExcel(adminClient: any, session: any) {
       upsert: true,
     });
 
-  const { data: urlData } = adminClient.storage.from("brd-exports").getPublicUrl(fileName);
-  const csvUrl = urlData.publicUrl;
+  // The bucket is private. Store the object path on the session (re-signed on
+  // every read) and a long-lived signed link on the project's BRD field so the
+  // existing "BRD Link" stays clickable.
+  const { data: signed } = await adminClient.storage
+    .from("brd-exports")
+    .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+  const csvUrl = signed?.signedUrl || fileName;
 
   // Update session and project brd_link
   await adminClient.from("brd_sessions")
-    .update({ csv_url: csvUrl, updated_at: new Date().toISOString() })
+    .update({ csv_url: fileName, updated_at: new Date().toISOString() })
     .eq("id", session.id);
 
   await adminClient.from("projects")
@@ -123,7 +129,7 @@ async function handler(req: Request): Promise<Response> {
           merchantName: session.projects?.merchant_name || "Unknown",
           mid: session.projects?.mid || "",
           completed_at: session.completed_at,
-          csv_url: session.csv_url,
+          csv_url: await signStorageUrl("brd-exports", session.csv_url),
         },
         form: {
           name: formTemplate?.name || "BRD Form",

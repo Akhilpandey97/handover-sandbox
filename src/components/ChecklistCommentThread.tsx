@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { openStorageFile } from "@/lib/storage-url";
 import { useChecklistComments, useAddChecklistComment } from "@/hooks/useChecklistComments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfilesLookup } from "@/hooks/useLookups";
@@ -292,15 +294,17 @@ const CommentBubble = ({
         )}
       </p>
       {comment.attachment_url && (
-        <a
-          href={comment.attachment_url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={async () => {
+            const ok = await openStorageFile("checklist-attachments", comment.attachment_url!);
+            if (!ok) toast.error("Could not open that attachment");
+          }}
           className="inline-flex items-center gap-1 mt-1.5 text-primary hover:underline"
         >
           <FileText className="h-3 w-3" />
           <span>{comment.attachment_name || "Attachment"}</span>
-        </a>
+        </button>
       )}
     </div>
   );
