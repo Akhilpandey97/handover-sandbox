@@ -4,7 +4,7 @@ import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { calculateTimeFromChecklist, formatDuration } from "@/data/projectsData";
-import { MessageCircle, X, Send, Loader2, Bot, User, CheckCheck, Trash2, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { Send, Loader2, Bot, User, CheckCheck, Trash2, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
@@ -41,22 +41,11 @@ const ACTION_SUGGESTIONS = [
 ];
 
 /**
- * The assistant panel. Uncontrolled by default (its own floating launcher);
- * pass `open`/`onOpenChange` to drive it from elsewhere — the manager sidebar
- * opens it from its "Hi there" entry and hides the launcher.
+ * The assistant, as a full page. It used to be a 420x600 panel pinned over the
+ * bottom-left of the dashboard; it now fills the Hi there tab, so long answers,
+ * tool approvals and history have room to be read.
  */
-export const AiChatBot = ({
-  open,
-  onOpenChange,
-  hideLauncher = false,
-}: {
-  open?: boolean;
-  onOpenChange?: (next: boolean) => void;
-  hideLauncher?: boolean;
-} = {}) => {
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
-  const isOpen = open ?? uncontrolledOpen;
-  const setIsOpen = onOpenChange ?? setUncontrolledOpen;
+export const AiChatBot = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -198,9 +187,10 @@ export const AiChatBot = ({
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
+  // Focus the composer when the tab opens.
   useEffect(() => {
-    if (isOpen && inputRef.current) inputRef.current.focus();
-  }, [isOpen]);
+    if (inputRef.current) inputRef.current.focus();
+  }, []);
 
   const getProjectContext = useCallback(() => {
     if (!projects.length) return "";
@@ -457,34 +447,23 @@ export const AiChatBot = ({
   if (!currentUser) return null;
 
   return (
-    <>
-      {!isOpen && !hideLauncher && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 left-6 z-50 h-14 w-14 rounded-full bg-[hsl(142,71%,45%)] text-white shadow-xl hover:shadow-2xl transition-all hover:scale-105 flex items-center justify-center"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </button>
-      )}
-
-      {isOpen && (
-        <div className="fixed bottom-6 left-6 z-50 w-[420px] h-[600px] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300 border border-border">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-card">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-[hsl(142,71%,35%)] text-white">
+          <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-3">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <p className="font-semibold text-sm">AI Assistant</p>
-                <p className="text-[11px] text-white/70">{isLoading ? "typing..." : "online"}</p>
+                <p className="text-sm font-semibold text-foreground">Hi there</p>
+                <p className="text-xs text-muted-foreground">{isLoading ? "Thinking…" : "Ask about your projects, or ask me to change one"}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-white hover:bg-white/20"
+                className="h-8 w-8"
                 onClick={() => {
                   const next = !autoSpeak;
                   setAutoSpeak(next);
@@ -496,13 +475,10 @@ export const AiChatBot = ({
                 {autoSpeak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4 opacity-60" />}
               </Button>
               {messages.length > 0 && (
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20" onClick={clearHistory} title="Clear chat history">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={clearHistory} title="Clear chat history">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/20" onClick={() => setIsOpen(false)}>
-                <X className="h-5 w-5" />
-              </Button>
             </div>
           </div>
 
@@ -639,8 +615,6 @@ export const AiChatBot = ({
               </button>
             </div>
           </div>
-        </div>
-      )}
-    </>
+    </div>
   );
 };

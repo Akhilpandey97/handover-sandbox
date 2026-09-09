@@ -1,16 +1,11 @@
-import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginScreen } from "@/components/LoginScreen";
 import { TeamDashboard } from "@/components/TeamDashboard";
 import { ManagerDashboard } from "@/components/ManagerDashboard";
 import { SalesDashboard } from "@/components/SalesDashboard";
-import { AiChatBot } from "@/components/AiChatBot";
 
 const Index = () => {
   const { isAuthenticated, currentUser, isLoading } = useAuth();
-  // The manager sidebar opens the assistant from its own entry, so the state
-  // lives here — the dashboard and the panel are siblings.
-  const [assistantOpen, setAssistantOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -29,30 +24,15 @@ const Index = () => {
 
   // Show manager dashboard for gokwik_general (Sales & Strategy) role — view-only access
   if (currentUser?.team === "gokwik_general") {
-    return (
-      <>
-        <ManagerDashboard onOpenAssistant={() => setAssistantOpen(true)} />
-        <AiChatBot open={assistantOpen} onOpenChange={setAssistantOpen} hideLauncher />
-      </>
-    );
+    return <ManagerDashboard />;
   }
 
   // Show manager dashboard for manager, super_admin
   if (currentUser?.team === "manager" || currentUser?.team === "admin" || currentUser?.team === "super_admin") {
-    return (
-      <>
-        <ManagerDashboard onOpenAssistant={() => setAssistantOpen(true)} />
-        <AiChatBot open={assistantOpen} onOpenChange={setAssistantOpen} hideLauncher />
-      </>
-    );
+    return <ManagerDashboard />;
   }
 
-  return (
-    <>
-      <TeamDashboard />
-      <AiChatBot />
-    </>
-  );
+  return <TeamDashboard />;
 };
 
 export default Index;

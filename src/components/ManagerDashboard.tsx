@@ -107,6 +107,7 @@ import { exportProjectChecklistCSV, exportTeamOwnerCSV } from "@/utils/reportExp
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
+import { AiChatBot } from "./AiChatBot";
 import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
 import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
@@ -163,7 +164,7 @@ const readLastProjectView = (): ProjectView => {
   return DEFAULT_PROJECT_VIEW;
 };
 
-export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => void } = {}) => {
+export const ManagerDashboard = () => {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const routeState = useMemo(() => parseDashboardPath(pathname), [pathname]);
@@ -358,7 +359,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
     fetchProfiles();
   }, []);
 
-  const TAB_CONFIG_KEYS = ["dashboard", "projects", "risks", "reports", "settings", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails", "tenants", "archived"];
+  const TAB_CONFIG_KEYS = ["dashboard", "projects", "risks", "reports", "settings", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails", "tenants", "archived", "hi-there"];
 
   // A bare "/" names no tab, so redirect to the first visible one. Match the
   // exact path rather than "no tab resolved": navigating to a page outside the
@@ -835,6 +836,7 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
     golive: { icon: <CalendarDays className="h-4 w-4" />, label: "Go-Live Tracker" },
     "shopify-sme": { icon: <ShoppingBag className="h-4 w-4" />, label: "Shopify SME and Ent" },
     "shopify-lt-emails": { icon: <Mail className="h-4 w-4" />, label: "Shopify LT Integration Email Communication" },
+    "hi-there": { icon: <span className="animate-wave text-base leading-none">👋</span>, label: "Hi there" },
   };
 
   const SETTINGS_SUB_CONFIG: Record<string, { label: string }> = {
@@ -984,13 +986,14 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
     ...(!tabOrder.includes("golive") ? ["golive"] : []),
     ...(!tabOrder.includes("shopify-sme") ? ["shopify-sme"] : []),
     ...(!tabOrder.includes("shopify-lt-emails") ? ["shopify-lt-emails"] : []),
+    ...(!tabOrder.includes("hi-there") ? ["hi-there"] : []),
   ]
     .filter(tab => !["listview", "kanban", "calendar", "checklist", "users"].includes(tab))
     .filter(tab => tab !== "tenants" || currentUser?.team === "super_admin")
     .filter(tab => tab !== "archived" || isManagerOrAdmin)
     .filter(tab => TAB_CONFIG[tab])
     .filter(tab => navVisibility[tab] !== false || tab === "tenants" || tab === "settings" || tab === "archived")
-    .filter(tab => !isGokwikGeneral || GOKWIK_GENERAL_TABS.includes(tab));
+    .filter(tab => !isGokwikGeneral || GOKWIK_GENERAL_TABS.includes(tab) || tab === "hi-there");
 
   const openProjectView = (view: ProjectView) => {
     navigate({ to: projectViewPath(view) });
@@ -1226,29 +1229,6 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
               </button>
             ) : renderNavItem(tab))}
 
-            {/* The AI assistant, previously a floating button over the board. */}
-            {onOpenAssistant && (sidebarCollapsed ? (
-              <button
-                type="button"
-                onClick={onOpenAssistant}
-                title="Hi there — ask the AI assistant"
-                aria-label="Hi there — ask the AI assistant"
-                className="w-full flex items-center justify-center p-2.5 rounded-lg transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
-              >
-                <span className="animate-wave text-base leading-none">👋</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={onOpenAssistant}
-                className="group w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-left transition-all duration-200 hover:bg-sidebar-accent/60 text-sidebar-foreground"
-              >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-sidebar-accent">
-                  <span className="animate-wave text-base leading-none">👋</span>
-                </span>
-                <span className="flex-1 text-sm font-medium">Hi there</span>
-              </button>
-            ))}
           </div>
         </nav>
 
@@ -1306,8 +1286,8 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
 
         {/* Content Area — the projects tab fills the viewport and scrolls
             inside its board/tables; every other tab scrolls the page. */}
-        <div className={cn("min-h-0 flex-1 app-shell-surface", activeTab === "projects" ? "flex flex-col overflow-hidden" : "overflow-auto")}>
-          <div className={cn("p-4 sm:p-6", activeTab === "projects" && "flex min-h-0 flex-1 flex-col")}>
+        <div className={cn("min-h-0 flex-1 app-shell-surface", (activeTab === "projects" || activeTab === "hi-there") ? "flex flex-col overflow-hidden" : "overflow-auto")}>
+          <div className={cn("p-4 sm:p-6", (activeTab === "projects" || activeTab === "hi-there") && "flex min-h-0 flex-1 flex-col")}>
 
           {activeTab === "projects" && (
             // One centred row: the view tabs and that view's own controls sit
@@ -2483,6 +2463,8 @@ export const ManagerDashboard = ({ onOpenAssistant }: { onOpenAssistant?: () => 
           </div>}
 
           {/* Risks Tab */}
+          {activeTab === "hi-there" && <AiChatBot />}
+
           {activeTab === "risks" && <RiskDashboard />}
 
 

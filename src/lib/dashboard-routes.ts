@@ -66,6 +66,7 @@ const SIMPLE_TAB_PATHS: Record<string, string> = {
   "shopify-lt-emails": "/shopify-lt-emails",
   tenants: "/tenants",
   archived: "/archived",
+  "hi-there": "/hi-there",
 };
 
 const PROJECT_VIEW_SEGMENTS: Record<ProjectView, string> = {

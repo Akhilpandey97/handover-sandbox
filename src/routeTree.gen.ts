@@ -17,6 +17,7 @@ import { Route as DashArchivedRouteImport } from './routes/_dash.archived'
 import { Route as DashDashboardRouteImport } from './routes/_dash.dashboard'
 import { Route as DashEmailsRouteImport } from './routes/_dash.emails'
 import { Route as DashGoLiveRouteImport } from './routes/_dash.go-live'
+import { Route as DashHiThereRouteImport } from './routes/_dash.hi-there'
 import { Route as DashPlatformsRouteImport } from './routes/_dash.platforms'
 import { Route as DashRisksRouteImport } from './routes/_dash.risks'
 import { Route as DashShopifyLtEmailsRouteImport } from './routes/_dash.shopify-lt-emails'
@@ -111,6 +112,11 @@ const DashEmailsRoute = DashEmailsRouteImport.update({
 const DashGoLiveRoute = DashGoLiveRouteImport.update({
   id: '/go-live',
   path: '/go-live',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashHiThereRoute = DashHiThereRouteImport.update({
+  id: '/hi-there',
+  path: '/hi-there',
   getParentRoute: () => DashRoute,
 } as any)
 const DashPlatformsRoute = DashPlatformsRouteImport.update({
@@ -428,6 +434,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashDashboardRoute
   '/emails': typeof DashEmailsRoute
   '/go-live': typeof DashGoLiveRoute
+  '/hi-there': typeof DashHiThereRoute
   '/platforms': typeof DashPlatformsRoute
   '/risks': typeof DashRisksRoute
   '/shopify-lt-emails': typeof DashShopifyLtEmailsRoute
@@ -492,6 +499,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashDashboardRoute
   '/emails': typeof DashEmailsRoute
   '/go-live': typeof DashGoLiveRoute
+  '/hi-there': typeof DashHiThereRoute
   '/platforms': typeof DashPlatformsRoute
   '/risks': typeof DashRisksRoute
   '/shopify-lt-emails': typeof DashShopifyLtEmailsRoute
@@ -559,6 +567,7 @@ export interface FileRoutesById {
   '/_dash/dashboard': typeof DashDashboardRoute
   '/_dash/emails': typeof DashEmailsRoute
   '/_dash/go-live': typeof DashGoLiveRoute
+  '/_dash/hi-there': typeof DashHiThereRoute
   '/_dash/platforms': typeof DashPlatformsRoute
   '/_dash/risks': typeof DashRisksRoute
   '/_dash/shopify-lt-emails': typeof DashShopifyLtEmailsRoute
@@ -627,6 +636,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/emails'
     | '/go-live'
+    | '/hi-there'
     | '/platforms'
     | '/risks'
     | '/shopify-lt-emails'
@@ -691,6 +701,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/emails'
     | '/go-live'
+    | '/hi-there'
     | '/platforms'
     | '/risks'
     | '/shopify-lt-emails'
@@ -757,6 +768,7 @@ export interface FileRouteTypes {
     | '/_dash/dashboard'
     | '/_dash/emails'
     | '/_dash/go-live'
+    | '/_dash/hi-there'
     | '/_dash/platforms'
     | '/_dash/risks'
     | '/_dash/shopify-lt-emails'
@@ -920,6 +932,13 @@ declare module '@tanstack/react-router' {
       path: '/go-live'
       fullPath: '/go-live'
       preLoaderRoute: typeof DashGoLiveRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/hi-there': {
+      id: '/_dash/hi-there'
+      path: '/hi-there'
+      fullPath: '/hi-there'
+      preLoaderRoute: typeof DashHiThereRouteImport
       parentRoute: typeof DashRoute
     }
     '/_dash/platforms': {
@@ -1322,6 +1341,7 @@ interface DashRouteChildren {
   DashDashboardRoute: typeof DashDashboardRoute
   DashEmailsRoute: typeof DashEmailsRoute
   DashGoLiveRoute: typeof DashGoLiveRoute
+  DashHiThereRoute: typeof DashHiThereRoute
   DashPlatformsRoute: typeof DashPlatformsRoute
   DashRisksRoute: typeof DashRisksRoute
   DashShopifyLtEmailsRoute: typeof DashShopifyLtEmailsRoute
@@ -1341,6 +1361,7 @@ const DashRouteChildren: DashRouteChildren = {
   DashDashboardRoute: DashDashboardRoute,
   DashEmailsRoute: DashEmailsRoute,
   DashGoLiveRoute: DashGoLiveRoute,
+  DashHiThereRoute: DashHiThereRoute,
   DashPlatformsRoute: DashPlatformsRoute,
   DashRisksRoute: DashRisksRoute,
   DashShopifyLtEmailsRoute: DashShopifyLtEmailsRoute,
