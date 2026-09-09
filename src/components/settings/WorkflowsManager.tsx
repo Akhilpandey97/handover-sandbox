@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAiWorkflows, useToggleWorkflow, useDeleteWorkflow, useUpdateWorkflow, AiWorkflow } from "@/hooks/useAiWorkflows";
 import { TriggerConfigFields, ActionConfigFields, type ConfigValue } from "./WorkflowConfigFields";
-import { Zap, Trash2, Clock, GitBranch, Activity, MousePointerClick, Pencil, Loader2 } from "lucide-react";
+import { Zap, Play, Trash2, Clock, GitBranch, Activity, MousePointerClick, Pencil, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -18,6 +21,27 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+
+type WorkflowRun = { id: string; status: string; detail: string | null; created_at: string };
+
+/**
+ * The last few runs of a workflow. Until now there was no way to tell whether a
+ * rule had ever fired, which is most of why it went unnoticed that none did.
+ */
+const useWorkflowRuns = (workflowId: string) =>
+  useQuery({
+    queryKey: ["workflow_runs", workflowId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("workflow_runs")
+        .select("id, status, detail, created_at")
+        .eq("workflow_id", workflowId)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      if (error) throw error;
+      return (data || []) as WorkflowRun[];
+    },
+  });
 
 const TRIGGER_ICONS: Record<string, typeof Clock> = {
   time_based: Clock,
@@ -46,6 +70,31 @@ export const WorkflowsManager = () => {
   const deleteMutation = useDeleteWorkflow();
   const updateMutation = useUpdateWorkflow();
   const [editingWorkflow, setEditingWorkflow] = useState<AiWorkflow | null>(null);
+  const queryClient = useQueryClient();
+
+  /** Drain the queue on demand, rather than waiting for the next project change. */
+  const runPending = async () => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      if (!token) return;
+      const res = await fetch("/api/public/run-workflows", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Could not run workflows");
+      toast.success(
+        body.fired > 0
+          ? `${body.fired} workflow${body.fired === 1 ? "" : "s"} ran`
+          : "Nothing pending to run",
+      );
+      queryClient.invalidateQueries({ queryKey: ["workflow_runs"] });
+      queryClient.invalidateQueries({ queryKey: ["ai_workflows"] });
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -87,6 +136,7 @@ export const WorkflowsManager = () => {
                   onToggle={(active) => toggleMutation.mutate({ id: wf.id, is_active: active })}
                   onDelete={() => deleteMutation.mutate(wf.id)}
                   onEdit={() => setEditingWorkflow(wf)}
+                  onRunNow={runPending}
                 />
               ))}
             </div>
@@ -112,14 +162,16 @@ export const WorkflowsManager = () => {
 };
 
 const WorkflowRow = ({
-  workflow, onToggle, onDelete, onEdit,
+  workflow, onToggle, onDelete, onEdit, onRunNow,
 }: {
   workflow: AiWorkflow;
   onToggle: (active: boolean) => void;
   onDelete: () => void;
   onEdit: () => void;
+  onRunNow: () => void;
 }) => {
   const TriggerIcon = TRIGGER_ICONS[workflow.trigger_type] || Activity;
+  const { data: runs = [] } = useWorkflowRuns(workflow.id);
 
   return (
     <div className="flex items-start gap-3 p-4 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
@@ -152,9 +204,32 @@ const WorkflowRow = ({
           )}
           <span className="ml-2">• {format(new Date(workflow.created_at), "dd MMM yyyy")}</span>
         </div>
+
+        {workflow.trigger_type === "time_based" && (
+          <p className="mt-2 rounded border border-dashed px-2 py-1 text-[11px] text-muted-foreground">
+            Time-based rules need the scheduler enabled. Event and field-change rules run without it.
+          </p>
+        )}
+
+        {runs.length > 0 && (
+          <div className="mt-2 space-y-0.5">
+            {runs.map((r) => (
+              <p key={r.id} className="text-[11px] text-muted-foreground">
+                <span className={r.status === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}>
+                  {r.status === "success" ? "Ran" : "Failed"}
+                </span>{" "}
+                {format(new Date(r.created_at), "dd MMM HH:mm")}
+                {r.detail ? ` — ${r.detail}` : ""}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
+        <Button variant="ghost" size="icon" className="h-8 w-8" title="Run pending workflows now" onClick={onRunNow}>
+          <Play className="h-4 w-4" />
+        </Button>
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit}>
           <Pencil className="h-4 w-4" />
         </Button>

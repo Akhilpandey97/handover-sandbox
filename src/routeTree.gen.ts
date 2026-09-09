@@ -54,6 +54,7 @@ import { Route as ApiPublicMerchantPortalDataRouteImport } from './routes/api/pu
 import { Route as ApiPublicPollEmailsRouteImport } from './routes/api/public/poll-emails'
 import { Route as ApiPublicPollPlatformGoliveEmailsRouteImport } from './routes/api/public/poll-platform-golive-emails'
 import { Route as ApiPublicPollShopifySmeEmailsRouteImport } from './routes/api/public/poll-shopify-sme-emails'
+import { Route as ApiPublicRunWorkflowsRouteImport } from './routes/api/public/run-workflows'
 import { Route as ApiPublicSandboxTestRouteImport } from './routes/api/public/sandbox-test'
 import { Route as ApiPublicSendMovementReportRouteImport } from './routes/api/public/send-movement-report'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
@@ -313,6 +314,11 @@ const ApiPublicPollShopifySmeEmailsRoute =
     path: '/api/public/poll-shopify-sme-emails',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicRunWorkflowsRoute = ApiPublicRunWorkflowsRouteImport.update({
+  id: '/api/public/run-workflows',
+  path: '/api/public/run-workflows',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSandboxTestRoute = ApiPublicSandboxTestRouteImport.update({
   id: '/api/public/sandbox-test',
   path: '/api/public/sandbox-test',
@@ -471,6 +477,7 @@ export interface FileRoutesByFullPath {
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
+  '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -537,6 +544,7 @@ export interface FileRoutesByTo {
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
+  '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -605,6 +613,7 @@ export interface FileRoutesById {
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
+  '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -673,6 +682,7 @@ export interface FileRouteTypes {
     | '/api/public/poll-emails'
     | '/api/public/poll-platform-golive-emails'
     | '/api/public/poll-shopify-sme-emails'
+    | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
@@ -739,6 +749,7 @@ export interface FileRouteTypes {
     | '/api/public/poll-emails'
     | '/api/public/poll-platform-golive-emails'
     | '/api/public/poll-shopify-sme-emails'
+    | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
@@ -806,6 +817,7 @@ export interface FileRouteTypes {
     | '/api/public/poll-emails'
     | '/api/public/poll-platform-golive-emails'
     | '/api/public/poll-shopify-sme-emails'
+    | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
@@ -857,6 +869,7 @@ export interface RootRouteChildren {
   ApiPublicPollEmailsRoute: typeof ApiPublicPollEmailsRoute
   ApiPublicPollPlatformGoliveEmailsRoute: typeof ApiPublicPollPlatformGoliveEmailsRoute
   ApiPublicPollShopifySmeEmailsRoute: typeof ApiPublicPollShopifySmeEmailsRoute
+  ApiPublicRunWorkflowsRoute: typeof ApiPublicRunWorkflowsRoute
   ApiPublicSandboxTestRoute: typeof ApiPublicSandboxTestRoute
   ApiPublicSendMovementReportRoute: typeof ApiPublicSendMovementReportRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
@@ -1193,6 +1206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPollShopifySmeEmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/run-workflows': {
+      id: '/api/public/run-workflows'
+      path: '/api/public/run-workflows'
+      fullPath: '/api/public/run-workflows'
+      preLoaderRoute: typeof ApiPublicRunWorkflowsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/sandbox-test': {
       id: '/api/public/sandbox-test'
       path: '/api/public/sandbox-test'
@@ -1447,6 +1467,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPollPlatformGoliveEmailsRoute:
     ApiPublicPollPlatformGoliveEmailsRoute,
   ApiPublicPollShopifySmeEmailsRoute: ApiPublicPollShopifySmeEmailsRoute,
+  ApiPublicRunWorkflowsRoute: ApiPublicRunWorkflowsRoute,
   ApiPublicSandboxTestRoute: ApiPublicSandboxTestRoute,
   ApiPublicSendMovementReportRoute: ApiPublicSendMovementReportRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,

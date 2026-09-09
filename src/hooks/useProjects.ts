@@ -108,6 +108,27 @@ const restoreProjectsCache = (
 };
 
 // Fetch all projects with related data
+/**
+ * Ask the server to run any workflows waiting on this change.
+ *
+ * The database trigger has already queued the event, so this only decides how
+ * soon a rule fires — never whether it does. A failure here is logged and
+ * swallowed: the queue still holds the event for the next drain.
+ */
+const runWorkflows = async () => {
+  try {
+    const { data: session } = await supabase.auth.getSession();
+    const token = session?.session?.access_token;
+    if (!token) return;
+    await fetch("/api/public/run-workflows", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    });
+  } catch (err) {
+    console.warn("Could not run workflows now; they will run on the next drain.", err);
+  }
+};
+
 export const useProjectsQuery = () => {
   const { currentUser } = useAuth();
 
@@ -327,6 +348,7 @@ export const useAddProject = () => {
     onSuccess: (newProject) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project created successfully");
+      void runWorkflows();
       logActivity({ action_type: "user", category: "project", description: `Created project "${newProject.merchant_name}"`, entity_type: "project", entity_id: newProject.id });
     },
     onError: (error) => {
@@ -476,6 +498,7 @@ export const useUpdateProject = () => {
         entity_id: project.id,
         metadata: { changes },
       });
+      void runWorkflows();
     },
     onError: (error) => {
       console.error("Error updating project:", error);
@@ -609,6 +632,7 @@ export const useAcceptProject = () => {
     onSuccess: (projectId) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project accepted successfully");
+      void runWorkflows();
       logActivity({ action_type: "user", category: "transfer", description: `Accepted project transfer`, entity_type: "project", entity_id: projectId });
     },
     onError: (error) => {
@@ -700,6 +724,7 @@ export const useTransferProject = () => {
     onSuccess: (projectId) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project transferred successfully");
+      void runWorkflows();
       logActivity({ action_type: "user", category: "transfer", description: `Transferred project`, entity_type: "project", entity_id: projectId });
     },
     onError: (error) => {

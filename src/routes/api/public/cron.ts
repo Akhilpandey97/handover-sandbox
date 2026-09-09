@@ -26,6 +26,10 @@ const GLOBAL_JOBS = [
   "send-scheduled-movement-report",
   "slack-stuck-merchants-digest",
   "check-overdue-tasks",
+  // Drains the workflow queue and handles time-based rules. Event and
+  // field-change rules are also run by the app right after a change, so this is
+  // the safety net rather than the only path.
+  "run-workflows",
 ] as const;
 
 const ALL_JOBS: string[] = [...PER_TENANT_JOBS, ...GLOBAL_JOBS];
