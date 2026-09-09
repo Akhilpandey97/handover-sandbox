@@ -3,6 +3,7 @@ import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@
 import { portalUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
+import { signStorageUrl, storageObjectPath } from "@/lib/storage-sign.server";
 
 function adfToText(node: any): string {
   if (!node) return "";
@@ -536,18 +537,19 @@ async function handler(req: Request): Promise<Response> {
 
       if (uploadErr) return json({ error: uploadErr.message }, 500);
 
-      const { data: publicUrl } = supabase.storage.from("merchant-portal-files").getPublicUrl(storagePath);
-
+      // The bucket is private: keep the object path on the record and hand back
+      // a short-lived signed link for the merchant's immediate download.
       await supabase.from("merchant_portal_uploads").insert({
         project_id: projectId,
         tenant_id: tenantId,
         upload_type: uploadType,
         file_name: file.name,
-        file_url: publicUrl.publicUrl,
+        file_url: storagePath,
         uploaded_by: "merchant",
       });
 
-      return json({ success: true, file_url: publicUrl.publicUrl, file_name: file.name });
+      const signedUpload = await signStorageUrl("merchant-portal-files", storagePath);
+      return json({ success: true, file_url: signedUpload, file_name: file.name });
     } catch (err) {
       return json({ error: (err as Error).message }, 500);
     }
@@ -718,14 +720,17 @@ async function handler(req: Request): Promise<Response> {
     } catch (e) { console.error("brd progress error:", e); }
 
 
-    const uploads = (uploadsRes.data ?? []).map((u: any) => ({
-      id: u.id,
-      upload_type: u.upload_type,
-      file_name: u.file_name,
-      file_url: u.file_url,
-      uploaded_by: u.uploaded_by,
-      created_at: u.created_at,
-    }));
+    const uploads = await Promise.all(
+      (uploadsRes.data ?? []).map(async (u: any) => ({
+        id: u.id,
+        upload_type: u.upload_type,
+        file_name: u.file_name,
+        // Private bucket — every listing hands out a fresh, expiring link.
+        file_url: await signStorageUrl("merchant-portal-files", u.file_url),
+        uploaded_by: u.uploaded_by,
+        created_at: u.created_at,
+      })),
+    );
 
     // Build credentials: DB-stored values take priority over Jira-scraped
     const dbSandbox: Record<string, string> = {};
