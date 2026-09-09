@@ -231,7 +231,7 @@ export const TeamDashboard = () => {
     { key: "active", label: "Active", icon: <Rocket className="h-4 w-4" />, count: activeForUser.length, color: "text-emerald-500" },
     { key: "all", label: "All Projects", icon: <Layers className="h-4 w-4" />, count: userProjects.length, color: "text-primary" },
     // The assistant, scoped to this user's own projects by AiChatBot itself.
-    { key: "hi-there", label: "Hi there", icon: <span className="animate-wave text-base leading-none">👋</span>, count: -1, color: "text-primary" },
+    { key: "hi-there", label: "Hi There", icon: <span className="animate-wave text-base leading-none">👋</span>, count: -1, color: "text-primary" },
   ];
 
   const filterGroup = (
@@ -387,7 +387,7 @@ export const TeamDashboard = () => {
               {activeTab === "pending" && "Pending Acceptance"}
               {activeTab === "active" && "Active Projects"}
               {activeTab === "all" && "All Projects"}
-              {activeTab === "hi-there" && "Hi there"}
+              {activeTab === "hi-there" && "Hi There"}
             </h2>
             <p className="text-xs text-muted-foreground">
               {activeTab === "hi-there"

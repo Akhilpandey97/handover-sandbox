@@ -836,7 +836,7 @@ export const ManagerDashboard = () => {
     golive: { icon: <CalendarDays className="h-4 w-4" />, label: "Go-Live Tracker" },
     "shopify-sme": { icon: <ShoppingBag className="h-4 w-4" />, label: "Shopify SME and Ent" },
     "shopify-lt-emails": { icon: <Mail className="h-4 w-4" />, label: "Shopify LT Integration Email Communication" },
-    "hi-there": { icon: <span className="animate-wave text-base leading-none">👋</span>, label: "Hi there" },
+    "hi-there": { icon: <span className="animate-wave text-base leading-none">👋</span>, label: "Hi There" },
   };
 
   const SETTINGS_SUB_CONFIG: Record<string, { label: string }> = {

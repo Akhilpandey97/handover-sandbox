@@ -4,7 +4,7 @@ import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { calculateTimeFromChecklist, formatDuration } from "@/data/projectsData";
-import { Send, Loader2, Bot, User, CheckCheck, Trash2, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { Send, Plus, Loader2, Bot, User, CheckCheck, Trash2, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
@@ -48,7 +48,7 @@ const ACTION_SUGGESTIONS = [
 
 /**
  * The assistant, as a full page. It used to be a 420x600 panel pinned over the
- * bottom-left of the dashboard; it now fills the Hi there tab, so long answers,
+ * bottom-left of the dashboard; it now fills the Hi There tab, so long answers,
  * tool approvals and history have room to be read.
  */
 export const AiChatBot = () => {
@@ -56,6 +56,12 @@ export const AiChatBot = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  // One thread at a time, chosen from the recent list. Existing messages have
+  // no conversation_id, so they group under a single "Earlier" entry.
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<
+    Array<{ id: string | null; title: string; at: string }>
+  >([]);
   const [pendingApproval, setPendingApproval] = useState<{ toolCall: ToolCall; msgIndex: number } | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState("");
@@ -148,36 +154,97 @@ export const AiChatBot = () => {
     window.speechSynthesis.speak(utt);
   }, []);
 
-  // Load chat history
+  // Load the recent window once, then derive both the thread list and the
+  // active thread from it. Grouping client-side avoids an RPC for what is a
+  // per-user handful of rows.
+  const RECENT_WINDOW = 400;
+
+  const loadHistory = useCallback(async () => {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) return;
+    const { data } = await supabase
+      .from("chat_messages")
+      .select("role, content, created_at, conversation_id")
+      .eq("user_id", session.session.user.id)
+      .order("created_at", { ascending: false })
+      .limit(RECENT_WINDOW);
+
+    const rows = ((data || []) as Array<{
+      role: string; content: string; created_at: string; conversation_id: string | null;
+    }>).slice().reverse();
+
+    const byConversation = new Map<string | null, typeof rows>();
+    for (const r of rows) {
+      const key = r.conversation_id ?? null;
+      if (!byConversation.has(key)) byConversation.set(key, []);
+      byConversation.get(key)!.push(r);
+    }
+
+    const list = Array.from(byConversation.entries()).map(([id, msgs]) => {
+      const firstUser = msgs.find((m) => m.role === "user");
+      const title = id === null
+        ? "Earlier messages"
+        : (firstUser?.content || "New chat").slice(0, 60);
+      return { id, title, at: msgs[msgs.length - 1]!.created_at };
+    }).sort((a, b) => b.at.localeCompare(a.at));
+
+    setConversations(list);
+
+    // Open the most recent thread on first load.
+    const active = conversationId !== null || historyLoaded ? conversationId : (list[0]?.id ?? null);
+    if (!historyLoaded) setConversationId(active);
+
+    const shown = byConversation.get(active) || [];
+    setMessages(shown.map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+      time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    })));
+    setHistoryLoaded(true);
+  }, [conversationId, historyLoaded]);
+
   useEffect(() => {
     if (!currentUser || historyLoaded) return;
-    const loadHistory = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user) return;
-      const { data } = await supabase
-        .from("chat_messages")
-        .select("role, content, created_at")
-        .eq("user_id", session.session.user.id)
-        .order("created_at", { ascending: true })
-        .limit(50);
-      if (data && data.length > 0) {
-        setMessages(
-          data.map((m: any) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-            time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          }))
-        );
-      }
-      setHistoryLoaded(true);
-    };
     loadHistory();
-  }, [currentUser, historyLoaded]);
+  }, [currentUser, historyLoaded, loadHistory]);
+
+  // Keep the rail in step once a thread has its first exchange.
+  const refreshConversations = () => { setHistoryLoaded(false); };
+
+  const startNewChat = () => {
+    setConversationId(crypto.randomUUID());
+    setMessages([]);
+    setPendingApproval(null);
+  };
+
+  const openConversation = async (id: string | null) => {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user) return;
+    let q = supabase
+      .from("chat_messages")
+      .select("role, content, created_at")
+      .eq("user_id", session.session.user.id)
+      .order("created_at", { ascending: true });
+    q = id === null ? q.is("conversation_id", null) : q.eq("conversation_id", id);
+    const { data } = await q;
+    setConversationId(id);
+    setPendingApproval(null);
+    setMessages(((data || []) as any[]).map((m) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+      time: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    })));
+  };
 
   const saveMessage = async (role: "user" | "assistant", content: string) => {
     const { data: session } = await supabase.auth.getSession();
     if (!session?.session?.user) return;
-    await supabase.from("chat_messages").insert({ user_id: session.session.user.id, role, content });
+    // A thread id is minted on first send so a fresh tab does not need one up front.
+    const convo = conversationId ?? crypto.randomUUID();
+    if (conversationId === null) setConversationId(convo);
+    await supabase.from("chat_messages").insert({
+      user_id: session.session.user.id, role, content, conversation_id: convo,
+    });
   };
 
   const clearHistory = async () => {
@@ -421,6 +488,8 @@ export const AiChatBot = () => {
       setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I encountered an error. Please try again.", time: getTime() }]);
     } finally {
       setIsLoading(false);
+      // A brand-new thread only earns a place in Recent once it has a message.
+      refreshConversations();
     }
   };
   // Keep ref always pointing to the latest sendMessage so STT onend can call it without stale closure
@@ -461,7 +530,41 @@ export const AiChatBot = () => {
   if (!currentUser) return null;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-card">
+    <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-card">
+      {/* Threads. Hidden on narrow screens, where the conversation matters more
+          than the ability to switch between them. */}
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-muted/30 md:flex">
+        <div className="p-3">
+          <Button onClick={startNewChat} size="sm" className="w-full gap-2">
+            <Plus className="h-4 w-4" /> New chat
+          </Button>
+        </div>
+        <p className="px-4 pb-1 text-[11px] font-semibold text-muted-foreground">Recent</p>
+        <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-3">
+          {conversations.length === 0 ? (
+            <p className="px-2 py-2 text-xs text-muted-foreground">No conversations yet.</p>
+          ) : (
+            conversations.map((c) => (
+              <button
+                key={c.id ?? "legacy"}
+                type="button"
+                onClick={() => openConversation(c.id)}
+                title={c.title}
+                className={cn(
+                  "w-full truncate rounded-md px-2.5 py-2 text-left text-xs transition-colors",
+                  c.id === conversationId
+                    ? "bg-primary/10 font-medium text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                {c.title}
+              </button>
+            ))
+          )}
+        </div>
+      </aside>
+
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* Header */}
           <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-3">
             <div className="flex items-center gap-3">
@@ -469,7 +572,7 @@ export const AiChatBot = () => {
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Hi there</p>
+                <p className="text-sm font-semibold text-foreground">Hi There</p>
                 <p className="text-xs text-muted-foreground">{isLoading ? "Thinking…" : "Ask about your projects, or ask me to change one"}</p>
               </div>
             </div>
@@ -507,8 +610,8 @@ export const AiChatBot = () => {
           >
             {messages.length === 0 && (
               <div className="text-center py-4">
-                <div className="h-14 w-14 mx-auto rounded-full bg-[hsl(142,71%,45%)]/10 flex items-center justify-center mb-3">
-                  <Bot className="h-7 w-7 text-[hsl(142,71%,45%)]" />
+                <div className="h-14 w-14 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <Bot className="h-7 w-7 text-primary" />
                 </div>
                 <p className="text-sm font-semibold mb-1">Hey there! 👋</p>
                 <p className="text-xs text-muted-foreground mb-3 max-w-[280px] mx-auto">
@@ -536,7 +639,7 @@ export const AiChatBot = () => {
                   className={cn(
                     "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed relative shadow-sm",
                     msg.role === "user"
-                      ? "bg-[hsl(142,71%,90%)] dark:bg-[hsl(142,50%,25%)] text-foreground rounded-br-md"
+                      ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-card border rounded-bl-md"
                   )}
                 >
@@ -603,7 +706,7 @@ export const AiChatBot = () => {
                 placeholder="Ask a question or request an action..."
                 rows={1}
                 disabled={isLoading || isListening}
-                className="flex-1 resize-none rounded-2xl border bg-muted/50 px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[hsl(142,71%,45%)]/30 disabled:opacity-50 max-h-[120px]"
+                className="flex-1 resize-none rounded-2xl border bg-muted/50 px-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 max-h-[120px]"
               />
               {/* Mic button */}
               <button
@@ -623,12 +726,13 @@ export const AiChatBot = () => {
               <button
                 onClick={() => sendMessage()}
                 disabled={!input.trim() || isLoading}
-                className="h-10 w-10 rounded-full bg-[hsl(142,71%,45%)] text-white flex items-center justify-center shrink-0 hover:bg-[hsl(142,71%,40%)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </button>
             </div>
           </div>
+      </div>
     </div>
   );
 };
