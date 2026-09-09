@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { openStorageFile } from "@/lib/storage-url";
 import { useChecklistComments, useAddChecklistComment } from "@/hooks/useChecklistComments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfilesLookup } from "@/hooks/useLookups";
