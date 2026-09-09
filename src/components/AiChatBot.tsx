@@ -627,8 +627,9 @@ export const AiChatBot = () => {
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Hi There</p>
-                <p className="text-xs text-muted-foreground">{isLoading ? "Thinking…" : "My name is Buddy, you can ask about your projects and tell me to take any action on your behalf"}</p>
+                {/* The tab already names this screen; the line below introduces
+                    who is answering, so a title here only repeats one of them. */}
+                <p className="text-sm text-muted-foreground">{isLoading ? "Thinking…" : "My name is Buddy, you can ask about your projects and tell me to take any action on your behalf"}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
