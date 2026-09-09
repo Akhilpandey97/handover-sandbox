@@ -24,32 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building2, Calendar, Link2, FileText, Pencil, Layers, KeyRound, Upload, Loader2, ListChecks, HelpCircle, Plus, Trash2 } from "lucide-react";
+import { Building2, Calendar, Link2, FileText, Pencil, Layers, KeyRound, Upload, Loader2, HelpCircle, Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export const ALL_GOKWIK_APIS = [
-  "Get Cart",
-  "Set Shipping Address",
-  "Set Shipping Option",
-  "Get Available Coupon",
-  "Apply Discount",
-  "Remove Discount",
-  "Create Order",
-  "Place Order",
-  "Update Order",
-  "Split Order",
-  "Get Merchant User",
-  "Apply Wallet Credit",
-  "Remove Wallet Credit",
-  "Get Available Membership Item",
-  "Add Membership",
-  "Remove Membership",
-  "Remove Out of Stock Products",
-  "Check Order Status",
-  "Get Redirection URL",
-  "Sync Product",
-  "Sync Collection",
-];
 import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
@@ -203,6 +180,71 @@ export const EditProjectDialog = ({
 
   const updateFaqHelp = (items: ProjectFaqHelp[]) => {
     updateField("faqHelp", items.map(item => ({ ...item, updatedAt: new Date().toISOString() })));
+  };
+
+  /**
+   * Bulk import. Entering FAQs one pair at a time does not scale past a
+   * handful, and these are usually drafted in a sheet or doc first. Accepts a
+   * two-column CSV (question, answer) or a JSON array; imported FAQs are
+   * appended, so nothing already entered is lost.
+   */
+  const faqFileRef = useRef<HTMLInputElement>(null);
+
+  const parseFaqCsv = (text: string): Array<{ question: string; answer: string }> => {
+    const rows: string[][] = [];
+    let row: string[] = [];
+    let cell = "";
+    let quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (quoted) {
+        if (ch === '"') {
+          if (text[i + 1] === '"') { cell += '"'; i++; } else quoted = false;
+        } else cell += ch;
+        continue;
+      }
+      if (ch === '"') quoted = true;
+      else if (ch === ",") { row.push(cell); cell = ""; }
+      else if (ch === "\n" || ch === "\r") {
+        if (cell !== "" || row.length) { row.push(cell); rows.push(row); row = []; cell = ""; }
+        if (ch === "\r" && text[i + 1] === "\n") i++;
+      } else cell += ch;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+
+    // Drop a header row only when it actually looks like one.
+    if (rows.length && /^\s*question\s*$/i.test(rows[0][0] || "")) rows.shift();
+    return rows
+      .map((r) => ({ question: (r[0] || "").trim(), answer: (r[1] || "").trim() }))
+      .filter((r) => r.question && r.answer);
+  };
+
+  const handleFaqUpload = async (file: File) => {
+    try {
+      const text = await file.text();
+      let parsed: Array<{ question: string; answer: string }>;
+      if (file.name.toLowerCase().endsWith(".json")) {
+        const raw = JSON.parse(text);
+        if (!Array.isArray(raw)) throw new Error("JSON must be an array of { question, answer }");
+        parsed = raw
+          .map((r: any) => ({ question: String(r?.question ?? "").trim(), answer: String(r?.answer ?? "").trim() }))
+          .filter((r) => r.question && r.answer);
+      } else {
+        parsed = parseFaqCsv(text);
+      }
+      if (parsed.length === 0) {
+        toast({ title: "Nothing imported", description: "Expected question and answer columns.", variant: "destructive" });
+        return;
+      }
+      const now = new Date().toISOString();
+      updateField("faqHelp", [
+        ...(editedProject.faqHelp ?? []),
+        ...parsed.map((r, i) => ({ id: `faq-${Date.now()}-${i}`, ...r, updatedAt: now })),
+      ]);
+      toast({ title: "FAQs imported", description: `Added ${parsed.length} FAQ${parsed.length === 1 ? "" : "s"}.` });
+    } catch (err) {
+      toast({ title: "Could not read that file", description: (err as Error).message, variant: "destructive" });
+    }
   };
 
   const addFaq = () => {
@@ -492,11 +534,27 @@ export const EditProjectDialog = ({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold">FAQ & Help</h3>
-                  <p className="text-xs text-muted-foreground">These FAQs appear in the merchant portal and Help Assistant.</p>
+                  <p className="text-xs text-muted-foreground">These FAQs appear in the merchant portal and Help Assistant. Upload accepts a CSV with question and answer columns, or a JSON array.</p>
                 </div>
-                <Button type="button" size="sm" onClick={addFaq} className="gap-1">
-                  <Plus className="h-3 w-3" /> Add FAQ
-                </Button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <input
+                    ref={faqFileRef}
+                    type="file"
+                    accept=".csv,.json,text/csv,application/json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void handleFaqUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <Button type="button" size="sm" variant="outline" onClick={() => faqFileRef.current?.click()} className="gap-1">
+                    <Upload className="h-3 w-3" /> Upload
+                  </Button>
+                  <Button type="button" size="sm" onClick={addFaq} className="gap-1">
+                    <Plus className="h-3 w-3" /> Add FAQ
+                  </Button>
+                </div>
               </div>
               {(editedProject.faqHelp ?? []).length === 0 ? (
                 <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">No FAQs added yet.</div>
@@ -640,34 +698,6 @@ export const EditProjectDialog = ({
             </TabsContent>
 
             <TabsContent value="custom" className="space-y-6">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <ListChecks className="w-4 h-4 text-primary" />
-                  <h3 className="text-sm font-semibold">Mandatory APIs for Merchant</h3>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Select the GoKwik APIs the merchant is required to integrate. Only checked APIs will be shown to the merchant alongside the Postman collection.
-                </p>
-                <div className="grid grid-cols-2 gap-2 border rounded-md p-3 bg-muted/30">
-                  {ALL_GOKWIK_APIS.map((api) => {
-                    const checked = (editedProject.mandatoryApis ?? []).includes(api);
-                    return (
-                      <label key={api} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-background/60 px-2 py-1 rounded">
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(v) => {
-                            const cur = new Set(editedProject.mandatoryApis ?? []);
-                            if (v) cur.add(api); else cur.delete(api);
-                            updateField("mandatoryApis", ALL_GOKWIK_APIS.filter(a => cur.has(a)));
-                          }}
-                        />
-                        <span>{api}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
               {customFields.length > 0 && (
                 <CustomFieldsForm
                   fields={customFields}

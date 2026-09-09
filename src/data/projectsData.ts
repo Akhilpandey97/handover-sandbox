@@ -149,7 +149,6 @@ export interface Project {
   enableKp?: boolean;
   kpProdJweKey?: string;
   kpSandboxJweKey?: string;
-  mandatoryApis?: string[];
   faqHelp?: ProjectFaqHelp[];
   paymentSimulatorLink?: string;
 }

@@ -772,7 +772,6 @@ async function handler(req: Request): Promise<Response> {
         enable_kp: project.enable_kp || false,
         kp_prod_jwe_key: project.kp_prod_jwe_key || null,
         kp_sandbox_jwe_key: project.kp_sandbox_jwe_key || 'zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI',
-        mandatory_apis: Array.isArray(project.mandatory_apis) ? project.mandatory_apis : [],
         faq_help: Array.isArray(project.faq_help) ? project.faq_help : [],
         payment_simulator_link: project.payment_simulator_link || null,
       },

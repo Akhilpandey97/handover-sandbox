@@ -61,7 +61,11 @@ export function DatePickerField({ value, onChange, placeholder = "Pick a date", 
           {dateValue ? format(dateValue, "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      {/* Above the dialog layer: this default z-50 put the calendar behind a
+          dialog's z-120 overlay, so date fields inside a dialog looked dead.
+          pointer-events-auto because a modal dialog disables them on
+          everything portalled outside itself. */}
+      <PopoverContent className="z-[140] w-auto p-0 pointer-events-auto" align="start">
         <Calendar
           mode="single"
           selected={dateValue}

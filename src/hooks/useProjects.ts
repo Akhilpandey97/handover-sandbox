@@ -76,7 +76,6 @@ const transformDbProject = (row: any): Project => ({
   enableKp: (row as any).enable_kp || false,
   kpProdJweKey: (row as any).kp_prod_jwe_key || undefined,
   kpSandboxJweKey: (row as any).kp_sandbox_jwe_key || 'zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI',
-  mandatoryApis: Array.isArray((row as any).mandatory_apis) ? (row as any).mandatory_apis : [],
   faqHelp: Array.isArray((row as any).faq_help) ? (row as any).faq_help : [],
   paymentSimulatorLink: (row as any).payment_simulator_link || undefined,
 });
@@ -453,7 +452,6 @@ export const useUpdateProject = () => {
             enable_kp: project.enableKp || false,
             kp_prod_jwe_key: project.kpProdJweKey || null,
             kp_sandbox_jwe_key: project.kpSandboxJweKey || 'zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI',
-            mandatory_apis: project.mandatoryApis ?? [],
              faq_help: (project.faqHelp ?? []) as any,
              payment_simulator_link: project.paymentSimulatorLink || null,
          })

@@ -4,7 +4,7 @@ import {
   CheckCircle2, Loader2, ShieldAlert, ChevronLeft, ChevronRight,
   LayoutDashboard, FileText, HelpCircle, Moon, Sun, Lock,
   Zap, Search, AlertTriangle, Copy, Check,
-  Upload, Image, Download, X, Eye, EyeOff, ExternalLink, BookOpen, FileCode,
+  Upload, Image, Download, X, Eye, EyeOff, ExternalLink, BookOpen,
   MessageCircle, Send, Bot, ChevronDown, KeyRound, Code, LogOut, Trash2, Pencil,
   ClipboardList
 } from "lucide-react";
@@ -93,7 +93,6 @@ interface PortalData {
     enable_kp: boolean;
     kp_prod_jwe_key: string | null;
     kp_sandbox_jwe_key: string | null;
-    mandatory_apis: string[];
     faq_help: PortalFaq[];
     payment_simulator_link: string | null;
   };
@@ -156,7 +155,7 @@ function deriveCurrentStage(data: PortalData): number {
   return firstIncomplete + 1;
 }
 
-type NavPage = "integration" | "credentials" | "documents" | "faq" | "simulator" | "kwikpass" | "mcp" | "mandatoryApis" | "brd";
+type NavPage = "integration" | "credentials" | "documents" | "faq" | "simulator" | "kwikpass" | "mcp" | "brd";
 
 // ========== COPY BUTTON ==========
 function CopyButton({ text }: { text: string }) {
@@ -866,7 +865,6 @@ export default function MerchantPortal() {
           {activePage === "brd" && <BrdPage token={token!} onProgress={refreshData} />}
           {activePage === "kwikpass" && project.enable_kp && <KwikPassPage project={project} credentials={data.credentials} onBack={() => setActivePage("documents")} />}
           {activePage === "mcp" && project.enable_mcp_document && <MCPPage project={project} credentials={data.credentials} onBack={() => setActivePage("documents")} />}
-          {activePage === "mandatoryApis" && <MandatoryApisPage project={project} onBack={() => setActivePage("documents")} />}
           {activePage === "faq" && <FAQPage faqs={project.faq_help} />}
           {activePage === "simulator" && project.payment_simulator_link && (
             <PaymentSimulatorPage link={project.payment_simulator_link} />
@@ -1368,18 +1366,6 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
   if (data.project.sow_link) {
     docs.push({ icon: <BookOpen className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "SOW / Merchant Playbook", desc: "Statement of Work & Integration Playbook", badge: "Available", link: data.project.sow_link });
   }
-
-  const mandatoryCount = (data.project.mandatory_apis ?? []).length;
-  docs.push({
-    icon: <FileCode className="w-5 h-5 text-orange-500" />,
-    title: "Mandatory APIs & Postman Collection",
-    desc: mandatoryCount > 0
-      ? `${mandatoryCount} mandatory API${mandatoryCount === 1 ? "" : "s"} marked by your CE — click to view the list & Postman collection`
-      : "Handover API Postman workspace and collections — click to view",
-    badge: "View List",
-    onClick: () => setActivePage("mandatoryApis"),
-    badgeColor: "blue",
-  });
 
   if (data.project.enable_mcp_document) {
     docs.push({
@@ -2306,70 +2292,6 @@ const MANDATORY_API_DOC_LINKS: Record<string, string> = {
   "Sync Collection": "https://documenter.getpostman.com/view/53067515/2sBXqQFxdo#0b4716a8-09b2-495d-afe4-fc701e5370be",
 };
 
-function MandatoryApisPage({ project, onBack }: { project: PortalData["project"]; onBack: () => void }) {
-  const apis = project.mandatory_apis ?? [];
-  return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
-      <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
-        <ChevronLeft className="w-4 h-4" /> Back to Documents
-      </button>
-
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <FileCode className="w-6 h-6 text-orange-500" />
-            Mandatory APIs & Postman Collection
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {apis.length > 0
-              ? `${apis.length} API${apis.length === 1 ? "" : "s"} marked mandatory by your CE for integration.`
-              : "Your CE has not marked any APIs as mandatory yet — refer to the Postman collection below."}
-          </p>
-        </div>
-        <a
-          href={POSTMAN_COLLECTION_URL}
-          target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white shadow-sm transition-colors"
-          style={{ background: BRAND.primary }}
-        >
-          <ExternalLink className="w-3.5 h-3.5" /> Open Postman Collection
-        </a>
-      </div>
-
-      {apis.length > 0 && (
-        <Card className="p-5">
-          <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Mandatory API List</h3>
-          <ol className="space-y-2">
-            {apis.map((api, i) => {
-              const href = MANDATORY_API_DOC_LINKS[api] || POSTMAN_COLLECTION_URL;
-              return (
-                <li key={api}>
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border hover:border-primary hover:bg-accent/10 transition-colors"
-                  >
-                    <div
-                      className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                      style={{ background: BRAND.primary }}
-                    >
-                      {i + 1}
-                    </div>
-                    <p className="text-sm font-bold text-foreground flex-1">{api}</p>
-                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </a>
-                </li>
-              );
-            })}
-          </ol>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-/* ===================== SIDE EXPLAINER PANEL ===================== */
 function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
