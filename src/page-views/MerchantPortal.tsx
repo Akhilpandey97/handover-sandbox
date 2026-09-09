@@ -4,7 +4,7 @@ import {
   CheckCircle2, Loader2, ShieldAlert, ChevronLeft, ChevronRight,
   LayoutDashboard, FileText, HelpCircle, Moon, Sun, Lock,
   Zap, Search, AlertTriangle, Copy, Check,
-  Upload, Image, Download, X, Eye, EyeOff, ExternalLink, BookOpen,
+  Upload, Image, Download, X, Eye, EyeOff, ExternalLink, BookOpen, ListChecks,
   MessageCircle, Send, Bot, ChevronDown, KeyRound, Code, LogOut, Trash2, Pencil,
   ClipboardList
 } from "lucide-react";
@@ -1365,6 +1365,20 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
 
   if (data.project.sow_link) {
     docs.push({ icon: <BookOpen className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "SOW / Merchant Playbook", desc: "Statement of Work & Integration Playbook", badge: "Available", link: data.project.sow_link });
+  }
+
+  // The remaining link fields from Settings → Links. Anything filled in on the
+  // project belongs in front of the merchant, not only BRD and SOW.
+  if (data.project.mint_checklist_link) {
+    docs.push({ icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Onboarding Checklist", desc: "Pre-integration checklist for your onboarding", badge: "Available", link: data.project.mint_checklist_link });
+  }
+
+  if (data.project.integration_checklist_link) {
+    docs.push({ icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Integration Checklist", desc: "Technical checklist for your integration", badge: "Available", link: data.project.integration_checklist_link });
+  }
+
+  if (data.project.jira_link) {
+    docs.push({ icon: <ExternalLink className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Project Tracker", desc: "Live ticket board for this integration", badge: "Available", link: data.project.jira_link });
   }
 
   if (data.project.enable_mcp_document) {

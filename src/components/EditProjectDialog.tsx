@@ -4,12 +4,12 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
 import { CustomFieldsForm } from "./CustomFieldsRenderer";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,7 +114,7 @@ export const EditProjectDialog = ({
 
   const LinkFieldWithUpload = ({ label, linkField, dbField, value }: { label: string; linkField: keyof ProjectLinks; dbField: string; value: string }) => (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
       <div className="flex gap-2">
         <Input
           type="url"
@@ -256,10 +256,10 @@ export const EditProjectDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[90vh] max-w-4xl flex-col overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-2xl">
+        <SheetHeader className="shrink-0 space-y-0 border-b px-6 py-4 text-left">
+          <SheetTitle className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <Pencil className="h-5 w-5 text-primary" />
             </div>
@@ -269,10 +269,10 @@ export const EditProjectDialog = ({
                 {editedProject.merchantName}
               </p>
             </div>
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
 
-        <ScrollArea className="min-h-0 flex-1 pr-4">
+        <ScrollArea className="min-h-0 flex-1 px-6 py-4">
           <Tabs defaultValue="info" className="w-full">
             <TabsList className="grid w-full grid-cols-7 mb-4">
               <TabsTrigger value="info" className="gap-1 text-xs">
@@ -305,18 +305,18 @@ export const EditProjectDialog = ({
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="info" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-merchantName">{getLabel("field_merchant_name")} *</Label>
+            <TabsContent value="info" className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-merchantName" className="text-xs font-medium text-muted-foreground">{getLabel("field_merchant_name")} *</Label>
                   <Input
                     id="edit-merchantName"
                     value={editedProject.merchantName}
                     onChange={(e) => updateField("merchantName", e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-mid">{getLabel("field_mid")} *</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-mid" className="text-xs font-medium text-muted-foreground">{getLabel("field_mid")} *</Label>
                   <Input
                     id="edit-mid"
                     value={editedProject.mid}
@@ -325,9 +325,23 @@ export const EditProjectDialog = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-platform">{getLabel("field_platform")}</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-contactEmail" className="text-xs font-medium text-muted-foreground">{getLabel("field_contact_email")} *</Label>
+                <Input
+                  id="edit-contactEmail"
+                  type="text"
+                  value={editedProject.contactEmail || ""}
+                  onChange={(e) => updateField("contactEmail", e.target.value)}
+                  placeholder="merchant@example.com, ops@example.com"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Required. Add multiple emails separated by commas — magic links, notifications, and Gmail lookups will go to all of them.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-platform" className="text-xs font-medium text-muted-foreground">{getLabel("field_platform")}</Label>
                   <Select
                     value={editedProject.platform}
                     onValueChange={(v) => updateField("platform", v)}
@@ -342,8 +356,8 @@ export const EditProjectDialog = ({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-category">{getLabel("field_category")}</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-category" className="text-xs font-medium text-muted-foreground">{getLabel("field_category")}</Label>
                   <Input
                     id="edit-category"
                     value={editedProject.category}
@@ -352,9 +366,9 @@ export const EditProjectDialog = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-arr">{getLabel("field_arr")}</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-arr" className="text-xs font-medium text-muted-foreground">{getLabel("field_arr")}</Label>
                   <Input
                     id="edit-arr"
                     type="number"
@@ -363,8 +377,8 @@ export const EditProjectDialog = ({
                     onChange={(e) => updateField("arr", parseFloat(e.target.value) || 0)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-txnsPerDay">{getLabel("field_txns_per_day")}</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-txnsPerDay" className="text-xs font-medium text-muted-foreground">{getLabel("field_txns_per_day")}</Label>
                   <Input
                     id="edit-txnsPerDay"
                     type="number"
@@ -372,8 +386,8 @@ export const EditProjectDialog = ({
                     onChange={(e) => updateField("txnsPerDay", parseInt(e.target.value) || 0)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-aov">{getLabel("field_aov")}</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-aov" className="text-xs font-medium text-muted-foreground">{getLabel("field_aov")}</Label>
                   <Input
                     id="edit-aov"
                     type="number"
@@ -383,17 +397,17 @@ export const EditProjectDialog = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-salesSpoc">{getLabel("field_sales_spoc")}</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-salesSpoc" className="text-xs font-medium text-muted-foreground">{getLabel("field_sales_spoc")}</Label>
                   <Input
                     id="edit-salesSpoc"
                     value={editedProject.salesSpoc}
                     onChange={(e) => updateField("salesSpoc", e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-integrationType">{getLabel("field_integration_type")}</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-integrationType" className="text-xs font-medium text-muted-foreground">{getLabel("field_integration_type")}</Label>
                   <Select
                     value={editedProject.integrationType}
                     onValueChange={(v) => updateField("integrationType", v)}
@@ -410,17 +424,17 @@ export const EditProjectDialog = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-pgOnboarding">{getLabel("field_pg_onboarding")}</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-pgOnboarding" className="text-xs font-medium text-muted-foreground">{getLabel("field_pg_onboarding")}</Label>
                   <Input
                     id="edit-pgOnboarding"
                     value={editedProject.pgOnboarding}
                     onChange={(e) => updateField("pgOnboarding", e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-goLivePercent">{getLabel("field_go_live_percent")}</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-goLivePercent" className="text-xs font-medium text-muted-foreground">{getLabel("field_go_live_percent")}</Label>
                   <Input
                     id="edit-goLivePercent"
                     type="number"
@@ -432,25 +446,12 @@ export const EditProjectDialog = ({
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-contactEmail">{getLabel("field_contact_email")} *</Label>
-                <Input
-                  id="edit-contactEmail"
-                  type="text"
-                  value={editedProject.contactEmail || ""}
-                  onChange={(e) => updateField("contactEmail", e.target.value)}
-                  placeholder="merchant@example.com, ops@example.com"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Required. Add multiple emails separated by commas — magic links, notifications, and Gmail lookups will go to all of them.
-                </p>
-              </div>
 
             </TabsContent>
 
-            <TabsContent value="links" className="space-y-4">
-              <div className="space-y-2">
-                <Label>{getLabel("field_brand_url")}</Label>
+            <TabsContent value="links" className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_brand_url")}</Label>
                 <Input
                   type="url"
                   value={editedProject.links.brandUrl}
@@ -464,25 +465,25 @@ export const EditProjectDialog = ({
               <LinkFieldWithUpload label={getLabel("field_sow_link")} linkField="sowLink" dbField="sow_link" value={editedProject.links.sowLink || ""} />
             </TabsContent>
 
-            <TabsContent value="dates" className="space-y-4">
-              <div className="space-y-2">
-                <Label>{getLabel("field_kick_off_date")}</Label>
+            <TabsContent value="dates" className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_kick_off_date")}</Label>
                 <DatePickerField
                   value={editedProject.dates.kickOffDate}
                   onChange={(v) => updateDates("kickOffDate", v)}
                   placeholder="Select kick-off date"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>{getLabel("field_expected_go_live_date")}</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_expected_go_live_date")}</Label>
                 <DatePickerField
                   value={editedProject.dates.expectedGoLiveDate || ""}
                   onChange={(v) => updateDates("expectedGoLiveDate", v)}
                   placeholder="Select expected go-live date"
                 />
               </div>
-              <div className="space-y-2">
-                <Label>{getLabel("field_actual_go_live_date")}</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_actual_go_live_date")}</Label>
                 <DatePickerField
                   value={editedProject.dates.goLiveDate || ""}
                   onChange={(v) => updateDates("goLiveDate", v)}
@@ -491,9 +492,9 @@ export const EditProjectDialog = ({
               </div>
             </TabsContent>
 
-            <TabsContent value="notes" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-mintNotes">{getLabel("field_mint_notes")}</Label>
+            <TabsContent value="notes" className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-mintNotes" className="text-xs font-medium text-muted-foreground">{getLabel("field_mint_notes")}</Label>
                 <Textarea
                   id="edit-mintNotes"
                   value={editedProject.notes.mintNotes || ""}
@@ -501,8 +502,8 @@ export const EditProjectDialog = ({
                   rows={2}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-projectNotes">{getLabel("field_project_notes")}</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-projectNotes" className="text-xs font-medium text-muted-foreground">{getLabel("field_project_notes")}</Label>
                 <Textarea
                   id="edit-projectNotes"
                   value={editedProject.notes.projectNotes || ""}
@@ -510,8 +511,8 @@ export const EditProjectDialog = ({
                   rows={2}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-currentPhaseComment">{getLabel("field_current_phase_comment")}</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-currentPhaseComment" className="text-xs font-medium text-muted-foreground">{getLabel("field_current_phase_comment")}</Label>
                 <Textarea
                   id="edit-currentPhaseComment"
                   value={editedProject.notes.currentPhaseComment || ""}
@@ -519,8 +520,8 @@ export const EditProjectDialog = ({
                   rows={2}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-phase2Comment">{getLabel("field_phase2_comment")}</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-phase2Comment" className="text-xs font-medium text-muted-foreground">{getLabel("field_phase2_comment")}</Label>
                 <Textarea
                   id="edit-phase2Comment"
                   value={editedProject.notes.phase2Comment || ""}
@@ -530,7 +531,7 @@ export const EditProjectDialog = ({
               </div>
             </TabsContent>
 
-            <TabsContent value="faq" className="space-y-4">
+            <TabsContent value="faq" className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h3 className="text-sm font-semibold">FAQ & Help</h3>
@@ -569,11 +570,11 @@ export const EditProjectDialog = ({
                         </Button>
                       </div>
                       <div className="space-y-2">
-                        <Label>Question</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Question</Label>
                         <Input value={faq.question} onChange={(e) => updateFaqHelp((editedProject.faqHelp ?? []).map((item, i) => i === idx ? { ...item, question: e.target.value } : item))} placeholder="Enter merchant question" />
                       </div>
                       <div className="space-y-2">
-                        <Label>Answer</Label>
+                        <Label className="text-xs font-medium text-muted-foreground">Answer</Label>
                         <Textarea value={faq.answer} onChange={(e) => updateFaqHelp((editedProject.faqHelp ?? []).map((item, i) => i === idx ? { ...item, answer: e.target.value } : item))} placeholder="Enter the answer merchants should see" rows={3} />
                       </div>
                     </div>
@@ -585,7 +586,7 @@ export const EditProjectDialog = ({
             <TabsContent value="credentials" className="space-y-6">
               <div>
                 <h3 className="text-sm font-semibold mb-3">Sandbox Credentials</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>{getLabel("field_sandbox_mid")}</Label>
                     <Input value={editedProject.sandboxMid || ""} onChange={(e) => updateField("sandboxMid", e.target.value)} placeholder="e.g. 10008" />
@@ -611,7 +612,7 @@ export const EditProjectDialog = ({
                     <Input value={editedProject.sandboxKwikpassJweKey || ""} onChange={(e) => updateField("sandboxKwikpassJweKey", e.target.value)} />
                   </div>
                   <div className="space-y-2 col-span-2">
-                    <Label>{getLabel("field_payment_simulator_link")}</Label>
+                    <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_payment_simulator_link")}</Label>
                     <Input
                       type="url"
                       value={editedProject.paymentSimulatorLink || ""}
@@ -625,7 +626,7 @@ export const EditProjectDialog = ({
 
               <div>
                 <h3 className="text-sm font-semibold mb-3">Production Credentials</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>{getLabel("field_prod_mid")}</Label>
                     <Input value={editedProject.prodMid || ""} onChange={(e) => updateField("prodMid", e.target.value)} />
@@ -655,7 +656,7 @@ export const EditProjectDialog = ({
 
               <div>
                 <h3 className="text-sm font-semibold mb-3">MCP Configuration</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>{getLabel("field_mcp_config_id")}</Label>
                     <Input value={editedProject.mcpConfigId || ""} onChange={(e) => updateField("mcpConfigId", e.target.value)} />
@@ -674,7 +675,7 @@ export const EditProjectDialog = ({
 
               <div>
                 <h3 className="text-sm font-semibold mb-3">KwikPass (KP) Configuration</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2 flex items-end gap-3">
                     <div className="flex items-center gap-2">
                       <Switch
@@ -709,15 +710,15 @@ export const EditProjectDialog = ({
           </Tabs>
         </ScrollArea>
 
-        <DialogFooter className="gap-2">
+        <SheetFooter className="shrink-0 gap-2 border-t px-6 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleSave}>
             Save Changes
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 };
