@@ -30,24 +30,32 @@ const GLOBAL_JOBS = [
 
 const ALL_JOBS: string[] = [...PER_TENANT_JOBS, ...GLOBAL_JOBS];
 
-async function verifyToken(req: Request): Promise<boolean> {
+/** Returns the validated scheduler token, or null when the caller is unknown. */
+async function verifyToken(req: Request): Promise<string | null> {
   const provided =
     req.headers.get("x-cron-token") ||
     new URL(req.url).searchParams.get("token") ||
     "";
-  if (!provided) return false;
+  if (!provided) return null;
 
   const envToken = process.env["LOVABLE_CRON_SECRET"];
-  if (envToken && provided === envToken) return true;
+  if (envToken && provided === envToken) return provided;
 
   const { data } = await adminClient().rpc("cron_token_matches", { _token: provided });
-  return data === true;
+  return data === true ? provided : null;
 }
 
-async function callJob(origin: string, job: string, body: Record<string, unknown>) {
+async function callJob(
+  origin: string,
+  job: string,
+  body: Record<string, unknown>,
+  token: string,
+) {
   const res = await fetch(`${origin}/api/public/${job}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    // The job routes authenticate independently, so the scheduler token has to
+    // travel with the internal fan-out call.
+    headers: { "Content-Type": "application/json", "x-cron-token": token },
     body: JSON.stringify(body),
   });
   const text = await res.text();
@@ -57,7 +65,9 @@ async function callJob(origin: string, job: string, body: Record<string, unknown
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  if (!(await verifyToken(req))) return json({ error: "Unauthorized" }, 401);
+  const cronToken = await verifyToken(req);
+  if (!cronToken) return json({ error: "Unauthorized" }, 401);
+
 
   const url = new URL(req.url);
   let body: Record<string, unknown> = {};
