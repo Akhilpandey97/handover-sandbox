@@ -29,21 +29,8 @@ export const WORKFLOW_EVENTS = [
 ] as const;
 
 /** Project fields a workflow may watch or write. */
-/**
- * current_phase is a Postgres enum, not free text. Offering an open input let a
- * workflow set it to a team slug, which the database rejects with
- * "invalid input value for enum project_phase".
- */
-export const PROJECT_PHASES = [
-  { value: "mint", label: "MINT" },
-  { value: "integration", label: "Integration" },
-  { value: "ms", label: "Merchant Success" },
-  { value: "completed", label: "Completed" },
-] as const;
-
 export const WORKFLOW_FIELDS = [
   { value: "project_state", label: "Project State" },
-  { value: "current_phase", label: "Current Phase" },
   { value: "current_owner_team", label: "Current Team" },
   { value: "assigned_owner", label: "Assigned Owner" },
   { value: "expected_go_live_date", label: "Expected Go-Live Date" },
@@ -107,13 +94,6 @@ export const TriggerConfigFields = ({
               <SelectTrigger><SelectValue placeholder="Any value" /></SelectTrigger>
               <SelectContent>
                 {Object.entries(projectStateLabels).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          ) : str("field") === "current_phase" ? (
-            <Select value={str("to_value")} onValueChange={(v) => set("to_value", v)}>
-              <SelectTrigger><SelectValue placeholder="Any value" /></SelectTrigger>
-              <SelectContent>
-                {PROJECT_PHASES.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
               </SelectContent>
             </Select>
           ) : (
@@ -217,13 +197,6 @@ export const ActionConfigFields = ({
               <SelectTrigger><SelectValue placeholder="Choose a value" /></SelectTrigger>
               <SelectContent>
                 {Object.entries(projectStateLabels).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          ) : str("field") === "current_phase" ? (
-            <Select value={str("value")} onValueChange={(v) => set({ value: v })}>
-              <SelectTrigger><SelectValue placeholder="Choose a phase" /></SelectTrigger>
-              <SelectContent>
-                {PROJECT_PHASES.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
               </SelectContent>
             </Select>
           ) : str("field") === "current_owner_team" ? (
