@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { createClient } from "@supabase/supabase-js";
 import * as XLSX from "xlsx";
+import { signStorageUrl } from "@/lib/storage-sign.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -128,7 +129,7 @@ async function handler(req: Request): Promise<Response> {
           merchantName: session.projects?.merchant_name || "Unknown",
           mid: session.projects?.mid || "",
           completed_at: session.completed_at,
-          csv_url: session.csv_url,
+          csv_url: await signStorageUrl("brd-exports", session.csv_url),
         },
         form: {
           name: formTemplate?.name || "BRD Form",
