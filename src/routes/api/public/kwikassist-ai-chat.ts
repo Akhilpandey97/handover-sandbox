@@ -14,25 +14,23 @@ async function handler(req: Request): Promise<Response> {
     const { messages, merchant_name, faqs = [], token } = await req.json();
 
     // This assistant faces the merchant, so speaking as the wrong company is
-    // the most visible leak of all. Resolve the tenant behind the portal token.
-    let tenantId: string | null = null;
-    if (token) {
-      const { data: row } = await adminClient()
-        .from("merchant_portal_tokens")
-        .select("project_id")
-        .eq("token", token)
-        .eq("is_active", true)
+    // the most visible leak of all. Resolve the tenant behind the portal token —
+    // and refuse to answer at all without a valid one, so the AI budget is not
+    // open to anonymous callers.
+    const portal = await portalCaller(token);
+    const signedIn = portal ? null : await userCaller(req);
+    if (!portal && !signedIn) return unauthorized(corsHeaders);
+
+    let tenantId: string | null = portal?.tenantId ?? signedIn?.tenantId ?? null;
+    if (portal && !tenantId) {
+      const { data: proj } = await adminClient()
+        .from("projects")
+        .select("tenant_id")
+        .eq("id", portal.projectId)
         .maybeSingle();
-      const projectId = (row as { project_id: string | null } | null)?.project_id;
-      if (projectId) {
-        const { data: proj } = await adminClient()
-          .from("projects")
-          .select("tenant_id")
-          .eq("id", projectId)
-          .maybeSingle();
-        tenantId = (proj as { tenant_id: string | null } | null)?.tenant_id ?? null;
-      }
+      tenantId = (proj as { tenant_id: string | null } | null)?.tenant_id ?? null;
     }
+
     const { orgName } = await getTenantBranding(tenantId);
     const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
