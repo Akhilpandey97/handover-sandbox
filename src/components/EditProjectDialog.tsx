@@ -52,6 +52,9 @@ export const EditProjectDialog = ({
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const { toast } = useToast();
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  // Must stay above the `if (!editedProject) return null` below: a hook
+  // declared after it runs only on some renders, which is what broke Kanban.
+  const faqFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (project) {
@@ -188,8 +191,6 @@ export const EditProjectDialog = ({
    * two-column CSV (question, answer) or a JSON array; imported FAQs are
    * appended, so nothing already entered is lost.
    */
-  const faqFileRef = useRef<HTMLInputElement>(null);
-
   const parseFaqCsv = (text: string): Array<{ question: string; answer: string }> => {
     const rows: string[][] = [];
     let row: string[] = [];
