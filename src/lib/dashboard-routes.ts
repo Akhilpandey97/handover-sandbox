@@ -50,7 +50,7 @@ export const SETTINGS_SUB_TABS = [
   "navigation",
 ] as const;
 
-export const DEFAULT_REPORT_SUB_TAB = "predefined";
+export const DEFAULT_REPORT_SUB_TAB = "builder";
 export const DEFAULT_REPORT_TYPE = "executive";
 export const DEFAULT_SETTINGS_SUB_TAB = "general";
 export const DEFAULT_PROJECT_VIEW: ProjectView = "kanban";
