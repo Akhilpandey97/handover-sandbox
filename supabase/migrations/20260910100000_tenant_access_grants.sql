@@ -72,3 +72,64 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.active_support_tenant(uuid) FROM anon, PUBLIC;
 GRANT EXECUTE ON FUNCTION public.active_support_tenant(uuid) TO authenticated;
+
+-- ── The tenant every RLS policy scopes by ───────────────────────────────────
+-- Recovered original:
+--   SELECT tenant_id FROM public.profiles WHERE id = _user_id LIMIT 1
+--
+-- Policies read "is_manager(uid) AND tenant_id = get_user_tenant_id(uid)". The
+-- role half is global and tenant-independent, so redirecting this function is
+-- what puts a person inside another workspace — and it is the only way a setup
+-- user who is not a super admin can work there at all: without it the database
+-- keeps handing them their own tenant no matter what the grant says.
+--
+-- The fallback is the original query verbatim, so with no live grant the
+-- behaviour is unchanged.
+CREATE OR REPLACE FUNCTION public.get_user_tenant_id(_user_id uuid)
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT COALESCE(
+    (
+      SELECT g.tenant_id
+      FROM public.tenant_access_grants g
+      JOIN public.profiles p ON p.id = _user_id
+      WHERE g.granted_to = _user_id
+        AND g.tenant_id = p.active_tenant_id
+        AND g.revoked_at IS NULL
+        AND g.expires_at > now()
+      ORDER BY g.expires_at DESC
+      LIMIT 1
+    ),
+    (SELECT tenant_id FROM public.profiles WHERE id = _user_id LIMIT 1)
+  )
+$$;
+
+-- Grants are matched by granted_to before the tenant is known, so this lookup
+-- must not itself depend on get_user_tenant_id.
+DROP POLICY IF EXISTS "Users read their own grants" ON public.tenant_access_grants;
+CREATE POLICY "Users read their own grants"
+  ON public.tenant_access_grants FOR SELECT TO authenticated
+  USING (granted_to = auth.uid());
+
+-- A grantee may open and close their own session, and nothing else.
+DROP POLICY IF EXISTS "Users switch into a workspace they were granted" ON public.profiles;
+CREATE POLICY "Users switch into a workspace they were granted"
+  ON public.profiles FOR UPDATE TO authenticated
+  USING (id = auth.uid())
+  WITH CHECK (
+    id = auth.uid()
+    AND (
+      active_tenant_id IS NULL
+      OR EXISTS (
+        SELECT 1 FROM public.tenant_access_grants g
+        WHERE g.granted_to = auth.uid()
+          AND g.tenant_id = active_tenant_id
+          AND g.revoked_at IS NULL
+          AND g.expires_at > now()
+      )
+    )
+  );

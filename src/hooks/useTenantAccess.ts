@@ -44,10 +44,13 @@ export const useStartTenantAccess = () => {
   const { currentUser } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ tenantId, tenantName, days, reason }: {
+    mutationFn: async ({ tenantId, tenantName, days, reason, grantTo }: {
       tenantId: string; tenantName: string; days: number; reason: string;
+      /** Who gets the access. Defaults to the person granting it. */
+      grantTo?: string;
     }) => {
       if (!currentUser) throw new Error("Not signed in");
+      const recipient = grantTo || currentUser.id;
 
       const expires = new Date();
       expires.setDate(expires.getDate() + days);
@@ -56,7 +59,7 @@ export const useStartTenantAccess = () => {
         .from("tenant_access_grants")
         .insert({
           tenant_id: tenantId,
-          granted_to: currentUser.id,
+          granted_to: recipient,
           granted_by: currentUser.id,
           granted_by_name: currentUser.name,
           reason,
@@ -64,27 +67,32 @@ export const useStartTenantAccess = () => {
         });
       if (grantError) throw grantError;
 
-      // What makes the session active. The grant alone only permits it.
-      const { error: profileError } = await (supabase as any)
-        .from("profiles")
-        .update({ active_tenant_id: tenantId })
-        .eq("id", currentUser.id);
-      if (profileError) throw profileError;
+      // Entering is separate from being allowed to enter. Granting to someone
+      // else must not drag them into a workspace mid-task; they choose when.
+      if (recipient === currentUser.id) {
+        const { error: profileError } = await (supabase as any)
+          .from("profiles")
+          .update({ active_tenant_id: tenantId })
+          .eq("id", currentUser.id);
+        if (profileError) throw profileError;
+      }
 
       await logActivity({
         action_type: "user",
         category: "tenant",
-        description: `Opened support access to "${tenantName}" for ${days} day${days === 1 ? "" : "s"} — ${reason}`,
+        description: recipient === currentUser.id
+          ? `Opened support access to "${tenantName}" for ${days} day${days === 1 ? "" : "s"} — ${reason}`
+          : `Granted support access to "${tenantName}" for ${days} day${days === 1 ? "" : "s"} — ${reason}`,
         entity_type: "tenant",
         entity_id: tenantId,
       });
 
-      return { tenantId, expiresAt: expires.toISOString() };
+      return { tenantId, expiresAt: expires.toISOString(), entered: recipient === currentUser.id };
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["tenant_access_grants"] });
-      // Everything the app holds belongs to the other workspace now.
-      window.location.reload();
+      // Only reload when this session actually moved workspace.
+      if (res.entered) window.location.reload();
     },
   });
 };
@@ -128,5 +136,43 @@ export const useRevokeTenantAccess = () => {
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tenant_access_grants"] }),
+  });
+};
+
+/** Workspaces this person may enter right now. */
+export const useMyTenantAccess = () => {
+  const { currentUser } = useAuth();
+  return useQuery({
+    queryKey: ["my_tenant_access", currentUser?.id],
+    enabled: !!currentUser,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("tenant_access_grants")
+        .select("id, tenant_id, expires_at, tenants(name)")
+        .eq("granted_to", currentUser!.id)
+        .is("revoked_at", null)
+        .gt("expires_at", new Date().toISOString())
+        .order("expires_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as Array<{
+        id: string; tenant_id: string; expires_at: string; tenants: { name: string } | null;
+      }>;
+    },
+  });
+};
+
+/** Step into a workspace already granted. */
+export const useEnterTenant = () => {
+  const { currentUser } = useAuth();
+  return useMutation({
+    mutationFn: async (tenantId: string) => {
+      if (!currentUser) throw new Error("Not signed in");
+      const { error } = await (supabase as any)
+        .from("profiles")
+        .update({ active_tenant_id: tenantId })
+        .eq("id", currentUser.id);
+      if (error) throw error;
+    },
+    onSuccess: () => window.location.reload(),
   });
 };

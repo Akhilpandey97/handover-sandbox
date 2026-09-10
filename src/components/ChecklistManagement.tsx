@@ -98,14 +98,11 @@ export const ChecklistManagement = () => {
 
   // Tenants this admin may write to: all tenants for super admins, own tenant otherwise.
   const resolveTargetTenantIds = async (): Promise<string[]> => {
-    if (isSuperAdmin) {
-      const { data } = await supabase.from("tenants").select("id");
-      const ids = (data || []).map((t) => t.id);
-      return ids.length > 0 ? ids : (currentUser?.tenantId ? [currentUser.tenantId] : []);
-    }
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
-    return profile?.tenant_id ? [profile.tenant_id] : [];
+    // One workspace: the one being worked in. This used to fan out to every
+    // tenant for a super admin, so adding a single checklist template wrote it
+    // into every customer's account — and to read profiles.tenant_id directly
+    // for everyone else, which ignores a support session entirely.
+    return currentUser?.tenantId ? [currentUser.tenantId] : [];
   };
 
   const [activeTeam, setActiveTeam] = useState<TeamRole>("mint");
@@ -424,11 +421,10 @@ export const ChecklistManagement = () => {
   const addTeamMutation = useMutation({
     mutationFn: async ({ name, color }: { name: string; color: string }) => {
       const slug = name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", user?.id as string).single();
+      // The workspace being worked in, not the row on the signed-in profile.
       const { error } = await supabase.from("teams").insert({
         name, slug, color, is_system: false, sort_order: customTeams.length,
-        tenant_id: profile?.tenant_id,
+        tenant_id: currentUser?.tenantId,
       });
       if (error) throw error;
       return { name, slug };

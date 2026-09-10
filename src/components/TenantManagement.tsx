@@ -36,7 +36,19 @@ export const TenantManagement = () => {
   const [accessTarget, setAccessTarget] = useState<Tenant | null>(null);
   const [accessDays, setAccessDays] = useState("7");
   const [accessReason, setAccessReason] = useState("");
+  const [accessGrantee, setAccessGrantee] = useState("self");
+  const [staff, setStaff] = useState<Array<{ id: string; name: string }>>([]);
   const startAccess = useStartTenantAccess();
+
+  // Who the access can be given to. Setup work is usually done by someone other
+  // than whoever grants it.
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from("profiles").select("id, name").order("name").then(({ data }) => {
+      if (!cancelled) setStaff((data || []) as Array<{ id: string; name: string }>);
+    });
+    return () => { cancelled = true; };
+  }, []);
   const { currentUser } = useAuth();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantStats, setTenantStats] = useState<Map<string, TenantStats>>(new Map());
@@ -444,6 +456,16 @@ export const TenantManagement = () => {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Who gets access</Label>
+              <Select value={accessGrantee} onValueChange={setAccessGrantee}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="self">Me — enter now</SelectItem>
+                  {staff.map((u) => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground">Access for</Label>
               <Select value={accessDays} onValueChange={setAccessDays}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -474,9 +496,10 @@ export const TenantManagement = () => {
                 tenantName: accessTarget.name,
                 days: Number(accessDays),
                 reason: accessReason.trim(),
-              })}
+                grantTo: accessGrantee === "self" ? undefined : accessGrantee,
+              }, { onSuccess: () => setAccessTarget(null) })}
             >
-              {startAccess.isPending ? "Opening…" : "Enter workspace"}
+              {startAccess.isPending ? "Granting…" : accessGrantee === "self" ? "Enter workspace" : "Grant access"}
             </Button>
           </DialogFooter>
         </DialogContent>

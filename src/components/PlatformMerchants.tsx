@@ -226,7 +226,7 @@ export const PlatformMerchants = () => {
         {
           method: "POST",
           headers: await apiAuthHeaders(),
-          body: JSON.stringify({ tenant_id: profile?.tenant_id, lookback_days: 7 }),
+          body: JSON.stringify({ tenant_id: currentUser?.tenantId, lookback_days: 7 }),
         }
       );
       const out = await res.json().catch(() => ({}));
@@ -394,7 +394,7 @@ export const PlatformMerchants = () => {
         .from("platform_merchants")
         .insert({
           ...payload,
-          tenant_id: profile?.tenant_id as string,
+          tenant_id: currentUser?.tenantId as string,
           created_by: currentUser?.id,
         })
         .select("id")
@@ -466,7 +466,8 @@ export const PlatformMerchants = () => {
       toast.error("Missing required columns: platform, merchant_name");
       return;
     }
-    const { data: profile } = await supabase.from("profiles").select("tenant_id").eq("id", currentUser?.id || "").maybeSingle();
+    // The workspace being worked in, so an import during a support session
+    // lands with the customer rather than with whoever is doing the setup.
     const usersByEmail = new Map(users.map(u => [u.email.toLowerCase(), u.id]));
     const rows: any[] = [];
     const errors: string[] = [];
@@ -492,7 +493,7 @@ export const PlatformMerchants = () => {
         notes: iNotes >= 0 && cols[iNotes]?.trim() ? cols[iNotes].trim() : null,
         owner_id,
         csm_id,
-        tenant_id: profile?.tenant_id,
+        tenant_id: currentUser?.tenantId,
         created_by: currentUser?.id,
       });
     }

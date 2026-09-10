@@ -64,6 +64,7 @@ import {
   FolderKanban,
   LogOut,
   Search,
+  ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
   Users,
@@ -108,6 +109,7 @@ import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomField
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
 import { AiChatBot } from "./AiChatBot";
+import { useMyTenantAccess, useEnterTenant } from "@/hooks/useTenantAccess";
 import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
 import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
@@ -189,6 +191,8 @@ export const ManagerDashboard = () => {
   // Search is an icon in the sidebar that reveals its input, rather than a
   // permanent field in a global bar.
   const [searchOpen, setSearchOpen] = useState(false);
+  const { data: myAccess = [] } = useMyTenantAccess();
+  const enterTenant = useEnterTenant();
   // Tab state is derived from the URL, never stored — that is what keeps the two
   // from drifting apart. "" means the path names no tab, so `/` resolves a default.
   const activeTab = routeState.tab;
@@ -1263,6 +1267,31 @@ export const ManagerDashboard = () => {
                 <p className="truncate text-sm font-medium text-foreground">{currentUser?.name}</p>
                 <p className="truncate text-xs text-muted-foreground">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
               </div>
+              {/* Workspaces this person has been granted. Their way in — the
+                  grant alone does not move them anywhere. */}
+              {myAccess.length > 0 && (
+                <>
+                  <div className="my-1 h-px bg-border" />
+                  <p className="px-2 pb-1 text-[11px] font-medium text-muted-foreground">Support access</p>
+                  {myAccess.map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => enterTenant.mutate(g.tenant_id)}
+                      disabled={g.tenant_id === currentUser?.supportTenantId}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground hover:bg-muted disabled:opacity-50"
+                    >
+                      <ShieldCheck className="h-4 w-4 shrink-0 text-amber-600" />
+                      <span className="min-w-0 flex-1 truncate">
+                        {g.tenants?.name || "Workspace"}
+                      </span>
+                      {g.tenant_id === currentUser?.supportTenantId && (
+                        <span className="shrink-0 text-[10px] text-muted-foreground">in</span>
+                      )}
+                    </button>
+                  ))}
+                </>
+              )}
               <div className="my-1 h-px bg-border" />
               <div className="flex items-center justify-between rounded-md px-2 py-1 text-sm text-foreground">
                 <span>Theme</span>
