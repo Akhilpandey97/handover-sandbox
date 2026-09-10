@@ -860,6 +860,16 @@ export default function MerchantPortal() {
                 <Search className="h-4 w-4" />
               </button>
               <button
+                onClick={() => { setSidebarCollapsed(false); setNotifOpen(true); }}
+                title="Pending actions"
+                className="relative flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+              >
+                <Bell className="h-4 w-4" />
+                {pendingItems.length > 0 && (
+                  <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-destructive" />
+                )}
+              </button>
+              <button
                 onClick={() => setSidebarCollapsed(false)}
                 title="Expand sidebar"
                 className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
