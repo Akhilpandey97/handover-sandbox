@@ -384,6 +384,16 @@ export default function MerchantPortal() {
   // Task completion state
   const [taskCompletions, setTaskCompletions] = useState<Record<number, boolean>>({});
 
+  // Shell state — mirrors the signed-in dashboard shell
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [accountOpen, setAccountOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) setSidebarCollapsed(true);
+  }, []);
+
   useEffect(() => {
     if (darkMode) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
