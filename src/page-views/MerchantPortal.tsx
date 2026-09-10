@@ -120,6 +120,7 @@ interface PortalData {
     production: { mid?: string; app_id?: string; app_secret?: string; base_url?: string; config_id?: string; kwikpass_jwe_key?: string };
   } | null;
   uploads: PortalUpload[];
+  brd_configured?: boolean;
   brd_progress?: { answered: number; total: number; percent: number; status: string | null };
 }
 
@@ -787,12 +788,16 @@ export default function MerchantPortal() {
     { key: "integration", label: "My Integration", icon: LayoutDashboard, tour: "tour-integration" },
     { key: "credentials", label: "Credentials", icon: Lock, tour: "tour-credentials" },
     { key: "documents", label: "Documents", icon: FileText, tour: "tour-documents" },
-    {
-      key: "brd",
-      label: `BRD Form${data.brd_progress && data.brd_progress.total ? ` · ${data.brd_progress.percent}%` : ""}`,
-      icon: ClipboardList,
-      tour: "tour-brd",
-    },
+    // Offered only when this tenant has a BRD form. It used to be listed
+    // unconditionally, so merchants saw a form nobody had set up for them.
+    ...(data.brd_configured
+      ? [{
+          key: "brd" as NavPage,
+          label: `BRD Form${data.brd_progress && data.brd_progress.total ? ` · ${data.brd_progress.percent}%` : ""}`,
+          icon: ClipboardList,
+          tour: "tour-brd",
+        }]
+      : []),
     { key: "faq", label: "FAQ & Help", icon: HelpCircle, tour: "tour-faq" },
     ...(project.payment_simulator_link
       ? [{ key: "simulator" as NavPage, label: "Payment Simulator", icon: Zap, tour: "tour-simulator" }]
@@ -1090,6 +1095,7 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [brdToken, setBrdToken] = useState<string | null>(null);
+  const [notConfigured, setNotConfigured] = useState(false);
   const [info, setInfo] = useState<{ percent: number; answered: number; total: number; status: string | null } | null>(null);
 
   const fetchSession = useCallback(async (withLoading: boolean) => {
@@ -1102,6 +1108,10 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
         body: JSON.stringify({ token }),
       });
       const data = await res.json();
+      if (res.status === 404 && data.error === "not_configured") {
+        setNotConfigured(true);
+        return;
+      }
       if (!res.ok) throw new Error(data.error || "Failed to load BRD");
       // Only set brd_token on the very first load; never replace it on poll —
       // changing the iframe src would reload the form and wipe the in-progress answer.
@@ -1122,6 +1132,18 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
     const id = window.setInterval(() => { fetchSession(false); onProgress?.(); }, 60_000);
     return () => window.clearInterval(id);
   }, [brdToken, fetchSession, onProgress]);
+
+  if (notConfigured) {
+    return (
+      <div className="p-10 text-center">
+        <ClipboardList className="mx-auto mb-3 h-10 w-10 text-muted-foreground/40" />
+        <p className="text-sm font-semibold text-foreground">No BRD form yet</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Your onboarding team has not set one up. There is nothing for you to fill in here.
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

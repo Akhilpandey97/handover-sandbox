@@ -448,21 +448,18 @@ async function handler(req: Request): Promise<Response> {
       const { data: project } = await supabase
         .from("projects").select("contact_email").eq("id", projectId).maybeSingle();
 
-      // Find BRD form template (tenant-scoped if available, else any)
-      let { data: tpl } = await supabase
+      // This tenant's BRD template, and only this tenant's. There used to be a
+      // fallback to "any tenant's" template, which meant a merchant whose
+      // tenant had no BRD form was shown another company's questions — and
+      // answered them into a session built from that template.
+      const { data: tpl } = await supabase
         .from("checklist_form_templates")
         .select("id, name")
         .eq("tenant_id", tenantId)
         .ilike("name", "%BRD%")
         .limit(1)
         .maybeSingle();
-      if (!tpl) {
-        const { data: anyTpl } = await supabase
-          .from("checklist_form_templates")
-          .select("id, name").ilike("name", "%BRD%").limit(1).maybeSingle();
-        tpl = anyTpl;
-      }
-      if (!tpl) return json({ error: "No BRD form template configured. Please contact your CE." }, 404);
+      if (!tpl) return json({ error: "not_configured" }, 404);
 
       // Get-or-create BRD session for this project (reuse latest non-completed one)
       const { data: existingSessions } = await supabase
@@ -683,15 +680,14 @@ async function handler(req: Request): Promise<Response> {
     let brdProgress: { answered: number; total: number; percent: number; status: string | null } = {
       answered: 0, total: 0, percent: 0, status: null,
     };
+    // Drives whether the portal offers a BRD Form at all.
+    let brdConfigured = false;
     try {
-      let { data: tpl } = await supabase
+      // Only this tenant's template — see the note on the /brd-session branch.
+      const { data: tpl } = await supabase
         .from("checklist_form_templates").select("id")
         .eq("tenant_id", tenantId).ilike("name", "%BRD%").limit(1).maybeSingle();
-      if (!tpl) {
-        const { data: anyTpl } = await supabase
-          .from("checklist_form_templates").select("id").ilike("name", "%BRD%").limit(1).maybeSingle();
-        tpl = anyTpl;
-      }
+      brdConfigured = !!tpl;
       if (tpl) {
         const { count: totalFields } = await supabase
           .from("checklist_form_fields").select("id", { count: "exact", head: true })
@@ -801,6 +797,7 @@ async function handler(req: Request): Promise<Response> {
       credentials: mergedCredentials,
       uploads,
       brd_progress: brdProgress,
+      brd_configured: brdConfigured,
     });
   } catch (err) {
     console.error("merchant-portal-data error:", err);

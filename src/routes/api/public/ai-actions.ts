@@ -246,13 +246,15 @@ async function handler(req: Request): Promise<Response> {
         if (projErr || !project) throw new Error("Project not found");
         if (!project.contact_email) throw new Error("Project has no contact email set in the 'Merchant Contact Email' field. Please add it first.");
 
-        // Auto-find "BRD Form" template
+        // This tenant's BRD template. Unscoped, this picked up whichever
+        // company's template happened to match first.
         const { data: formTemplate, error: formErr } = await adminClient
           .from("checklist_form_templates")
           .select("id, name")
+          .eq("tenant_id", tenantId)
           .ilike("name", "%BRD%")
           .limit(1)
-          .single();
+          .maybeSingle();
         if (formErr || !formTemplate) throw new Error("No BRD Form template found. Please create one in Settings → Checklist Forms.");
         const form_template_id = formTemplate.id;
 
