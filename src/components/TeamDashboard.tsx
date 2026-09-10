@@ -5,11 +5,13 @@ import {
   BarChart3,
   CalendarDays,
   CheckCircle2,
+  CircleDashed,
   FolderKanban,
   GripVertical,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
+  PauseCircle,
   Rocket,
   Search,
   Settings,
@@ -40,6 +42,7 @@ import { TATDashlet } from "./TATDashlet";
 import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
 import { EglRiskDashlet } from "./EglRiskDashlet";
 import { DashletSlot } from "./DashletSlot";
+import { KpiBar, type KpiBoxItem } from "./KpiBar";
 
 type UserTab = "dashboard" | "projects" | "hi-there";
 
