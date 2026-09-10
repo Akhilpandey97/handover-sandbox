@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Clock, AlertTriangle, Users, Sparkles, Loader2 } from "lucide-react";
-import { fetchAiInsights } from "@/utils/aiInsights";
 
 interface Props {
   projects: Project[];
@@ -16,8 +15,6 @@ interface Props {
 
 export const OperationalReports = ({ projects }: Props) => {
   const { teamLabels, getLabel, stateLabels } = useLabels();
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>("stage");
 
   // Stage Duration Analysis
@@ -76,36 +73,6 @@ export const OperationalReports = ({ projects }: Props) => {
     return Array.from(ownerMap.values()).sort((a, b) => b.activeCount - a.activeCount);
   }, [projects]);
 
-  const fetchAiInsight = async () => {
-    setAiLoading(true);
-    try {
-      const topBottlenecks = stageDuration.slice(0, 5).map(s => `${s.title}: avg ${formatDuration(s.avgTime)}`).join(", ");
-      const zombieCount = agingReport.filter(p => p.daysSinceStart > 60).length;
-      const overloadedOwners = resourceLoad.filter(r => r.activeCount > 5).map(r => r.name).join(", ");
-
-      const result = await fetchAiInsights({
-        type: "insights",
-        project: {
-          merchantName: `Operational Summary: Top bottlenecks: ${topBottlenecks}. ${zombieCount} zombie projects (>60d). Overloaded owners: ${overloadedOwners || "None"}`,
-          mid: "OPS",
-          currentPhase: "overview",
-          projectState: "overview",
-          arr: 0,
-          platform: "All",
-          dates: { kickOffDate: "N/A" },
-          currentOwnerTeam: "All",
-          currentResponsibility: "N/A",
-          checklist: [],
-          transferHistory: [],
-        },
-      });
-      setAiInsight(result);
-    } catch {
-      setAiInsight("Failed to generate AI insights.");
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">

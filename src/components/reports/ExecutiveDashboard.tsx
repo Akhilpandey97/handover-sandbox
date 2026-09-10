@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, TrendingUp, BarChart3, Rocket, DollarSign, Sparkles, Loader2 } from "lucide-react";
-import { fetchAiInsights } from "@/utils/aiInsights";
 
 interface Props {
   projects: Project[];
@@ -18,8 +17,6 @@ const phaseOrder = ["mint", "integration", "ms", "completed"];
 
 export const ExecutiveDashboard = ({ projects }: Props) => {
   const { phaseLabels, getLabel } = useLabels();
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>("revenue");
 
   // Revenue Realization Forecast
@@ -81,32 +78,6 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
       .map(([, v]) => v);
   }, [projects]);
 
-  const fetchAiInsight = async () => {
-    setAiLoading(true);
-    try {
-      const result = await fetchAiInsights({
-        type: "insights",
-        project: {
-          merchantName: `Executive Summary: ${projects.length} projects, ${totalPipelineArr.toFixed(2)} Cr pipeline ${getLabel("field_arr")}, Funnel: ${pipelineFunnel.map(f => `${f.label}: ${f.count}`).join(", ")}`,
-          mid: "ALL",
-          currentPhase: "overview",
-          projectState: "overview",
-          arr: totalPipelineArr,
-          platform: "All",
-          dates: { kickOffDate: "N/A" },
-          currentOwnerTeam: "All",
-          currentResponsibility: "N/A",
-          checklist: [],
-          transferHistory: [],
-        },
-      });
-      setAiInsight(result);
-    } catch {
-      setAiInsight("Failed to generate AI insights.");
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">

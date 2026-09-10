@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Building2, Users, Sparkles, Loader2, Layers } from "lucide-react";
-import { fetchAiInsights } from "@/utils/aiInsights";
 
 interface Props {
   projects: Project[];
@@ -16,8 +15,6 @@ interface Props {
 
 export const MerchantResponsibility = ({ projects }: Props) => {
   const { responsibilityLabels, getLabel } = useLabels();
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>("blocker");
 
   const blockerAnalysis = useMemo(() => {
@@ -60,32 +57,6 @@ export const MerchantResponsibility = ({ projects }: Props) => {
       .sort((a, b) => b.avgTime - a.avgTime);
   }, [projects]);
 
-  const fetchAiInsight = async () => {
-    setAiLoading(true);
-    try {
-      const result = await fetchAiInsights({
-        type: "insights",
-        project: {
-          merchantName: `${responsibilityLabels.merchant} Responsibility Summary: ${responsibilityLabels.gokwik} ${formatDuration(totalGokwik)} vs ${responsibilityLabels.merchant} ${formatDuration(totalMerchant)}, ${blockerAnalysis.length} projects with time data`,
-          mid: "MR",
-          currentPhase: "overview",
-          projectState: "overview",
-          arr: 0,
-          platform: "All",
-          dates: { kickOffDate: "N/A" },
-          currentOwnerTeam: "All",
-          currentResponsibility: `${responsibilityLabels.gokwik} ${formatDuration(totalGokwik)} vs ${responsibilityLabels.merchant} ${formatDuration(totalMerchant)}`,
-          checklist: [],
-          transferHistory: [],
-        },
-      });
-      setAiInsight(result);
-    } catch {
-      setAiInsight("Failed to generate AI insights.");
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">

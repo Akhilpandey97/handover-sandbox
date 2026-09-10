@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, AlertCircle, Trophy, Sparkles, Loader2 } from "lucide-react";
-import { fetchAiInsights } from "@/utils/aiInsights";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { describeVerdict } from "@/data/riskRules";
 import { arrCroreValue } from "@/lib/arr";
@@ -19,8 +18,6 @@ interface Props {
 
 export const TacticalLists = ({ projects }: Props) => {
   const { teamLabels, getLabel, phaseLabels, stateLabels } = useLabels();
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>("atrisk");
 
   // At Risk Watchlist — same verdict as the Risks tab and the project workspace.
@@ -65,32 +62,6 @@ export const TacticalLists = ({ projects }: Props) => {
       .sort((a, b) => b.pct - a.pct);
   }, [projects]);
 
-  const fetchAiInsight = async () => {
-    setAiLoading(true);
-    try {
-      const result = await fetchAiInsights({
-        type: "insights",
-        project: {
-          merchantName: `Tactical Summary: ${atRiskProjects.length} at-risk projects, ${leaderboard.length} active`,
-          mid: "TAC",
-          currentPhase: "overview",
-          projectState: `${atRiskProjects.length} at-risk, ${leaderboard.length} active`,
-          arr: 0,
-          platform: "All",
-          dates: { kickOffDate: "N/A" },
-          currentOwnerTeam: "All",
-          currentResponsibility: "N/A",
-          checklist: [],
-          transferHistory: [],
-        },
-      });
-      setAiInsight(result);
-    } catch {
-      setAiInsight("Failed to generate AI insights.");
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
