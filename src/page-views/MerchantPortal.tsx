@@ -1240,7 +1240,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
           </span>
         </div>
         <div className="divide-y divide-border">
-          {data.checklist.map((item, i) => {
+          {data.checklist.filter((item) => item.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).map((item, i) => {
             const overdue = !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
             return (
               <div key={`${item.title}-${i}`} className="flex items-center justify-between gap-4 py-2.5">
