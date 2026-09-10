@@ -64,15 +64,9 @@ export const TeamDashboard = () => {
     onDragEnd,
   } = useDashletOrder(["kpi", "incoming", "attention", "egl", "delivery"]);
 
-  useEffect(() => {
-    if (pathname === "/") navigate({ to: "/dashboard", replace: true });
-  }, [pathname, navigate]);
-
-  if (!currentUser) return null;
-
   const userProjects = useMemo(
-    () => projects.filter((project) => project.assignedOwner === currentUser.id && !project.archived),
-    [projects, currentUser.id],
+    () => projects.filter((project) => project.assignedOwner === currentUser?.id && !project.archived),
+    [projects, currentUser?.id],
   );
   const visibleProjects = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -81,6 +75,13 @@ export const TeamDashboard = () => {
       project.merchantName.toLowerCase().includes(query) || project.mid.toLowerCase().includes(query),
     );
   }, [userProjects, searchQuery]);
+
+  useEffect(() => {
+    if (pathname === "/") navigate({ to: "/dashboard", replace: true });
+    if (pathname === "/projects/list") navigate({ to: "/projects/kanban", replace: true });
+  }, [pathname, navigate]);
+
+  if (!currentUser) return null;
   const incomingProjects = visibleProjects.filter((project) => project.pendingAcceptance);
   const totalProjects = visibleProjects.length;
   const pendingProjects = visibleProjects.filter((project) => ["not_started", "on_hold", "blocked"].includes(project.projectState));
