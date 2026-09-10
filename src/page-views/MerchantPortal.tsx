@@ -6,7 +6,7 @@ import {
   Zap, Search, AlertTriangle, Copy, Check,
   Upload, Image, Download, X, Eye, EyeOff, ExternalLink, BookOpen, ListChecks,
   MessageCircle, Send, Bot, ChevronDown, KeyRound, Code, LogOut, Trash2, Pencil,
-  ClipboardList
+  ClipboardList, Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GuidedTour, type TourStep } from "@/components/GuidedTour";
