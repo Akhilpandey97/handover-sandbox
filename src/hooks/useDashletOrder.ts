@@ -1,15 +1,18 @@
 import { useState } from "react";
 
-const STORAGE_KEY = "dashboard_dashlet_order";
+const DEFAULT_STORAGE_KEY = "dashboard_dashlet_order";
 
 /**
  * Dashboard section order, remembered per browser like the other view
  * preferences (tab order, list columns, kanban columns).
+ *
+ * `storageKey` keeps separate arrangements apart — the manager dashboard, the
+ * user dashboard and the KPI bar each remember their own order.
  */
-export const useDashletOrder = (defaultOrder: string[]) => {
+export const useDashletOrder = (defaultOrder: string[], storageKey: string = DEFAULT_STORAGE_KEY) => {
   const [order, setOrder] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(storageKey);
       const parsed = saved ? (JSON.parse(saved) as string[]) : null;
       if (!Array.isArray(parsed) || parsed.length === 0) return defaultOrder;
       // A section added since the last drag keeps its default position rather
@@ -19,6 +22,7 @@ export const useDashletOrder = (defaultOrder: string[]) => {
       return defaultOrder;
     }
   });
+
 
   const [dragging, setDragging] = useState<string | null>(null);
 
