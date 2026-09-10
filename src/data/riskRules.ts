@@ -77,7 +77,8 @@ export interface RiskInput {
 export interface RiskFinding {
   ruleId: string;
   label: string;
-  type: RiskRuleType;
+  /** "manual_risk" covers risks a person logged on the Risks tab. */
+  type: RiskRuleType | "manual_risk";
   severity: RiskSeverity;
   /** Human-readable reason, safe to show without AI. */
   detail: string;
@@ -203,6 +204,31 @@ export const evaluateRisk = (input: RiskInput, rules: RiskRule[]): RiskVerdict =
 
   const score = Math.min(100, findings.reduce((sum, f) => sum + SEVERITY_WEIGHT[f.severity], 0));
   return { level: findings.length > 0 ? "high" : "low", score, findings };
+};
+
+/**
+ * Folds manually logged risks into a rule-based verdict, so a hand-entered risk
+ * makes a project High Risk everywhere exactly like a rule match does.
+ */
+export const withManualRisks = (
+  verdict: RiskVerdict,
+  manual: { id: string; title: string; severity: string }[],
+): RiskVerdict => {
+  if (manual.length === 0) return verdict;
+  const findings: RiskFinding[] = [
+    ...verdict.findings,
+    ...manual.map((m) => ({
+      ruleId: `manual:${m.id}`,
+      label: "Manually logged risk",
+      type: "manual_risk" as const,
+      severity: (["low", "medium", "high", "critical"].includes(m.severity)
+        ? m.severity
+        : "medium") as RiskSeverity,
+      detail: m.title,
+    })),
+  ];
+  const score = Math.min(100, findings.reduce((sum, f) => sum + SEVERITY_WEIGHT[f.severity], 0));
+  return { level: "high", score, findings };
 };
 
 /** One-line deterministic reason, shown whether or not AI is available. */
