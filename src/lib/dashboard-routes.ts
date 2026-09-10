@@ -119,9 +119,7 @@ export const pathForTab = (tab: string, opts: PathOptions = {}): string => {
     // No explicit sub-tab means the plain /reports landing URL.
     if (!opts.reportSubTab) return "/reports";
     if (opts.reportSubTab === "predefined") {
-      return opts.reportType && opts.reportType !== DEFAULT_REPORT_TYPE
-        ? `/reports/predefined/${opts.reportType}`
-        : "/reports";
+      return `/reports/predefined/${opts.reportType || DEFAULT_REPORT_TYPE}`;
     }
     return `/reports/${opts.reportSubTab}`;
   }
