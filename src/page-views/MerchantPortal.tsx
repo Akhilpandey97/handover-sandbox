@@ -781,6 +781,8 @@ export default function MerchantPortal() {
 
   const { project, owner, checklist_progress } = data;
 
+  const pendingItems = data.checklist.filter((item) => !item.completed);
+
   const navItems: { key: NavPage; label: string; icon: any; tour: string }[] = [
     { key: "integration", label: "My Integration", icon: LayoutDashboard, tour: "tour-integration" },
     { key: "credentials", label: "Credentials", icon: Lock, tour: "tour-credentials" },
