@@ -2906,6 +2906,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_read_checklist_attachment: {
+        Args: { objname: string }
+        Returns: boolean
+      }
+      can_read_merchant_portal_file: {
+        Args: { objname: string }
+        Returns: boolean
+      }
       cron_token_matches: { Args: { _token: string }; Returns: boolean }
       delete_team_cascade: {
         Args: { _slug: string; _team_id: string }
@@ -2929,6 +2937,7 @@ export type Database = {
         Returns: undefined
       }
       role: { Args: never; Returns: string }
+      storage_path_project_id: { Args: { objname: string }; Returns: string }
       uid: { Args: never; Returns: string }
       workflow_transfer_project: {
         Args: { _project_id: string; _to_team: string }

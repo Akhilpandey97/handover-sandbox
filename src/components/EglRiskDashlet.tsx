@@ -25,11 +25,11 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
   const { rows } = useEglRisk(window, projects);
 
   return (
-    <section className="flex h-full max-h-[30rem] flex-col rounded-lg border border-border bg-card shadow-sm">
-      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+    <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">Projects at Risk of Missing EGL</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
             Go-live falls {window === "week" ? "this week" : "this month"} and the project is not on track
           </p>
         </div>

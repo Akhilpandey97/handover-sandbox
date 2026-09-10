@@ -113,6 +113,7 @@ import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
 import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
 import { DashletSlot } from "./DashletSlot";
+import { KpiBar, type KpiBoxItem } from "./KpiBar";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
 import { formatGoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
@@ -181,7 +182,7 @@ export const ManagerDashboard = () => {
     onDragStart: onDashletDragStart,
     onDragOver: onDashletDragOver,
     onDragEnd: onDashletDragEnd,
-  } = useDashletOrder(["kpi", "workload", "attention", "egl", "delivery"]);
+  } = useDashletOrder(["kpi", "workload", "tat", "attention", "egl", "stages", "health"], "manager_dashboard_dashlet_order");
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1362,84 +1363,70 @@ export const ManagerDashboard = () => {
 
           {/* ========= OVERVIEW TAB ========= */}
           {/* items-stretch so the two half-width dashlets match each other's height */}
-          {activeTab === "dashboard" && <div className="mx-auto grid max-w-[1600px] grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
+          {activeTab === "dashboard" && <div className="mx-auto grid max-w-[1500px] grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
             {(() => {
               // Each dashboard section is a named slot so the order can be
               // rearranged and remembered; see useDashletOrder.
               const dashlets: Record<string, React.ReactNode> = {
-                kpi: (<>
-                {/* KPI strip */}
-                <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-                  <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">
-                  {(() => {
-                    const funnelCounts = displayProjects.reduce((acc: Record<string, number>, p) => {
-                      const s = getProjectFunnelStage(p) as string;
-                      acc[s] = (acc[s] || 0) + 1;
-                      return acc;
-                    }, {} as Record<string, number>);
+                kpi: (() => {
+                  const stateBoxes: Array<{ key: string; state: ProjectState; icon: typeof AlertCircle; tone: string }> = [
+                    { key: "not_started", state: "not_started", icon: FolderKanban, tone: "bg-muted text-foreground/70" },
+                    { key: "in_progress", state: "in_progress", icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300" },
+                    { key: "on_hold", state: "on_hold", icon: Clock, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
+                    { key: "blocked", state: "blocked", icon: ShieldAlert, tone: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
+                    { key: "live", state: "live", icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+                  ];
+                  const kpiItems: KpiBoxItem[] = [
+                    {
+                      key: "all",
+                      label: "All projects",
+                      value: totalProjects,
+                      sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`,
+                      icon: FolderKanban,
+                      tone: "bg-muted text-foreground/70",
+                      onClick: () => setDrillDown({ title: "All projects", projects: displayProjects }),
+                    },
+                    {
+                      key: "pending",
+                      label: "Pending",
+                      value: pendingProjects,
+                      sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`,
+                      icon: AlertCircle,
+                      tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+                      onClick: () => setDrillDown({ title: "Pending", projects: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState)) }),
+                      attentionCount: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState) && riskVerdicts[p.id]?.level === "high").length,
+                      onAttentionClick: () => setDrillDown({ title: "Pending — needs attention", projects: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState) && riskVerdicts[p.id]?.level === "high") }),
+                    },
+                    ...stateBoxes.map(({ key, state, icon, tone }) => {
+                      const list = displayProjects.filter(p => p.projectState === state);
+                      const label = stateLabelsFromCtx[state] || projectStateLabels[state];
+                      const atRisk = list.filter(p => riskVerdicts[p.id]?.level === "high");
+                      return {
+                        key,
+                        label: state === "in_progress" ? "In Progress" : label,
+                        value: list.length,
+                        sub: `${arrLabel}: ${list.reduce((s, p) => s + arrToCrore(p.arr), 0).toFixed(2)} Cr`,
+                        icon,
+                        tone,
+                        onClick: () => setDrillDown({ title: label, description: "Project state", projects: list }),
+                        attentionCount: atRisk.length,
+                        onAttentionClick: () => setDrillDown({ title: `${label} — needs attention`, projects: atRisk }),
+                      } satisfies KpiBoxItem;
+                    }),
+                  ];
+                  return <KpiBar items={kpiItems} storageKey="manager_dashboard_kpi_order" />;
+                })(),
 
-                    const kpiCards = [
-                      // All projects owns the whole population, so its count would
-                      // just restate the Projects Needing Attention dashlet. The
-                      // other three segment that total, which is the useful read.
-                      { label: "All projects", hideAttention: true, value: totalProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
-                      { label: "Pending", hideAttention: false, value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked") },
-                      { label: "In delivery", hideAttention: false, value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ${arrLabel}: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
-                      { label: "Live", hideAttention: false, value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ${arrLabel}: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
-                    ].map((kpi) => ({
-                      ...kpi,
-                      // Risk read in context: how many of THIS card's projects are
-                      // firing a rule, rather than one detached total.
-                      atRisk: kpi.hideAttention ? [] : kpi.list.filter((p: Project) => riskVerdicts[p.id]?.level === "high"),
-                    }));
-                    return kpiCards.map((kpi) => (
-                      <div
-                        key={kpi.label}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })}
-                        className="group min-h-[136px] cursor-pointer bg-card p-5 transition-colors hover:bg-muted/40"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
-                            <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground">{kpi.value}</p>
-                          </div>
-                          <div className={cn("flex h-9 w-9 items-center justify-center rounded-md", kpi.tone)}>
-                            <kpi.icon className="h-4 w-4" />
-                          </div>
-                        </div>
-                        <p className="mt-3 text-xs text-muted-foreground">{kpi.sub}</p>
-                        {kpi.atRisk.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setDrillDown({ title: `${kpi.label} — needs attention`, description: `${kpi.atRisk.length} of ${kpi.value} need attention`, projects: kpi.atRisk });
-                            }}
-                            className="mt-1 text-xs font-semibold text-red-600 hover:underline dark:text-red-400"
-                          >
-                            {kpi.atRisk.length} need attention
-                          </button>
-                        )}
-                      </div>
-                    ));
-                  })()}
-                  </div>
-                </section>
-                </>),
-                workload: (<>
-                {/* Team workload & TAT */}
-                <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
-                  <section className="rounded-lg border border-border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                workload: (
+                  <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Team workload</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Current project ownership and completion status</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">Current project ownership and completion status</p>
                       </div>
-                      <Users className="h-5 w-5 text-primary" />
+                      <Users className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="divide-y divide-border">
+                    <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
                         {teamOwnerReport.map((team) => {
                           const teamProjects = displayProjects.filter(p => p.currentOwnerTeam === team.team);
                           const totalCount = teamProjects.length;
@@ -1458,10 +1445,10 @@ export const ManagerDashboard = () => {
                             { label: "complete", value: completedCount, tone: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300", list: teamProjects.filter(isTeamCompleted) },
                           ];
                           return (
-                            <div key={team.team} className="grid gap-4 px-5 py-4 md:grid-cols-[minmax(170px,0.8fr)_minmax(260px,1.2fr)_120px] md:items-center">
-                              <div className="flex items-center gap-3">
+                            <div key={team.team} className="grid gap-3 px-4 py-2.5 md:grid-cols-[minmax(150px,0.8fr)_minmax(200px,1.1fr)_84px] md:items-center">
+                              <div className="flex items-center gap-2.5">
                                 <div className={cn(
-                                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-sm font-bold",
+                                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-bold",
                                   team.team === "mint" && "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300",
                                   team.team === "integration" && "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
                                   team.team === "ms" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300",
@@ -1469,8 +1456,8 @@ export const ManagerDashboard = () => {
                                   {team.teamLabel.charAt(0)}
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-sm font-semibold text-foreground">{team.teamLabel}</p>
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <p className="text-xs font-semibold text-foreground">{team.teamLabel}</p>
                                     {teamNeedsAttention.length > 0 && (
                                       <button
                                         type="button"
@@ -1479,25 +1466,25 @@ export const ManagerDashboard = () => {
                                           description: `${teamNeedsAttention.length} of ${totalCount} need attention`,
                                           projects: teamNeedsAttention,
                                         })}
-                                        className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/25"
+                                        className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/25"
                                       >
                                         {teamNeedsAttention.length} needs attention
                                       </button>
                                     )}
                                   </div>
-                                  <p className="text-xs text-muted-foreground">{totalCount} owned projects</p>
+                                  <p className="text-[11px] text-muted-foreground">{totalCount} owned projects</p>
                                 </div>
                               </div>
-                              <div className="grid grid-cols-3 gap-2 text-center">
+                              <div className="grid grid-cols-3 gap-1.5 text-center">
                                 {miniCards.map(mc => (
                                   <div
                                     key={mc.label}
                                     role="button"
                                     tabIndex={0}
                                     onClick={() => setDrillDown({ title: `${team.teamLabel} · ${mc.label}`, projects: mc.list })}
-                                    className={cn("cursor-pointer rounded-md px-2 py-2 transition-opacity hover:opacity-80", mc.tone)}
+                                    className={cn("cursor-pointer rounded-md px-1.5 py-1.5 transition-opacity hover:opacity-80", mc.tone)}
                                   >
-                                    <p className="text-base font-semibold">{mc.value}</p>
+                                    <p className="text-sm font-semibold leading-tight">{mc.value}</p>
                                     <p className="text-[10px] opacity-80">{mc.label}</p>
                                   </div>
                                 ))}
@@ -1508,38 +1495,33 @@ export const ManagerDashboard = () => {
                                 onClick={() => setDrillDown({ title: `${team.teamLabel} · all`, projects: teamProjects })}
                                 className="cursor-pointer md:text-right"
                               >
-                                <p className="text-lg font-semibold text-foreground">{completionRate}%</p>
-                                <p className="text-xs text-muted-foreground">completion</p>
+                                <p className="text-base font-semibold leading-tight text-foreground">{completionRate}%</p>
+                                <p className="text-[11px] text-muted-foreground">completion</p>
                               </div>
                             </div>
                           );
                         })}
                     </div>
+                    <ProjectDetailsDialog
+                      project={updatesSelectedProject}
+                      open={!!updatesSelectedProject}
+                      onOpenChange={open => { if (!open) setUpdatesSelectedProject(null); }}
+                    />
                   </section>
-
-                  <TATDashlet projects={displayProjects} />
-
-                  <ProjectDetailsDialog
-                    project={updatesSelectedProject}
-                    open={!!updatesSelectedProject}
-                    onOpenChange={open => { if (!open) setUpdatesSelectedProject(null); }}
-                  />
-                </div>
-                </>),
+                ),
+                tat: <TATDashlet projects={displayProjects} />,
                 attention: <AttentionRequiredDashlet />,
                 egl: <EglRiskDashlet />,
-                delivery: (<>
-                {/* Delivery stages & health */}
-                <div className="grid items-stretch gap-5 lg:grid-cols-2">
-                  <section className="rounded-lg border border-border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                stages: (
+                  <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Delivery stages</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Where active project work is concentrated</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">Where active project work is concentrated</p>
                       </div>
-                      <BarChart3 className="h-5 w-5 text-primary" />
+                      <BarChart3 className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="space-y-4 p-5">
+                    <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
                         {(() => {
                           // Group projects by next incomplete checklist item title (from current owner team first)
                           const phaseGroups: Record<string, Project[]> = {};
@@ -1559,11 +1541,11 @@ export const ManagerDashboard = () => {
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })}
-                                className="-m-1 cursor-pointer space-y-1.5 rounded-md p-1 hover:bg-muted/50"
+                                className="cursor-pointer space-y-1 rounded-md p-1 hover:bg-muted/50"
                               >
-                                <div className="flex items-center justify-between text-sm">
+                                <div className="flex items-center justify-between text-xs">
                                   <span className="max-w-[70%] truncate font-medium text-foreground/80" title={label}>{label}</span>
-                                  <span className="whitespace-nowrap text-xs font-semibold text-foreground">{count} · {pct}%</span>
+                                  <span className="whitespace-nowrap text-[11px] font-semibold text-foreground">{count} · {pct}%</span>
                                 </div>
                                 <Progress value={pct} className="h-1.5" />
                               </div>
@@ -1572,16 +1554,17 @@ export const ManagerDashboard = () => {
                         })()}
                     </div>
                   </section>
-
-                  <section className="rounded-lg border border-border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                ),
+                health: (
+                  <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Delivery health</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Project state distribution across the portfolio</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">Project state distribution across the portfolio</p>
                       </div>
-                      <Settings className="h-5 w-5 text-primary" />
+                      <Settings className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="space-y-4 p-5">
+                    <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
                         {(Object.keys(projectStateLabels) as ProjectState[]).map(state => {
                           const stateList = displayProjects.filter(p => p.projectState === state);
                           const count = stateList.length;
@@ -1592,11 +1575,11 @@ export const ManagerDashboard = () => {
                               role="button"
                               tabIndex={0}
                               onClick={() => setDrillDown({ title: stateLabelsFromCtx[state] || projectStateLabels[state], description: "Project state", projects: stateList })}
-                              className="-m-1 cursor-pointer space-y-1.5 rounded-md p-1 hover:bg-muted/50"
+                              className="cursor-pointer space-y-1 rounded-md p-1 hover:bg-muted/50"
                             >
-                              <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center justify-between text-xs">
                                 <span className="font-medium text-foreground/80">{stateLabelsFromCtx[state] || projectStateLabels[state]}</span>
-                                <span className="text-xs font-semibold text-foreground">{count} · {pct}%</span>
+                                <span className="text-[11px] font-semibold text-foreground">{count} · {pct}%</span>
                               </div>
                               <Progress value={pct} className="h-1.5" />
                             </div>
@@ -1604,17 +1587,14 @@ export const ManagerDashboard = () => {
                         })}
                     </div>
                   </section>
-
-                </div>
-                </>),
+                ),
               };
-              // The two attention lists sit side by side on wide screens; the
-              // rest span the full width. Everything stacks below lg.
-              const halfWidth = new Set(["attention", "egl"]);
+              // Every section is its own half-width dashlet; the KPI bar spans
+              // the full width. Everything stacks below lg.
               return dashletOrder.map((id) => dashlets[id] ? (
                 <DashletSlot
                   key={id}
-                  className={halfWidth.has(id) ? "lg:col-span-1" : "lg:col-span-2"}
+                  className={id === "kpi" ? "lg:col-span-2" : "lg:col-span-1"}
                   isDragging={draggingDashlet === id}
                   onDragStart={() => onDashletDragStart(id)}
                   onDragOver={() => onDashletDragOver(id)}
@@ -1623,6 +1603,7 @@ export const ManagerDashboard = () => {
                   {dashlets[id]}
                 </DashletSlot>
               ) : null);
+
             })()}
 
             <ProjectListDialog
