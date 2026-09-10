@@ -110,26 +110,6 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
 
   return (
     <div className="space-y-6">
-      {/* AI Insights */}
-      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="portal-heading flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              AI Executive Insights
-            </CardTitle>
-            <Button size="sm" variant="outline" onClick={fetchAiInsight} disabled={aiLoading} className="gap-2">
-              {aiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-              {aiInsight ? "Refresh" : "Generate"}
-            </Button>
-          </div>
-        </CardHeader>
-        {aiInsight && (
-          <CardContent className="pt-0">
-            <div className="text-sm space-y-1 whitespace-pre-line">{aiInsight}</div>
-          </CardContent>
-        )}
-      </Card>
 
       {/* Revenue Realization Forecast */}
       <Collapsible open={expandedSection === "revenue"} onOpenChange={() => setExpandedSection(expandedSection === "revenue" ? null : "revenue")}>
