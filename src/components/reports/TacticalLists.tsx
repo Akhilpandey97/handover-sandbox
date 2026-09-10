@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, AlertCircle, Trophy, Sparkles, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertCircle, Trophy } from "lucide-react";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { describeVerdict } from "@/data/riskRules";
 import { arrCroreValue } from "@/lib/arr";

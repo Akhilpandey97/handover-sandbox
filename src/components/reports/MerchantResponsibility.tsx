@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Building2, Users, Sparkles, Loader2, Layers } from "lucide-react";
+import { ChevronDown, ChevronRight, Building2, Users, Layers } from "lucide-react";
 
 interface Props {
   projects: Project[];
