@@ -82,7 +82,7 @@ export const RiskDashboard = () => {
   // AI prose is fetched per row, only once shown — the page can list many
   // projects and explaining them all on load would be a request each.
   const [explainAll, setExplainAll] = useState(false);
-  const [expandedExplanations, setExpandedExplanations] = useState<Set<string>>(new Set());
+  
 
   const atRiskProjects = useMemo(
     () => activeProjects
@@ -229,7 +229,6 @@ export const RiskDashboard = () => {
               {atRiskProjects.map((p) => {
                 const verdict = verdicts[p.id]!;
                 const reasons = verdict.findings.map((f) => f.detail);
-                const showExplanation = explainAll || expandedExplanations.has(p.id);
                 return (
                   <div key={p.id} className="rounded-md border border-border/60 px-3 py-1.5 bg-card">
                     <div className="flex items-center justify-between gap-3">
@@ -240,25 +239,17 @@ export const RiskDashboard = () => {
                       <Badge className="bg-red-600 hover:bg-red-600 text-white shrink-0 text-[11px] px-2 py-0">High Risk</Badge>
                     </div>
 
-                    {showExplanation ? (
+                    {/* Explanations are toggled once from the header button, and
+                        the endpoint caches by reason hash, so reopening costs nothing. */}
+                    {explainAll && (
                       <div className="mt-1 border-t pt-1">
-                        {/* Fetches only once shown, and the endpoint caches by
-                            reason hash, so reopening costs nothing. */}
                         <AttentionReasonBlock
                           projectId={p.id}
                           kind="risk"
                           reasons={reasons}
-                          enabled={showExplanation}
+                          enabled
                         />
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setExpandedExplanations((prev) => new Set(prev).add(p.id))}
-                        className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
-                      >
-                        <Sparkles className="h-3 w-3" /> Explain with AI
-                      </button>
                     )}
                   </div>
                 );
