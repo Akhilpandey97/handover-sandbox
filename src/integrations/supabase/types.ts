@@ -1429,6 +1429,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_tenant_id: string | null
           created_at: string | null
           email: string
           id: string
@@ -1439,6 +1440,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          active_tenant_id?: string | null
           created_at?: string | null
           email: string
           id: string
@@ -1449,6 +1451,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          active_tenant_id?: string | null
           created_at?: string | null
           email?: string
           id?: string
@@ -2634,6 +2637,50 @@ export type Database = {
           },
         ]
       }
+      tenant_access_grants: {
+        Row: {
+          created_at: string
+          expires_at: string
+          granted_by: string
+          granted_by_name: string | null
+          granted_to: string
+          id: string
+          reason: string | null
+          revoked_at: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          granted_by: string
+          granted_by_name?: string | null
+          granted_to: string
+          id?: string
+          reason?: string | null
+          revoked_at?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          granted_by?: string
+          granted_by_name?: string | null
+          granted_to?: string
+          id?: string
+          reason?: string | null
+          revoked_at?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_access_grants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_integrations: {
         Row: {
           app_base_url: string | null
@@ -2906,6 +2953,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      active_support_tenant: { Args: { _user_id: string }; Returns: string }
       can_read_checklist_attachment: {
         Args: { objname: string }
         Returns: boolean
