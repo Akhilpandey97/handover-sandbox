@@ -30,7 +30,7 @@ export const KpiBar = ({ items, storageKey }: { items: KpiBoxItem[]; storageKey:
 
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-      <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3 xl:grid-cols-7">
+      <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3 xl:grid-cols-6">
         {ordered.map((kpi) => (
           <div
             key={kpi.key}

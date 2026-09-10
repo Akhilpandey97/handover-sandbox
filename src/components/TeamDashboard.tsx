@@ -87,7 +87,7 @@ export const TeamDashboard = () => {
   if (!currentUser) return null;
   const incomingProjects = visibleProjects.filter((project) => project.pendingAcceptance);
   const totalProjects = visibleProjects.length;
-  const pendingProjects = visibleProjects.filter((project) => ["not_started", "on_hold", "blocked"].includes(project.projectState));
+  
   const deliveryProjects = visibleProjects.filter((project) => project.projectState === "in_progress");
   const liveProjects = visibleProjects.filter((project) => project.projectState === "live");
   const arrLabel = getLabel("field_arr");
@@ -135,17 +135,6 @@ export const TeamDashboard = () => {
       icon: FolderKanban,
       tone: "bg-muted text-foreground/70",
       onClick: () => setDrillDown({ title: "All projects", projects: visibleProjects }),
-    },
-    {
-      key: "pending",
-      label: "Pending",
-      value: pendingProjects.length,
-      sub: `${pendingProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}`,
-      icon: AlertCircle,
-      tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-      onClick: () => setDrillDown({ title: "Pending", projects: pendingProjects }),
-      attentionCount: pendingProjects.filter((p) => verdicts[p.id]?.level === "high").length,
-      onAttentionClick: () => setDrillDown({ title: "Pending — needs attention", projects: pendingProjects.filter((p) => verdicts[p.id]?.level === "high") }),
     },
     ...stateBoxes.map(({ key, state, icon, tone }) => {
       const list = visibleProjects.filter((project) => project.projectState === state);

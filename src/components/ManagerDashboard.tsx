@@ -705,7 +705,7 @@ export const ManagerDashboard = () => {
   const displayProjects = filteredProjects;
   // Drill-down popup for clickable dashboard cards
   const totalProjects = displayProjects.length;
-  const pendingProjects = displayProjects.filter((p) => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked").length;
+  
   const completedProjects = displayProjects.filter((p) => p.projectState === "live").length;
   const activeProjects = displayProjects.filter((p: Project) => p.projectState === "in_progress").length;
 
@@ -721,7 +721,7 @@ export const ManagerDashboard = () => {
   // Pipeline stats for overview
   const totalArr = displayProjects.reduce((s, p) => s + arrToCrore(p.arr), 0);
   const liveArr = displayProjects.filter(p => p.projectState === "live").reduce((s, p) => s + arrToCrore(p.arr), 0);
-  const pendingArr = displayProjects.filter((p: Project) => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
+  
   const activeArr = displayProjects.filter((p: Project) => p.projectState === "in_progress").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
   const blockedProjects = displayProjects.filter(p => p.projectState === "blocked").length;
   const onHoldProjects = displayProjects.filter(p => p.projectState === "on_hold").length;
@@ -1385,17 +1385,6 @@ export const ManagerDashboard = () => {
                       icon: FolderKanban,
                       tone: "bg-muted text-foreground/70",
                       onClick: () => setDrillDown({ title: "All projects", projects: displayProjects }),
-                    },
-                    {
-                      key: "pending",
-                      label: "Pending",
-                      value: pendingProjects,
-                      sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`,
-                      icon: AlertCircle,
-                      tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-                      onClick: () => setDrillDown({ title: "Pending", projects: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState)) }),
-                      attentionCount: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState) && riskVerdicts[p.id]?.level === "high").length,
-                      onAttentionClick: () => setDrillDown({ title: "Pending — needs attention", projects: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState) && riskVerdicts[p.id]?.level === "high") }),
                     },
                     ...stateBoxes.map(({ key, state, icon, tone }) => {
                       const list = displayProjects.filter(p => p.projectState === state);
