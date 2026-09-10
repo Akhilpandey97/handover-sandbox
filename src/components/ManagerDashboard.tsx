@@ -182,7 +182,7 @@ export const ManagerDashboard = () => {
     onDragStart: onDashletDragStart,
     onDragOver: onDashletDragOver,
     onDragEnd: onDashletDragEnd,
-  } = useDashletOrder(["kpi", "workload", "attention", "egl", "delivery"]);
+  } = useDashletOrder(["kpi", "workload", "tat", "attention", "egl", "stages", "health"], "manager_dashboard_dashlet_order");
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1363,7 +1363,7 @@ export const ManagerDashboard = () => {
 
           {/* ========= OVERVIEW TAB ========= */}
           {/* items-stretch so the two half-width dashlets match each other's height */}
-          {activeTab === "dashboard" && <div className="mx-auto grid max-w-[1600px] grid-cols-1 items-stretch gap-5 lg:grid-cols-2">
+          {activeTab === "dashboard" && <div className="mx-auto grid max-w-[1500px] grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
             {(() => {
               // Each dashboard section is a named slot so the order can be
               // rearranged and remembered; see useDashletOrder.
