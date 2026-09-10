@@ -46,7 +46,7 @@ export const useDashletOrder = (defaultOrder: string[], storageKey: string = DEF
     // Read through the setter: `order` in this closure is the value from the
     // render that registered the handler, so the last move would be lost.
     setOrder((current) => {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); } catch { /* private mode */ }
+      try { localStorage.setItem(storageKey, JSON.stringify(current)); } catch { /* private mode */ }
       return current;
     });
   };
