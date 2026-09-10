@@ -1386,17 +1386,6 @@ export const ManagerDashboard = () => {
                       tone: "bg-muted text-foreground/70",
                       onClick: () => setDrillDown({ title: "All projects", projects: displayProjects }),
                     },
-                    {
-                      key: "pending",
-                      label: "Pending",
-                      value: pendingProjects,
-                      sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`,
-                      icon: AlertCircle,
-                      tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-                      onClick: () => setDrillDown({ title: "Pending", projects: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState)) }),
-                      attentionCount: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState) && riskVerdicts[p.id]?.level === "high").length,
-                      onAttentionClick: () => setDrillDown({ title: "Pending — needs attention", projects: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState) && riskVerdicts[p.id]?.level === "high") }),
-                    },
                     ...stateBoxes.map(({ key, state, icon, tone }) => {
                       const list = displayProjects.filter(p => p.projectState === state);
                       const label = stateLabelsFromCtx[state] || projectStateLabels[state];

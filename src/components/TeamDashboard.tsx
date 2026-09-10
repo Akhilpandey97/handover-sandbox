@@ -136,17 +136,6 @@ export const TeamDashboard = () => {
       tone: "bg-muted text-foreground/70",
       onClick: () => setDrillDown({ title: "All projects", projects: visibleProjects }),
     },
-    {
-      key: "pending",
-      label: "Pending",
-      value: pendingProjects.length,
-      sub: `${pendingProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}`,
-      icon: AlertCircle,
-      tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-      onClick: () => setDrillDown({ title: "Pending", projects: pendingProjects }),
-      attentionCount: pendingProjects.filter((p) => verdicts[p.id]?.level === "high").length,
-      onAttentionClick: () => setDrillDown({ title: "Pending — needs attention", projects: pendingProjects.filter((p) => verdicts[p.id]?.level === "high") }),
-    },
     ...stateBoxes.map(({ key, state, icon, tone }) => {
       const list = visibleProjects.filter((project) => project.projectState === state);
       const label = stateLabels[state] || projectStateLabels[state];
