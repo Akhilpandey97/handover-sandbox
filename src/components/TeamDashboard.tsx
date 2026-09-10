@@ -221,7 +221,7 @@ export const TeamDashboard = () => {
 
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
+    <div className="flex min-h-0 flex-1 overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
       <aside className={cn("relative flex shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all duration-300", sidebarCollapsed ? "w-16" : "w-[212px]")}>
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">

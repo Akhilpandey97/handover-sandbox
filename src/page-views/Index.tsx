@@ -3,6 +3,7 @@ import { LoginScreen } from "@/components/LoginScreen";
 import { TeamDashboard } from "@/components/TeamDashboard";
 import { ManagerDashboard } from "@/components/ManagerDashboard";
 import { SalesDashboard } from "@/components/SalesDashboard";
+import { SupportAccessBanner } from "@/components/SupportAccessBanner";
 
 const Index = () => {
   const { isAuthenticated, currentUser, isLoading } = useAuth();
@@ -24,15 +25,15 @@ const Index = () => {
 
   // Show manager dashboard for gokwik_general (Sales & Strategy) role — view-only access
   if (currentUser?.team === "gokwik_general") {
-    return <ManagerDashboard />;
+    return <div className="flex h-screen flex-col"><SupportAccessBanner /><ManagerDashboard /></div>;
   }
 
   // Show manager dashboard for manager, super_admin
   if (currentUser?.team === "manager" || currentUser?.team === "admin" || currentUser?.team === "super_admin") {
-    return <ManagerDashboard />;
+    return <div className="flex h-screen flex-col"><SupportAccessBanner /><ManagerDashboard /></div>;
   }
 
-  return <TeamDashboard />;
+  return <div className="flex h-screen flex-col"><SupportAccessBanner /><TeamDashboard /></div>;
 };
 
 export default Index;

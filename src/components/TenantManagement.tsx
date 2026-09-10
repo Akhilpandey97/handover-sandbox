@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SYSTEM_TEAMS } from "@/hooks/useTeams";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useStartTenantAccess } from "@/hooks/useTenantAccess";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Building2, Plus, Users, Edit2, UserPlus, Loader2, FolderKanban } from "lucide-react";
+import { Building2, Plus, Users, Edit2, UserPlus, Loader2, FolderKanban, ShieldCheck } from "lucide-react";
 
 interface Tenant {
   id: string;
@@ -32,6 +33,10 @@ interface TenantStats {
 }
 
 export const TenantManagement = () => {
+  const [accessTarget, setAccessTarget] = useState<Tenant | null>(null);
+  const [accessDays, setAccessDays] = useState("7");
+  const [accessReason, setAccessReason] = useState("");
+  const startAccess = useStartTenantAccess();
   const { currentUser } = useAuth();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantStats, setTenantStats] = useState<Map<string, TenantStats>>(new Map());
@@ -308,6 +313,14 @@ export const TenantManagement = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Set up this account"
+                            onClick={() => setAccessTarget(tenant)}
+                          >
+                            <ShieldCheck className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="sm" onClick={() => openEditDialog(tenant)}>
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -415,6 +428,55 @@ export const TenantManagement = () => {
             <Button variant="outline" onClick={() => setIsManagerDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleCreateManager} disabled={isCreatingManager}>
               {isCreatingManager ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating...</> : "Create Manager"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Support access: deliberate, time-boxed, and on the record. */}
+      <Dialog open={!!accessTarget} onOpenChange={(o) => { if (!o) { setAccessTarget(null); setAccessReason(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Set up {accessTarget?.name}</DialogTitle>
+            <DialogDescription>
+              The app will read and write as this workspace until the access expires or you leave it.
+              A record of this is kept and is visible to them.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Access for</Label>
+              <Select value={accessDays} onValueChange={setAccessDays}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 day</SelectItem>
+                  <SelectItem value="3">3 days</SelectItem>
+                  <SelectItem value="7">7 days</SelectItem>
+                  <SelectItem value="14">14 days</SelectItem>
+                  <SelectItem value="30">30 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Reason</Label>
+              <Input
+                value={accessReason}
+                onChange={(e) => setAccessReason(e.target.value)}
+                placeholder="e.g. Initial workspace setup"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAccessTarget(null)}>Cancel</Button>
+            <Button
+              disabled={!accessReason.trim() || startAccess.isPending}
+              onClick={() => accessTarget && startAccess.mutate({
+                tenantId: accessTarget.id,
+                tenantName: accessTarget.name,
+                days: Number(accessDays),
+                reason: accessReason.trim(),
+              })}
+            >
+              {startAccess.isPending ? "Opening…" : "Enter workspace"}
             </Button>
           </DialogFooter>
         </DialogContent>

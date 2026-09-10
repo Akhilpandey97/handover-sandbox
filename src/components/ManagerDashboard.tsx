@@ -1106,7 +1106,7 @@ export const ManagerDashboard = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground flex">
+    <div className="min-h-0 flex-1 overflow-hidden bg-[hsl(var(--surface-2))] text-foreground flex">
       {/* Left Sidebar — collapsible */}
       <aside className={cn(
         "bg-sidebar text-sidebar-foreground flex flex-col shrink-0 transition-all duration-300 relative",

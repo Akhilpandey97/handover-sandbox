@@ -11,7 +11,16 @@ export interface AuthUser {
   name: string;
   email: string;
   team: TeamRole;
+  /**
+   * The tenant the app should read and write. While a support session is open
+   * this is the customer's tenant, so everything downstream lands in the right
+   * workspace without each caller having to know about support access.
+   */
   tenantId: string | null;
+  /** The person's own tenant, unchanged by a support session. */
+  homeTenantId: string | null;
+  /** Set only while working inside someone else's workspace. */
+  supportTenantId: string | null;
 }
 
 interface AuthContextType {
@@ -59,12 +68,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const team = ((roleData as any)?.role || (profile as any).team) as TeamRole;
 
+      // Resolved server-side, so an expired or revoked grant simply stops
+      // working — the client is never asked to be honest about it.
+      const { data: supportTenant } = await withTimeout(
+        (supabase as any).rpc("active_support_tenant", { _user_id: userId }),
+        8000,
+        { data: null, error: null } as any,
+      );
+
+      const homeTenantId = (profile as any).tenant_id ?? null;
       return {
         id: (profile as any).id,
         name: (profile as any).name,
         email: (profile as any).email,
         team: team,
-        tenantId: (profile as any).tenant_id,
+        tenantId: (supportTenant as string | null) ?? homeTenantId,
+        homeTenantId,
+        supportTenantId: (supportTenant as string | null) ?? null,
       };
     } catch (error) {
       console.error("Error in fetchUserProfile:", error);
