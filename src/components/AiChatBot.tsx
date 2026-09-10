@@ -750,6 +750,11 @@ export const AiChatBot = () => {
 
   if (!currentUser) return null;
 
+  const isPortfolioRole = PORTFOLIO_ROLES.has(currentUser.team);
+  const buddyIntroduction = isPortfolioRole
+    ? "I’m Buddy. Ask about your portfolio or tell me to take an action on your behalf."
+    : `I’m Buddy. Ask about your assigned ${teamLabels[currentUser.team] || "team"} projects, checklists, risks, and next steps.`;
+
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-card">
       {/* Threads. Hidden on narrow screens, where the conversation matters more
@@ -813,7 +818,7 @@ export const AiChatBot = () => {
               <div>
                 {/* The tab already names this screen; the line below introduces
                     who is answering, so a title here only repeats one of them. */}
-                <p className="text-sm text-muted-foreground">{isLoading ? "Thinking…" : "My name is Buddy, you can ask about your projects and tell me to take any action on your behalf"}</p>
+                <p className="text-sm text-muted-foreground">{isLoading ? "Thinking…" : buddyIntroduction}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
