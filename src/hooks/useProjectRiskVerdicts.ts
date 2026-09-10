@@ -44,14 +44,27 @@ export const useProjectRiskVerdicts = () => {
   const { projects } = useProjects();
   const { rules, isLoading: rulesLoading } = useRiskRules();
   const { lastActivityByProject, isLoading: activityLoading } = useLastChecklistActivity();
+  const { risks, isLoading: risksLoading } = useProjectRisks();
+
+  /** Manually logged risks that are still live count exactly like rule matches. */
+  const manualByProject = useMemo(() => {
+    const map: Record<string, { id: string; title: string; severity: string }[]> = {};
+    for (const r of risks) {
+      if (r.status !== "open" && r.status !== "mitigating") continue;
+      if (r.trigger_type && r.trigger_type !== "manual") continue;
+      (map[r.project_id] ||= []).push({ id: r.id, title: r.title, severity: r.severity });
+    }
+    return map;
+  }, [risks]);
 
   const verdicts = useMemo(() => {
     const map: Record<string, RiskVerdict> = {};
     for (const p of projects) {
-      map[p.id] = evaluateProject(p, lastActivityByProject[p.id], rules);
+      const base = evaluateProject(p, lastActivityByProject[p.id], rules);
+      map[p.id] = withManualRisks(base, manualByProject[p.id] ?? []);
     }
     return map;
-  }, [projects, lastActivityByProject, rules]);
+  }, [projects, lastActivityByProject, rules, manualByProject]);
 
-  return { verdicts, rules, isLoading: rulesLoading || activityLoading };
+  return { verdicts, rules, isLoading: rulesLoading || activityLoading || risksLoading };
 };
