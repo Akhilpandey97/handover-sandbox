@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -2494,6 +2494,51 @@ export type Database = {
           },
         ]
       }
+      signup_leads: {
+        Row: {
+          city: string | null
+          company_name: string | null
+          country: string | null
+          created_at: string
+          email: string
+          id: string
+          job_title: string | null
+          name: string
+          phone: string | null
+          sync_error: string | null
+          synced_at: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          job_title?: string | null
+          name: string
+          phone?: string | null
+          sync_error?: string | null
+          synced_at?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          city?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          job_title?: string | null
+          name?: string
+          phone?: string | null
+          sync_error?: string | null
+          synced_at?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       tat_report_schedules: {
         Row: {
           created_at: string
@@ -2779,16 +2824,93 @@ export type Database = {
           },
         ]
       }
+      workflow_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_name: string
+          id: string
+          new_row: Json | null
+          old_row: Json | null
+          processed_at: string | null
+          project_id: string
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_name: string
+          id?: string
+          new_row?: Json | null
+          old_row?: Json | null
+          processed_at?: string | null
+          project_id: string
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_name?: string
+          id?: string
+          new_row?: Json | null
+          old_row?: Json | null
+          processed_at?: string | null
+          project_id?: string
+          tenant_id?: string | null
+        }
+        Relationships: []
+      }
+      workflow_runs: {
+        Row: {
+          created_at: string
+          detail: string | null
+          event_id: string | null
+          id: string
+          project_id: string | null
+          status: string
+          tenant_id: string | null
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          event_id?: string | null
+          id?: string
+          project_id?: string | null
+          status: string
+          tenant_id?: string | null
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          event_id?: string | null
+          id?: string
+          project_id?: string | null
+          status?: string
+          tenant_id?: string | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_runs_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "ai_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      cron_token_matches: { Args: { _token: string }; Returns: boolean }
       delete_team_cascade: {
         Args: { _slug: string; _team_id: string }
         Returns: undefined
       }
-      cron_token_matches: { Args: { _token: string }; Returns: boolean }
       get_user_role: { Args: { _user_id: string }; Returns: string }
       get_user_tenant_id: { Args: { _user_id: string }; Returns: string }
       is_gokwik_general: { Args: { _user_id: string }; Returns: boolean }
@@ -2808,6 +2930,14 @@ export type Database = {
       }
       role: { Args: never; Returns: string }
       uid: { Args: never; Returns: string }
+      workflow_transfer_project: {
+        Args: { _project_id: string; _to_team: string }
+        Returns: undefined
+      }
+      workflow_update_project: {
+        Args: { _patch: Json; _project_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       project_phase: "mint" | "integration" | "ms" | "completed"
