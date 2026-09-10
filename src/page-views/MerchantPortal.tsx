@@ -780,86 +780,168 @@ export default function MerchantPortal() {
 
   const { project, owner, checklist_progress } = data;
 
+  const navItems = [
+    { key: "integration", label: "My Integration", icon: LayoutDashboard, tour: "tour-integration" },
+    { key: "credentials", label: "Credentials", icon: Lock, tour: "tour-credentials" },
+    { key: "documents", label: "Documents", icon: FileText, tour: "tour-documents" },
+    {
+      key: "brd",
+      label: `BRD Form${data.brd_progress && data.brd_progress.total ? ` · ${data.brd_progress.percent}%` : ""}`,
+      icon: ClipboardList,
+      tour: "tour-brd",
+    },
+    { key: "faq", label: "FAQ & Help", icon: HelpCircle, tour: "tour-faq" },
+    ...(project.payment_simulator_link
+      ? [{ key: "simulator", label: "Payment Simulator", icon: Zap, tour: "tour-simulator" }]
+      : []),
+  ];
+
   return (
-    <div className="h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground flex">
-      {/* SIDEBAR — matches manager dashboard */}
-      <aside className="w-[212px] hidden md:flex flex-col shrink-0 bg-sidebar text-sidebar-foreground">
-        {/* Logo & Title */}
+    <div className="flex h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
+      {/* SIDEBAR — matches the signed-in dashboard shell */}
+      <aside className={cn(
+        "relative flex shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all duration-300",
+        sidebarCollapsed ? "w-16" : "w-[212px]",
+      )}>
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-xl gradient-primary flex items-center justify-center shadow-[var(--shadow-soft)] shrink-0">
-              <Zap className="h-5 w-5 text-primary-foreground" fill="currentColor" />
-            </div>
-            <div className="min-w-0">
-              <KwikAssistLogo size="sm" onClick={() => setActivePage("integration")} />
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-2 py-4 overflow-y-auto">
-          <p className="text-[11px] font-semibold text-sidebar-foreground tracking-normal mb-3 px-4">
-            Navigation
-          </p>
-          <div className="space-y-1">
-            <SidebarItem icon={LayoutDashboard} label="My Integration" active={activePage === "integration"} onClick={() => setActivePage("integration")} dataTour="tour-integration" />
-            <SidebarItem icon={Lock} label="Credentials" active={activePage === "credentials"} onClick={() => setActivePage("credentials")} dataTour="tour-credentials" />
-            <SidebarItem icon={FileText} label="Documents" active={activePage === "documents"} onClick={() => setActivePage("documents")} dataTour="tour-documents" />
-            <SidebarItem
-              icon={ClipboardList}
-              label={`BRD Form${data.brd_progress && data.brd_progress.total ? ` · ${data.brd_progress.percent}%` : ""}`}
-              active={activePage === "brd"}
-              onClick={() => setActivePage("brd")}
-              dataTour="tour-brd"
-            />
-            <SidebarItem icon={HelpCircle} label="FAQ & Help" active={activePage === "faq"} onClick={() => setActivePage("faq")} dataTour="tour-faq" />
-            {project.payment_simulator_link && (
-              <SidebarItem icon={Zap} label="Payment Simulator" active={activePage === "simulator"} onClick={() => setActivePage("simulator")} dataTour="tour-simulator" />
+            <span className={cn(
+              "flex items-center justify-center rounded-xl gradient-primary shadow-[var(--shadow-soft)] shrink-0",
+              sidebarCollapsed ? "h-8 w-8" : "h-11 w-11",
+            )}>
+              <Zap className={cn("text-primary-foreground", sidebarCollapsed ? "h-4 w-4" : "h-5 w-5")} fill="currentColor" />
+            </span>
+            {!sidebarCollapsed && (
+              <>
+                <div className="min-w-0 flex-1">
+                  <KwikAssistLogo size="sm" onClick={() => setActivePage("integration")} />
+                </div>
+                <div className="flex shrink-0 items-center gap-0.5">
+                  <button
+                    onClick={() => setSearchOpen((open) => !open)}
+                    title="Search checklist"
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setSidebarCollapsed(true)}
+                    title="Collapse sidebar"
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                </div>
+              </>
             )}
           </div>
+          {sidebarCollapsed && (
+            <div className="mt-3 flex flex-col items-center gap-1">
+              <button
+                onClick={() => { setSidebarCollapsed(false); setSearchOpen(true); }}
+                title="Search checklist"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setSidebarCollapsed(false)}
+                title="Expand sidebar"
+                className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {!sidebarCollapsed && searchOpen && (
+          <div className="px-3 pb-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-foreground/50" />
+              <input
+                autoFocus
+                placeholder="Search checklist..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 w-full rounded-md border border-sidebar-border bg-sidebar-accent/40 pl-8 pr-7 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/50 focus:outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  title="Clear search"
+                  className="absolute right-1 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <nav className="flex-1 overflow-y-auto px-2 pb-2 pt-8">
+          <div className="space-y-0.5">
+            {navItems.map((item) => (
+              <SidebarItem
+                key={item.key}
+                icon={item.icon}
+                label={item.label}
+                collapsed={sidebarCollapsed}
+                active={activePage === item.key}
+                onClick={() => setActivePage(item.key)}
+                dataTour={item.tour}
+              />
+            ))}
+          </div>
         </nav>
+
+        <div className="relative p-2">
+          {accountOpen && (
+            <div className="absolute bottom-14 left-2 z-30 w-56 rounded-lg border border-border bg-popover p-1.5 text-popover-foreground shadow-lg">
+              <div className="px-2 py-1.5">
+                <p className="truncate text-sm font-medium">{project.merchant_name}</p>
+                <p className="truncate text-xs text-muted-foreground">Customer portal</p>
+              </div>
+              <div className="my-1 h-px bg-border" />
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted"
+              >
+                <span>Theme</span>
+                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="mt-0.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </div>
+          )}
+          <button
+            onClick={() => setAccountOpen((open) => !open)}
+            className={cn(
+              "flex w-full items-center gap-2 rounded-lg p-1 text-sidebar-foreground hover:bg-sidebar-accent/60",
+              sidebarCollapsed && "justify-center",
+            )}
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              {project.merchant_name?.charAt(0).toUpperCase()}
+            </span>
+            {!sidebarCollapsed && (
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-xs font-medium">{project.merchant_name}</span>
+                <span className="block text-[10px] text-sidebar-foreground/60">Customer portal</span>
+              </span>
+            )}
+          </button>
+        </div>
       </aside>
 
       {/* MAIN */}
-      <div className="flex-1 flex min-h-0 flex-col min-w-0">
-        {/* HEADER */}
-        <header className="h-16 border-b border-border bg-card/95 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="md:hidden h-8 w-8 rounded-lg gradient-primary flex items-center justify-center shrink-0">
-              <Zap className="h-4 w-4 text-primary-foreground" fill="currentColor" />
-            </div>
-            <h2 className="text-xl font-bold truncate">{project.merchant_name}</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="h-8 w-8 rounded-lg bg-muted/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-              title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-            <div className="flex items-center gap-2 pl-3 border-l border-border/50">
-              <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-xs shadow-sm">
-                {project.merchant_name?.charAt(0).toUpperCase()}
-              </div>
-              <div className="hidden sm:block min-w-0">
-                <p className="font-medium text-xs text-foreground truncate leading-tight">{project.merchant_name}</p>
-                <p className="text-[10px] text-muted-foreground leading-tight">Customer portal</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border text-destructive hover:bg-destructive/10 text-xs font-semibold transition-colors"
-              title="Sign out of the portal"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          </div>
-        </header>
-
-        {/* MAIN CONTENT */}
-        <main className="flex-1 overflow-y-auto min-w-0 app-shell-surface">
-
+      <main className="flex min-w-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto app-shell-surface">
           {activePage === "integration" && (
             <IntegrationPage data={data} project={project} owner={owner}
               checklist_progress={checklist_progress} currentStage={currentStage}
@@ -868,6 +950,7 @@ export default function MerchantPortal() {
               onEditNote={editNote} onDeleteNote={deleteNote}
               taskCompletions={taskCompletions} onToggleTask={toggleTask}
               brdProgress={data.brd_progress}
+              searchQuery={searchQuery}
               onOpenBrd={() => setActivePage("brd")} />
           )}
           {activePage === "credentials" && <CredentialsPage project={project} credentials={data.credentials} />}
@@ -879,9 +962,8 @@ export default function MerchantPortal() {
           {activePage === "simulator" && project.payment_simulator_link && (
             <PaymentSimulatorPage link={project.payment_simulator_link} />
           )}
-        </main>
-
-      </div>
+        </div>
+      </main>
 
       {/* First-visit Guided Tour */}
       <GuidedTour
@@ -899,29 +981,31 @@ export default function MerchantPortal() {
 }
 
 /* ===================== SIDEBAR ITEM ===================== */
-function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour }: {
-  icon: any; label: string; active?: boolean; onClick?: () => void; badge?: number; dataTour?: string;
+function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour, collapsed }: {
+  icon: any; label: string; active?: boolean; onClick?: () => void; badge?: number; dataTour?: string; collapsed?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
       data-tour={dataTour}
+      title={label}
       className={cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-left group",
+        "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left transition-all duration-200",
+        collapsed && "justify-center px-0",
         active
           ? "gradient-primary text-primary-foreground shadow-[var(--shadow-soft)]"
-          : "hover:bg-sidebar-accent/60 text-sidebar-foreground"
+          : "text-sidebar-foreground hover:bg-sidebar-accent/60",
       )}
     >
       <span className={cn(
-        "flex items-center justify-center h-8 w-8 rounded-lg shrink-0 transition-colors",
-        active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-sidebar-accent text-sidebar-foreground"
+        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors",
+        active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-sidebar-accent text-sidebar-foreground",
       )}>
         <Icon className="h-4 w-4" />
       </span>
-      <span className="font-medium text-sm flex-1">{label}</span>
-      {badge !== undefined && (
-        <span className="text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold bg-primary-foreground/20">{badge}</span>
+      {!collapsed && <span className="flex-1 text-sm font-medium">{label}</span>}
+      {!collapsed && badge !== undefined && (
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-[10px] font-bold">{badge}</span>
       )}
     </button>
   );
