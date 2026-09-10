@@ -1119,7 +1119,8 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
   );
 }
 
-function IntegrationPage({ data, project, owner, checklist_progress, currentStage, noteText, setNoteText, orgName, savedNotes, onSaveNote, onEditNote, onDeleteNote, taskCompletions, onToggleTask, brdProgress, onOpenBrd }: {
+function IntegrationPage({ data, project, owner, checklist_progress, currentStage, noteText, setNoteText, orgName, savedNotes, onSaveNote, onEditNote, onDeleteNote, taskCompletions, onToggleTask, brdProgress, onOpenBrd, searchQuery = "" }: {
+  searchQuery?: string;
   data: PortalData; project: PortalData["project"]; owner: PortalData["owner"];
   checklist_progress: PortalData["checklist_progress"]; currentStage: number;
   noteText: string; setNoteText: (v: string) => void; orgName: string;
