@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import ProjectWorkspace from "@/pages/ProjectWorkspace";
+import { BuddyBubble } from "@/components/BuddyBubble";
 
 type ProjectSearch = { tab?: string; item?: string; task?: string; comment?: string; from?: "kanban" | "list" | "go-live" };
 
@@ -23,5 +24,14 @@ export const Route = createFileRoute("/projects/$projectId")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: ProjectWorkspace,
+  component: ProjectWorkspacePage,
 });
+
+function ProjectWorkspacePage() {
+  return (
+    <>
+      <ProjectWorkspace />
+      <BuddyBubble />
+    </>
+  );
+}
