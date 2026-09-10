@@ -44,7 +44,7 @@ export const TATDashlet = ({ projects }: Props) => {
   }, [rows]);
 
   return (
-    <section className="flex h-full flex-col rounded-lg border border-border bg-card shadow-sm">
+    <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
         <div>
           <p className="text-sm font-semibold text-foreground">TAT</p>
