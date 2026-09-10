@@ -28,6 +28,7 @@ import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projec
 import { Route as DashProjectsGoLiveRouteImport } from './routes/_dash.projects.go-live'
 import { Route as DashProjectsKanbanRouteImport } from './routes/_dash.projects.kanban'
 import { Route as DashProjectsListRouteImport } from './routes/_dash.projects.list'
+import { Route as DashReportsIndexRouteImport } from './routes/_dash.reports.index'
 import { Route as DashReportsSubTabRouteImport } from './routes/_dash.reports.$subTab'
 import { Route as DashSettingsSubTabRouteImport } from './routes/_dash.settings.$subTab'
 import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-actions'
@@ -168,6 +169,11 @@ const DashProjectsKanbanRoute = DashProjectsKanbanRouteImport.update({
 const DashProjectsListRoute = DashProjectsListRouteImport.update({
   id: '/projects/list',
   path: '/projects/list',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashReportsIndexRoute = DashReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
   getParentRoute: () => DashRoute,
 } as any)
 const DashReportsSubTabRoute = DashReportsSubTabRouteImport.update({
@@ -492,6 +498,7 @@ export interface FileRoutesByFullPath {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/reports/': typeof DashReportsIndexRoute
   '/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
@@ -559,6 +566,7 @@ export interface FileRoutesByTo {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/reports': typeof DashReportsIndexRoute
   '/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
@@ -628,6 +636,7 @@ export interface FileRoutesById {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/_dash/reports/': typeof DashReportsIndexRoute
   '/_dash/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
@@ -697,6 +706,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/reports/'
     | '/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
@@ -764,6 +774,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/reports'
     | '/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
@@ -832,6 +843,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/_dash/reports/'
     | '/_dash/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
@@ -1022,6 +1034,13 @@ declare module '@tanstack/react-router' {
       path: '/projects/list'
       fullPath: '/projects/list'
       preLoaderRoute: typeof DashProjectsListRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/reports/': {
+      id: '/_dash/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof DashReportsIndexRouteImport
       parentRoute: typeof DashRoute
     }
     '/_dash/reports/$subTab': {
@@ -1373,6 +1392,7 @@ interface DashRouteChildren {
   DashProjectsListRoute: typeof DashProjectsListRoute
   DashReportsSubTabRoute: typeof DashReportsSubTabRoute
   DashSettingsSubTabRoute: typeof DashSettingsSubTabRoute
+  DashReportsIndexRoute: typeof DashReportsIndexRoute
   DashReportsPredefinedReportTypeRoute: typeof DashReportsPredefinedReportTypeRoute
 }
 
@@ -1393,6 +1413,7 @@ const DashRouteChildren: DashRouteChildren = {
   DashProjectsListRoute: DashProjectsListRoute,
   DashReportsSubTabRoute: DashReportsSubTabRoute,
   DashSettingsSubTabRoute: DashSettingsSubTabRoute,
+  DashReportsIndexRoute: DashReportsIndexRoute,
   DashReportsPredefinedReportTypeRoute: DashReportsPredefinedReportTypeRoute,
 }
 

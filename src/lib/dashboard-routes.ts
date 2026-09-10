@@ -116,9 +116,14 @@ export const pathForTab = (tab: string, opts: PathOptions = {}): string => {
   if (tab === "projects") return projectViewPath(opts.projectView || DEFAULT_PROJECT_VIEW);
 
   if (tab === "reports") {
-    const sub = opts.reportSubTab || DEFAULT_REPORT_SUB_TAB;
-    if (sub === "predefined") return `/reports/predefined/${opts.reportType || DEFAULT_REPORT_TYPE}`;
-    return `/reports/${sub}`;
+    // No explicit sub-tab means the plain /reports landing URL.
+    if (!opts.reportSubTab) return "/reports";
+    if (opts.reportSubTab === "predefined") {
+      return opts.reportType && opts.reportType !== DEFAULT_REPORT_TYPE
+        ? `/reports/predefined/${opts.reportType}`
+        : "/reports";
+    }
+    return `/reports/${opts.reportSubTab}`;
   }
 
   if (tab === "settings") return `/settings/${opts.settingsSubTab || DEFAULT_SETTINGS_SUB_TAB}`;
