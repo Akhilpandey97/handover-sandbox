@@ -87,7 +87,7 @@ export const TeamDashboard = () => {
   if (!currentUser) return null;
   const incomingProjects = visibleProjects.filter((project) => project.pendingAcceptance);
   const totalProjects = visibleProjects.length;
-  const pendingProjects = visibleProjects.filter((project) => ["not_started", "on_hold", "blocked"].includes(project.projectState));
+  
   const deliveryProjects = visibleProjects.filter((project) => project.projectState === "in_progress");
   const liveProjects = visibleProjects.filter((project) => project.projectState === "live");
   const arrLabel = getLabel("field_arr");
