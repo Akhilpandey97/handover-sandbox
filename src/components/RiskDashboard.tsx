@@ -54,6 +54,8 @@ export const RiskDashboard = () => {
   const { projects } = useProjects();
   const { currentUser } = useAuth();
   const isReadOnly = currentUser?.team === "gokwik_general";
+  const navigate = useNavigate();
+  const { getLabel, stateLabels } = useLabels();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRisk, setEditingRisk] = useState<ProjectRisk | null>(null);
