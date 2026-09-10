@@ -12,8 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
-  AlertTriangle, ShieldAlert, Clock, Plus,
-  Zap, Eye, Trash2, Pencil, AlertCircle, ArrowUpDown
+  ShieldAlert, Plus,
+  Zap, Trash2, Pencil, ArrowUpDown
 } from "lucide-react";
 import { Project } from "@/data/projectsData";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
@@ -225,23 +225,23 @@ export const RiskDashboard = () => {
               No projects are currently at risk.
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {atRiskProjects.map((p) => {
                 const verdict = verdicts[p.id]!;
                 const reasons = verdict.findings.map((f) => f.detail);
                 const showExplanation = explainAll || expandedExplanations.has(p.id);
                 return (
-                  <div key={p.id} className="rounded-lg border border-border/60 p-3 bg-card">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm">{p.merchantName}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{reasons.join(" · ")}</p>
+                  <div key={p.id} className="rounded-md border border-border/60 px-3 py-1.5 bg-card">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex items-baseline gap-2">
+                        <p className="font-medium text-sm truncate">{p.merchantName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{reasons.join(" · ")}</p>
                       </div>
-                      <Badge className="bg-red-600 hover:bg-red-600 text-white shrink-0">High Risk</Badge>
+                      <Badge className="bg-red-600 hover:bg-red-600 text-white shrink-0 text-[11px] px-2 py-0">High Risk</Badge>
                     </div>
 
                     {showExplanation ? (
-                      <div className="mt-2 border-t pt-2">
+                      <div className="mt-1 border-t pt-1">
                         {/* Fetches only once shown, and the endpoint caches by
                             reason hash, so reopening costs nothing. */}
                         <AttentionReasonBlock
@@ -255,7 +255,7 @@ export const RiskDashboard = () => {
                       <button
                         type="button"
                         onClick={() => setExpandedExplanations((prev) => new Set(prev).add(p.id))}
-                        className="mt-2 inline-flex items-center gap-1 border-t pt-2 text-[11px] text-muted-foreground hover:text-foreground"
+                        className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
                       >
                         <Sparkles className="h-3 w-3" /> Explain with AI
                       </button>
