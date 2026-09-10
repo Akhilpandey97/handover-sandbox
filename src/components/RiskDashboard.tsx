@@ -12,8 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
-  AlertTriangle, ShieldAlert, Clock, Plus,
-  Zap, Eye, Trash2, Pencil, AlertCircle, ArrowUpDown
+  ShieldAlert, Plus,
+  Zap, Trash2, Pencil, ArrowUpDown
 } from "lucide-react";
 import { Project } from "@/data/projectsData";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
@@ -113,18 +113,6 @@ export const RiskDashboard = () => {
     return list;
   }, [risks, filterCategory, filterSeverity, filterStatus, sortField, sortDir]);
 
-  // KPIs
-  const openRisks = risks.filter(r => r.status === "open" || r.status === "mitigating");
-  const critHighCount = openRisks.filter(r => r.severity === "critical" || r.severity === "high").length;
-  const noMitigationCount = openRisks.filter(r => !r.mitigation_plan).length;
-  const slaBreach = openRisks.filter(r => r.mitigation_due_at && new Date(r.mitigation_due_at).getTime() < Date.now() && !r.mitigation_plan).length;
-
-  // Silent delay: active projects with no risk tracked
-  const projectsWithRisks = new Set(risks.filter(r => r.status !== "resolved").map(r => r.project_id));
-  const silentDelayCount = activeProjects.filter(p =>
-    p.projectState !== "live" && p.currentPhase !== "completed" && !projectsWithRisks.has(p.id)
-    && p.dates.expectedGoLiveDate && new Date(p.dates.expectedGoLiveDate).getTime() < Date.now()
-  ).length;
 
   const openDialog = (risk?: ProjectRisk) => {
     if (risk) {
@@ -205,50 +193,6 @@ export const RiskDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <ShieldAlert className="h-4 w-4" /> Open Risks
-            </div>
-            <div className="text-2xl font-bold">{openRisks.length}</div>
-          </CardContent>
-        </Card>
-        <Card className={critHighCount > 0 ? "border-red-300 dark:border-red-800" : ""}>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <AlertTriangle className="h-4 w-4 text-red-500" /> Critical / High
-            </div>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{critHighCount}</div>
-          </CardContent>
-        </Card>
-        <Card className={slaBreach > 0 ? "border-orange-300 dark:border-orange-800" : ""}>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <Clock className="h-4 w-4 text-orange-500" /> SLA Breached
-            </div>
-            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{slaBreach}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <AlertCircle className="h-4 w-4" /> No Mitigation
-            </div>
-            <div className="text-2xl font-bold">{noMitigationCount}</div>
-          </CardContent>
-        </Card>
-        <Card className={silentDelayCount > 0 ? "border-yellow-300 dark:border-yellow-800" : ""}>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <Eye className="h-4 w-4 text-yellow-600" /> Silent Delays
-            </div>
-            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{silentDelayCount}</div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Risk engine verdicts — deterministic, with AI prose layered on top */}
       <Card className="shadow-sm border-border">
         <CardHeader className="border-b bg-muted/30">
@@ -281,23 +225,23 @@ export const RiskDashboard = () => {
               No projects are currently at risk.
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {atRiskProjects.map((p) => {
                 const verdict = verdicts[p.id]!;
                 const reasons = verdict.findings.map((f) => f.detail);
                 const showExplanation = explainAll || expandedExplanations.has(p.id);
                 return (
-                  <div key={p.id} className="rounded-lg border border-border/60 p-3 bg-card">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm">{p.merchantName}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{reasons.join(" · ")}</p>
+                  <div key={p.id} className="rounded-md border border-border/60 px-3 py-1.5 bg-card">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex items-baseline gap-2">
+                        <p className="font-medium text-sm truncate">{p.merchantName}</p>
+                        <p className="text-xs text-muted-foreground truncate">{reasons.join(" · ")}</p>
                       </div>
-                      <Badge className="bg-red-600 hover:bg-red-600 text-white shrink-0">High Risk</Badge>
+                      <Badge className="bg-red-600 hover:bg-red-600 text-white shrink-0 text-[11px] px-2 py-0">High Risk</Badge>
                     </div>
 
                     {showExplanation ? (
-                      <div className="mt-2 border-t pt-2">
+                      <div className="mt-1 border-t pt-1">
                         {/* Fetches only once shown, and the endpoint caches by
                             reason hash, so reopening costs nothing. */}
                         <AttentionReasonBlock
@@ -311,7 +255,7 @@ export const RiskDashboard = () => {
                       <button
                         type="button"
                         onClick={() => setExpandedExplanations((prev) => new Set(prev).add(p.id))}
-                        className="mt-2 inline-flex items-center gap-1 border-t pt-2 text-[11px] text-muted-foreground hover:text-foreground"
+                        className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
                       >
                         <Sparkles className="h-3 w-3" /> Explain with AI
                       </button>
