@@ -1,7 +1,7 @@
 # Compact draggable manager and user dashboards
 
 ## What will change
-- Replace the current four KPI summaries with one compact box per configured project state: Not Started, On Hold, In Progress, Blocked, and Live.
+- Keep the existing KPI cards and add Not Started, Blocked and On-Hold boxes, renaming "In delivery" to "In Progress".
 - Let each KPI box be dragged within the KPI bar and remember its position separately for managers and users.
 - Split every combined dashboard section into its own draggable dashlet, including Team Workload, Incoming Projects, TAT, Delivery Stages, and Delivery Health.
 - Rename “TAT booklet” to “TAT” everywhere it appears on these dashboards.
