@@ -20,10 +20,11 @@
 - [ ] MCP server function (intentionally skipped — unused by the UI)
 
 ## In progress
-- [ ] Revamp the standard user dashboard to match the manager dashboard, with user-scoped Workbench, Kanban, Go-Live Tracker, and Buddy.
 - [ ] Restrict private storage reads to the matching tenant or project.
 
 ## Done (later)
+- [x] Revamped the standard user dashboard with the manager shell, user-scoped
+      Workbench, incoming-project acceptance, Kanban, Go-Live Tracker, and Buddy
 - [x] Team Management synced: custom teams from Settings now flow into every
       team dropdown/label across dashboards, checklists, transfers, exports
 - [x] Removed stale GoKwik-era team names and the @gokwik.co signup restriction

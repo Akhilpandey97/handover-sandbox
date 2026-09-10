@@ -49,7 +49,7 @@ const ACTION_SUGGESTIONS = [
 
 /**
  * The assistant, as a full page. It used to be a 420x600 panel pinned over the
- * bottom-left of the dashboard; it now fills the Hi There tab, so long answers,
+ * bottom-left of the dashboard; it now fills the Buddy tab, so long answers,
  * tool approvals and history have room to be read.
  */
 export const AiChatBot = () => {
