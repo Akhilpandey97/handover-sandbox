@@ -15,11 +15,15 @@ import {
   ShieldAlert, Plus,
   Zap, Trash2, Pencil, ArrowUpDown
 } from "lucide-react";
-import { Project } from "@/data/projectsData";
+import { Project, projectStateLabels } from "@/data/projectsData";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { AttentionReasonBlock } from "@/components/AttentionReason";
 import { Sparkles } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { useLabels } from "@/contexts/LabelsContext";
+import { GoLiveDate } from "./GoLiveDate";
+import { arrCroreValue } from "@/lib/arr";
 
 const CATEGORIES = [
   { value: "merchant_dependency", label: "Merchant Dependency" },
