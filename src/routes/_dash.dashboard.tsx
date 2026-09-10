@@ -3,10 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/_dash/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Handover — Onboarding/Integrations Command Center" },
-      { name: "description", content: "Portfolio overview of onboarding projects, KPIs and team performance." },
-      { property: "og:title", content: "Dashboard — Handover — Onboarding/Integrations Command Center" },
-      { property: "og:description", content: "Portfolio overview of onboarding projects, KPIs and team performance." },
+      { title: "Workbench — Handover — Onboarding/Integrations Command Center" },
+      { name: "description", content: "Your onboarding project workbench with incoming work, delivery health, risks and go-live readiness." },
+      { property: "og:title", content: "Workbench — Handover — Onboarding/Integrations Command Center" },
+      { property: "og:description", content: "Your onboarding project workbench with incoming work, delivery health, risks and go-live readiness." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

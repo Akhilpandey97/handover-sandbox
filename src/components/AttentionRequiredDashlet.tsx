@@ -9,6 +9,7 @@ import { GoLiveDate } from "./GoLiveDate";
 import { AttentionReasonBlock } from "./AttentionReason";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import type { Project } from "@/data/projectsData";
 
 
 /**
@@ -17,11 +18,12 @@ import { Sparkles } from "lucide-react";
  * project. Distinct from the EGL dashlet, which asks whether an upcoming
  * go-live date will hold.
  */
-export const AttentionRequiredDashlet = () => {
+export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { projects?: Project[] } = {}) => {
   const navigate = useNavigate();
   const [showAi, setShowAi] = useState(false);
   const { getLabel } = useLabels();
-  const { projects } = useProjects();
+  const { projects: allProjects } = useProjects();
+  const projects = projectsOverride ?? allProjects;
   const { verdicts } = useProjectRiskVerdicts();
 
   const rows = useMemo(

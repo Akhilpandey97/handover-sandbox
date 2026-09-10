@@ -15,8 +15,9 @@ export interface EglRiskRow {
  * hit it, worst first. Sourced from context rather than a passed-in array so
  * the memo isn't invalidated by callers rebuilding a filtered list each render.
  */
-export const useEglRisk = (window: EglWindow) => {
-  const { projects } = useProjects();
+export const useEglRisk = (window: EglWindow, projectsOverride?: Project[]) => {
+  const { projects: allProjects } = useProjects();
+  const projects = projectsOverride ?? allProjects;
   const { lastActivityByProject } = useLastChecklistActivity();
   const { rules } = useEglRules();
 

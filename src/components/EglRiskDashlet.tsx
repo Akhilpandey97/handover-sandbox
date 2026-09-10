@@ -10,18 +10,19 @@ import { AttentionReasonBlock } from "./AttentionReason";
 import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
+import type { Project } from "@/data/projectsData";
 
 const WINDOWS: { key: EglWindow; label: string }[] = [
   { key: "week", label: "This week" },
   { key: "month", label: "This month" },
 ];
 
-export const EglRiskDashlet = () => {
+export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
   const navigate = useNavigate();
   const { getLabel } = useLabels();
   const [window, setWindow] = useState<EglWindow>("month");
   const [showAi, setShowAi] = useState(false);
-  const { rows } = useEglRisk(window);
+  const { rows } = useEglRisk(window, projects);
 
   return (
     <section className="flex h-full max-h-[30rem] flex-col rounded-lg border border-border bg-card shadow-sm">

@@ -83,7 +83,7 @@ function dateLabel(dateStr: string | null) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} · W${weekOfMonth(dateStr).replace(/[^\d]/g, "")}`;
 }
 
-export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { toolbarContainer?: HTMLElement | null; searchQuery?: string } = {}) => {
+export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", projectsOverride }: { toolbarContainer?: HTMLElement | null; searchQuery?: string; projectsOverride?: import("@/data/projectsData").Project[] } = {}) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { getLabel } = useLabels();
@@ -104,6 +104,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
   const { fields: customFields } = useCustomFields();
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(useMemo(() => projects.map(p => p.id), [projects]));
   const editingProject = editProjectId ? fullProjects.find(p => p.id === editProjectId) : null;
+  const allowedProjectIds = useMemo(
+    () => projectsOverride?.map((project) => project.id),
+    [projectsOverride],
+  );
 
   const arrLabel = getLabel("field_arr");
   const stageLabel = getLabel("field_project_stage");
@@ -219,11 +223,19 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     try {
       const [from, to] = monthBounds(month);
       // Projects whose expected_go_live in the month OR tagged tracker_month = month
-      const { data: pData } = await supabase
+      if (allowedProjectIds && allowedProjectIds.length === 0) {
+        setProjects([]);
+        setInsights({});
+        setOwners({});
+        return;
+      }
+      let projectQuery = supabase
         .from("projects")
         .select("id, merchant_name, arr, current_phase, project_state, assigned_owner, expected_go_live_date, tracker_month, platform")
         .eq("archived", false)
         .or(`tracker_month.eq.${month},and(expected_go_live_date.gte.${from},expected_go_live_date.lte.${to})`);
+      if (allowedProjectIds) projectQuery = projectQuery.in("id", allowedProjectIds);
+      const { data: pData } = await projectQuery;
       const list = (pData || []) as Project[];
       setProjects(list);
 
@@ -249,7 +261,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "" }: { t
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [month]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [month, allowedProjectIds?.join(",")]);
 
   const monthBounds = (ym: string): [string, string] => {
     const [y, m] = ym.split("-").map(Number);
