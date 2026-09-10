@@ -705,7 +705,7 @@ export const ManagerDashboard = () => {
   const displayProjects = filteredProjects;
   // Drill-down popup for clickable dashboard cards
   const totalProjects = displayProjects.length;
-  const pendingProjects = displayProjects.filter((p) => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked").length;
+  
   const completedProjects = displayProjects.filter((p) => p.projectState === "live").length;
   const activeProjects = displayProjects.filter((p: Project) => p.projectState === "in_progress").length;
 
@@ -721,7 +721,7 @@ export const ManagerDashboard = () => {
   // Pipeline stats for overview
   const totalArr = displayProjects.reduce((s, p) => s + arrToCrore(p.arr), 0);
   const liveArr = displayProjects.filter(p => p.projectState === "live").reduce((s, p) => s + arrToCrore(p.arr), 0);
-  const pendingArr = displayProjects.filter((p: Project) => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
+  
   const activeArr = displayProjects.filter((p: Project) => p.projectState === "in_progress").reduce((s: number, p: Project) => s + arrToCrore(p.arr), 0);
   const blockedProjects = displayProjects.filter(p => p.projectState === "blocked").length;
   const onHoldProjects = displayProjects.filter(p => p.projectState === "on_hold").length;
