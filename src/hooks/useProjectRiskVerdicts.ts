@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import type { Project } from "@/data/projectsData";
-import { RiskInput, RiskRule, RiskVerdict, evaluateRisk } from "@/data/riskRules";
+import { RiskInput, RiskRule, RiskVerdict, evaluateRisk, withManualRisks } from "@/data/riskRules";
 import { useRiskRules } from "@/hooks/useRiskRules";
 import { useLastChecklistActivity } from "@/hooks/useLastChecklistActivity";
 import { useProjects } from "@/contexts/ProjectContext";
+import { useProjectRisks } from "@/hooks/useProjectRisks";
 
 /** Client adapter. The cron builds the same shape from raw rows server-side. */
 export const projectToRiskInput = (
