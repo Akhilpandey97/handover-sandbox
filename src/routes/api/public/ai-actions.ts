@@ -3,6 +3,7 @@ import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@
 import { brdUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
+import { notifyAssignment } from "@/lib/notify.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -80,6 +81,14 @@ async function handler(req: Request): Promise<Response> {
           .eq("id", project_id)
           .eq("tenant_id", tenantId);
         if (error) throw error;
+        // The client dialogs email the new owner; doing it here too means the
+        // assistant's assignment is not silently different from a manual one.
+        await notifyAssignment(req, {
+          tenantId,
+          projectId: project_id,
+          ownerId: owner_id,
+          assignedBy: userName,
+        });
         logDescription = `AI assigned owner "${owner_name}" to project`;
         logCategory = "project";
         logEntityType = "project";

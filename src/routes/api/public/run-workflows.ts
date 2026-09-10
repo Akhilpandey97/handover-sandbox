@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminClient, tenantIdFromRequest } from "@/lib/tenant-integrations.server";
+import { notifyAssignment } from "@/lib/notify.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,6 +85,7 @@ function matches(wf: Workflow, ev: WorkflowEvent): boolean {
 }
 
 async function runAction(
+  req: Request,
   supabase: ReturnType<typeof adminClient>,
   wf: Workflow,
   projectId: string,
@@ -99,6 +101,12 @@ async function runAction(
       _patch: { assigned_owner: ownerId },
     });
     if (error) throw new Error(error.message);
+    await notifyAssignment(req, {
+      tenantId,
+      projectId,
+      ownerId,
+      assignedBy: `Workflow "${wf.name}"`,
+    });
     return `Assigned to ${cfg.owner_name || ownerId}`;
   }
 
@@ -173,6 +181,7 @@ async function runAction(
 }
 
 async function processEvent(
+  req: Request,
   supabase: ReturnType<typeof adminClient>,
   ev: WorkflowEvent,
   workflows: Workflow[],
@@ -186,7 +195,7 @@ async function processEvent(
     let status = "success";
     let detail = "";
     try {
-      detail = await runAction(supabase, wf, ev.project_id, ev.tenant_id);
+      detail = await runAction(req, supabase, wf, ev.project_id, ev.tenant_id);
     } catch (err) {
       status = "failed";
       detail = (err as Error).message;
@@ -270,7 +279,7 @@ async function handler(req: Request): Promise<Response> {
     let fired = 0;
     for (const ev of pending) {
       try {
-        fired += await processEvent(supabase, ev, workflows);
+        fired += await processEvent(req, supabase, ev, workflows);
         await supabase
           .from("workflow_events")
           .update({ processed_at: new Date().toISOString() })
