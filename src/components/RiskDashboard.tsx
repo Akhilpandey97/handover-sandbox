@@ -113,18 +113,6 @@ export const RiskDashboard = () => {
     return list;
   }, [risks, filterCategory, filterSeverity, filterStatus, sortField, sortDir]);
 
-  // KPIs
-  const openRisks = risks.filter(r => r.status === "open" || r.status === "mitigating");
-  const critHighCount = openRisks.filter(r => r.severity === "critical" || r.severity === "high").length;
-  const noMitigationCount = openRisks.filter(r => !r.mitigation_plan).length;
-  const slaBreach = openRisks.filter(r => r.mitigation_due_at && new Date(r.mitigation_due_at).getTime() < Date.now() && !r.mitigation_plan).length;
-
-  // Silent delay: active projects with no risk tracked
-  const projectsWithRisks = new Set(risks.filter(r => r.status !== "resolved").map(r => r.project_id));
-  const silentDelayCount = activeProjects.filter(p =>
-    p.projectState !== "live" && p.currentPhase !== "completed" && !projectsWithRisks.has(p.id)
-    && p.dates.expectedGoLiveDate && new Date(p.dates.expectedGoLiveDate).getTime() < Date.now()
-  ).length;
 
   const openDialog = (risk?: ProjectRisk) => {
     if (risk) {
@@ -205,50 +193,6 @@ export const RiskDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <ShieldAlert className="h-4 w-4" /> Open Risks
-            </div>
-            <div className="text-2xl font-bold">{openRisks.length}</div>
-          </CardContent>
-        </Card>
-        <Card className={critHighCount > 0 ? "border-red-300 dark:border-red-800" : ""}>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <AlertTriangle className="h-4 w-4 text-red-500" /> Critical / High
-            </div>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{critHighCount}</div>
-          </CardContent>
-        </Card>
-        <Card className={slaBreach > 0 ? "border-orange-300 dark:border-orange-800" : ""}>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <Clock className="h-4 w-4 text-orange-500" /> SLA Breached
-            </div>
-            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{slaBreach}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <AlertCircle className="h-4 w-4" /> No Mitigation
-            </div>
-            <div className="text-2xl font-bold">{noMitigationCount}</div>
-          </CardContent>
-        </Card>
-        <Card className={silentDelayCount > 0 ? "border-yellow-300 dark:border-yellow-800" : ""}>
-          <CardContent className="pt-4 pb-3 px-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-              <Eye className="h-4 w-4 text-yellow-600" /> Silent Delays
-            </div>
-            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{silentDelayCount}</div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Risk engine verdicts — deterministic, with AI prose layered on top */}
       <Card className="shadow-sm border-border">
         <CardHeader className="border-b bg-muted/30">
