@@ -1417,18 +1417,16 @@ export const ManagerDashboard = () => {
                   return <KpiBar items={kpiItems} storageKey="manager_dashboard_kpi_order" />;
                 })(),
 
-                workload: (<>
-                {/* Team workload & TAT */}
-                <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
-                  <section className="rounded-lg border border-border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                workload: (
+                  <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Team workload</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Current project ownership and completion status</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">Current project ownership and completion status</p>
                       </div>
-                      <Users className="h-5 w-5 text-primary" />
+                      <Users className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="divide-y divide-border">
+                    <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
                         {teamOwnerReport.map((team) => {
                           const teamProjects = displayProjects.filter(p => p.currentOwnerTeam === team.team);
                           const totalCount = teamProjects.length;
@@ -1447,10 +1445,10 @@ export const ManagerDashboard = () => {
                             { label: "complete", value: completedCount, tone: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300", list: teamProjects.filter(isTeamCompleted) },
                           ];
                           return (
-                            <div key={team.team} className="grid gap-4 px-5 py-4 md:grid-cols-[minmax(170px,0.8fr)_minmax(260px,1.2fr)_120px] md:items-center">
-                              <div className="flex items-center gap-3">
+                            <div key={team.team} className="grid gap-3 px-4 py-2.5 md:grid-cols-[minmax(150px,0.8fr)_minmax(200px,1.1fr)_84px] md:items-center">
+                              <div className="flex items-center gap-2.5">
                                 <div className={cn(
-                                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-sm font-bold",
+                                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-bold",
                                   team.team === "mint" && "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300",
                                   team.team === "integration" && "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
                                   team.team === "ms" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300",
@@ -1458,8 +1456,8 @@ export const ManagerDashboard = () => {
                                   {team.teamLabel.charAt(0)}
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className="text-sm font-semibold text-foreground">{team.teamLabel}</p>
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <p className="text-xs font-semibold text-foreground">{team.teamLabel}</p>
                                     {teamNeedsAttention.length > 0 && (
                                       <button
                                         type="button"
@@ -1468,25 +1466,25 @@ export const ManagerDashboard = () => {
                                           description: `${teamNeedsAttention.length} of ${totalCount} need attention`,
                                           projects: teamNeedsAttention,
                                         })}
-                                        className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/25"
+                                        className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/25"
                                       >
                                         {teamNeedsAttention.length} needs attention
                                       </button>
                                     )}
                                   </div>
-                                  <p className="text-xs text-muted-foreground">{totalCount} owned projects</p>
+                                  <p className="text-[11px] text-muted-foreground">{totalCount} owned projects</p>
                                 </div>
                               </div>
-                              <div className="grid grid-cols-3 gap-2 text-center">
+                              <div className="grid grid-cols-3 gap-1.5 text-center">
                                 {miniCards.map(mc => (
                                   <div
                                     key={mc.label}
                                     role="button"
                                     tabIndex={0}
                                     onClick={() => setDrillDown({ title: `${team.teamLabel} · ${mc.label}`, projects: mc.list })}
-                                    className={cn("cursor-pointer rounded-md px-2 py-2 transition-opacity hover:opacity-80", mc.tone)}
+                                    className={cn("cursor-pointer rounded-md px-1.5 py-1.5 transition-opacity hover:opacity-80", mc.tone)}
                                   >
-                                    <p className="text-base font-semibold">{mc.value}</p>
+                                    <p className="text-sm font-semibold leading-tight">{mc.value}</p>
                                     <p className="text-[10px] opacity-80">{mc.label}</p>
                                   </div>
                                 ))}
@@ -1497,38 +1495,33 @@ export const ManagerDashboard = () => {
                                 onClick={() => setDrillDown({ title: `${team.teamLabel} · all`, projects: teamProjects })}
                                 className="cursor-pointer md:text-right"
                               >
-                                <p className="text-lg font-semibold text-foreground">{completionRate}%</p>
-                                <p className="text-xs text-muted-foreground">completion</p>
+                                <p className="text-base font-semibold leading-tight text-foreground">{completionRate}%</p>
+                                <p className="text-[11px] text-muted-foreground">completion</p>
                               </div>
                             </div>
                           );
                         })}
                     </div>
+                    <ProjectDetailsDialog
+                      project={updatesSelectedProject}
+                      open={!!updatesSelectedProject}
+                      onOpenChange={open => { if (!open) setUpdatesSelectedProject(null); }}
+                    />
                   </section>
-
-                  <TATDashlet projects={displayProjects} />
-
-                  <ProjectDetailsDialog
-                    project={updatesSelectedProject}
-                    open={!!updatesSelectedProject}
-                    onOpenChange={open => { if (!open) setUpdatesSelectedProject(null); }}
-                  />
-                </div>
-                </>),
+                ),
+                tat: <TATDashlet projects={displayProjects} />,
                 attention: <AttentionRequiredDashlet />,
                 egl: <EglRiskDashlet />,
-                delivery: (<>
-                {/* Delivery stages & health */}
-                <div className="grid items-stretch gap-5 lg:grid-cols-2">
-                  <section className="rounded-lg border border-border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                stages: (
+                  <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Delivery stages</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Where active project work is concentrated</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">Where active project work is concentrated</p>
                       </div>
-                      <BarChart3 className="h-5 w-5 text-primary" />
+                      <BarChart3 className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="space-y-4 p-5">
+                    <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
                         {(() => {
                           // Group projects by next incomplete checklist item title (from current owner team first)
                           const phaseGroups: Record<string, Project[]> = {};
@@ -1548,11 +1541,11 @@ export const ManagerDashboard = () => {
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })}
-                                className="-m-1 cursor-pointer space-y-1.5 rounded-md p-1 hover:bg-muted/50"
+                                className="cursor-pointer space-y-1 rounded-md p-1 hover:bg-muted/50"
                               >
-                                <div className="flex items-center justify-between text-sm">
+                                <div className="flex items-center justify-between text-xs">
                                   <span className="max-w-[70%] truncate font-medium text-foreground/80" title={label}>{label}</span>
-                                  <span className="whitespace-nowrap text-xs font-semibold text-foreground">{count} · {pct}%</span>
+                                  <span className="whitespace-nowrap text-[11px] font-semibold text-foreground">{count} · {pct}%</span>
                                 </div>
                                 <Progress value={pct} className="h-1.5" />
                               </div>
@@ -1561,16 +1554,17 @@ export const ManagerDashboard = () => {
                         })()}
                     </div>
                   </section>
-
-                  <section className="rounded-lg border border-border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                ),
+                health: (
+                  <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Delivery health</p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">Project state distribution across the portfolio</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">Project state distribution across the portfolio</p>
                       </div>
-                      <Settings className="h-5 w-5 text-primary" />
+                      <Settings className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="space-y-4 p-5">
+                    <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
                         {(Object.keys(projectStateLabels) as ProjectState[]).map(state => {
                           const stateList = displayProjects.filter(p => p.projectState === state);
                           const count = stateList.length;
@@ -1581,11 +1575,11 @@ export const ManagerDashboard = () => {
                               role="button"
                               tabIndex={0}
                               onClick={() => setDrillDown({ title: stateLabelsFromCtx[state] || projectStateLabels[state], description: "Project state", projects: stateList })}
-                              className="-m-1 cursor-pointer space-y-1.5 rounded-md p-1 hover:bg-muted/50"
+                              className="cursor-pointer space-y-1 rounded-md p-1 hover:bg-muted/50"
                             >
-                              <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center justify-between text-xs">
                                 <span className="font-medium text-foreground/80">{stateLabelsFromCtx[state] || projectStateLabels[state]}</span>
-                                <span className="text-xs font-semibold text-foreground">{count} · {pct}%</span>
+                                <span className="text-[11px] font-semibold text-foreground">{count} · {pct}%</span>
                               </div>
                               <Progress value={pct} className="h-1.5" />
                             </div>
@@ -1593,17 +1587,14 @@ export const ManagerDashboard = () => {
                         })}
                     </div>
                   </section>
-
-                </div>
-                </>),
+                ),
               };
-              // The two attention lists sit side by side on wide screens; the
-              // rest span the full width. Everything stacks below lg.
-              const halfWidth = new Set(["attention", "egl"]);
+              // Every section is its own half-width dashlet; the KPI bar spans
+              // the full width. Everything stacks below lg.
               return dashletOrder.map((id) => dashlets[id] ? (
                 <DashletSlot
                   key={id}
-                  className={halfWidth.has(id) ? "lg:col-span-1" : "lg:col-span-2"}
+                  className={id === "kpi" ? "lg:col-span-2" : "lg:col-span-1"}
                   isDragging={draggingDashlet === id}
                   onDragStart={() => onDashletDragStart(id)}
                   onDragOver={() => onDashletDragOver(id)}
@@ -1612,6 +1603,7 @@ export const ManagerDashboard = () => {
                   {dashlets[id]}
                 </DashletSlot>
               ) : null);
+
             })()}
 
             <ProjectListDialog
