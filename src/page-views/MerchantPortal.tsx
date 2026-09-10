@@ -6,7 +6,7 @@ import {
   Zap, Search, AlertTriangle, Copy, Check,
   Upload, Image, Download, X, Eye, EyeOff, ExternalLink, BookOpen, ListChecks,
   MessageCircle, Send, Bot, ChevronDown, KeyRound, Code, LogOut, Trash2, Pencil,
-  ClipboardList
+  ClipboardList, Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GuidedTour, type TourStep } from "@/components/GuidedTour";
@@ -389,6 +389,7 @@ export default function MerchantPortal() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768) setSidebarCollapsed(true);
@@ -780,6 +781,8 @@ export default function MerchantPortal() {
 
   const { project, owner, checklist_progress } = data;
 
+  const pendingItems = data.checklist.filter((item) => !item.completed);
+
   const navItems: { key: NavPage; label: string; icon: any; tour: string }[] = [
     { key: "integration", label: "My Integration", icon: LayoutDashboard, tour: "tour-integration" },
     { key: "credentials", label: "Credentials", icon: Lock, tour: "tour-credentials" },
@@ -825,6 +828,18 @@ export default function MerchantPortal() {
                     <Search className="h-4 w-4" />
                   </button>
                   <button
+                    onClick={() => setNotifOpen((open) => !open)}
+                    title="Pending actions"
+                    className="relative flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                  >
+                    <Bell className="h-4 w-4" />
+                    {pendingItems.length > 0 && (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                        {pendingItems.length > 9 ? "9+" : pendingItems.length}
+                      </span>
+                    )}
+                  </button>
+                  <button
                     onClick={() => setSidebarCollapsed(true)}
                     title="Collapse sidebar"
                     className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
@@ -843,6 +858,16 @@ export default function MerchantPortal() {
                 className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
               >
                 <Search className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => { setSidebarCollapsed(false); setNotifOpen(true); }}
+                title="Pending actions"
+                className="relative flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+              >
+                <Bell className="h-4 w-4" />
+                {pendingItems.length > 0 && (
+                  <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-destructive" />
+                )}
               </button>
               <button
                 onClick={() => setSidebarCollapsed(false)}
@@ -875,6 +900,45 @@ export default function MerchantPortal() {
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
+            </div>
+          </div>
+        )}
+
+        {!sidebarCollapsed && notifOpen && (
+          <div className="mx-3 mb-3 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-2">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-sidebar-foreground/70">
+                Pending actions
+              </span>
+              <button
+                onClick={() => setNotifOpen(false)}
+                title="Close"
+                className="flex h-5 w-5 items-center justify-center rounded text-sidebar-foreground/60 hover:text-sidebar-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+            <div className="max-h-48 space-y-1 overflow-y-auto">
+              {pendingItems.length === 0 && (
+                <p className="px-1 py-2 text-xs text-sidebar-foreground/60">You are all caught up.</p>
+              )}
+              {pendingItems.map((item, i) => {
+                const overdue = item.due_date ? new Date(item.due_date) < new Date() : false;
+                return (
+                  <button
+                    key={`${item.title}-${i}`}
+                    onClick={() => { setActivePage("integration"); setNotifOpen(false); }}
+                    className="w-full rounded-md px-2 py-1.5 text-left hover:bg-sidebar-accent"
+                  >
+                    <span className="block truncate text-xs font-medium text-sidebar-foreground">{item.title}</span>
+                    {item.due_date && (
+                      <span className={cn("block text-[10px]", overdue ? "text-destructive" : "text-sidebar-foreground/60")}>
+                        Due {new Date(item.due_date).toLocaleDateString()}{overdue ? " · overdue" : ""}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
