@@ -389,6 +389,7 @@ export default function MerchantPortal() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768) setSidebarCollapsed(true);
