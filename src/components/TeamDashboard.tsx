@@ -1,604 +1,249 @@
-import { apiAuthHeaders } from "@/lib/api-invoke";
-import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/contexts/AuthContext";
-import { useProjects } from "@/contexts/ProjectContext";
-import { teamColorClass } from "@/data/teams";
-import { useLabels } from "@/contexts/LabelsContext";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  Project,
-  projectStateLabels,
-  getProjectFunnelStage,
-  funnelStageLabels,
-} from "@/data/projectsData";
-import { ProjectCardNew } from "./ProjectCardNew";
-import { KanbanBoard } from "./KanbanBoard";
-import { AiChatBot } from "./AiChatBot";
-import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import {
-  Clock,
+  AlertCircle,
+  BarChart3,
+  CalendarDays,
+  CheckCircle2,
   FolderKanban,
+  GripVertical,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   Rocket,
   Search,
-  AlertCircle,
-  Layers,
-  Brain,
-  Loader2,
-  AlertTriangle,
-  Zap,
-  Filter,
+  Settings,
+  UserCheck,
   X,
-  LayoutGrid,
-  List,
-  Columns3,
-  ArrowUpDown,
 } from "lucide-react";
-import { ThemeToggle } from "./ThemeToggle";
-import { NotificationCenter } from "./NotificationCenter";
-import { RiskBadge } from "./RiskBadge";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProjects } from "@/contexts/ProjectContext";
+import { useLabels } from "@/contexts/LabelsContext";
+import { type Project, type ProjectState, getProjectFunnelStage, projectStateLabels } from "@/data/projectsData";
+import { arrToCrore } from "@/lib/arr";
+import { cn } from "@/lib/utils";
+import { parseDashboardPath, projectViewPath } from "@/lib/dashboard-routes";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
+import { useDashletOrder } from "@/hooks/useDashletOrder";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
+import { NotificationCenter } from "./NotificationCenter";
+import { ThemeToggle } from "./ThemeToggle";
+import { KanbanBoard } from "./KanbanBoard";
+import { MonthlyGoLiveTracker } from "./MonthlyGoLiveTracker";
+import { AiChatBot } from "./AiChatBot";
+import { ProjectCardNew } from "./ProjectCardNew";
+import { ProjectListDialog } from "./ProjectListDialog";
+import { TATDashlet } from "./TATDashlet";
+import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
+import { EglRiskDashlet } from "./EglRiskDashlet";
+import { DashletSlot } from "./DashletSlot";
 
-type TabType = "pending" | "active" | "all" | "hi-there";
-type ViewType = "cards" | "kanban" | "list";
-type SortKey =
-  | "merchantName"
-  | "arr"
-  | "goLivePercent"
-  | "expectedGoLive"
-  | "kickOff"
-  | "updatedAt";
-
-interface AiAlert {
-  project: string;
-  action: string;
-  priority: "high" | "medium" | "low";
-  alert: string;
-}
-
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "merchantName", label: "Merchant Name" },
-  { key: "arr", label: "ARR" },
-  { key: "goLivePercent", label: "Go-Live %" },
-  { key: "expectedGoLive", label: "Expected Go-Live" },
-  { key: "kickOff", label: "Kick Off Date" },
-  { key: "updatedAt", label: "Last Updated" },
-];
+type UserTab = "dashboard" | "projects" | "hi-there";
 
 export const TeamDashboard = () => {
   const navigate = useNavigate();
-  const [kanbanToolbar, setKanbanToolbar] = useState<HTMLDivElement | null>(null);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const routeState = useMemo(() => parseDashboardPath(pathname), [pathname]);
   const { currentUser, logout } = useAuth();
-  const { getPendingProjects, getActiveProjects, projects, isLoading } = useProjects();
-  const { teamLabels, labels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
-  const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
+  const { projects, isLoading } = useProjects();
+  const { labels, getLabel, teamLabels, stateLabels } = useLabels();
+  const { verdicts } = useProjectRiskVerdicts();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<TabType>("active");
-  const [view, setView] = useState<ViewType>("cards");
-  const [sortKey, setSortKey] = useState<SortKey>("merchantName");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [stateFilter, setStateFilter] = useState<string[]>([]);
-  const [phaseFilter, setPhaseFilter] = useState<string[]>([]);
-  const [funnelFilter, setFunnelFilter] = useState<string[]>([]);
-  const [respFilter, setRespFilter] = useState<string[]>([]);
-  const [platformFilter, setPlatformFilter] = useState<string[]>([]);
-  const [detailsProject, setDetailsProject] = useState<Project | null>(null);
-  const [aiAlerts, setAiAlerts] = useState<AiAlert[]>([]);
-  const [aiAlertsLoading, setAiAlertsLoading] = useState(false);
-  const [aiAlertsLoaded, setAiAlertsLoaded] = useState(false);
+  const [projectToolbarHost, setProjectToolbarHost] = useState<HTMLDivElement | null>(null);
+  const [drillDown, setDrillDown] = useState<{ title: string; description?: string; projects: Project[] } | null>(null);
+  const {
+    order: dashletOrder,
+    dragging,
+    onDragStart,
+    onDragOver,
+    onDragEnd,
+  } = useDashletOrder(["kpi", "incoming", "attention", "egl", "delivery"]);
 
-  const userProjects = useMemo(
-    () => projects.filter((p) => p.assignedOwner === currentUser?.id),
-    [projects, currentUser?.id]
-  );
-
-  const filterOptions = useMemo(() => {
-    const states = new Set<string>();
-    const phases = new Set<string>();
-    const funnels = new Set<string>();
-    const resps = new Set<string>();
-    const platforms = new Set<string>();
-    userProjects.forEach((p) => {
-      states.add(p.projectState);
-      phases.add(p.currentPhase);
-      funnels.add(getProjectFunnelStage(p));
-      resps.add(p.currentResponsibility);
-      if (p.platform) platforms.add(p.platform);
-    });
-    return {
-      states: [...states].sort(),
-      phases: [...phases].sort(),
-      funnels: [...funnels].sort(),
-      resps: [...resps].sort(),
-      platforms: [...platforms].sort(),
-    };
-  }, [userProjects]);
-
-  const activeFilterCount =
-    stateFilter.length + phaseFilter.length + funnelFilter.length + respFilter.length + platformFilter.length;
+  useEffect(() => {
+    if (pathname === "/") navigate({ to: "/dashboard", replace: true });
+  }, [pathname, navigate]);
 
   if (!currentUser) return null;
 
+  const userProjects = useMemo(
+    () => projects.filter((project) => project.assignedOwner === currentUser.id && !project.archived),
+    [projects, currentUser.id],
+  );
+  const visibleProjects = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return userProjects;
+    return userProjects.filter((project) =>
+      project.merchantName.toLowerCase().includes(query) || project.mid.toLowerCase().includes(query),
+    );
+  }, [userProjects, searchQuery]);
+  const incomingProjects = visibleProjects.filter((project) => project.pendingAcceptance);
+  const totalProjects = visibleProjects.length;
+  const pendingProjects = visibleProjects.filter((project) => ["not_started", "on_hold", "blocked"].includes(project.projectState));
+  const deliveryProjects = visibleProjects.filter((project) => project.projectState === "in_progress");
+  const liveProjects = visibleProjects.filter((project) => project.projectState === "live");
+  const arrLabel = getLabel("field_arr");
+
+  const resolvedTab: UserTab = routeState.tab === "projects" || routeState.tab === "hi-there"
+    ? routeState.tab
+    : "dashboard";
+  const projectView = routeState.projectView === "golive" ? "golive" : "kanban";
+  const navItems: Array<{ key: UserTab; label: string; icon: React.ReactNode }> = [
+    { key: "dashboard", label: "Workbench", icon: <BarChart3 className="h-4 w-4" /> },
+    { key: "projects", label: "Projects", icon: <FolderKanban className="h-4 w-4" /> },
+    { key: "hi-there", label: "Buddy", icon: <span className="animate-wave text-base leading-none">👋</span> },
+  ];
+
+  const openTab = (tab: UserTab) => {
+    if (tab === "projects") navigate({ to: projectViewPath(projectView) });
+    else navigate({ to: tab === "dashboard" ? "/dashboard" : "/hi-there" });
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">Loading your projects...</p>
+          <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Loading your workbench...</p>
         </div>
       </div>
     );
   }
 
-  const pendingForUser = getPendingProjects(currentUser.team).filter((p) => p.assignedOwner === currentUser.id);
-  const activeForUser = getActiveProjects(currentUser.team).filter((p) => p.assignedOwner === currentUser.id);
-
-  const baseProjects =
-    activeTab === "pending" ? pendingForUser : activeTab === "active" ? activeForUser : userProjects;
-
-  const applyFilters = (list: Project[]) =>
-    list.filter((p) => {
-      const q = searchQuery.toLowerCase();
-      if (
-        q &&
-        !p.merchantName.toLowerCase().includes(q) &&
-        !p.mid.toLowerCase().includes(q)
-      )
-        return false;
-      if (stateFilter.length && !stateFilter.includes(p.projectState)) return false;
-      if (phaseFilter.length && !phaseFilter.includes(p.currentPhase)) return false;
-      if (funnelFilter.length && !funnelFilter.includes(getProjectFunnelStage(p))) return false;
-      if (respFilter.length && !respFilter.includes(p.currentResponsibility)) return false;
-      if (platformFilter.length && !platformFilter.includes(p.platform || "")) return false;
-      return true;
-    });
-
-  const sortProjects = (list: Project[]) => {
-    const dir = sortDir === "asc" ? 1 : -1;
-    const val = (p: Project): string | number => {
-      switch (sortKey) {
-        case "arr": return p.arr || 0;
-        case "goLivePercent": return p.goLivePercent || 0;
-        case "expectedGoLive": return p.dates?.expectedGoLiveDate || "";
-        case "kickOff": return p.dates?.kickOffDate || "";
-        case "updatedAt": return p.updatedAt || "";
-        default: return p.merchantName?.toLowerCase() || "";
-      }
-    };
-    return [...list].sort((a, b) => {
-      const av = val(a);
-      const bv = val(b);
-      if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
-      return String(av).localeCompare(String(bv)) * dir;
-    });
-  };
-
-  const displayProjects = sortProjects(applyFilters(baseProjects));
-
-  const clearFilters = () => {
-    setStateFilter([]);
-    setPhaseFilter([]);
-    setFunnelFilter([]);
-    setRespFilter([]);
-    setPlatformFilter([]);
-  };
-
-  const toggle = (arr: string[], setArr: (v: string[]) => void, value: string) =>
-    setArr(arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value]);
-
-  const handleGenerateAiAlerts = async () => {
-    if (userProjects.length === 0) {
-      toast.info("No projects to analyze");
-      return;
-    }
-    setAiAlertsLoading(true);
-    try {
-      const response = await fetch(
-        `/api/public/ai-project-insights`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(await apiAuthHeaders()),
-          },
-          body: JSON.stringify({ projects: userProjects, type: "next_actions" }),
-        }
-      );
-      if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-      const data = await response.json();
-      setAiAlerts(data.result || []);
-      setAiAlertsLoaded(true);
-    } catch (err: any) {
-      console.error("AI alerts error:", err);
-      toast.error("Failed to generate AI alerts");
-    } finally {
-      setAiAlertsLoading(false);
-    }
-  };
-
-  const sidebarItems: { key: TabType; label: string; icon: React.ReactNode; count: number; color: string }[] = [
-    { key: "pending", label: "Pending", icon: <AlertCircle className="h-4 w-4" />, count: pendingForUser.length, color: "text-amber-500" },
-    { key: "active", label: "Active", icon: <Rocket className="h-4 w-4" />, count: activeForUser.length, color: "text-emerald-500" },
-    { key: "all", label: "All Projects", icon: <Layers className="h-4 w-4" />, count: userProjects.length, color: "text-primary" },
-    // The assistant, scoped to this user's own projects by AiChatBot itself.
-    { key: "hi-there", label: "Hi There", icon: <span className="animate-wave text-base leading-none">👋</span>, count: -1, color: "text-primary" },
+  const kpis = [
+    { label: "All projects", projects: visibleProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `${visibleProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}` },
+    { label: "Pending", projects: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `${pendingProjects.filter((p) => verdicts[p.id]?.level === "high").length} need attention` },
+    { label: "In delivery", projects: deliveryProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `${deliveryProjects.filter((p) => verdicts[p.id]?.level === "high").length} need attention` },
+    { label: "Live", projects: liveProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `${liveProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}` },
   ];
 
-  const filterGroup = (
-    title: string,
-    options: string[],
-    selected: string[],
-    setSelected: (v: string[]) => void,
-    labelFn: (v: string) => string
-  ) =>
-    options.length > 0 && (
-      <div className="space-y-1.5">
-        <p className="portal-label">{title}</p>
-        <div className="space-y-1">
-          {options.map((opt) => (
-            <label key={opt} className="flex items-center gap-2 text-xs cursor-pointer">
-              <Checkbox
-                checked={selected.includes(opt)}
-                onCheckedChange={() => toggle(selected, setSelected, opt)}
-              />
-              <span className="truncate">{labelFn(opt)}</span>
-            </label>
+  const deliveryStageGroups = visibleProjects.reduce<Record<string, Project[]>>((groups, project) => {
+    const teamItems = project.checklist.filter((item) => item.ownerTeam === project.currentOwnerTeam);
+    const next = teamItems.find((item) => !item.completed) || project.checklist.find((item) => !item.completed);
+    const label = next?.title || "All Complete";
+    groups[label] = [...(groups[label] || []), project];
+    return groups;
+  }, {});
+
+  const dashlets: Record<string, React.ReactNode> = {
+    kpi: (
+      <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">
+          {kpis.map((kpi) => (
+            <button
+              key={kpi.label}
+              type="button"
+              onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.projects })}
+              className="group min-h-[136px] bg-card p-5 text-left transition-colors hover:bg-muted/40"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
+                  <p className="mt-1 text-3xl font-semibold text-foreground">{kpi.projects.length}</p>
+                </div>
+                <span className={cn("flex h-9 w-9 items-center justify-center rounded-md", kpi.tone)}><kpi.icon className="h-4 w-4" /></span>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">{kpi.sub}</p>
+            </button>
           ))}
         </div>
+      </section>
+    ),
+    incoming: (
+      <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
+        <section className="flex max-h-[32rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Incoming projects</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Projects waiting for your acceptance</p>
+            </div>
+            <span className="flex items-center gap-2 text-primary"><span className="text-sm font-semibold">{incomingProjects.length}</span><UserCheck className="h-5 w-5" /></span>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            {incomingProjects.length === 0 ? (
+              <div className="flex min-h-36 flex-col items-center justify-center text-center">
+                <CheckCircle2 className="mb-2 h-7 w-7 text-emerald-500" />
+                <p className="text-sm font-medium text-foreground">You’re all caught up</p>
+                <p className="mt-1 text-xs text-muted-foreground">No incoming projects need acceptance.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">{incomingProjects.map((project) => <ProjectCardNew key={project.id} project={project} riskVerdict={verdicts[project.id]} />)}</div>
+            )}
+          </div>
+        </section>
+        <TATDashlet projects={visibleProjects} />
       </div>
-    );
+    ),
+    attention: <AttentionRequiredDashlet projects={visibleProjects} />,
+    egl: <EglRiskDashlet projects={visibleProjects} />,
+    delivery: (
+      <div className="grid items-stretch gap-5 lg:grid-cols-2">
+        <section className="rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <div><p className="text-sm font-semibold text-foreground">Delivery stages</p><p className="mt-0.5 text-xs text-muted-foreground">Where your active project work is concentrated</p></div>
+            <BarChart3 className="h-5 w-5 text-primary" />
+          </div>
+          <div className="space-y-4 p-5">
+            {Object.entries(deliveryStageGroups).sort((a, b) => b[1].length - a[1].length).map(([label, list]) => {
+              const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
+              return <button type="button" key={label} onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })} className="block w-full space-y-1.5 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-sm"><span className="max-w-[70%] truncate font-medium text-foreground/80">{label}</span><span className="text-xs font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
+            })}
+          </div>
+        </section>
+        <section className="rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <div><p className="text-sm font-semibold text-foreground">Delivery health</p><p className="mt-0.5 text-xs text-muted-foreground">Project state distribution across your work</p></div>
+            <Settings className="h-5 w-5 text-primary" />
+          </div>
+          <div className="space-y-4 p-5">
+            {(Object.keys(projectStateLabels) as ProjectState[]).map((state) => {
+              const list = visibleProjects.filter((project) => project.projectState === state);
+              const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
+              return <button type="button" key={state} onClick={() => setDrillDown({ title: stateLabels[state] || projectStateLabels[state], description: "Project state", projects: list })} className="block w-full space-y-1.5 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-sm"><span className="font-medium text-foreground/80">{stateLabels[state] || projectStateLabels[state]}</span><span className="text-xs font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
+            })}
+          </div>
+        </section>
+      </div>
+    ),
+  };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left Sidebar */}
-      <aside className="w-64 border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col">
-        <div className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-2.5">
-            {labels.org_logo_url ? (
-              <img src={labels.org_logo_url} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
-            ) : (
-              <div className={`h-9 w-9 rounded-lg ${teamColorClass(currentUser.team)} flex items-center justify-center`}>
-                <FolderKanban className="h-5 w-5 text-white" />
-              </div>
-            )}
-            <div className="min-w-0">
-              <h1 className="font-semibold text-sm truncate text-sidebar-foreground">{teamLabels[currentUser.team]}</h1>
-              <p className="text-xs text-sidebar-foreground/60">Team Dashboard</p>
-            </div>
+    <div className="flex h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
+      <aside className={cn("relative flex shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all duration-300", sidebarCollapsed ? "w-16" : "w-[212px]")}>
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-3">
+            {labels.org_logo_url ? <img src={labels.org_logo_url} alt="Logo" className={cn("rounded-xl object-contain shadow-lg ring-2 ring-primary/20", sidebarCollapsed ? "h-8 w-8" : "h-12 w-12")} /> : <span className={cn("flex items-center justify-center rounded-xl gradient-primary shadow-[var(--shadow-soft)]", sidebarCollapsed ? "h-8 w-8" : "h-11 w-11")}><BarChart3 className="h-5 w-5 text-primary-foreground" /></span>}
+            {!sidebarCollapsed && <><h1 className="min-w-0 flex-1 truncate text-[16px] font-semibold">{labels.app_title}</h1><div className="flex shrink-0 items-center gap-0.5 [&_button]:text-sidebar-foreground/70 [&_button:hover]:text-sidebar-foreground"><Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-sidebar-accent/60" onClick={() => setSearchOpen((open) => !open)} title="Search projects"><Search className="h-4 w-4" /></Button><NotificationCenter /><Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-sidebar-accent/60" onClick={() => setSidebarCollapsed(true)} title="Collapse sidebar"><PanelLeftClose className="h-4 w-4" /></Button></div></>}
           </div>
+          {sidebarCollapsed && <div className="mt-3 flex flex-col items-center gap-1 [&_button]:text-sidebar-foreground/70"><Button variant="ghost" size="icon" onClick={() => { setSidebarCollapsed(false); setSearchOpen(true); }} title="Search projects"><Search className="h-4 w-4" /></Button><NotificationCenter /><Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(false)} title="Expand sidebar"><PanelLeftOpen className="h-4 w-4" /></Button></div>}
         </div>
-
-        <nav className="flex-1 p-3">
-          <p className="portal-label mb-2 px-2 text-sidebar-foreground/70">Projects</p>
-          <div className="space-y-1">
-            {sidebarItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setActiveTab(item.key)}
-                className={cn(
-                  "w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-sm",
-                  activeTab === item.key
-                    ? "bg-primary/20 text-sidebar-foreground font-semibold"
-                    : "hover:bg-sidebar-accent/60 text-sidebar-foreground/80 hover:text-sidebar-foreground"
-                )}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className={activeTab === item.key ? "text-primary" : item.color}>{item.icon}</span>
-                  <span className="font-medium">{item.label}</span>
-                </div>
-                {item.count >= 0 && (
-                <Badge
-                  variant={activeTab === item.key ? "secondary" : "outline"}
-                  className={cn(
-                    "text-xs font-semibold min-w-[24px] justify-center",
-                    activeTab === item.key
-                      ? "bg-primary/25 text-sidebar-foreground border-0"
-                      : "bg-transparent text-sidebar-foreground/70 border-sidebar-border"
-                  )}
-                >
-                  {item.count}
-                </Badge>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* AI Alerts Section */}
-          <div className="mt-5">
-            <div className="flex items-center justify-between mb-2 px-2">
-              <p className="portal-label text-sidebar-foreground/70">AI Alerts</p>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 text-xs gap-1 px-2 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
-                onClick={handleGenerateAiAlerts}
-                disabled={aiAlertsLoading}
-              >
-                {aiAlertsLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Brain className="h-3 w-3" />}
-                {aiAlertsLoaded ? "Refresh" : "Generate"}
-              </Button>
-            </div>
-
-            {aiAlertsLoading && (
-              <div className="flex items-center justify-center py-3 text-xs text-sidebar-foreground/60 gap-2">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Analyzing projects...
-              </div>
-            )}
-
-            {!aiAlertsLoading && aiAlertsLoaded && aiAlerts.length === 0 && (
-              <p className="text-xs text-sidebar-foreground/60 px-2">No alerts found.</p>
-            )}
-
-            {!aiAlertsLoading && aiAlerts.length > 0 && (
-              <ScrollArea className="h-[240px]">
-                <div className="space-y-2 px-1">
-                  {aiAlerts.map((alert, i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        "rounded-lg p-2.5 border text-xs",
-                        alert.priority === "high"
-                          ? "bg-destructive/10 border-destructive/30"
-                          : alert.priority === "medium"
-                          ? "bg-amber-500/10 border-amber-200 dark:border-amber-800"
-                          : "bg-sidebar-accent/50 border-sidebar-border"
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5 mb-1">
-                        {alert.priority === "high" ? (
-                          <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />
-                        ) : (
-                          <Zap className="h-3 w-3 text-amber-500 shrink-0" />
-                        )}
-                        <span className="font-semibold truncate">{alert.project}</span>
-                      </div>
-                      <p className="text-sidebar-foreground/70 leading-relaxed">{alert.action}</p>
-                      {alert.alert && <p className="mt-1 font-medium text-destructive">{alert.alert}</p>}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-
-            {!aiAlertsLoaded && !aiAlertsLoading && (
-              <p className="text-xs text-sidebar-foreground/60 px-2">Click Generate for AI-powered next actions.</p>
-            )}
-          </div>
+        {!sidebarCollapsed && searchOpen && <div className="px-3 pb-3"><div className="relative"><Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-foreground/50" /><Input autoFocus placeholder="Search projects..." value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="h-8 border-sidebar-border bg-sidebar-accent/40 pl-8 pr-7 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/50" />{searchQuery && <Button variant="ghost" size="icon" className="absolute right-0 top-0 h-8 w-8" onClick={() => setSearchQuery("")} title="Clear search"><X className="h-3.5 w-3.5" /></Button>}</div></div>}
+        <nav className="flex-1 overflow-y-auto px-2 pb-2 pt-8">
+          <div className="space-y-0.5">{navItems.map((item) => <Button key={item.key} variant="ghost" onClick={() => openTab(item.key)} title={item.label} className={cn("w-full justify-start gap-2.5 rounded-lg px-2.5 py-1.5 text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground", sidebarCollapsed && "justify-center px-0", resolvedTab === item.key && "gradient-primary text-primary-foreground hover:text-primary-foreground")}><span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", resolvedTab === item.key ? "bg-primary-foreground/20" : "bg-sidebar-accent")}>{item.icon}</span>{!sidebarCollapsed && <span className="flex-1 text-left text-sm font-medium">{item.label}</span>}</Button>)}</div>
         </nav>
+        <div className="p-2">
+          <Popover>
+            <PopoverTrigger asChild><Button variant="ghost" className={cn("h-auto w-full justify-start gap-2 p-1 text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground", sidebarCollapsed && "justify-center")}><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{currentUser.name.charAt(0)}</span>{!sidebarCollapsed && <span className="min-w-0 flex-1 text-left"><span className="block truncate text-xs font-medium">{currentUser.name}</span><span className="block text-[10px] text-sidebar-foreground/60">{teamLabels[currentUser.team] || currentUser.team}</span></span>}</Button></PopoverTrigger>
+            <PopoverContent side="right" align="end" className="w-56 p-1.5"><div className="px-2 py-1.5"><p className="truncate text-sm font-medium">{currentUser.name}</p><p className="truncate text-xs text-muted-foreground">{teamLabels[currentUser.team] || currentUser.team}</p></div><div className="my-1 h-px bg-border" /><div className="flex items-center justify-between rounded-md px-2 py-1 text-sm"><span>Theme</span><ThemeToggle /></div><Button variant="ghost" onClick={logout} className="mt-0.5 w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"><LogOut className="h-4 w-4" />Logout</Button></PopoverContent>
+          </Popover>
+        </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="h-14 border-b bg-background flex items-center justify-between px-6 shrink-0">
-          <div>
-            <h2 className="text-base font-semibold">
-              {activeTab === "pending" && "Pending Acceptance"}
-              {activeTab === "active" && "Active Projects"}
-              {activeTab === "all" && "All Projects"}
-              {activeTab === "hi-there" && "Hi There"}
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              {activeTab === "hi-there"
-                ? "Ask about your projects"
-                : `${displayProjects.length} project${displayProjects.length !== 1 ? "s" : ""} found`}
-            </p>
+      <main className="flex min-w-0 flex-1 flex-col">
+        <div className={cn("min-h-0 flex-1 app-shell-surface", (resolvedTab === "projects" || resolvedTab === "hi-there") ? "flex flex-col overflow-hidden" : "overflow-auto")}>
+          <div className={cn("p-4 sm:p-6", (resolvedTab === "projects" || resolvedTab === "hi-there") && "flex min-h-0 flex-1 flex-col")}>
+            {resolvedTab === "projects" && <div className="mb-3 flex shrink-0 flex-wrap items-center justify-center gap-2"><div className="flex items-center gap-1" role="tablist" aria-label="Project views">{[{ value: "kanban", label: "Kanban", icon: GripVertical }, { value: "golive", label: "Go-Live Tracker", icon: CalendarDays }].map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" size="sm" role="tab" aria-selected={projectView === value} onClick={() => navigate({ to: projectViewPath(value as "kanban" | "golive") })} className={cn("h-8 gap-1.5 text-xs", projectView === value && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground")}><Icon className="h-3.5 w-3.5" />{label}</Button>)}</div><div ref={setProjectToolbarHost} className="flex flex-wrap items-center gap-2" /></div>}
+            {resolvedTab === "dashboard" && <div className="mx-auto grid max-w-[1600px] grid-cols-1 items-stretch gap-5 lg:grid-cols-2">{dashletOrder.map((id) => dashlets[id] ? <DashletSlot key={id} className={id === "attention" || id === "egl" ? "lg:col-span-1" : "lg:col-span-2"} isDragging={dragging === id} onDragStart={() => onDragStart(id)} onDragOver={() => onDragOver(id)} onDragEnd={onDragEnd}>{dashlets[id]}</DashletSlot> : null)}<ProjectListDialog title={drillDown?.title || ""} description={drillDown?.description} projects={drillDown?.projects || []} open={!!drillDown} onOpenChange={(open) => { if (!open) setDrillDown(null); }} /></div>}
+            {resolvedTab === "projects" && projectView === "kanban" && <div className="flex min-h-0 flex-1 flex-col"><KanbanBoard projectsOverride={visibleProjects} toolbarContainer={projectToolbarHost} searchQuery={searchQuery} /></div>}
+            {resolvedTab === "projects" && projectView === "golive" && <div className="flex min-h-0 flex-1 flex-col"><MonthlyGoLiveTracker projectsOverride={visibleProjects} toolbarContainer={projectToolbarHost} searchQuery={searchQuery} /></div>}
+            {resolvedTab === "hi-there" && <div className="flex min-h-0 flex-1 flex-col"><AiChatBot /></div>}
           </div>
-
-          <div className="flex items-center gap-3">
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Search by name or MID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-sm"
-              />
-            </div>
-
-            <div className="flex items-center gap-2.5 pl-3 border-l">
-              <NotificationCenter />
-              <ThemeToggle />
-              <div className="text-right hidden md:block">
-                <p className="font-medium text-xs">{currentUser.name}</p>
-                <p className="text-xs text-muted-foreground">{teamLabels[currentUser.team] || currentUser.team}</p>
-              </div>
-              <div className={`h-8 w-8 rounded-lg ${teamColorClass(currentUser.team)} flex items-center justify-center text-white font-semibold text-xs`}>
-                {currentUser.name.charAt(0)}
-              </div>
-              <Button variant="ghost" size="icon" onClick={logout} className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </header>
-
-        {activeTab === "hi-there" ? (
-          <div className="flex min-h-0 flex-1 flex-col p-6">
-            <AiChatBot />
-          </div>
-        ) : (
-        <>
-        {/* Toolbar: view / sort / filters */}
-        <div className="border-b bg-card/50 px-6 py-2.5 flex flex-wrap items-center gap-2 shrink-0">
-          <div className="flex items-center rounded-lg border bg-background p-0.5">
-            {([
-              { key: "cards" as ViewType, label: "Cards", icon: <LayoutGrid className="h-3.5 w-3.5" /> },
-              { key: "kanban" as ViewType, label: "Kanban", icon: <Columns3 className="h-3.5 w-3.5" /> },
-              { key: "list" as ViewType, label: "List", icon: <List className="h-3.5 w-3.5" /> },
-            ]).map((v) => (
-              <button
-                key={v.key}
-                onClick={() => setView(v.key)}
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors",
-                  view === v.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {v.icon}
-                {v.label}
-              </button>
-            ))}
-          </div>
-
-          {view === "kanban" && (
-            <div ref={setKanbanToolbar} className="ml-auto flex items-center gap-2" />
-          )}
-
-          {view !== "kanban" && (
-            <>
-              <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-                <SelectTrigger className="h-8 w-[180px] text-xs">
-                  <ArrowUpDown className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SORT_OPTIONS.map((o) => (
-                    <SelectItem key={o.key} value={o.key} className="text-xs">
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs"
-                onClick={() => setSortDir(sortDir === "asc" ? "desc" : "asc")}
-              >
-                {sortDir === "asc" ? "Ascending" : "Descending"}
-              </Button>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
-                    <Filter className="h-3.5 w-3.5" />
-                    Filters
-                    {activeFilterCount > 0 && (
-                      <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
-                        {activeFilterCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-3" align="start">
-                  <ScrollArea className="max-h-[380px] pr-2">
-                    <div className="space-y-3">
-                      {filterGroup("Project State", filterOptions.states, stateFilter, setStateFilter, (v) => stateLabels?.[v] || projectStateLabels[v as keyof typeof projectStateLabels] || v)}
-                      {filterGroup("Project Stage", filterOptions.funnels, funnelFilter, setFunnelFilter, (v) => funnelStageLabels[v] || v)}
-                      {filterGroup("Responsibility", filterOptions.resps, respFilter, setRespFilter, (v) => responsibilityLabels?.[v] || v)}
-                      {filterGroup("Platform", filterOptions.platforms, platformFilter, setPlatformFilter, (v) => v)}
-                    </div>
-                  </ScrollArea>
-                </PopoverContent>
-              </Popover>
-
-              {activeFilterCount > 0 && (
-                <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={clearFilters}>
-                  <X className="h-3.5 w-3.5" />
-                  Clear
-                </Button>
-              )}
-            </>
-          )}
         </div>
-
-        {/* Content */}
-        {view === "kanban" ? (
-          <div className="flex-1 min-h-0 overflow-hidden px-6 py-4">
-            <KanbanBoard
-              projectsOverride={applyFilters(baseProjects)}
-              toolbarContainer={kanbanToolbar}
-              searchQuery={searchQuery}
-            />
-          </div>
-        ) : (
-          <ScrollArea className="flex-1">
-            <div className="p-6">
-              {displayProjects.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                    {activeTab === "pending" && <Clock className="h-6 w-6 text-amber-500" />}
-                    {activeTab === "active" && <Rocket className="h-6 w-6 text-emerald-500" />}
-                    {activeTab === "all" && <FolderKanban className="h-6 w-6 text-muted-foreground" />}
-                  </div>
-                  <h3 className="font-semibold text-sm mb-1">No projects found</h3>
-                  <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                    Try adjusting your search or filters.
-                  </p>
-                </div>
-              ) : view === "cards" ? (
-                <div className="space-y-3">
-                  {displayProjects.map((project) => (
-                    <ProjectCardNew key={project.id} project={project} riskVerdict={riskVerdicts[project.id]} />
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-xl border bg-card overflow-hidden">
-                  <Table>
-                    <TableHeader className="bg-navy">
-                      <TableRow className="hover:bg-navy">
-                        <TableHead className="text-xs text-navy-foreground">Merchant</TableHead>
-                        <TableHead className="text-xs text-navy-foreground">MID</TableHead>
-                        <TableHead className="text-xs text-navy-foreground">Platform</TableHead>
-                        <TableHead className="text-xs text-navy-foreground">State</TableHead>
-                        <TableHead className="text-xs text-navy-foreground">Project Stage</TableHead>
-                        <TableHead className="text-xs text-navy-foreground">Responsibility</TableHead>
-                        <TableHead className="text-xs text-right text-navy-foreground">ARR</TableHead>
-                        <TableHead className="text-xs text-right text-navy-foreground">Go-Live %</TableHead>
-                        <TableHead className="text-xs text-navy-foreground">Expected Go-Live</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {displayProjects.map((p) => (
-                        <TableRow
-                          key={p.id}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
-                        >
-                          <TableCell className="text-xs font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} /></span></TableCell>
-                          <TableCell className="text-xs font-mono text-muted-foreground">{p.mid}</TableCell>
-                          <TableCell className="text-xs">{p.platform || "—"}</TableCell>
-                          <TableCell className="text-xs">
-                            {stateLabels?.[p.projectState] || projectStateLabels[p.projectState] || p.projectState}
-                          </TableCell>
-                          <TableCell className="text-xs">{funnelStageLabels[getProjectFunnelStage(p)]}</TableCell>
-                          <TableCell className="text-xs">
-                            {responsibilityLabels?.[p.currentResponsibility] || p.currentResponsibility}
-                          </TableCell>
-                          <TableCell className="text-xs text-right">{p.arr ? p.arr.toLocaleString() : "—"}</TableCell>
-                          <TableCell className="text-xs text-right">{p.goLivePercent ?? 0}%</TableCell>
-                          <TableCell className="text-xs">{p.dates?.expectedGoLiveDate || "—"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-        )}
-        </>
-        )}
       </main>
-
-      <ProjectDetailsDialog
-        project={detailsProject}
-        open={!!detailsProject}
-        onOpenChange={(o) => !o && setDetailsProject(null)}
-      />
     </div>
   );
 };
