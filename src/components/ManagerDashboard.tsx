@@ -1367,67 +1367,55 @@ export const ManagerDashboard = () => {
               // Each dashboard section is a named slot so the order can be
               // rearranged and remembered; see useDashletOrder.
               const dashlets: Record<string, React.ReactNode> = {
-                kpi: (<>
-                {/* KPI strip */}
-                <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-                  <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">
-                  {(() => {
-                    const funnelCounts = displayProjects.reduce((acc: Record<string, number>, p) => {
-                      const s = getProjectFunnelStage(p) as string;
-                      acc[s] = (acc[s] || 0) + 1;
-                      return acc;
-                    }, {} as Record<string, number>);
+                kpi: (() => {
+                  const stateBoxes: Array<{ key: string; state: ProjectState; icon: typeof AlertCircle; tone: string }> = [
+                    { key: "not_started", state: "not_started", icon: FolderKanban, tone: "bg-muted text-foreground/70" },
+                    { key: "in_progress", state: "in_progress", icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300" },
+                    { key: "on_hold", state: "on_hold", icon: Clock, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
+                    { key: "blocked", state: "blocked", icon: ShieldAlert, tone: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
+                    { key: "live", state: "live", icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+                  ];
+                  const kpiItems: KpiBoxItem[] = [
+                    {
+                      key: "all",
+                      label: "All projects",
+                      value: totalProjects,
+                      sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`,
+                      icon: FolderKanban,
+                      tone: "bg-muted text-foreground/70",
+                      onClick: () => setDrillDown({ title: "All projects", projects: displayProjects }),
+                    },
+                    {
+                      key: "pending",
+                      label: "Pending",
+                      value: pendingProjects,
+                      sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`,
+                      icon: AlertCircle,
+                      tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+                      onClick: () => setDrillDown({ title: "Pending", projects: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState)) }),
+                      attentionCount: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState) && riskVerdicts[p.id]?.level === "high").length,
+                      onAttentionClick: () => setDrillDown({ title: "Pending — needs attention", projects: displayProjects.filter(p => ["on_hold", "not_started", "blocked"].includes(p.projectState) && riskVerdicts[p.id]?.level === "high") }),
+                    },
+                    ...stateBoxes.map(({ key, state, icon, tone }) => {
+                      const list = displayProjects.filter(p => p.projectState === state);
+                      const label = stateLabelsFromCtx[state] || projectStateLabels[state];
+                      const atRisk = list.filter(p => riskVerdicts[p.id]?.level === "high");
+                      return {
+                        key,
+                        label: state === "in_progress" ? "In Progress" : label,
+                        value: list.length,
+                        sub: `${arrLabel}: ${list.reduce((s, p) => s + arrToCrore(p.arr), 0).toFixed(2)} Cr`,
+                        icon,
+                        tone,
+                        onClick: () => setDrillDown({ title: label, description: "Project state", projects: list }),
+                        attentionCount: atRisk.length,
+                        onAttentionClick: () => setDrillDown({ title: `${label} — needs attention`, projects: atRisk }),
+                      } satisfies KpiBoxItem;
+                    }),
+                  ];
+                  return <KpiBar items={kpiItems} storageKey="manager_dashboard_kpi_order" />;
+                })(),
 
-                    const kpiCards = [
-                      // All projects owns the whole population, so its count would
-                      // just restate the Projects Needing Attention dashlet. The
-                      // other three segment that total, which is the useful read.
-                      { label: "All projects", hideAttention: true, value: totalProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`, list: displayProjects },
-                      { label: "Pending", hideAttention: false, value: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `Pending ${arrLabel}: ${pendingArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "on_hold" || p.projectState === "not_started" || p.projectState === "blocked") },
-                      { label: "In delivery", hideAttention: false, value: activeProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `Active ${arrLabel}: ${activeArr.toFixed(2)} Cr`, sub2: `${underIntegrationCount} under integration`, sub3: `${inProgressNoExpectedGoLive} without expected go-live`, list: displayProjects.filter(p => p.projectState === "in_progress") },
-                      { label: "Live", hideAttention: false, value: completedProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `Live ${arrLabel}: ${liveArr.toFixed(2)} Cr`, list: displayProjects.filter(p => p.projectState === "live") },
-                    ].map((kpi) => ({
-                      ...kpi,
-                      // Risk read in context: how many of THIS card's projects are
-                      // firing a rule, rather than one detached total.
-                      atRisk: kpi.hideAttention ? [] : kpi.list.filter((p: Project) => riskVerdicts[p.id]?.level === "high"),
-                    }));
-                    return kpiCards.map((kpi) => (
-                      <div
-                        key={kpi.label}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.list })}
-                        className="group min-h-[136px] cursor-pointer bg-card p-5 transition-colors hover:bg-muted/40"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
-                            <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground">{kpi.value}</p>
-                          </div>
-                          <div className={cn("flex h-9 w-9 items-center justify-center rounded-md", kpi.tone)}>
-                            <kpi.icon className="h-4 w-4" />
-                          </div>
-                        </div>
-                        <p className="mt-3 text-xs text-muted-foreground">{kpi.sub}</p>
-                        {kpi.atRisk.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setDrillDown({ title: `${kpi.label} — needs attention`, description: `${kpi.atRisk.length} of ${kpi.value} need attention`, projects: kpi.atRisk });
-                            }}
-                            className="mt-1 text-xs font-semibold text-red-600 hover:underline dark:text-red-400"
-                          >
-                            {kpi.atRisk.length} need attention
-                          </button>
-                        )}
-                      </div>
-                    ));
-                  })()}
-                  </div>
-                </section>
-                </>),
                 workload: (<>
                 {/* Team workload & TAT */}
                 <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
