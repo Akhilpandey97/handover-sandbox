@@ -792,7 +792,7 @@ export default function MerchantPortal() {
     },
     { key: "faq", label: "FAQ & Help", icon: HelpCircle, tour: "tour-faq" },
     ...(project.payment_simulator_link
-      ? [{ key: "simulator", label: "Payment Simulator", icon: Zap, tour: "tour-simulator" }]
+      ? [{ key: "simulator" as NavPage, label: "Payment Simulator", icon: Zap, tour: "tour-simulator" }]
       : []),
   ];
 
