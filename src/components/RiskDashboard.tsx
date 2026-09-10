@@ -219,42 +219,80 @@ export const RiskDashboard = () => {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-0">
           {atRiskProjects.length === 0 ? (
             <p className="text-sm text-muted-foreground py-6 text-center">
               No projects are currently at risk.
             </p>
           ) : (
-            <div className="space-y-1.5">
-              {atRiskProjects.map((p) => {
-                const verdict = verdicts[p.id]!;
-                const reasons = verdict.findings.map((f) => f.detail);
-                return (
-                  <div key={p.id} className="rounded-md border border-border/60 px-3 py-1.5 bg-card">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0 flex items-baseline gap-2">
-                        <p className="font-medium text-sm truncate">{p.merchantName}</p>
-                        <p className="text-xs text-muted-foreground truncate">{reasons.join(" · ")}</p>
-                      </div>
-                      <Badge className="bg-red-600 hover:bg-red-600 text-white shrink-0 text-[11px] px-2 py-0">High Risk</Badge>
-                    </div>
-
-                    {/* Explanations are toggled once from the header button, and
-                        the endpoint caches by reason hash, so reopening costs nothing. */}
-                    {explainAll && (
-                      <div className="mt-1 border-t pt-1">
-                        <AttentionReasonBlock
-                          projectId={p.id}
-                          kind="risk"
-                          reasons={reasons}
-                          enabled
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
+              <TableHeader className="table-header-tint">
+                <TableRow className="hover:bg-navy/5 border-b">
+                  <TableHead className="text-navy font-semibold">{getLabel("field_merchant_name")}</TableHead>
+                  <TableHead className="text-navy font-semibold">Risk</TableHead>
+                  <TableHead className="text-navy font-semibold whitespace-nowrap">Why</TableHead>
+                  <TableHead className="text-navy font-semibold whitespace-nowrap">{getLabel("field_expected_go_live_date")}</TableHead>
+                  <TableHead className="text-navy font-semibold whitespace-nowrap">{getLabel("field_project_state")}</TableHead>
+                  <TableHead className="text-navy font-semibold whitespace-nowrap">{getLabel("field_assigned_owner")}</TableHead>
+                  <TableHead className="text-navy font-semibold whitespace-nowrap text-right">{getLabel("field_arr")} (Cr)</TableHead>
+                  <TableHead className="text-navy font-semibold text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {atRiskProjects.map((p) => {
+                  const verdict = verdicts[p.id]!;
+                  const reasons = verdict.findings.map((f) => f.detail);
+                  const overdue = Math.max(0, ...verdict.findings.map((f) => f.magnitude ?? 0));
+                  return (
+                    <>
+                      <TableRow key={p.id} className="align-top">
+                        <TableCell className="font-medium text-sm py-2">{p.merchantName}</TableCell>
+                        <TableCell className="py-2">
+                          <Badge className="bg-red-600 hover:bg-red-600 text-white text-[11px] px-2 py-0">High Risk</Badge>
+                          {overdue > 0 && (
+                            <span className="ml-1.5 text-[11px] font-medium text-red-600 dark:text-red-400">{overdue}d</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-2 text-xs text-muted-foreground max-w-[22rem]">
+                          {reasons.join(" · ")}
+                        </TableCell>
+                        <TableCell className="py-2 text-sm whitespace-nowrap">
+                          <GoLiveDate project={p} />
+                        </TableCell>
+                        <TableCell className="py-2 text-sm whitespace-nowrap">
+                          {stateLabels[p.projectState] || projectStateLabels[p.projectState] || p.projectState}
+                        </TableCell>
+                        <TableCell className="py-2 text-sm whitespace-nowrap">
+                          {p.assignedOwnerName || "Unassigned"}
+                        </TableCell>
+                        <TableCell className="py-2 text-sm text-right whitespace-nowrap">
+                          {arrCroreValue(p.arr)}
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
+                          >
+                            Open
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      {/* Explanations are toggled once from the header button, and
+                          the endpoint caches by reason hash, so reopening costs nothing. */}
+                      {explainAll && (
+                        <TableRow key={`${p.id}-ai`} className="hover:bg-transparent">
+                          <TableCell colSpan={8} className="py-2 bg-muted/20">
+                            <AttentionReasonBlock projectId={p.id} kind="risk" reasons={reasons} enabled compact />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  );
+                })}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
