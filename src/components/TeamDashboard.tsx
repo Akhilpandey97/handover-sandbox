@@ -115,11 +115,50 @@ export const TeamDashboard = () => {
     );
   }
 
-  const kpis = [
-    { label: "All projects", projects: visibleProjects, icon: FolderKanban, tone: "bg-muted text-foreground/70", sub: `${visibleProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}` },
-    { label: "Pending", projects: pendingProjects, icon: AlertCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300", sub: `${pendingProjects.filter((p) => verdicts[p.id]?.level === "high").length} need attention` },
-    { label: "In delivery", projects: deliveryProjects, icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300", sub: `${deliveryProjects.filter((p) => verdicts[p.id]?.level === "high").length} need attention` },
-    { label: "Live", projects: liveProjects, icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", sub: `${liveProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}` },
+  const stateBoxes: Array<{ key: string; state: ProjectState; icon: typeof AlertCircle; tone: string }> = [
+    { key: "not_started", state: "not_started", icon: CircleDashed, tone: "bg-muted text-foreground/70" },
+    { key: "in_progress", state: "in_progress", icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300" },
+    { key: "on_hold", state: "on_hold", icon: PauseCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
+    { key: "blocked", state: "blocked", icon: AlertCircle, tone: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
+    { key: "live", state: "live", icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+  ];
+
+  const kpiItems: KpiBoxItem[] = [
+    {
+      key: "all",
+      label: "All projects",
+      value: visibleProjects.length,
+      sub: `${visibleProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}`,
+      icon: FolderKanban,
+      tone: "bg-muted text-foreground/70",
+      onClick: () => setDrillDown({ title: "All projects", projects: visibleProjects }),
+    },
+    {
+      key: "pending",
+      label: "Pending",
+      value: pendingProjects.length,
+      sub: `${pendingProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}`,
+      icon: AlertCircle,
+      tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+      onClick: () => setDrillDown({ title: "Pending", projects: pendingProjects }),
+      attentionCount: pendingProjects.filter((p) => verdicts[p.id]?.level === "high").length,
+      onAttentionClick: () => setDrillDown({ title: "Pending — needs attention", projects: pendingProjects.filter((p) => verdicts[p.id]?.level === "high") }),
+    },
+    ...stateBoxes.map(({ key, state, icon, tone }) => {
+      const list = visibleProjects.filter((project) => project.projectState === state);
+      const label = stateLabels[state] || projectStateLabels[state];
+      return {
+        key,
+        label: state === "in_progress" ? "In Progress" : label,
+        value: list.length,
+        sub: `${list.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}`,
+        icon,
+        tone,
+        onClick: () => setDrillDown({ title: label, description: "Project state", projects: list }),
+        attentionCount: list.filter((p) => verdicts[p.id]?.level === "high").length,
+        onAttentionClick: () => setDrillDown({ title: `${label} — needs attention`, projects: list.filter((p) => verdicts[p.id]?.level === "high") }),
+      } satisfies KpiBoxItem;
+    }),
   ];
 
   const deliveryStageGroups = visibleProjects.reduce<Record<string, Project[]>>((groups, project) => {
@@ -131,86 +170,63 @@ export const TeamDashboard = () => {
   }, {});
 
   const dashlets: Record<string, React.ReactNode> = {
-    kpi: (
-      <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">
-          {kpis.map((kpi) => (
-            <button
-              key={kpi.label}
-              type="button"
-              onClick={() => setDrillDown({ title: kpi.label, description: kpi.sub, projects: kpi.projects })}
-              className="group min-h-[136px] bg-card p-5 text-left transition-colors hover:bg-muted/40"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
-                  <p className="mt-1 text-3xl font-semibold text-foreground">{kpi.projects.length}</p>
-                </div>
-                <span className={cn("flex h-9 w-9 items-center justify-center rounded-md", kpi.tone)}><kpi.icon className="h-4 w-4" /></span>
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">{kpi.sub}</p>
-            </button>
-          ))}
+    kpi: <KpiBar items={kpiItems} storageKey="user_dashboard_kpi_order" />,
+    incoming: (
+      <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Incoming projects</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Projects waiting for your acceptance</p>
+          </div>
+          <span className="flex items-center gap-2 text-primary"><span className="text-sm font-semibold">{incomingProjects.length}</span><UserCheck className="h-4 w-4" /></span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-3">
+          {incomingProjects.length === 0 ? (
+            <div className="flex min-h-28 flex-col items-center justify-center text-center">
+              <CheckCircle2 className="mb-2 h-6 w-6 text-emerald-500" />
+              <p className="text-sm font-medium text-foreground">You’re all caught up</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">No incoming projects need acceptance.</p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">{incomingProjects.map((project) => <ProjectCardNew key={project.id} project={project} riskVerdict={verdicts[project.id]} />)}</div>
+          )}
         </div>
       </section>
     ),
-    incoming: (
-      <div className="grid items-stretch gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.85fr)]">
-        <section className="flex max-h-[32rem] flex-col rounded-lg border border-border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Incoming projects</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Projects waiting for your acceptance</p>
-            </div>
-            <span className="flex items-center gap-2 text-primary"><span className="text-sm font-semibold">{incomingProjects.length}</span><UserCheck className="h-5 w-5" /></span>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-4">
-            {incomingProjects.length === 0 ? (
-              <div className="flex min-h-36 flex-col items-center justify-center text-center">
-                <CheckCircle2 className="mb-2 h-7 w-7 text-emerald-500" />
-                <p className="text-sm font-medium text-foreground">You’re all caught up</p>
-                <p className="mt-1 text-xs text-muted-foreground">No incoming projects need acceptance.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">{incomingProjects.map((project) => <ProjectCardNew key={project.id} project={project} riskVerdict={verdicts[project.id]} />)}</div>
-            )}
-          </div>
-        </section>
-        <TATDashlet projects={visibleProjects} />
-      </div>
-    ),
+    tat: <TATDashlet projects={visibleProjects} />,
     attention: <AttentionRequiredDashlet projects={visibleProjects} />,
     egl: <EglRiskDashlet projects={visibleProjects} />,
-    delivery: (
-      <div className="grid items-stretch gap-5 lg:grid-cols-2">
-        <section className="rounded-lg border border-border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <div><p className="text-sm font-semibold text-foreground">Delivery stages</p><p className="mt-0.5 text-xs text-muted-foreground">Where your active project work is concentrated</p></div>
-            <BarChart3 className="h-5 w-5 text-primary" />
-          </div>
-          <div className="space-y-4 p-5">
-            {Object.entries(deliveryStageGroups).sort((a, b) => b[1].length - a[1].length).map(([label, list]) => {
-              const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
-              return <button type="button" key={label} onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })} className="block w-full space-y-1.5 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-sm"><span className="max-w-[70%] truncate font-medium text-foreground/80">{label}</span><span className="text-xs font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
-            })}
-          </div>
-        </section>
-        <section className="rounded-lg border border-border bg-card shadow-sm">
-          <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <div><p className="text-sm font-semibold text-foreground">Delivery health</p><p className="mt-0.5 text-xs text-muted-foreground">Project state distribution across your work</p></div>
-            <Settings className="h-5 w-5 text-primary" />
-          </div>
-          <div className="space-y-4 p-5">
-            {(Object.keys(projectStateLabels) as ProjectState[]).map((state) => {
-              const list = visibleProjects.filter((project) => project.projectState === state);
-              const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
-              return <button type="button" key={state} onClick={() => setDrillDown({ title: stateLabels[state] || projectStateLabels[state], description: "Project state", projects: list })} className="block w-full space-y-1.5 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-sm"><span className="font-medium text-foreground/80">{stateLabels[state] || projectStateLabels[state]}</span><span className="text-xs font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
-            })}
-          </div>
-        </section>
-      </div>
+    stages: (
+      <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+          <div><p className="text-sm font-semibold text-foreground">Delivery stages</p><p className="mt-0.5 text-[11px] text-muted-foreground">Where your active project work is concentrated</p></div>
+          <BarChart3 className="h-4 w-4 text-primary" />
+        </div>
+        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
+          {Object.entries(deliveryStageGroups).sort((a, b) => b[1].length - a[1].length).map(([label, list]) => {
+            const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
+            return <button type="button" key={label} onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })} className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-xs"><span className="max-w-[70%] truncate font-medium text-foreground/80">{label}</span><span className="text-[11px] font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
+          })}
+        </div>
+      </section>
+    ),
+    health: (
+      <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+          <div><p className="text-sm font-semibold text-foreground">Delivery health</p><p className="mt-0.5 text-[11px] text-muted-foreground">Project state distribution across your work</p></div>
+          <Settings className="h-4 w-4 text-primary" />
+        </div>
+        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
+          {(Object.keys(projectStateLabels) as ProjectState[]).map((state) => {
+            const list = visibleProjects.filter((project) => project.projectState === state);
+            const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
+            return <button type="button" key={state} onClick={() => setDrillDown({ title: stateLabels[state] || projectStateLabels[state], description: "Project state", projects: list })} className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-xs"><span className="font-medium text-foreground/80">{stateLabels[state] || projectStateLabels[state]}</span><span className="text-[11px] font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
+          })}
+        </div>
+      </section>
     ),
   };
+
 
   return (
     <div className="flex h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
