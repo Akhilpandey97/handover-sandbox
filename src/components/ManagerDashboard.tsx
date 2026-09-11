@@ -1448,7 +1448,6 @@ export const ManagerDashboard = () => {
                     <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Team workload</p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">Current project ownership and completion status</p>
                       </div>
                       <Users className="h-4 w-4 text-primary" />
                     </div>
@@ -1543,7 +1542,6 @@ export const ManagerDashboard = () => {
                     <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Delivery stages</p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">Where active project work is concentrated</p>
                       </div>
                       <BarChart3 className="h-4 w-4 text-primary" />
                     </div>
@@ -1586,7 +1584,6 @@ export const ManagerDashboard = () => {
                     <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Delivery health</p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">Project state distribution across the portfolio</p>
                       </div>
                       <Settings className="h-4 w-4 text-primary" />
                     </div>

@@ -50,8 +50,6 @@ interface Props {
 
 export const CustomFieldDashlet = ({ title, field, projects, onDrillDown }: Props) => {
   const { getLabel } = useLabels();
-  const meta = DASHLET_FIELDS.find((f) => f.value === field);
-  const fieldLabel = meta ? (meta.labelKey ? getLabel(meta.labelKey) : meta.fallback) : field;
   const arrLabel = getLabel("field_arr");
 
   const groups = projects.reduce<Record<string, Project[]>>((acc, project) => {
@@ -66,7 +64,6 @@ export const CustomFieldDashlet = ({ title, field, projects, onDrillDown }: Prop
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
         <div>
           <p className="text-sm font-semibold text-foreground">{title}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Projects grouped by {fieldLabel}</p>
         </div>
         <LayoutGrid className="h-4 w-4 text-primary" />
       </div>

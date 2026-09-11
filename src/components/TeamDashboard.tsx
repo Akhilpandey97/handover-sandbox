@@ -180,7 +180,6 @@ export const TeamDashboard = () => {
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
           <div>
             <p className="text-sm font-semibold text-foreground">Incoming projects</p>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Projects waiting for your acceptance</p>
           </div>
           <span className="flex items-center gap-2 text-primary"><span className="text-sm font-semibold">{incomingProjects.length}</span><UserCheck className="h-4 w-4" /></span>
         </div>
@@ -231,7 +230,7 @@ export const TeamDashboard = () => {
     stages: (
       <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <div><p className="text-sm font-semibold text-foreground">Delivery stages</p><p className="mt-0.5 text-[11px] text-muted-foreground">Where your active project work is concentrated</p></div>
+          <div><p className="text-sm font-semibold text-foreground">Delivery stages</p></div>
           <BarChart3 className="h-4 w-4 text-primary" />
         </div>
         <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
@@ -245,7 +244,7 @@ export const TeamDashboard = () => {
     health: (
       <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <div><p className="text-sm font-semibold text-foreground">Delivery health</p><p className="mt-0.5 text-[11px] text-muted-foreground">Project state distribution across your work</p></div>
+          <div><p className="text-sm font-semibold text-foreground">Delivery health</p></div>
           <Settings className="h-4 w-4 text-primary" />
         </div>
         <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">

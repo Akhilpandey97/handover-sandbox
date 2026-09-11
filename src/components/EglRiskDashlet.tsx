@@ -29,9 +29,6 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
       <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">Projects at Risk of Missing EGL</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Go-live falls {window === "week" ? "this week" : "this month"} and the project is not on track
-          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5">

@@ -104,7 +104,6 @@ export const TATDashlet = ({ projects }: Props) => {
       <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
         <div>
           <p className="text-sm font-semibold text-foreground">TAT</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Turnaround from kick-off to go-live</p>
         </div>
         <Timer className="h-4 w-4 text-primary" />
       </div>

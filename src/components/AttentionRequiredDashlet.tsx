@@ -47,9 +47,6 @@ export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { proje
               </span>
             )}
           </p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Evaluated from Settings → Risk Rules
-          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button
