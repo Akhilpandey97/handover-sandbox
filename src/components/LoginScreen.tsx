@@ -63,12 +63,18 @@ export const LoginScreen = () => {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     const result = await loginWithGoogle();
-    // On success the browser is already on its way to Google, so leave the
-    // button spinning rather than flicking it back to its resting state.
     if (!result.success) {
       toast.error(result.error || "Could not start Google sign-in");
       setIsGoogleLoading(false);
+      return;
     }
+    if (result.openedInNewTab) {
+      // This tab is staying put — sign-in is happening elsewhere.
+      toast.info("Continue signing in with Google in the new tab.");
+      setIsGoogleLoading(false);
+    }
+    // Otherwise this tab is already navigating to Google; leave the button
+    // spinning rather than flicking it back to its resting state.
   };
 
   return (

@@ -23,11 +23,18 @@ export interface AuthUser {
   supportTenantId: string | null;
 }
 
+interface GoogleSignInResult {
+  success: boolean;
+  error?: string;
+  /** Set when the handoff had to leave this tab behind; see loginWithGoogle. */
+  openedInNewTab?: boolean;
+}
+
 interface AuthContextType {
   currentUser: AuthUser | null;
   session: Session | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<GoogleSignInResult>;
   signup: (email: string, password: string, name: string, team: TeamRole) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -242,23 +249,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   /**
    * Hands off to Google and returns via the redirect, where detectSessionInUrl
-   * picks the session up and onAuthStateChange resolves the profile. On success
-   * the browser navigates away, so there is nothing to do here.
+   * picks the session up and onAuthStateChange resolves the profile.
+   *
+   * Google refuses to render its consent screen inside an iframe, so when the
+   * app is framed — the Lovable editor preview — we take the handoff to a new
+   * top-level tab instead of navigating the frame into a dead end.
    */
-  const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+  const loginWithGoogle = async (): Promise<GoogleSignInResult> => {
     try {
       setAccessError(null);
-      const { error } = await supabase.auth.signInWithOAuth({
+      const framed = typeof window !== "undefined" && window.parent !== window;
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: window.location.origin,
           // Let people pick an account instead of silently reusing the one
           // their browser happens to be signed into.
           queryParams: { prompt: "select_account" },
+          // Drive the navigation ourselves so the framed case can escape.
+          skipBrowserRedirect: true,
         },
       });
 
       if (error) return { success: false, error: error.message };
+      if (!data?.url) {
+        return { success: false, error: "Google sign-in is not configured for this workspace" };
+      }
+
+      if (framed) {
+        const opened = window.open(data.url, "_blank", "noopener,noreferrer");
+        if (!opened) {
+          return {
+            success: false,
+            error: "Allow pop-ups to sign in with Google, or open the app in its own tab",
+          };
+        }
+        return { success: true, openedInNewTab: true };
+      }
+
+      window.location.href = data.url;
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
