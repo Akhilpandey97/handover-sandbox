@@ -750,29 +750,40 @@ export const useRejectProject = () => {
     mutationFn: async ({ projectId, reason }: { projectId: string; reason: string }) => {
       if (!currentUser) throw new Error("Not authenticated");
 
-      const getPreviousTeam = (current: TeamRole): TeamRole | null => {
+      // The team the project currently sits with (not necessarily the actor's own team,
+      // since managers/admins can reject on behalf of a team).
+      const { data: projectRow, error: projectFetchError } = await supabase
+        .from("projects")
+        .select("current_owner_team, merchant_name")
+        .eq("id", projectId)
+        .maybeSingle();
+      if (projectFetchError) throw projectFetchError;
+
+      const currentTeam = (projectRow?.current_owner_team || currentUser.team) as TeamRole;
+
+      // Find the last transfer into the current team — that tells us where to send it back.
+      const { data: lastTransfer } = await supabase
+        .from("transfer_history")
+        .select("transferred_by, from_team")
+        .eq("project_id", projectId)
+        .eq("to_team", currentTeam)
+        .order("transferred_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const fallbackPreviousTeam = (current: TeamRole): TeamRole | null => {
         if (current === "integration") return "mint";
         if (current === "ms") return "integration";
         return null;
       };
 
-      const previousTeam = getPreviousTeam(currentUser.team);
-      if (!previousTeam) throw new Error("Cannot reject from this team");
+      const previousTeam = ((lastTransfer?.from_team as TeamRole | undefined) ||
+        fallbackPreviousTeam(currentTeam)) as TeamRole | null;
+      if (!previousTeam) throw new Error("No previous team to send this project back to");
 
       const previousPhase = previousTeam as "mint" | "integration" | "ms";
 
-      // Find the last transfer record to get the previous owner
-      const { data: lastTransfer } = await supabase
-        .from("transfer_history")
-        .select("transferred_by, from_team")
-        .eq("project_id", projectId)
-        .eq("to_team", currentUser.team)
-        .order("transferred_at", { ascending: false })
-        .limit(1)
-        .single();
-
       // Look up the previous assigned_owner from the project's history
-      // We need to find who owned it before — check the transferred_by user's profile
       let previousOwnerId: string | null = null;
       if (lastTransfer?.transferred_by) {
         const { data: prevOwnerProfile } = await supabase
@@ -780,9 +791,10 @@ export const useRejectProject = () => {
           .select("id")
           .eq("name", lastTransfer.transferred_by)
           .limit(1)
-          .single();
+          .maybeSingle();
         previousOwnerId = prevOwnerProfile?.id || null;
       }
+
 
       // Update project back to previous team, active (not pending), with previous owner
       const { error: projectError } = await supabase
