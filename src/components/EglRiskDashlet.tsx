@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { CalendarClock, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useEglRisk } from "@/hooks/useEglRisk";
@@ -58,8 +58,8 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
             <Sparkles className="h-3.5 w-3.5" />
             {showAi ? "Hide AI" : "AI insights"}
           </Button>
-          <CalendarClock className="h-5 w-5 text-primary" />
         </div>
+
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto">
