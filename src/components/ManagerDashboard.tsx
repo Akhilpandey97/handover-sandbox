@@ -180,6 +180,12 @@ export const ManagerDashboard = () => {
   const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
   const {
     order: dashletOrder,
+    visibleOrder: visibleDashletOrder,
+    hidden: hiddenDashlets,
+    toggleHidden: toggleDashletHidden,
+    custom: customDashlets,
+    addCustom: addCustomDashlet,
+    removeCustom: removeCustomDashlet,
     dragging: draggingDashlet,
     onDragStart: onDashletDragStart,
     onDragOver: onDashletDragOver,
