@@ -50,12 +50,15 @@ const EMPTY: TenantIntegrations = {
   zoom_client_id: null,
   zoom_client_secret: null,
   zoom_webhook_secret: null,
+  zoom_user_id: null,
   teams_tenant_id: null,
   teams_client_id: null,
   teams_client_secret: null,
+  teams_organizer_user_id: null,
   google_oauth_client_id: null,
   google_oauth_client_secret: null,
   google_meet_refresh_token: null,
+  google_calendar_refresh_token: null,
 };
 
 export const INTEGRATION_FIELDS = Object.keys(EMPTY) as (keyof TenantIntegrations)[];
@@ -71,6 +74,7 @@ export const SECRET_FIELDS: (keyof TenantIntegrations)[] = [
   "teams_client_secret",
   "google_oauth_client_secret",
   "google_meet_refresh_token",
+  "google_calendar_refresh_token",
 ];
 
 function envFallbacks(): TenantIntegrations {
