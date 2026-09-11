@@ -27,11 +27,29 @@ interface AuthContextType {
   currentUser: AuthUser | null;
   session: Session | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signup: (email: string, password: string, name: string, team: TeamRole) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  /**
+   * Set when someone authenticated successfully but has no Handover account —
+   * the likely outcome of signing in with a Google account an admin has not set
+   * up yet. Without this the sign-in screen would just silently reappear.
+   */
+  accessError: string | null;
 }
+
+/**
+ * A missing profile and an unreachable database look the same to a caller but
+ * must be handled differently: the first means no access, the second means try
+ * again later and on no account sign the person out.
+ */
+type ProfileLookup =
+  { status: "ok"; user: AuthUser } | { status: "missing" } | { status: "unavailable" };
+
+const NO_ACCOUNT_MESSAGE =
+  "That account isn't set up for Handover yet. Ask a workspace admin to add you under Settings → Users, then sign in again.";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -39,13 +57,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [accessError, setAccessError] = useState<string | null>(null);
 
   // Never let a slow/hanging network call block the app shell forever
   const withTimeout = <T,>(p: Promise<T>, ms: number, fallback: T): Promise<T> =>
     Promise.race([p, new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms))]);
 
   // Fetch user profile and role
-  const fetchUserProfile = async (userId: string): Promise<AuthUser | null> => {
+  const fetchUserProfile = async (userId: string): Promise<ProfileLookup> => {
     try {
       // Fetch profile
       const { data: profile, error: profileError } = await withTimeout(
@@ -55,8 +74,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       );
 
       if (profileError || !profile) {
-        console.error("Error fetching profile:", profileError);
-        return null;
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          return { status: "unavailable" };
+        }
+        // The lookup worked and there is genuinely no profile for this account.
+        return { status: "missing" };
       }
 
       // Fetch role from user_roles table
@@ -78,18 +101,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const homeTenantId = (profile as any).tenant_id ?? null;
       return {
-        id: (profile as any).id,
-        name: (profile as any).name,
-        email: (profile as any).email,
-        team: team,
-        tenantId: (supportTenant as string | null) ?? homeTenantId,
-        homeTenantId,
-        supportTenantId: (supportTenant as string | null) ?? null,
+        status: "ok",
+        user: {
+          id: (profile as any).id,
+          name: (profile as any).name,
+          email: (profile as any).email,
+          team: team,
+          tenantId: (supportTenant as string | null) ?? homeTenantId,
+          homeTenantId,
+          supportTenantId: (supportTenant as string | null) ?? null,
+        },
       };
     } catch (error) {
       console.error("Error in fetchUserProfile:", error);
-      return null;
+      return { status: "unavailable" };
     }
+  };
+
+  const recordLogin = async (userId: string, email: string) => {
+    await supabase.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", userId);
+    logActivity({ action_type: "user", category: "auth", description: `User logged in: ${email}` });
+  };
+
+  /**
+   * Authenticated with the identity provider, but there is no account here. End
+   * the session so the app never sits signed-in-but-empty, and say why.
+   */
+  const denyAccess = async () => {
+    setAccessError(NO_ACCOUNT_MESSAGE);
+    await supabase.auth.signOut();
+    setCurrentUser(null);
   };
 
   // Track the profile we already resolved so transient failures never sign the user out
@@ -125,10 +166,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // Defer profile fetch to avoid blocking the auth callback
         setTimeout(async () => {
-          const userProfile = await fetchUserProfile(session.user.id);
+          const lookup = await fetchUserProfile(session.user.id);
           if (!mounted) return;
-          // Keep the previous user if the lookup failed/timed out instead of logging out
-          if (userProfile) setCurrentUser(userProfile);
+          if (lookup.status === "ok") {
+            setCurrentUser(lookup.user);
+            setAccessError(null);
+            // Password sign-in records this itself; this covers the SSO redirect,
+            // which lands here rather than in login().
+            if (session.user.app_metadata?.provider !== "email") {
+              void recordLogin(lookup.user.id, lookup.user.email);
+            }
+          } else if (lookup.status === "missing") {
+            await denyAccess();
+          }
+          // "unavailable" keeps the previous user rather than logging them out
           setIsLoading(false);
         }, 0);
       }
@@ -140,9 +191,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!mounted) return;
         setSession(session);
         if (session?.user) {
-          const userProfile = await fetchUserProfile(session.user.id);
+          const lookup = await fetchUserProfile(session.user.id);
           if (!mounted) return;
-          setCurrentUser(userProfile);
+          if (lookup.status === "ok") setCurrentUser(lookup.user);
+          else if (lookup.status === "missing") await denyAccess();
         }
       })
       .catch((e) => console.error("getSession failed:", e))
@@ -160,6 +212,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      setAccessError(null);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -170,14 +223,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (data.user) {
-        const userProfile = await fetchUserProfile(data.user.id);
-        setCurrentUser(userProfile);
-        
-        // Update last_login timestamp
-        await supabase.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", data.user.id);
-        logActivity({ action_type: "user", category: "auth", description: `User logged in: ${email}` });
+        const lookup = await fetchUserProfile(data.user.id);
+        if (lookup.status === "missing") {
+          await denyAccess();
+          return { success: false, error: NO_ACCOUNT_MESSAGE };
+        }
+        if (lookup.status === "ok") {
+          setCurrentUser(lookup.user);
+          await recordLogin(data.user.id, email);
+        }
       }
 
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  /**
+   * Hands off to Google and returns via the redirect, where detectSessionInUrl
+   * picks the session up and onAuthStateChange resolves the profile. On success
+   * the browser navigates away, so there is nothing to do here.
+   */
+  const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setAccessError(null);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+          // Let people pick an account instead of silently reusing the one
+          // their browser happens to be signed into.
+          queryParams: { prompt: "select_account" },
+        },
+      });
+
+      if (error) return { success: false, error: error.message };
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
@@ -218,6 +299,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
     setCurrentUser(null);
     setSession(null);
+    setAccessError(null);
   };
 
   return (
@@ -226,10 +308,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         currentUser,
         session,
         login,
+        loginWithGoogle,
         signup,
         logout,
         isAuthenticated: currentUser !== null,
         isLoading,
+        accessError,
       }}
     >
       {children}
