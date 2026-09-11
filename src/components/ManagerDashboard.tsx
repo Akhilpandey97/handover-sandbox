@@ -1398,7 +1398,7 @@ export const ManagerDashboard = () => {
 
           {/* ========= OVERVIEW TAB ========= */}
           {/* items-stretch so the two half-width dashlets match each other's height */}
-          {activeTab === "dashboard" && <div className="mx-auto grid max-w-[1500px] grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+          {activeTab === "dashboard" && <div className="mx-auto max-w-[1500px]">
             {(() => {
               // Each dashboard section is a named slot so the order can be
               // rearranged and remembered; see useDashletOrder.
@@ -1442,7 +1442,7 @@ export const ManagerDashboard = () => {
                 })(),
 
                 workload: (
-                  <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+                  <section className="flex h-full min-h-[16rem] flex-col rounded-lg border border-border bg-card shadow-sm">
                     <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                       <div>
                         <p className="text-sm font-semibold text-foreground">Team workload</p>
@@ -1613,20 +1613,57 @@ export const ManagerDashboard = () => {
                   </section>
                 ),
               };
-              // Every section is its own half-width dashlet; the KPI bar spans
-              // the full width. Everything stacks below lg.
-              return dashletOrder.map((id) => dashlets[id] ? (
-                <DashletSlot
-                  key={id}
-                  className={id === "kpi" ? "lg:col-span-2" : "lg:col-span-1"}
-                  isDragging={draggingDashlet === id}
-                  onDragStart={() => onDashletDragStart(id)}
-                  onDragOver={() => onDashletDragOver(id)}
-                  onDragEnd={onDashletDragEnd}
-                >
-                  {dashlets[id]}
-                </DashletSlot>
-              ) : null);
+              customDashlets.forEach((config) => {
+                dashlets[config.id] = (
+                  <CustomFieldDashlet
+                    title={config.title}
+                    field={config.field}
+                    projects={displayProjects}
+                    onDrillDown={(title, list) => setDrillDown({ title, projects: list })}
+                  />
+                );
+              });
+              const dashletLabels: Record<string, string> = {
+                kpi: "KPI bar",
+                workload: "Team workload",
+                tat: "TAT",
+                attention: "Attention required",
+                egl: "Projects at risk of missing EGL",
+                stages: "Delivery stages",
+                health: "Delivery health",
+                ...Object.fromEntries(customDashlets.map((c) => [c.id, c.title])),
+              };
+              const builderItems = dashletOrder.filter((id) => dashletLabels[id]).map((id) => ({ id, label: dashletLabels[id]! }));
+              // The KPI bar and Team workload span the full width; every other
+              // section is a half-width dashlet. Everything stacks below lg.
+              return (
+                <>
+                  <div className="mb-3 flex justify-end">
+                    <DashletBuilder
+                      items={builderItems}
+                      hidden={hiddenDashlets}
+                      onToggle={toggleDashletHidden}
+                      custom={customDashlets}
+                      onAddCustom={addCustomDashlet}
+                      onRemoveCustom={removeCustomDashlet}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+                    {visibleDashletOrder.map((id) => dashlets[id] ? (
+                      <DashletSlot
+                        key={id}
+                        className={id === "kpi" || id === "workload" ? "lg:col-span-2" : "lg:col-span-1"}
+                        isDragging={draggingDashlet === id}
+                        onDragStart={() => onDashletDragStart(id)}
+                        onDragOver={() => onDashletDragOver(id)}
+                        onDragEnd={onDashletDragEnd}
+                      >
+                        {dashlets[id]}
+                      </DashletSlot>
+                    ) : null)}
+                  </div>
+                </>
+              );
 
             })()}
 
