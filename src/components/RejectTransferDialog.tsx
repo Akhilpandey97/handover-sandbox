@@ -50,8 +50,6 @@ export const RejectTransferDialog = ({
     onOpenChange(false);
   };
 
-  if (!previousTeam) return null;
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
@@ -61,8 +59,8 @@ export const RejectTransferDialog = ({
             Reject KT / Transfer
           </DialogTitle>
           <DialogDescription>
-            Reject <strong>{project.merchantName}</strong> and send it back to{" "}
-            <strong>{teamLabels[previousTeam]}</strong> for corrections.
+            Reject <strong>{project.merchantName}</strong>
+            {previousTeam ? <> and send it back to <strong>{teamLabels[previousTeam]}</strong></> : null} for corrections.
           </DialogDescription>
         </DialogHeader>
 
