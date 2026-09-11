@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { logActivity } from "@/hooks/useActivityLogs";
 import { User, Session } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
