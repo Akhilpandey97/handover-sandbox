@@ -36,8 +36,10 @@ import { ThemeToggle } from "./ThemeToggle";
 import { KanbanBoard } from "./KanbanBoard";
 import { MonthlyGoLiveTracker } from "./MonthlyGoLiveTracker";
 import { AiChatBot } from "./AiChatBot";
-import { ProjectCardNew } from "./ProjectCardNew";
 import { ProjectListDialog } from "./ProjectListDialog";
+import { RejectTransferDialog } from "./RejectTransferDialog";
+import { DashletBuilder } from "./DashletBuilder";
+import { CustomFieldDashlet } from "./CustomFieldDashlet";
 import { TATDashlet } from "./TATDashlet";
 import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
 import { EglRiskDashlet } from "./EglRiskDashlet";
@@ -51,7 +53,7 @@ export const TeamDashboard = () => {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const routeState = useMemo(() => parseDashboardPath(pathname), [pathname]);
   const { currentUser, logout } = useAuth();
-  const { projects, isLoading } = useProjects();
+  const { projects, isLoading, acceptProject, rejectProject } = useProjects();
   const { labels, getLabel, teamLabels, stateLabels } = useLabels();
   const { verdicts } = useProjectRiskVerdicts();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -59,8 +61,15 @@ export const TeamDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [projectToolbarHost, setProjectToolbarHost] = useState<HTMLDivElement | null>(null);
   const [drillDown, setDrillDown] = useState<{ title: string; description?: string; projects: Project[] } | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<Project | null>(null);
   const {
     order: dashletOrder,
+    visibleOrder,
+    hidden,
+    toggleHidden,
+    custom: customDashlets,
+    addCustom,
+    removeCustom,
     dragging,
     onDragStart,
     onDragOver,
@@ -180,7 +189,17 @@ export const TeamDashboard = () => {
               <p className="mt-1 text-[11px] text-muted-foreground">No incoming projects need acceptance.</p>
             </div>
           ) : (
-            <div className="space-y-2.5">{incomingProjects.map((project) => <ProjectCardNew key={project.id} project={project} riskVerdict={verdicts[project.id]} />)}</div>
+            <div className="divide-y divide-border">
+              {incomingProjects.map((project) => (
+                <div key={project.id} className="flex items-center justify-between gap-3 px-1 py-2">
+                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{project.merchantName}</p>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Button size="sm" className="h-7 px-2.5 text-xs" onClick={() => acceptProject(project.id)}>Accept</Button>
+                    <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs" onClick={() => setRejectTarget(project)}>Reject</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </section>
@@ -219,6 +238,28 @@ export const TeamDashboard = () => {
     ),
   };
 
+  customDashlets.forEach((config) => {
+    dashlets[config.id] = (
+      <CustomFieldDashlet
+        title={config.title}
+        field={config.field}
+        projects={visibleProjects}
+        onDrillDown={(title, list) => setDrillDown({ title, projects: list })}
+      />
+    );
+  });
+
+  const dashletLabels: Record<string, string> = {
+    kpi: "KPI bar",
+    incoming: "Incoming projects",
+    tat: "TAT",
+    attention: "Attention required",
+    egl: "Projects at risk of missing EGL",
+    stages: "Delivery stages",
+    health: "Delivery health",
+    ...Object.fromEntries(customDashlets.map((c) => [c.id, c.title])),
+  };
+  const builderItems = dashletOrder.filter((id) => dashletLabels[id]).map((id) => ({ id, label: dashletLabels[id]! }));
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
@@ -246,7 +287,12 @@ export const TeamDashboard = () => {
         <div className={cn("min-h-0 flex-1 app-shell-surface", (resolvedTab === "projects" || resolvedTab === "hi-there") ? "flex flex-col overflow-hidden" : "overflow-auto")}>
           <div className={cn("p-4 sm:p-6", (resolvedTab === "projects" || resolvedTab === "hi-there") && "flex min-h-0 flex-1 flex-col")}>
             {resolvedTab === "projects" && <div className="mb-3 flex shrink-0 flex-wrap items-center justify-center gap-2"><div className="flex items-center gap-1" role="tablist" aria-label="Project views">{[{ value: "kanban", label: "Kanban", icon: GripVertical }, { value: "golive", label: "Go-Live Tracker", icon: CalendarDays }].map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" size="sm" role="tab" aria-selected={projectView === value} onClick={() => navigate({ to: projectViewPath(value as "kanban" | "golive") })} className={cn("h-8 gap-1.5 text-xs", projectView === value && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground")}><Icon className="h-3.5 w-3.5" />{label}</Button>)}</div><div ref={setProjectToolbarHost} className="flex flex-wrap items-center gap-2" /></div>}
-            {resolvedTab === "dashboard" && <div className="mx-auto grid max-w-[1500px] grid-cols-1 items-stretch gap-4 lg:grid-cols-2">{dashletOrder.map((id) => dashlets[id] ? <DashletSlot key={id} className={id === "kpi" ? "row-span-1 lg:col-span-2" : "lg:col-span-1"} isDragging={dragging === id} onDragStart={() => onDragStart(id)} onDragOver={() => onDragOver(id)} onDragEnd={onDragEnd}>{dashlets[id]}</DashletSlot> : null)}<ProjectListDialog title={drillDown?.title || ""} description={drillDown?.description} projects={drillDown?.projects || []} open={!!drillDown} onOpenChange={(open) => { if (!open) setDrillDown(null); }} /></div>}
+            {resolvedTab === "dashboard" && <div className="mx-auto max-w-[1500px]">
+              <div className="mb-3 flex justify-end"><DashletBuilder items={builderItems} hidden={hidden} onToggle={toggleHidden} custom={customDashlets} onAddCustom={addCustom} onRemoveCustom={removeCustom} /></div>
+              <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">{visibleOrder.map((id) => dashlets[id] ? <DashletSlot key={id} className={id === "kpi" ? "row-span-1 lg:col-span-2" : "lg:col-span-1"} isDragging={dragging === id} onDragStart={() => onDragStart(id)} onDragOver={() => onDragOver(id)} onDragEnd={onDragEnd}>{dashlets[id]}</DashletSlot> : null)}</div>
+              <ProjectListDialog title={drillDown?.title || ""} description={drillDown?.description} projects={drillDown?.projects || []} open={!!drillDown} onOpenChange={(open) => { if (!open) setDrillDown(null); }} />
+              {rejectTarget && <RejectTransferDialog project={rejectTarget} open={!!rejectTarget} onOpenChange={(open) => { if (!open) setRejectTarget(null); }} onReject={(reason) => { rejectProject(rejectTarget.id, reason); setRejectTarget(null); }} />}
+            </div>}
             {resolvedTab === "projects" && projectView === "kanban" && <div className="flex min-h-0 flex-1 flex-col"><KanbanBoard projectsOverride={visibleProjects} toolbarContainer={projectToolbarHost} searchQuery={searchQuery} /></div>}
             {resolvedTab === "projects" && projectView === "golive" && <div className="flex min-h-0 flex-1 flex-col"><MonthlyGoLiveTracker projectsOverride={visibleProjects} toolbarContainer={projectToolbarHost} searchQuery={searchQuery} /></div>}
             {resolvedTab === "hi-there" && <div className="flex min-h-0 flex-1 flex-col"><AiChatBot /></div>}
