@@ -115,6 +115,8 @@ import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
 import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
 import { DashletSlot } from "./DashletSlot";
+import { DashletBuilder } from "./DashletBuilder";
+import { CustomFieldDashlet } from "./CustomFieldDashlet";
 import { KpiBar, type KpiBoxItem } from "./KpiBar";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
 import { formatGoLiveDate } from "./GoLiveDate";
