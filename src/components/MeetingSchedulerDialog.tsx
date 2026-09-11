@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { invokeApi } from "@/lib/api-invoke";
+import { toast } from "sonner";
 import {
   MEETING_PROVIDERS,
   MeetingProvider,
@@ -35,6 +37,7 @@ import {
   Mail,
   AlertTriangle,
   CheckCircle2,
+  Wand2,
 } from "lucide-react";
 
 interface MeetingSchedulerDialogProps {
@@ -90,6 +93,7 @@ export const MeetingSchedulerDialog = ({
   const [attendeeInput, setAttendeeInput] = useState("");
   const [attendees, setAttendees] = useState<string[]>([]);
   const [sendInvite, setSendInvite] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   const [transcriptFor, setTranscriptFor] = useState<string | null>(null);
   const [transcriptText, setTranscriptText] = useState("");
@@ -108,6 +112,7 @@ export const MeetingSchedulerDialog = ({
     setAttendeeInput("");
     setAttendees([]);
     setSendInvite(true);
+    setGenerating(false);
     setShowForm(false);
   };
 
@@ -124,7 +129,36 @@ export const MeetingSchedulerDialog = ({
     }
   };
 
-  const canSave = title.trim().length > 0 && joinUrl.trim().length > 0 && scheduledAt.length > 0;
+  const canSave = title.trim().length > 0 && scheduledAt.length > 0;
+
+  /**
+   * Ask the tenant's own provider account for a real meeting. Returns null when
+   * that tenant has no credentials for the provider, leaving the manual box.
+   */
+  const generateLink = async (silent = false): Promise<string | null> => {
+    setGenerating(true);
+    try {
+      const { data, error } = await invokeApi<{ join_url: string }>("create-meeting-link", {
+        body: {
+          provider,
+          title: title.trim() || checklistItemTitle,
+          agenda: agenda.trim() || undefined,
+          scheduled_at: new Date(scheduledAt).toISOString(),
+          duration_minutes: Number(duration) || 30,
+          attendees,
+        },
+      });
+      if (error || !data?.join_url) {
+        if (!silent) toast.error(error?.message || "Could not create the link");
+        return null;
+      }
+      setJoinUrl(data.join_url);
+      if (!silent) toast.success("Link created");
+      return data.join_url;
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const handleSave = async () => {
     // A trailing address typed but not yet committed should still count.
@@ -132,13 +166,24 @@ export const MeetingSchedulerDialog = ({
     const finalAttendees =
       pending && EMAIL_RE.test(pending) ? Array.from(new Set([...attendees, pending])) : attendees;
 
+    let link = joinUrl.trim();
+    if (!link) {
+      link = (await generateLink(true)) || "";
+      if (!link) {
+        toast.error(
+          `Add a ${providerMeta.label} link, or set up ${providerMeta.label} under Settings → Integrations to create one automatically.`,
+        );
+        return;
+      }
+    }
+
     await addMeeting.mutateAsync({
       checklist_item_id: checklistItemId,
       project_id: projectId,
       title: title.trim(),
       agenda: agenda.trim() || undefined,
       provider,
-      join_url: joinUrl.trim(),
+      join_url: link,
       scheduled_at: new Date(scheduledAt).toISOString(),
       duration_minutes: Number(duration) || 30,
       attendees: finalAttendees,
@@ -349,13 +394,33 @@ export const MeetingSchedulerDialog = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Join link</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Join link</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 gap-1 px-2 text-[11px]"
+                      disabled={generating || !scheduledAt}
+                      onClick={() => generateLink()}
+                    >
+                      {generating ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Wand2 className="h-3 w-3" />
+                      )}
+                      Generate with {providerMeta.label}
+                    </Button>
+                  </div>
                   <Input
                     value={joinUrl}
                     onChange={(e) => setJoinUrl(e.target.value)}
                     placeholder={providerMeta.hint}
                     className="h-9"
                   />
+                  <p className="text-[10px] text-muted-foreground">
+                    Left blank, the link is created in your {providerMeta.label} account on save.
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -427,10 +492,10 @@ export const MeetingSchedulerDialog = ({
                   <Button
                     size="sm"
                     className="gap-1"
-                    disabled={!canSave || addMeeting.isPending}
+                    disabled={!canSave || addMeeting.isPending || generating}
                     onClick={handleSave}
                   >
-                    {addMeeting.isPending ? (
+                    {addMeeting.isPending || generating ? (
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : (
                       <Plus className="h-3 w-3" />

@@ -43,6 +43,7 @@ import { Route as ApiPublicBackfillShopifySmeAssignmentsRouteImport } from './ro
 import { Route as ApiPublicBrdFormApiRouteImport } from './routes/api/public/brd-form-api'
 import { Route as ApiPublicCheckOverdueTasksRouteImport } from './routes/api/public/check-overdue-tasks'
 import { Route as ApiPublicCreateJiraTicketRouteImport } from './routes/api/public/create-jira-ticket'
+import { Route as ApiPublicCreateMeetingLinkRouteImport } from './routes/api/public/create-meeting-link'
 import { Route as ApiPublicCreateUserRouteImport } from './routes/api/public/create-user'
 import { Route as ApiPublicCronRouteImport } from './routes/api/public/cron'
 import { Route as ApiPublicDeleteUserRouteImport } from './routes/api/public/delete-user'
@@ -254,6 +255,12 @@ const ApiPublicCreateJiraTicketRoute =
   ApiPublicCreateJiraTicketRouteImport.update({
     id: '/api/public/create-jira-ticket',
     path: '/api/public/create-jira-ticket',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCreateMeetingLinkRoute =
+  ApiPublicCreateMeetingLinkRouteImport.update({
+    id: '/api/public/create-meeting-link',
+    path: '/api/public/create-meeting-link',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicCreateUserRoute = ApiPublicCreateUserRouteImport.update({
@@ -497,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
+  '/api/public/create-meeting-link': typeof ApiPublicCreateMeetingLinkRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
   '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
@@ -569,6 +577,7 @@ export interface FileRoutesByTo {
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
+  '/api/public/create-meeting-link': typeof ApiPublicCreateMeetingLinkRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
   '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
@@ -643,6 +652,7 @@ export interface FileRoutesById {
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
+  '/api/public/create-meeting-link': typeof ApiPublicCreateMeetingLinkRoute
   '/api/public/create-user': typeof ApiPublicCreateUserRoute
   '/api/public/cron': typeof ApiPublicCronRoute
   '/api/public/delete-user': typeof ApiPublicDeleteUserRoute
@@ -717,6 +727,7 @@ export interface FileRouteTypes {
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-jira-ticket'
+    | '/api/public/create-meeting-link'
     | '/api/public/create-user'
     | '/api/public/cron'
     | '/api/public/delete-user'
@@ -789,6 +800,7 @@ export interface FileRouteTypes {
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-jira-ticket'
+    | '/api/public/create-meeting-link'
     | '/api/public/create-user'
     | '/api/public/cron'
     | '/api/public/delete-user'
@@ -862,6 +874,7 @@ export interface FileRouteTypes {
     | '/api/public/brd-form-api'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-jira-ticket'
+    | '/api/public/create-meeting-link'
     | '/api/public/create-user'
     | '/api/public/cron'
     | '/api/public/delete-user'
@@ -919,6 +932,7 @@ export interface RootRouteChildren {
   ApiPublicBrdFormApiRoute: typeof ApiPublicBrdFormApiRoute
   ApiPublicCheckOverdueTasksRoute: typeof ApiPublicCheckOverdueTasksRoute
   ApiPublicCreateJiraTicketRoute: typeof ApiPublicCreateJiraTicketRoute
+  ApiPublicCreateMeetingLinkRoute: typeof ApiPublicCreateMeetingLinkRoute
   ApiPublicCreateUserRoute: typeof ApiPublicCreateUserRoute
   ApiPublicCronRoute: typeof ApiPublicCronRoute
   ApiPublicDeleteUserRoute: typeof ApiPublicDeleteUserRoute
@@ -1193,6 +1207,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/create-jira-ticket'
       fullPath: '/api/public/create-jira-ticket'
       preLoaderRoute: typeof ApiPublicCreateJiraTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/create-meeting-link': {
+      id: '/api/public/create-meeting-link'
+      path: '/api/public/create-meeting-link'
+      fullPath: '/api/public/create-meeting-link'
+      preLoaderRoute: typeof ApiPublicCreateMeetingLinkRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/create-user': {
@@ -1556,6 +1577,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicBrdFormApiRoute: ApiPublicBrdFormApiRoute,
   ApiPublicCheckOverdueTasksRoute: ApiPublicCheckOverdueTasksRoute,
   ApiPublicCreateJiraTicketRoute: ApiPublicCreateJiraTicketRoute,
+  ApiPublicCreateMeetingLinkRoute: ApiPublicCreateMeetingLinkRoute,
   ApiPublicCreateUserRoute: ApiPublicCreateUserRoute,
   ApiPublicCronRoute: ApiPublicCronRoute,
   ApiPublicDeleteUserRoute: ApiPublicDeleteUserRoute,

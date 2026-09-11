@@ -70,21 +70,24 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    title: "Meeting Transcripts",
+    title: "Meetings",
     icon: Video,
     description:
-      "Pulls the transcript after a checklist meeting so Meeting AI can post the minutes and flag risks. Scheduling and invites work without any of this — only transcripts need it, and only for the providers you use.",
+      "Creates the join link automatically when a meeting is scheduled, and pulls the transcript afterwards so Meeting AI can post the minutes. Without these, you can still paste a join link by hand.",
     fields: [
       { key: "zoom_account_id", label: "Zoom Account ID", placeholder: "abc123XYZ", help: "Server-to-server OAuth app" },
       { key: "zoom_client_id", label: "Zoom Client ID", placeholder: "xxxxxxxxxxxxxxxxxxxxxx" },
       { key: "zoom_client_secret", label: "Zoom Client Secret", placeholder: "•••••", secret: true },
       { key: "zoom_webhook_secret", label: "Zoom Webhook Secret Token", placeholder: "•••••", secret: true, help: "Event Subscriptions → /api/public/zoom-webhook" },
+      { key: "zoom_user_id", label: "Zoom Host Email / User ID", placeholder: "host@yourcompany.com", help: "Whose account hosts generated meetings. Defaults to the app user." },
       { key: "teams_tenant_id", label: "Microsoft Tenant ID", placeholder: "00000000-0000-0000-0000-000000000000" },
       { key: "teams_client_id", label: "Microsoft Client ID", placeholder: "00000000-0000-0000-0000-000000000000", help: "Graph app with OnlineMeetingTranscript.Read.All" },
       { key: "teams_client_secret", label: "Microsoft Client Secret", placeholder: "•••••", secret: true },
+      { key: "teams_organizer_user_id", label: "Teams Organiser User ID", placeholder: "00000000-0000-0000-0000-000000000000", help: "Required to create Teams links automatically" },
       { key: "google_oauth_client_id", label: "Google OAuth Client ID", placeholder: "...apps.googleusercontent.com" },
       { key: "google_oauth_client_secret", label: "Google OAuth Client Secret", placeholder: "•••••", secret: true },
       { key: "google_meet_refresh_token", label: "Google Meet Refresh Token", placeholder: "•••••", secret: true, help: "Scope: meetings.space.readonly" },
+      { key: "google_calendar_refresh_token", label: "Google Calendar Refresh Token", placeholder: "•••••", secret: true, help: "Scope: calendar.events — needed to create Meet links" },
     ],
   },
 ];

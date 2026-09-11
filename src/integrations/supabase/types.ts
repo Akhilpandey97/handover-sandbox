@@ -2801,6 +2801,7 @@ export type Database = {
           from_email: string | null
           from_name: string | null
           gmail_monitor_address: string | null
+          google_calendar_refresh_token: string | null
           google_mail_api_key: string | null
           google_meet_refresh_token: string | null
           google_oauth_client_id: string | null
@@ -2817,12 +2818,14 @@ export type Database = {
           slack_webhook_url: string | null
           teams_client_id: string | null
           teams_client_secret: string | null
+          teams_organizer_user_id: string | null
           teams_tenant_id: string | null
           tenant_id: string
           updated_at: string
           zoom_account_id: string | null
           zoom_client_id: string | null
           zoom_client_secret: string | null
+          zoom_user_id: string | null
           zoom_webhook_secret: string | null
         }
         Insert: {
@@ -2831,6 +2834,7 @@ export type Database = {
           from_email?: string | null
           from_name?: string | null
           gmail_monitor_address?: string | null
+          google_calendar_refresh_token?: string | null
           google_mail_api_key?: string | null
           google_meet_refresh_token?: string | null
           google_oauth_client_id?: string | null
@@ -2847,12 +2851,14 @@ export type Database = {
           slack_webhook_url?: string | null
           teams_client_id?: string | null
           teams_client_secret?: string | null
+          teams_organizer_user_id?: string | null
           teams_tenant_id?: string | null
           tenant_id: string
           updated_at?: string
           zoom_account_id?: string | null
           zoom_client_id?: string | null
           zoom_client_secret?: string | null
+          zoom_user_id?: string | null
           zoom_webhook_secret?: string | null
         }
         Update: {
@@ -2861,6 +2867,7 @@ export type Database = {
           from_email?: string | null
           from_name?: string | null
           gmail_monitor_address?: string | null
+          google_calendar_refresh_token?: string | null
           google_mail_api_key?: string | null
           google_meet_refresh_token?: string | null
           google_oauth_client_id?: string | null
@@ -2877,12 +2884,14 @@ export type Database = {
           slack_webhook_url?: string | null
           teams_client_id?: string | null
           teams_client_secret?: string | null
+          teams_organizer_user_id?: string | null
           teams_tenant_id?: string | null
           tenant_id?: string
           updated_at?: string
           zoom_account_id?: string | null
           zoom_client_id?: string | null
           zoom_client_secret?: string | null
+          zoom_user_id?: string | null
           zoom_webhook_secret?: string | null
         }
         Relationships: [
