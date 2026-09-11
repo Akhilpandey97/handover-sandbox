@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertTriangle } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -50,16 +50,7 @@ export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { proje
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-            onClick={() => setShowAi((v) => !v)}
-            disabled={rows.length === 0}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            {showAi ? "Hide AI" : "AI insights"}
-          </Button>
-          <AlertTriangle className="h-5 w-5 text-primary" />
+
         </div>
       </div>
 
