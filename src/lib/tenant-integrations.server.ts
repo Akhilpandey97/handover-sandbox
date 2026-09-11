@@ -20,12 +20,15 @@ export interface TenantIntegrations {
   zoom_client_id: string | null;
   zoom_client_secret: string | null;
   zoom_webhook_secret: string | null;
+  zoom_user_id: string | null;
   teams_tenant_id: string | null;
   teams_client_id: string | null;
   teams_client_secret: string | null;
+  teams_organizer_user_id: string | null;
   google_oauth_client_id: string | null;
   google_oauth_client_secret: string | null;
   google_meet_refresh_token: string | null;
+  google_calendar_refresh_token: string | null;
 }
 
 const EMPTY: TenantIntegrations = {
