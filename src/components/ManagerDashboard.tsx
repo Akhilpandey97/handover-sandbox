@@ -1640,7 +1640,11 @@ export const ManagerDashboard = () => {
               // section is a half-width dashlet. Everything stacks below lg.
               return (
                 <>
-                  <div className="mb-3 flex justify-end">
+                  <div className="mb-4 flex items-end justify-between gap-4">
+                    <div>
+                      <h1 className="text-xl font-semibold tracking-tight text-foreground">Welcome, {currentUser?.name}</h1>
+                      <p className="mt-0.5 text-xs text-muted-foreground">Here's your overview for today</p>
+                    </div>
                     <DashletBuilder
                       items={builderItems}
                       hidden={hiddenDashlets}
