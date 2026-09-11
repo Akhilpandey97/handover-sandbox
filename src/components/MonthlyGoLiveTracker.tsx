@@ -605,7 +605,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                           }}
                           onBlur={e => updateInsight(p.id, "blocker", e.target.value)}
                           onClick={e => e.stopPropagation()}
-                          className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                          className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
                           placeholder="—"
                           rows={1}
                         />
@@ -623,7 +623,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                         }}
                         onBlur={e => updateInsight(p.id, "blocked_on", e.target.value)}
                         onClick={e => e.stopPropagation()}
-                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
                         placeholder="—"
                         rows={1}
                       />
@@ -640,7 +640,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                         }}
                         onBlur={e => updateInsight(p.id, "deadline", e.target.value)}
                         onClick={e => e.stopPropagation()}
-                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
                         placeholder="—"
                         rows={1}
                       />
