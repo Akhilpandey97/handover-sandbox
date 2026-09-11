@@ -24,18 +24,11 @@ export interface AuthUser {
   supportTenantId: string | null;
 }
 
-interface GoogleSignInResult {
-  success: boolean;
-  error?: string;
-  /** Set when the handoff had to leave this tab behind; see loginWithGoogle. */
-  openedInNewTab?: boolean;
-}
-
 interface AuthContextType {
   currentUser: AuthUser | null;
   session: Session | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogle: () => Promise<GoogleSignInResult>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signup: (email: string, password: string, name: string, team: TeamRole) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -253,7 +246,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    * full-page redirect, then sets the session; onAuthStateChange resolves the
    * profile from there.
    */
-  const loginWithGoogle = async (): Promise<GoogleSignInResult> => {
+  const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       setAccessError(null);
       const result = await lovable.auth.signInWithOAuth("google", {

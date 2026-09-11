@@ -68,13 +68,8 @@ export const LoginScreen = () => {
       setIsGoogleLoading(false);
       return;
     }
-    if (result.openedInNewTab) {
-      // This tab is staying put — sign-in is happening elsewhere.
-      toast.info("Continue signing in with Google in the new tab.");
-      setIsGoogleLoading(false);
-    }
-    // Otherwise this tab is already navigating to Google; leave the button
-    // spinning rather than flicking it back to its resting state.
+    // The handoff to Google is under way, so leave the button spinning rather
+    // than flicking it back to its resting state.
   };
 
   return (
