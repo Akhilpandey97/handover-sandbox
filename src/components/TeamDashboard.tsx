@@ -238,6 +238,28 @@ export const TeamDashboard = () => {
     ),
   };
 
+  customDashlets.forEach((config) => {
+    dashlets[config.id] = (
+      <CustomFieldDashlet
+        title={config.title}
+        field={config.field}
+        projects={visibleProjects}
+        onDrillDown={(title, list) => setDrillDown({ title, projects: list })}
+      />
+    );
+  });
+
+  const dashletLabels: Record<string, string> = {
+    kpi: "KPI bar",
+    incoming: "Incoming projects",
+    tat: "TAT",
+    attention: "Attention required",
+    egl: "Projects at risk of missing EGL",
+    stages: "Delivery stages",
+    health: "Delivery health",
+    ...Object.fromEntries(customDashlets.map((c) => [c.id, c.title])),
+  };
+  const builderItems = dashletOrder.filter((id) => dashletLabels[id]).map((id) => ({ id, label: dashletLabels[id]! }));
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
