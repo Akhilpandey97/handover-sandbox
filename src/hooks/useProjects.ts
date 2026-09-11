@@ -814,7 +814,7 @@ export const useRejectProject = () => {
         .from("transfer_history")
         .insert({
           project_id: projectId,
-          from_team: currentUser.team,
+          from_team: currentTeam,
           to_team: previousTeam,
           transferred_by: currentUser.name,
           notes: `REJECTED: ${reason}`,
@@ -829,27 +829,22 @@ export const useRejectProject = () => {
           .from("profiles")
           .select("name, email")
           .eq("id", previousOwnerId)
-          .single();
-
-        const { data: proj } = await supabase
-          .from("projects")
-          .select("merchant_name")
-          .eq("id", projectId)
-          .single();
+          .maybeSingle();
 
         if (recipientProfile) {
           sendNotification({
             type: "project_rejection",
             recipientEmail: recipientProfile.email,
             recipientName: recipientProfile.name,
-            projectName: proj?.merchant_name || "Unknown",
-            fromTeam: teamLabels[currentUser.team] || currentUser.team,
+            projectName: projectRow?.merchant_name || "Unknown",
+            fromTeam: teamLabels[currentTeam] || currentTeam,
             toTeam: teamLabels[previousTeam] || previousTeam,
             notes: reason,
             projectId,
           });
         }
       }
+
 
       return projectId;
     },
