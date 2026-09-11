@@ -7,13 +7,11 @@ import { logActivity } from "@/hooks/useActivityLogs";
 import { apiAuthHeaders } from "@/lib/api-invoke";
 
 /**
- * checklist_meetings is newer than src/integrations/supabase/types.ts, which is
- * generated and carries a "do not edit" banner — it picks the table up the next
- * time Lovable regenerates it against the migration. Until then the table is
- * reached through a client without the generated row types, rather than by
- * hand-editing a generated file. ChecklistMeeting below is the contract.
+ * checklist_meetings is in the generated types now; the loose client is kept
+ * only so the row shape below stays the single contract for this hook.
  */
 const db = supabase as unknown as SupabaseClient;
+
 
 export type MeetingProvider = "google_meet" | "zoom" | "teams";
 
