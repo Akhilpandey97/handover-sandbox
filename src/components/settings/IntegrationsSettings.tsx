@@ -1,11 +1,29 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, Mail, Inbox, Bug, Bell, KeyRound, ShieldCheck, Video } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Mail,
+  Inbox,
+  Bug,
+  Bell,
+  KeyRound,
+  ShieldCheck,
+  Video,
+  Check,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ApiKeysSettings } from "./ApiKeysSettings";
 
@@ -73,7 +91,7 @@ const GROUPS: Group[] = [
     title: "Meetings",
     icon: Video,
     description:
-      "Creates the join link automatically when a meeting is scheduled, and pulls the transcript afterwards so Meeting AI can post the minutes. Without these, you can still paste a join link by hand.",
+      "Creates the join link automatically when a meeting is scheduled, and pulls the transcript afterwards so Meeting AI can post the minutes.",
     fields: [
       { key: "zoom_account_id", label: "Zoom Account ID", placeholder: "abc123XYZ", help: "Server-to-server OAuth app" },
       { key: "zoom_client_id", label: "Zoom Client ID", placeholder: "xxxxxxxxxxxxxxxxxxxxxx" },
@@ -100,6 +118,8 @@ export function IntegrationsSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [forbidden, setForbidden] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [apiKeysOpen, setApiKeysOpen] = useState(false);
 
   const authedFetch = async (init?: RequestInit) => {
     const { data } = await supabase.auth.getSession();
@@ -127,7 +147,7 @@ export function IntegrationsSettings() {
         ALL_KEYS.forEach((k) => (next[k] = body.settings?.[k] ?? ""));
         setValues(next);
         setInitial(next);
-      } catch (err) {
+      } catch {
         toast.error("Could not load integration settings");
       } finally {
         setLoading(false);
@@ -150,6 +170,7 @@ export function IntegrationsSettings() {
       if (!res.ok) throw new Error(body.error || "Save failed");
       setInitial({ ...values });
       toast.success("Integration settings saved");
+      setOpenGroup(null);
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
@@ -180,84 +201,142 @@ export function IntegrationsSettings() {
     );
   }
 
+  const active = GROUPS.find((g) => g.title === openGroup) ?? null;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
-        <div className="flex min-w-0 items-start gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
             <ShieldCheck className="h-4 w-4" />
           </span>
-          <div>
+          <div className="min-w-0">
             <h2 className="portal-heading">Workspace integrations</h2>
-            <p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">
-              Credentials are encrypted and never returned to the browser. Saved secrets remain unchanged until replaced.
+            <p className="text-xs leading-5 text-muted-foreground">
+              Pick a card to set it up. Credentials are encrypted and never returned to the browser.
             </p>
           </div>
         </div>
-        <Button onClick={save} disabled={!dirty || saving} size="sm" className="h-8 shrink-0 gap-1.5 text-xs">
-          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-          Save changes
-        </Button>
+        {dirty && (
+          <Button onClick={save} disabled={saving} size="sm" className="h-8 shrink-0 gap-1.5 text-xs">
+            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            Save changes
+          </Button>
+        )}
       </div>
 
-      <div className="grid items-start gap-4 xl:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {GROUPS.map((group) => {
-        const Icon = group.icon;
-        const configured = group.fields.some((f) => (values[f.key] ?? "").length > 0);
-        return (
-          <Card key={group.title} className="transition-colors hover:border-primary/35">
-            <CardHeader className="min-h-[4.5rem]">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-2.5">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-card text-primary shadow-sm">
-                    <Icon className="h-4 w-4" />
+          const Icon = group.icon;
+          const filled = group.fields.filter((f) => (values[f.key] ?? "").length > 0).length;
+          const configured = filled > 0;
+          return (
+            <button
+              key={group.title}
+              type="button"
+              onClick={() => setOpenGroup(group.title)}
+              className="group flex h-full flex-col rounded-lg border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-primary">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="portal-heading truncate text-sm">{group.title}</span>
+                {configured && (
+                  <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Check className="h-3 w-3" />
                   </span>
-                  <div className="min-w-0">
-                    <CardTitle className="portal-heading">{group.title}</CardTitle>
-                    <CardDescription className="mt-1">{group.description}</CardDescription>
-                  </div>
-                </div>
-                <Badge variant={configured ? "default" : "secondary"} className="shrink-0 text-[10px]">
-                  {configured ? "Configured" : "Not configured"}
-                </Badge>
+                )}
               </div>
-            </CardHeader>
-            <CardContent className="grid gap-3 md:grid-cols-2">
-              {group.fields.map((field) => (
-                <div key={field.key} className="space-y-1.5">
-                  <Label htmlFor={field.key} className="text-xs font-medium">
-                    {field.label}
-                    {field.secret && <span className="ml-1 text-muted-foreground">(secret)</span>}
-                  </Label>
-                  <Input
-                    id={field.key}
-                    value={values[field.key] ?? ""}
-                    placeholder={field.placeholder}
-                    autoComplete="off"
-                    className="h-8 text-xs"
-                    onChange={(e) =>
-                      setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
-                    }
-                  />
-                  {field.help && (
-                    <p className="text-[11px] text-muted-foreground">{field.help}</p>
-                  )}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        );
+              <p className="mt-2 line-clamp-2 text-[11px] leading-4 text-muted-foreground">
+                {group.description}
+              </p>
+              <p className="mt-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                {filled}/{group.fields.length} fields set
+              </p>
+            </button>
+          );
         })}
 
-        <div className="xl:col-span-2">
-          <ApiKeysSettings />
-        </div>
+        <button
+          type="button"
+          onClick={() => setApiKeysOpen(true)}
+          className="group flex h-full flex-col rounded-lg border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-primary">
+              <KeyRound className="h-4 w-4" />
+            </span>
+            <span className="portal-heading truncate text-sm">API Keys</span>
+          </div>
+          <p className="mt-2 line-clamp-2 text-[11px] leading-4 text-muted-foreground">
+            Keys your CRM uses to push won deals into Handover.
+          </p>
+          <p className="mt-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Manage keys
+          </p>
+        </button>
       </div>
 
-      <p className="border-t border-border pt-3 text-xs text-muted-foreground">
-        Features stay disabled until their credentials are filled in — the app reports a clear
-        "not configured for this tenant" message instead of failing silently.
-      </p>
+      <Dialog open={!!active} onOpenChange={(o) => !o && setOpenGroup(null)}>
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
+          {active && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-base">
+                  <active.icon className="h-4 w-4 text-primary" />
+                  {active.title}
+                </DialogTitle>
+                <DialogDescription className="text-xs">{active.description}</DialogDescription>
+              </DialogHeader>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                {active.fields.map((field) => (
+                  <div key={field.key} className="space-y-1.5">
+                    <Label htmlFor={field.key} className="text-xs font-medium">
+                      {field.label}
+                      {field.secret && <span className="ml-1 text-muted-foreground">(secret)</span>}
+                    </Label>
+                    <Input
+                      id={field.key}
+                      value={values[field.key] ?? ""}
+                      placeholder={field.placeholder}
+                      autoComplete="off"
+                      className="h-8 text-xs"
+                      onChange={(e) =>
+                        setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
+                      }
+                    />
+                    {field.help && <p className="text-[11px] text-muted-foreground">{field.help}</p>}
+                  </div>
+                ))}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setOpenGroup(null)}>
+                  Close
+                </Button>
+                <Button onClick={save} disabled={!dirty || saving} size="sm" className="h-8 gap-1.5 text-xs">
+                  {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                  Save
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={apiKeysOpen} onOpenChange={setApiKeysOpen}>
+        <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <KeyRound className="h-4 w-4 text-primary" />
+              API Keys
+            </DialogTitle>
+          </DialogHeader>
+          <ApiKeysSettings />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
