@@ -231,12 +231,12 @@ export const UserManagement = () => {
   };
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+            <CardTitle className="portal-heading flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
               User Management
             </CardTitle>
             <CardDescription>Manage team members and their roles</CardDescription>

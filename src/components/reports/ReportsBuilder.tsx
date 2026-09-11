@@ -608,11 +608,11 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   };
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-[1500px] space-y-4">
       {savedReports.length > 0 && (
         <Card>
           <CardHeader className="py-3 px-4">
-            <CardTitle className="text-sm flex items-center gap-2"><FileText className="h-4 w-4" />Saved Reports</CardTitle>
+            <CardTitle className="portal-heading flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />Saved Reports</CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-3 pt-0">
             <div className="flex flex-wrap gap-2">
@@ -638,7 +638,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
       <Card>
         <CardHeader className="py-3 px-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <CardTitle className="text-sm">Select Columns ({selectedColumns.length} selected) <span className="text-[10px] text-muted-foreground font-normal ml-1">— drag groups to reorder</span></CardTitle>
+            <CardTitle className="portal-heading">Select Columns ({selectedColumns.length} selected) <span className="text-[10px] text-muted-foreground font-normal ml-1">— drag groups to reorder</span></CardTitle>
             <div className="flex gap-2 items-center flex-wrap">
               <div className="flex items-center gap-1.5">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">Agg:</Label>
@@ -707,7 +707,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
         <CardHeader className="py-3 px-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3 flex-wrap">
-              <CardTitle className="text-sm">
+              <CardTitle className="portal-heading">
                 Report Preview ({filteredProjects.length}{filteredProjects.length !== projects.length ? ` of ${projects.length}` : ""} projects)
                 {groupByColumn !== "none" && (
                   <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">

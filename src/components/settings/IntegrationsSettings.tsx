@@ -4,9 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Loader2, Save, Mail, Inbox, Bug, Bell, KeyRound } from "lucide-react";
+import { Loader2, Save, Mail, Inbox, Bug, Bell, KeyRound, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ApiKeysSettings } from "./ApiKeysSettings";
 
@@ -147,10 +146,10 @@ export function IntegrationsSettings() {
 
   if (forbidden) {
     return (
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />Integrations
+          <CardTitle className="portal-heading flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-primary" />Integrations
           </CardTitle>
           <CardDescription>
             Only workspace admins and managers can view or change integration credentials.
@@ -161,35 +160,48 @@ export function IntegrationsSettings() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <p className="text-sm text-muted-foreground max-w-3xl">
-          These credentials belong to your workspace only. Secret values are stored encrypted and are
-          never returned to the browser — saved keys appear as dots and stay untouched unless you type
-          a new value.
-        </p>
-        <Button onClick={save} disabled={!dirty || saving} className="gap-2 shrink-0">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-sm">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <ShieldCheck className="h-4 w-4" />
+          </span>
+          <div>
+            <h2 className="portal-heading">Workspace integrations</h2>
+            <p className="mt-1 max-w-3xl text-xs leading-5 text-muted-foreground">
+              Credentials are encrypted and never returned to the browser. Saved secrets remain unchanged until replaced.
+            </p>
+          </div>
+        </div>
+        <Button onClick={save} disabled={!dirty || saving} size="sm" className="h-8 shrink-0 gap-1.5 text-xs">
+          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
           Save changes
         </Button>
       </div>
 
-      {GROUPS.map((group) => {
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        {GROUPS.map((group) => {
         const Icon = group.icon;
         const configured = group.fields.some((f) => (values[f.key] ?? "").length > 0);
         return (
-          <Card key={group.title}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Icon className="h-5 w-5" />
-                {group.title}
-                <Badge variant={configured ? "default" : "secondary"} className="ml-2">
+          <Card key={group.title} className="transition-colors hover:border-primary/35">
+            <CardHeader className="min-h-[4.5rem]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-2.5">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-card text-primary shadow-sm">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <CardTitle className="portal-heading">{group.title}</CardTitle>
+                    <CardDescription className="mt-1">{group.description}</CardDescription>
+                  </div>
+                </div>
+                <Badge variant={configured ? "default" : "secondary"} className="shrink-0 text-[10px]">
                   {configured ? "Configured" : "Not configured"}
                 </Badge>
-              </CardTitle>
-              <CardDescription>{group.description}</CardDescription>
+              </div>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
+            <CardContent className="grid gap-3 md:grid-cols-2">
               {group.fields.map((field) => (
                 <div key={field.key} className="space-y-1.5">
                   <Label htmlFor={field.key} className="text-xs font-medium">
@@ -201,6 +213,7 @@ export function IntegrationsSettings() {
                     value={values[field.key] ?? ""}
                     placeholder={field.placeholder}
                     autoComplete="off"
+                    className="h-8 text-xs"
                     onChange={(e) =>
                       setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
                     }
@@ -213,12 +226,14 @@ export function IntegrationsSettings() {
             </CardContent>
           </Card>
         );
-      })}
+        })}
 
-      <ApiKeysSettings />
+        <div className="xl:col-span-2">
+          <ApiKeysSettings />
+        </div>
+      </div>
 
-      <Separator />
-      <p className="text-xs text-muted-foreground">
+      <p className="border-t border-border pt-3 text-xs text-muted-foreground">
         Features stay disabled until their credentials are filled in — the app reports a clear
         "not configured for this tenant" message instead of failing silently.
       </p>
