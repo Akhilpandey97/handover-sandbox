@@ -21,6 +21,9 @@ const PER_TENANT_JOBS = [
 
 /** Jobs that already iterate tenants (or schedules) themselves. */
 const GLOBAL_JOBS = [
+  // Meet and Teams have no transcript webhook, so finished calls are polled.
+  // Zoom pushes its own to /api/public/zoom-webhook instead.
+  "poll-meeting-transcripts",
   "send-scheduled-report",
   "send-scheduled-tat-report",
   "send-scheduled-movement-report",

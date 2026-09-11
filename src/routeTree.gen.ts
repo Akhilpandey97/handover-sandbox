@@ -36,6 +36,7 @@ import { Route as ApiPublicAiAttentionReasonRouteImport } from './routes/api/pub
 import { Route as ApiPublicAiChatRouteImport } from './routes/api/public/ai-chat'
 import { Route as ApiPublicAiFieldMappingRouteImport } from './routes/api/public/ai-field-mapping'
 import { Route as ApiPublicAiProjectInsightsRouteImport } from './routes/api/public/ai-project-insights'
+import { Route as ApiPublicAnalyseMeetingRouteImport } from './routes/api/public/analyse-meeting'
 import { Route as ApiPublicApiKeysRouteImport } from './routes/api/public/api-keys'
 import { Route as ApiPublicAssignShopifySmeOwnerRouteImport } from './routes/api/public/assign-shopify-sme-owner'
 import { Route as ApiPublicBackfillShopifySmeAssignmentsRouteImport } from './routes/api/public/backfill-shopify-sme-assignments'
@@ -53,10 +54,12 @@ import { Route as ApiPublicJiraCreateUrlRouteImport } from './routes/api/public/
 import { Route as ApiPublicKwikassistAiChatRouteImport } from './routes/api/public/kwikassist-ai-chat'
 import { Route as ApiPublicMerchantPortalDataRouteImport } from './routes/api/public/merchant-portal-data'
 import { Route as ApiPublicPollEmailsRouteImport } from './routes/api/public/poll-emails'
+import { Route as ApiPublicPollMeetingTranscriptsRouteImport } from './routes/api/public/poll-meeting-transcripts'
 import { Route as ApiPublicPollPlatformGoliveEmailsRouteImport } from './routes/api/public/poll-platform-golive-emails'
 import { Route as ApiPublicPollShopifySmeEmailsRouteImport } from './routes/api/public/poll-shopify-sme-emails'
 import { Route as ApiPublicRunWorkflowsRouteImport } from './routes/api/public/run-workflows'
 import { Route as ApiPublicSandboxTestRouteImport } from './routes/api/public/sandbox-test'
+import { Route as ApiPublicSendMeetingInviteRouteImport } from './routes/api/public/send-meeting-invite'
 import { Route as ApiPublicSendMovementReportRouteImport } from './routes/api/public/send-movement-report'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
 import { Route as ApiPublicSendPlatformWelcomeRouteImport } from './routes/api/public/send-platform-welcome'
@@ -70,6 +73,7 @@ import { Route as ApiPublicSlackStuckMerchantsDigestRouteImport } from './routes
 import { Route as ApiPublicTenantIntegrationsRouteImport } from './routes/api/public/tenant-integrations'
 import { Route as ApiPublicUpdateUserRouteImport } from './routes/api/public/update-user'
 import { Route as ApiPublicUploadProjectPdfRouteImport } from './routes/api/public/upload-project-pdf'
+import { Route as ApiPublicZoomWebhookRouteImport } from './routes/api/public/zoom-webhook'
 import { Route as DashReportsPredefinedReportTypeRouteImport } from './routes/_dash.reports.predefined.$reportType'
 import { Route as ApiPublicMerchantPortalDataSplatRouteImport } from './routes/api/public/merchant-portal-data.$'
 import { Route as ApiPublicV1HealthRouteImport } from './routes/api/public/v1/health'
@@ -213,6 +217,11 @@ const ApiPublicAiProjectInsightsRoute =
     path: '/api/public/ai-project-insights',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAnalyseMeetingRoute = ApiPublicAnalyseMeetingRouteImport.update({
+  id: '/api/public/analyse-meeting',
+  path: '/api/public/analyse-meeting',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicApiKeysRoute = ApiPublicApiKeysRouteImport.update({
   id: '/api/public/api-keys',
   path: '/api/public/api-keys',
@@ -308,6 +317,12 @@ const ApiPublicPollEmailsRoute = ApiPublicPollEmailsRouteImport.update({
   path: '/api/public/poll-emails',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPollMeetingTranscriptsRoute =
+  ApiPublicPollMeetingTranscriptsRouteImport.update({
+    id: '/api/public/poll-meeting-transcripts',
+    path: '/api/public/poll-meeting-transcripts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPollPlatformGoliveEmailsRoute =
   ApiPublicPollPlatformGoliveEmailsRouteImport.update({
     id: '/api/public/poll-platform-golive-emails',
@@ -330,6 +345,12 @@ const ApiPublicSandboxTestRoute = ApiPublicSandboxTestRouteImport.update({
   path: '/api/public/sandbox-test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSendMeetingInviteRoute =
+  ApiPublicSendMeetingInviteRouteImport.update({
+    id: '/api/public/send-meeting-invite',
+    path: '/api/public/send-meeting-invite',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicSendMovementReportRoute =
   ApiPublicSendMovementReportRouteImport.update({
     id: '/api/public/send-movement-report',
@@ -405,6 +426,11 @@ const ApiPublicUploadProjectPdfRoute =
     path: '/api/public/upload-project-pdf',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicZoomWebhookRoute = ApiPublicZoomWebhookRouteImport.update({
+  id: '/api/public/zoom-webhook',
+  path: '/api/public/zoom-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashReportsPredefinedReportTypeRoute =
   DashReportsPredefinedReportTypeRouteImport.update({
     id: '/reports/predefined/$reportType',
@@ -464,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/analyse-meeting': typeof ApiPublicAnalyseMeetingRoute
   '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
@@ -481,10 +508,12 @@ export interface FileRoutesByFullPath {
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
+  '/api/public/poll-meeting-transcripts': typeof ApiPublicPollMeetingTranscriptsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
   '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
@@ -498,6 +527,7 @@ export interface FileRoutesByFullPath {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/api/public/zoom-webhook': typeof ApiPublicZoomWebhookRoute
   '/reports/': typeof DashReportsIndexRoute
   '/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
@@ -532,6 +562,7 @@ export interface FileRoutesByTo {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/analyse-meeting': typeof ApiPublicAnalyseMeetingRoute
   '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
@@ -549,10 +580,12 @@ export interface FileRoutesByTo {
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
+  '/api/public/poll-meeting-transcripts': typeof ApiPublicPollMeetingTranscriptsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
   '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
@@ -566,6 +599,7 @@ export interface FileRoutesByTo {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/api/public/zoom-webhook': typeof ApiPublicZoomWebhookRoute
   '/reports': typeof DashReportsIndexRoute
   '/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
@@ -602,6 +636,7 @@ export interface FileRoutesById {
   '/api/public/ai-chat': typeof ApiPublicAiChatRoute
   '/api/public/ai-field-mapping': typeof ApiPublicAiFieldMappingRoute
   '/api/public/ai-project-insights': typeof ApiPublicAiProjectInsightsRoute
+  '/api/public/analyse-meeting': typeof ApiPublicAnalyseMeetingRoute
   '/api/public/api-keys': typeof ApiPublicApiKeysRoute
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
@@ -619,10 +654,12 @@ export interface FileRoutesById {
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
+  '/api/public/poll-meeting-transcripts': typeof ApiPublicPollMeetingTranscriptsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
   '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
@@ -636,6 +673,7 @@ export interface FileRoutesById {
   '/api/public/tenant-integrations': typeof ApiPublicTenantIntegrationsRoute
   '/api/public/update-user': typeof ApiPublicUpdateUserRoute
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
+  '/api/public/zoom-webhook': typeof ApiPublicZoomWebhookRoute
   '/_dash/reports/': typeof DashReportsIndexRoute
   '/_dash/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
@@ -672,6 +710,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/analyse-meeting'
     | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
@@ -689,10 +728,12 @@ export interface FileRouteTypes {
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
     | '/api/public/poll-emails'
+    | '/api/public/poll-meeting-transcripts'
     | '/api/public/poll-platform-golive-emails'
     | '/api/public/poll-shopify-sme-emails'
     | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
+    | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
     | '/api/public/send-platform-welcome'
@@ -706,6 +747,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/api/public/zoom-webhook'
     | '/reports/'
     | '/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
@@ -740,6 +782,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/analyse-meeting'
     | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
@@ -757,10 +800,12 @@ export interface FileRouteTypes {
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
     | '/api/public/poll-emails'
+    | '/api/public/poll-meeting-transcripts'
     | '/api/public/poll-platform-golive-emails'
     | '/api/public/poll-shopify-sme-emails'
     | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
+    | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
     | '/api/public/send-platform-welcome'
@@ -774,6 +819,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/api/public/zoom-webhook'
     | '/reports'
     | '/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
@@ -809,6 +855,7 @@ export interface FileRouteTypes {
     | '/api/public/ai-chat'
     | '/api/public/ai-field-mapping'
     | '/api/public/ai-project-insights'
+    | '/api/public/analyse-meeting'
     | '/api/public/api-keys'
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
@@ -826,10 +873,12 @@ export interface FileRouteTypes {
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
     | '/api/public/poll-emails'
+    | '/api/public/poll-meeting-transcripts'
     | '/api/public/poll-platform-golive-emails'
     | '/api/public/poll-shopify-sme-emails'
     | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
+    | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
     | '/api/public/send-platform-welcome'
@@ -843,6 +892,7 @@ export interface FileRouteTypes {
     | '/api/public/tenant-integrations'
     | '/api/public/update-user'
     | '/api/public/upload-project-pdf'
+    | '/api/public/zoom-webhook'
     | '/_dash/reports/'
     | '/_dash/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
@@ -862,6 +912,7 @@ export interface RootRouteChildren {
   ApiPublicAiChatRoute: typeof ApiPublicAiChatRoute
   ApiPublicAiFieldMappingRoute: typeof ApiPublicAiFieldMappingRoute
   ApiPublicAiProjectInsightsRoute: typeof ApiPublicAiProjectInsightsRoute
+  ApiPublicAnalyseMeetingRoute: typeof ApiPublicAnalyseMeetingRoute
   ApiPublicApiKeysRoute: typeof ApiPublicApiKeysRoute
   ApiPublicAssignShopifySmeOwnerRoute: typeof ApiPublicAssignShopifySmeOwnerRoute
   ApiPublicBackfillShopifySmeAssignmentsRoute: typeof ApiPublicBackfillShopifySmeAssignmentsRoute
@@ -879,10 +930,12 @@ export interface RootRouteChildren {
   ApiPublicKwikassistAiChatRoute: typeof ApiPublicKwikassistAiChatRoute
   ApiPublicMerchantPortalDataRoute: typeof ApiPublicMerchantPortalDataRouteWithChildren
   ApiPublicPollEmailsRoute: typeof ApiPublicPollEmailsRoute
+  ApiPublicPollMeetingTranscriptsRoute: typeof ApiPublicPollMeetingTranscriptsRoute
   ApiPublicPollPlatformGoliveEmailsRoute: typeof ApiPublicPollPlatformGoliveEmailsRoute
   ApiPublicPollShopifySmeEmailsRoute: typeof ApiPublicPollShopifySmeEmailsRoute
   ApiPublicRunWorkflowsRoute: typeof ApiPublicRunWorkflowsRoute
   ApiPublicSandboxTestRoute: typeof ApiPublicSandboxTestRoute
+  ApiPublicSendMeetingInviteRoute: typeof ApiPublicSendMeetingInviteRoute
   ApiPublicSendMovementReportRoute: typeof ApiPublicSendMovementReportRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
   ApiPublicSendPlatformWelcomeRoute: typeof ApiPublicSendPlatformWelcomeRoute
@@ -896,6 +949,7 @@ export interface RootRouteChildren {
   ApiPublicTenantIntegrationsRoute: typeof ApiPublicTenantIntegrationsRoute
   ApiPublicUpdateUserRoute: typeof ApiPublicUpdateUserRoute
   ApiPublicUploadProjectPdfRoute: typeof ApiPublicUploadProjectPdfRoute
+  ApiPublicZoomWebhookRoute: typeof ApiPublicZoomWebhookRoute
   ApiPublicV1HealthRoute: typeof ApiPublicV1HealthRoute
   ApiPublicV1ProjectsRoute: typeof ApiPublicV1ProjectsRouteWithChildren
   ApiPublicV1UsersRoute: typeof ApiPublicV1UsersRoute
@@ -1092,6 +1146,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAiProjectInsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/analyse-meeting': {
+      id: '/api/public/analyse-meeting'
+      path: '/api/public/analyse-meeting'
+      fullPath: '/api/public/analyse-meeting'
+      preLoaderRoute: typeof ApiPublicAnalyseMeetingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/api-keys': {
       id: '/api/public/api-keys'
       path: '/api/public/api-keys'
@@ -1211,6 +1272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPollEmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/poll-meeting-transcripts': {
+      id: '/api/public/poll-meeting-transcripts'
+      path: '/api/public/poll-meeting-transcripts'
+      fullPath: '/api/public/poll-meeting-transcripts'
+      preLoaderRoute: typeof ApiPublicPollMeetingTranscriptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/poll-platform-golive-emails': {
       id: '/api/public/poll-platform-golive-emails'
       path: '/api/public/poll-platform-golive-emails'
@@ -1237,6 +1305,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/sandbox-test'
       fullPath: '/api/public/sandbox-test'
       preLoaderRoute: typeof ApiPublicSandboxTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/send-meeting-invite': {
+      id: '/api/public/send-meeting-invite'
+      path: '/api/public/send-meeting-invite'
+      fullPath: '/api/public/send-meeting-invite'
+      preLoaderRoute: typeof ApiPublicSendMeetingInviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/send-movement-report': {
@@ -1328,6 +1403,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/upload-project-pdf'
       fullPath: '/api/public/upload-project-pdf'
       preLoaderRoute: typeof ApiPublicUploadProjectPdfRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/zoom-webhook': {
+      id: '/api/public/zoom-webhook'
+      path: '/api/public/zoom-webhook'
+      fullPath: '/api/public/zoom-webhook'
+      preLoaderRoute: typeof ApiPublicZoomWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dash/reports/predefined/$reportType': {
@@ -1466,6 +1548,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAiChatRoute: ApiPublicAiChatRoute,
   ApiPublicAiFieldMappingRoute: ApiPublicAiFieldMappingRoute,
   ApiPublicAiProjectInsightsRoute: ApiPublicAiProjectInsightsRoute,
+  ApiPublicAnalyseMeetingRoute: ApiPublicAnalyseMeetingRoute,
   ApiPublicApiKeysRoute: ApiPublicApiKeysRoute,
   ApiPublicAssignShopifySmeOwnerRoute: ApiPublicAssignShopifySmeOwnerRoute,
   ApiPublicBackfillShopifySmeAssignmentsRoute:
@@ -1485,11 +1568,13 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMerchantPortalDataRoute:
     ApiPublicMerchantPortalDataRouteWithChildren,
   ApiPublicPollEmailsRoute: ApiPublicPollEmailsRoute,
+  ApiPublicPollMeetingTranscriptsRoute: ApiPublicPollMeetingTranscriptsRoute,
   ApiPublicPollPlatformGoliveEmailsRoute:
     ApiPublicPollPlatformGoliveEmailsRoute,
   ApiPublicPollShopifySmeEmailsRoute: ApiPublicPollShopifySmeEmailsRoute,
   ApiPublicRunWorkflowsRoute: ApiPublicRunWorkflowsRoute,
   ApiPublicSandboxTestRoute: ApiPublicSandboxTestRoute,
+  ApiPublicSendMeetingInviteRoute: ApiPublicSendMeetingInviteRoute,
   ApiPublicSendMovementReportRoute: ApiPublicSendMovementReportRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
   ApiPublicSendPlatformWelcomeRoute: ApiPublicSendPlatformWelcomeRoute,
@@ -1505,6 +1590,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTenantIntegrationsRoute: ApiPublicTenantIntegrationsRoute,
   ApiPublicUpdateUserRoute: ApiPublicUpdateUserRoute,
   ApiPublicUploadProjectPdfRoute: ApiPublicUploadProjectPdfRoute,
+  ApiPublicZoomWebhookRoute: ApiPublicZoomWebhookRoute,
   ApiPublicV1HealthRoute: ApiPublicV1HealthRoute,
   ApiPublicV1ProjectsRoute: ApiPublicV1ProjectsRouteWithChildren,
   ApiPublicV1UsersRoute: ApiPublicV1UsersRoute,

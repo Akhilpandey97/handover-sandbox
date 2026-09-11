@@ -29,8 +29,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChecklistCommentThread } from "@/components/ChecklistCommentThread";
 import { ChecklistFormDialog } from "@/components/ChecklistFormDialog";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
+import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { useChecklistTasks, useAddChecklistTask, useUpdateChecklistTask, useDeleteChecklistTask } from "@/hooks/useChecklistTasks";
-import { CheckCircle2, ClipboardList, Building2, Users, Minus, FileText, ListTodo, Plus, ChevronDown, ChevronRight, Trash2, Calendar, Flag } from "lucide-react";
+import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
+import { CheckCircle2, ClipboardList, Building2, Users, Minus, FileText, ListTodo, Plus, ChevronDown, ChevronRight, Trash2, Calendar, Flag, Video } from "lucide-react";
 
 interface ChecklistDialogProps {
   project: Project | null;
@@ -81,12 +83,20 @@ export const ChecklistDialog = ({
   const { templates: formTemplates } = useFormTemplates();
   const { allTeams, teamLabelMap, teamColorMap, checklistTeamSlugs } = useTeams();
   const { data: allTasks = [] } = useChecklistTasks(project?.id);
+  const { data: allMeetings = [] } = useChecklistMeetings(project?.id);
   const addTaskMutation = useAddChecklistTask();
   const updateTaskMutation = useUpdateChecklistTask();
   const deleteTaskMutation = useDeleteChecklistTask();
 
   // Task dialog state
   const [taskDialogState, setTaskDialogState] = useState<{
+    open: boolean;
+    checklistItemId: string;
+    checklistItemTitle: string;
+  } | null>(null);
+
+  // Meeting dialog state
+  const [meetingDialogState, setMeetingDialogState] = useState<{
     open: boolean;
     checklistItemId: string;
     checklistItemTitle: string;
@@ -472,6 +482,32 @@ export const ChecklistDialog = ({
                                     </Button>
                                   );
                                 })()}
+                                {/* Meetings button */}
+                                {(() => {
+                                  const itemMeetings = allMeetings.filter(m => m.checklist_item_id === item.id);
+                                  const upcoming = itemMeetings.filter(
+                                    m => m.status === "scheduled" && new Date(m.scheduled_at) >= new Date(),
+                                  ).length;
+                                  return (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-6 px-2 text-xs gap-1"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMeetingDialogState({
+                                          open: true,
+                                          checklistItemId: item.id,
+                                          checklistItemTitle: item.title,
+                                        });
+                                      }}
+                                    >
+                                      <Video className="h-3 w-3" />
+                                      Meetings
+                                      {itemMeetings.length > 0 && ` (${upcoming}/${itemMeetings.length})`}
+                                    </Button>
+                                  );
+                                })()}
                               </div>
 
                               {/* Due Date */}
@@ -747,6 +783,20 @@ export const ChecklistDialog = ({
             checklistItemTitle={taskDialogState.checklistItemTitle}
             projectId={project.id}
             profiles={profiles}
+          />
+        )}
+
+        {/* Meeting Scheduler Dialog */}
+        {meetingDialogState && project && (
+          <MeetingSchedulerDialog
+            open={meetingDialogState.open}
+            onOpenChange={(open) => {
+              if (!open) setMeetingDialogState(null);
+            }}
+            checklistItemId={meetingDialogState.checklistItemId}
+            checklistItemTitle={meetingDialogState.checklistItemTitle}
+            projectId={project.id}
+            projectName={project.merchantName}
           />
         )}
     </Shell>

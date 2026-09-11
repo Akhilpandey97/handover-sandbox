@@ -15,6 +15,17 @@ export interface TenantIntegrations {
   slack_bot_token: string | null;
   slack_channel: string | null;
   app_base_url: string | null;
+  /* Meeting transcripts, one set of credentials per provider. */
+  zoom_account_id: string | null;
+  zoom_client_id: string | null;
+  zoom_client_secret: string | null;
+  zoom_webhook_secret: string | null;
+  teams_tenant_id: string | null;
+  teams_client_id: string | null;
+  teams_client_secret: string | null;
+  google_oauth_client_id: string | null;
+  google_oauth_client_secret: string | null;
+  google_meet_refresh_token: string | null;
 }
 
 const EMPTY: TenantIntegrations = {
@@ -32,6 +43,16 @@ const EMPTY: TenantIntegrations = {
   slack_bot_token: null,
   slack_channel: null,
   app_base_url: null,
+  zoom_account_id: null,
+  zoom_client_id: null,
+  zoom_client_secret: null,
+  zoom_webhook_secret: null,
+  teams_tenant_id: null,
+  teams_client_id: null,
+  teams_client_secret: null,
+  google_oauth_client_id: null,
+  google_oauth_client_secret: null,
+  google_meet_refresh_token: null,
 };
 
 export const INTEGRATION_FIELDS = Object.keys(EMPTY) as (keyof TenantIntegrations)[];
@@ -42,6 +63,11 @@ export const SECRET_FIELDS: (keyof TenantIntegrations)[] = [
   "jira_api_token",
   "slack_bot_token",
   "slack_webhook_url",
+  "zoom_client_secret",
+  "zoom_webhook_secret",
+  "teams_client_secret",
+  "google_oauth_client_secret",
+  "google_meet_refresh_token",
 ];
 
 function envFallbacks(): TenantIntegrations {

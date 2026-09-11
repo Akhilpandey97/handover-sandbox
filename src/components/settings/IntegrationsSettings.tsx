@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, Mail, Inbox, Bug, Bell, KeyRound, ShieldCheck } from "lucide-react";
+import { Loader2, Save, Mail, Inbox, Bug, Bell, KeyRound, ShieldCheck, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ApiKeysSettings } from "./ApiKeysSettings";
 
@@ -67,6 +67,24 @@ const GROUPS: Group[] = [
       { key: "slack_webhook_url", label: "Incoming Webhook URL", placeholder: "https://hooks.slack.com/services/T000/B000/XXXX", secret: true },
       { key: "slack_bot_token", label: "Bot Token (optional)", placeholder: "xoxb-...", secret: true },
       { key: "slack_channel", label: "Default Channel", placeholder: "#merchant-onboarding" },
+    ],
+  },
+  {
+    title: "Meeting Transcripts",
+    icon: Video,
+    description:
+      "Pulls the transcript after a checklist meeting so Meeting AI can post the minutes and flag risks. Scheduling and invites work without any of this — only transcripts need it, and only for the providers you use.",
+    fields: [
+      { key: "zoom_account_id", label: "Zoom Account ID", placeholder: "abc123XYZ", help: "Server-to-server OAuth app" },
+      { key: "zoom_client_id", label: "Zoom Client ID", placeholder: "xxxxxxxxxxxxxxxxxxxxxx" },
+      { key: "zoom_client_secret", label: "Zoom Client Secret", placeholder: "•••••", secret: true },
+      { key: "zoom_webhook_secret", label: "Zoom Webhook Secret Token", placeholder: "•••••", secret: true, help: "Event Subscriptions → /api/public/zoom-webhook" },
+      { key: "teams_tenant_id", label: "Microsoft Tenant ID", placeholder: "00000000-0000-0000-0000-000000000000" },
+      { key: "teams_client_id", label: "Microsoft Client ID", placeholder: "00000000-0000-0000-0000-000000000000", help: "Graph app with OnlineMeetingTranscript.Read.All" },
+      { key: "teams_client_secret", label: "Microsoft Client Secret", placeholder: "•••••", secret: true },
+      { key: "google_oauth_client_id", label: "Google OAuth Client ID", placeholder: "...apps.googleusercontent.com" },
+      { key: "google_oauth_client_secret", label: "Google OAuth Client Secret", placeholder: "•••••", secret: true },
+      { key: "google_meet_refresh_token", label: "Google Meet Refresh Token", placeholder: "•••••", secret: true, help: "Scope: meetings.space.readonly" },
     ],
   },
 ];
