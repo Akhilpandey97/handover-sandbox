@@ -1947,7 +1947,7 @@ export const ManagerDashboard = () => {
                   <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
                     {/* Opaque: the header sits over scrolling rows, and bg-navy/5
                         is only a 5% tint on its own. */}
-                    <TableHeader className="sticky top-0 z-10 table-header-tint">
+                    <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
                       <TableRow className="hover:bg-navy/5 border-b">
                         <TableHead className="w-10 text-navy">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />

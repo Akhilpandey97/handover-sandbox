@@ -127,15 +127,16 @@ export const TATDashlet = ({ projects }: Props) => {
           </div>
         </div>
 
+        {/* Stage averages as one compact line instead of cards. */}
         {stageAverages.length > 0 && (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${stageAverages.length}, minmax(0, 1fr))` }}>
+          <div className="flex items-center gap-x-3 gap-y-1 overflow-x-auto whitespace-nowrap text-[11px]">
             {stageAverages.map(stage => (
-              <div key={stage.id} className="min-w-0 rounded-md border border-border bg-muted/40 p-1.5">
-                <p className="truncate text-[10px] font-semibold text-muted-foreground" title={stage.label}>{stage.label}</p>
-                <p className="mt-0.5 text-sm font-semibold leading-tight tabular-nums text-foreground">
+              <span key={stage.id} className="flex shrink-0 items-baseline gap-1">
+                <span className="font-medium text-muted-foreground" title={stage.label}>{stage.label}</span>
+                <span className="font-semibold tabular-nums text-foreground">
                   {stage.avg === null ? "–" : `${stage.avg.toFixed(1)}d`}
-                </p>
-              </div>
+                </span>
+              </span>
             ))}
           </div>
         )}
