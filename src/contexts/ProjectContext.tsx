@@ -17,11 +17,17 @@ import {
   useToggleChecklistResponsibility,
 } from "@/hooks/useProjects";
 
+// Lets a caller add its own feedback once the mutation has actually settled, instead of
+// assuming success the moment it is fired.
+interface MutationCallbacks {
+  onSuccess?: () => void;
+}
+
 interface ProjectContextType {
   projects: Project[];
   isLoading: boolean;
   addProject: (project: Project) => void;
-  updateProject: (project: Project) => void;
+  updateProject: (project: Project, callbacks?: MutationCallbacks) => void;
   deleteProject: (projectId: string) => void;
   archiveProject: (projectId: string, archive: boolean) => void;
   acceptProject: (projectId: string) => void;
@@ -60,8 +66,8 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     addProjectMutation.mutate(project);
   };
 
-  const updateProject = (updatedProject: Project) => {
-    updateProjectMutation.mutate(updatedProject);
+  const updateProject = (updatedProject: Project, callbacks?: MutationCallbacks) => {
+    updateProjectMutation.mutate(updatedProject, { onSuccess: callbacks?.onSuccess });
   };
 
   const deleteProject = (projectId: string) => {

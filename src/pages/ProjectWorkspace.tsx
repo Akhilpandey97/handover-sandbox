@@ -667,14 +667,16 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   };
 
   const handleSaveEdit = (updatedProject: Project) => {
-    updateProject(updatedProject);
-    toast.success("Project updated successfully");
+    // The update hook only toasts on failure, so confirm here — but only once it has landed.
+    updateProject(updatedProject, {
+      onSuccess: () => toast.success("Project updated successfully"),
+    });
   };
 
   const handleDelete = () => {
+    // The mutation reports its own success/failure.
     deleteProject(project.id);
     setDeleteConfirmOpen(false);
-    toast.success("Project deleted");
   };
 
   const handleTransfer = (assigneeId: string, assigneeName: string, notes: string) => {
@@ -682,12 +684,15 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     const nextTeam = teamLabels[nextTeamKey] || nextTeamKey;
     const transferNote = notes || `Transferred to ${nextTeam} team`;
     transferProject(project.id, `${transferNote} (Assigned to: ${assigneeName})`, assigneeId);
-    toast.success(`Transferred ${project.merchantName} to ${assigneeName}`);
   };
 
   const handleStateChange = (newState: ProjectState) => {
-    updateProject({ ...project, projectState: newState });
-    toast.success(`Project state updated to ${projectStateLabels[newState]}`);
+    updateProject(
+      { ...project, projectState: newState },
+      {
+        onSuccess: () => toast.success(`Project state updated to ${projectStateLabels[newState]}`),
+      },
+    );
   };
 
   return (

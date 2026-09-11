@@ -170,8 +170,8 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
   // nothing to send it back to, the mutation surfaces that as the error.
   const canReject = isPending;
   const handleAccept = () => {
+    // The mutation reports its own success/failure.
     acceptProject(project.id);
-    toast.success(`Accepted ${project.merchantName}`);
   };
 
   const handleReject = (reason: string) => {
@@ -184,12 +184,13 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
     const nextTeam = teamLabels[nextTeamKey] || nextTeamKey;
     const transferNote = notes || `Transferred to ${nextTeam} team`;
     transferProject(project.id, `${transferNote} (Assigned to: ${assigneeName})`, assigneeId);
-    toast.success(`Transferred ${project.merchantName} to ${assigneeName} (${nextTeam} team)`);
   };
 
   const handleSaveEdit = (updatedProject: Project) => {
-    updateProject(updatedProject);
-    toast.success("Project updated successfully");
+    // The update hook only toasts on failure, so confirm here — but only once it has landed.
+    updateProject(updatedProject, {
+      onSuccess: () => toast.success("Project updated successfully"),
+    });
   };
 
   const handleDelete = () => {
