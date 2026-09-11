@@ -59,8 +59,15 @@ export const TeamDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [projectToolbarHost, setProjectToolbarHost] = useState<HTMLDivElement | null>(null);
   const [drillDown, setDrillDown] = useState<{ title: string; description?: string; projects: Project[] } | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<Project | null>(null);
   const {
     order: dashletOrder,
+    visibleOrder,
+    hidden,
+    toggleHidden,
+    custom: customDashlets,
+    addCustom,
+    removeCustom,
     dragging,
     onDragStart,
     onDragOver,
