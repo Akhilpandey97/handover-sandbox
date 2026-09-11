@@ -16,6 +16,7 @@ import {
   Search,
   Settings,
   UserCheck,
+  XCircle,
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -213,8 +214,8 @@ export const TeamDashboard = () => {
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <Button size="sm" className="h-7 px-2.5 text-xs" onClick={() => acceptProject(project.id)}>Accept</Button>
-                      <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs" onClick={() => setRejectTarget(project)}>Reject</Button>
+                      <Button size="sm" className="h-7 gap-1 bg-emerald-500 px-2.5 text-xs text-white hover:bg-emerald-600" onClick={() => acceptProject(project.id)}><CheckCircle2 className="h-3 w-3" />Accept</Button>
+                      <Button size="sm" variant="destructive" className="h-7 gap-1 px-2.5 text-xs" onClick={() => setRejectTarget(project)}><XCircle className="h-3 w-3" />Reject</Button>
                     </div>
                   </div>
                 );
