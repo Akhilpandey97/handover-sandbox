@@ -124,13 +124,53 @@ export const MeetingSchedulerDialog = ({
     }
   };
 
-  const canSave = title.trim().length > 0 && joinUrl.trim().length > 0 && scheduledAt.length > 0;
+  const canSave = title.trim().length > 0 && scheduledAt.length > 0;
+
+  /**
+   * Ask the tenant's own provider account for a real meeting. Returns null when
+   * that tenant has no credentials for the provider, leaving the manual box.
+   */
+  const generateLink = async (silent = false): Promise<string | null> => {
+    setGenerating(true);
+    try {
+      const { data, error } = await invokeApi<{ join_url: string }>("create-meeting-link", {
+        body: {
+          provider,
+          title: title.trim() || checklistItemTitle,
+          agenda: agenda.trim() || undefined,
+          scheduled_at: new Date(scheduledAt).toISOString(),
+          duration_minutes: Number(duration) || 30,
+          attendees,
+        },
+      });
+      if (error || !data?.join_url) {
+        if (!silent) toast.error(error?.message || "Could not create the link");
+        return null;
+      }
+      setJoinUrl(data.join_url);
+      if (!silent) toast.success("Link created");
+      return data.join_url;
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const handleSave = async () => {
     // A trailing address typed but not yet committed should still count.
     const pending = attendeeInput.trim().toLowerCase();
     const finalAttendees =
       pending && EMAIL_RE.test(pending) ? Array.from(new Set([...attendees, pending])) : attendees;
+
+    let link = joinUrl.trim();
+    if (!link) {
+      link = (await generateLink(true)) || "";
+      if (!link) {
+        toast.error(
+          `Add a ${providerMeta.label} link, or set up ${providerMeta.label} under Settings → Integrations to create one automatically.`,
+        );
+        return;
+      }
+    }
 
     await addMeeting.mutateAsync({
       checklist_item_id: checklistItemId,
