@@ -531,7 +531,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
         <CardContent className="flex min-h-0 flex-1 flex-col p-0">
             <div className="h-1 w-full shrink-0 bg-navy" />
             <div className="min-h-0 flex-1 overflow-auto">
-            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-sm w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
+            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
               <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
                 <TableRow className="hover:bg-navy/5 border-b">
                   <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">Opportunity</TableHead>
@@ -581,7 +581,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                       </TableCell>
                     )}
                     {isVisible("status") && (
-                      <TableCell className="whitespace-nowrap text-sm">
+                      <TableCell className="whitespace-nowrap">
                         {projectStateLabels[p.project_state as keyof typeof projectStateLabels] || "—"}
                       </TableCell>
                     )}
@@ -605,7 +605,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                           }}
                           onBlur={e => updateInsight(p.id, "blocker", e.target.value)}
                           onClick={e => e.stopPropagation()}
-                          className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                          className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
                           placeholder="—"
                           rows={1}
                         />
@@ -623,7 +623,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                         }}
                         onBlur={e => updateInsight(p.id, "blocked_on", e.target.value)}
                         onClick={e => e.stopPropagation()}
-                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
                         placeholder="—"
                         rows={1}
                       />
@@ -640,7 +640,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                         }}
                         onBlur={e => updateInsight(p.id, "deadline", e.target.value)}
                         onClick={e => e.stopPropagation()}
-                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-sm leading-5 rounded-sm overflow-hidden"
+                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
                         placeholder="—"
                         rows={1}
                       />
@@ -672,10 +672,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                       </TableCell>
                     )}
                     {SYSTEM_COLUMNS.map(col => isVisible(col.key) && (
-                      <TableCell key={col.key} className="whitespace-nowrap text-sm">{systemValue(p.id, col.key)}</TableCell>
+                      <TableCell key={col.key} className="whitespace-nowrap">{systemValue(p.id, col.key)}</TableCell>
                     ))}
                     {customFields.map(cf => isVisible(`custom_field_${cf.id}`) && (
-                      <TableCell key={cf.id} className="whitespace-nowrap text-sm">
+                      <TableCell key={cf.id} className="whitespace-nowrap">
                         {customValuesMap[p.id]?.[cf.id] || "—"}
                       </TableCell>
                     ))}
