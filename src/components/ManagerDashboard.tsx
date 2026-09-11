@@ -1449,7 +1449,7 @@ export const ManagerDashboard = () => {
                       <div>
                         <p className="text-sm font-semibold text-foreground">Team workload</p>
                       </div>
-                      <Users className="h-4 w-4 text-primary" />
+
                     </div>
                     <div className="min-h-0 flex-1 divide-y divide-border overflow-y-auto">
                         {teamOwnerReport.map((team) => {
@@ -1543,7 +1543,7 @@ export const ManagerDashboard = () => {
                       <div>
                         <p className="text-sm font-semibold text-foreground">Delivery stages</p>
                       </div>
-                      <BarChart3 className="h-4 w-4 text-primary" />
+
                     </div>
                     <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
                         {(() => {
@@ -1585,7 +1585,7 @@ export const ManagerDashboard = () => {
                       <div>
                         <p className="text-sm font-semibold text-foreground">Delivery health</p>
                       </div>
-                      <Settings className="h-4 w-4 text-primary" />
+
                     </div>
                     <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
                         {(Object.keys(projectStateLabels) as ProjectState[]).map(state => {

@@ -4,7 +4,7 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { useFunnelConfig } from "@/hooks/useFunnelConfig";
 import type { FunnelStageRule } from "@/data/funnelConfig";
 
-import { Timer } from "lucide-react";
+
 import { arrToCrore } from "@/lib/arr";
 
 // ARR is stored in rupees for imported data but some rows are already in Cr.
@@ -101,12 +101,10 @@ export const TATDashlet = ({ projects }: Props) => {
 
   return (
     <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
-      <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <div>
-          <p className="text-sm font-semibold text-foreground">TAT</p>
-        </div>
-        <Timer className="h-4 w-4 text-primary" />
+      <div className="border-b border-border px-4 py-2.5">
+        <p className="text-sm font-semibold text-foreground">TAT</p>
       </div>
+
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-md bg-sky-50 p-2 dark:bg-sky-950/40">
