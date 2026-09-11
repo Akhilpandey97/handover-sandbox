@@ -852,9 +852,10 @@ export const useRejectProject = () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project rejected and sent back");
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error("Error rejecting project:", error);
-      toast.error("Failed to reject project");
+      const message = error instanceof Error ? error.message : "";
+      toast.error(message ? `Failed to reject project: ${message}` : "Failed to reject project");
     },
   });
 };
