@@ -704,6 +704,119 @@ export type Database = {
           },
         ]
       }
+      checklist_meetings: {
+        Row: {
+          agenda: string | null
+          analysed_at: string | null
+          analysis_error: string | null
+          analysis_status: string
+          attendees: Json
+          checklist_item_id: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          duration_minutes: number
+          id: string
+          invite_sent_at: string | null
+          join_url: string
+          mom_comment_id: string | null
+          project_id: string
+          provider: string
+          provider_meeting_id: string | null
+          scheduled_at: string
+          status: string
+          tenant_id: string | null
+          title: string
+          transcript: string | null
+          transcript_received_at: string | null
+          transcript_source: string | null
+          updated_at: string
+        }
+        Insert: {
+          agenda?: string | null
+          analysed_at?: string | null
+          analysis_error?: string | null
+          analysis_status?: string
+          attendees?: Json
+          checklist_item_id: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          duration_minutes?: number
+          id?: string
+          invite_sent_at?: string | null
+          join_url: string
+          mom_comment_id?: string | null
+          project_id: string
+          provider: string
+          provider_meeting_id?: string | null
+          scheduled_at: string
+          status?: string
+          tenant_id?: string | null
+          title: string
+          transcript?: string | null
+          transcript_received_at?: string | null
+          transcript_source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agenda?: string | null
+          analysed_at?: string | null
+          analysis_error?: string | null
+          analysis_status?: string
+          attendees?: Json
+          checklist_item_id?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          duration_minutes?: number
+          id?: string
+          invite_sent_at?: string | null
+          join_url?: string
+          mom_comment_id?: string | null
+          project_id?: string
+          provider?: string
+          provider_meeting_id?: string | null
+          scheduled_at?: string
+          status?: string
+          tenant_id?: string | null
+          title?: string
+          transcript?: string | null
+          transcript_received_at?: string | null
+          transcript_source?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_meetings_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_meetings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_meetings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_meetings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checklist_responsibility_logs: {
         Row: {
           checklist_item_id: string
@@ -2689,6 +2802,9 @@ export type Database = {
           from_name: string | null
           gmail_monitor_address: string | null
           google_mail_api_key: string | null
+          google_meet_refresh_token: string | null
+          google_oauth_client_id: string | null
+          google_oauth_client_secret: string | null
           id: string
           jira_api_token: string | null
           jira_base_url: string | null
@@ -2699,8 +2815,15 @@ export type Database = {
           slack_bot_token: string | null
           slack_channel: string | null
           slack_webhook_url: string | null
+          teams_client_id: string | null
+          teams_client_secret: string | null
+          teams_tenant_id: string | null
           tenant_id: string
           updated_at: string
+          zoom_account_id: string | null
+          zoom_client_id: string | null
+          zoom_client_secret: string | null
+          zoom_webhook_secret: string | null
         }
         Insert: {
           app_base_url?: string | null
@@ -2709,6 +2832,9 @@ export type Database = {
           from_name?: string | null
           gmail_monitor_address?: string | null
           google_mail_api_key?: string | null
+          google_meet_refresh_token?: string | null
+          google_oauth_client_id?: string | null
+          google_oauth_client_secret?: string | null
           id?: string
           jira_api_token?: string | null
           jira_base_url?: string | null
@@ -2719,8 +2845,15 @@ export type Database = {
           slack_bot_token?: string | null
           slack_channel?: string | null
           slack_webhook_url?: string | null
+          teams_client_id?: string | null
+          teams_client_secret?: string | null
+          teams_tenant_id?: string | null
           tenant_id: string
           updated_at?: string
+          zoom_account_id?: string | null
+          zoom_client_id?: string | null
+          zoom_client_secret?: string | null
+          zoom_webhook_secret?: string | null
         }
         Update: {
           app_base_url?: string | null
@@ -2729,6 +2862,9 @@ export type Database = {
           from_name?: string | null
           gmail_monitor_address?: string | null
           google_mail_api_key?: string | null
+          google_meet_refresh_token?: string | null
+          google_oauth_client_id?: string | null
+          google_oauth_client_secret?: string | null
           id?: string
           jira_api_token?: string | null
           jira_base_url?: string | null
@@ -2739,8 +2875,15 @@ export type Database = {
           slack_bot_token?: string | null
           slack_channel?: string | null
           slack_webhook_url?: string | null
+          teams_client_id?: string | null
+          teams_client_secret?: string | null
+          teams_tenant_id?: string | null
           tenant_id?: string
           updated_at?: string
+          zoom_account_id?: string | null
+          zoom_client_id?: string | null
+          zoom_client_secret?: string | null
+          zoom_webhook_secret?: string | null
         }
         Relationships: [
           {

@@ -1,0 +1,1 @@
+SELECT private.schedule_app_job('app-poll-meeting-transcripts', '*/15 * * * *', 'poll-meeting-transcripts');
