@@ -22,6 +22,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { type Project, type ProjectState, getProjectFunnelStage, projectStateLabels } from "@/data/projectsData";
+import { getActiveFunnelStages } from "@/data/funnelConfig";
+import { formatGoLiveDate } from "./GoLiveDate";
 import { arrToCrore } from "@/lib/arr";
 import { cn } from "@/lib/utils";
 import { parseDashboardPath, projectViewPath } from "@/lib/dashboard-routes";
@@ -190,15 +192,33 @@ export const TeamDashboard = () => {
             </div>
           ) : (
             <div className="divide-y divide-border">
-              {incomingProjects.map((project) => (
-                <div key={project.id} className="flex items-center justify-between gap-3 px-1 py-2">
-                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{project.merchantName}</p>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <Button size="sm" className="h-7 px-2.5 text-xs" onClick={() => acceptProject(project.id)}>Accept</Button>
-                    <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs" onClick={() => setRejectTarget(project)}>Reject</Button>
+              {incomingProjects.map((project) => {
+                const stageId = getProjectFunnelStage(project);
+                const stageLabel = getActiveFunnelStages().find((s) => s.id === stageId)?.label || "—";
+                return (
+                  <div key={project.id} className="flex items-center justify-between gap-3 px-1 py-2">
+                    <div className="min-w-0 flex-1">
+                      <button
+                        type="button"
+                        className="block max-w-full truncate text-left text-sm font-medium text-foreground hover:text-primary hover:underline"
+                        onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
+                      >
+                        {project.merchantName}
+                      </button>
+                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                        <span>{arrLabel}: {arrToCrore(project.arr).toFixed(2)} Cr</span>
+                        <span>· {getLabel("field_project_state")}: {stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span>
+                        <span>· {getLabel("field_project_stage")}: {stageLabel}</span>
+                        <span>· {getLabel("field_expected_go_live_date")}: {formatGoLiveDate(project)}</span>
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <Button size="sm" className="h-7 px-2.5 text-xs" onClick={() => acceptProject(project.id)}>Accept</Button>
+                      <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs" onClick={() => setRejectTarget(project)}>Reject</Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
