@@ -21,10 +21,10 @@
 
 ## In progress
 - [ ] Restrict private storage reads to the matching tenant or project.
-- [ ] Align all remaining tabs with the Dashboard and Projects visual system.
-- [ ] Rebuild Settings → Integrations as one compact card per integration.
 
 ## Done (later)
+- [x] Aligned all remaining tabs with the Dashboard and Projects visual system.
+- [x] Rebuilt Settings → Integrations as one compact card per integration.
 - [x] Revamped the standard user dashboard with the manager shell, user-scoped
       Workbench, incoming-project acceptance, Kanban, Go-Live Tracker, and Buddy
 - [x] Team Management synced: custom teams from Settings now flow into every
