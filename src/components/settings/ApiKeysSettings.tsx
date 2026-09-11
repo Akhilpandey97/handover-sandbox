@@ -87,10 +87,10 @@ export function ApiKeysSettings() {
 
   if (forbidden) {
     return (
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />API Keys
+          <CardTitle className="portal-heading flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-primary" />API Keys
           </CardTitle>
           <CardDescription>Only workspace admins and managers can manage API keys.</CardDescription>
         </CardHeader>
@@ -99,10 +99,13 @@ export function ApiKeysSettings() {
   }
 
   return (
-    <Card>
+    <Card className="transition-colors hover:border-primary/35">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <KeyRound className="h-5 w-5" />API Keys
+        <CardTitle className="portal-heading flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-primary shadow-sm">
+            <KeyRound className="h-4 w-4" />
+          </span>
+          API Keys
         </CardTitle>
         <CardDescription>
           Give your CRM a key so a won deal can create a project in Handover automatically. Send it
@@ -110,15 +113,16 @@ export function ApiKeysSettings() {
           shown once — copy it now and store it in your CRM.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="flex gap-2">
           <Input
             placeholder="Key name (e.g. Salesforce production)"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            className="h-8 text-xs"
           />
-          <Button onClick={create} disabled={creating || !name.trim()} className="gap-2 shrink-0">
-            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          <Button onClick={create} disabled={creating || !name.trim()} size="sm" className="h-8 gap-1.5 shrink-0 text-xs">
+            {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
             Create key
           </Button>
         </div>

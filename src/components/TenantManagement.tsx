@@ -239,12 +239,12 @@ export const TenantManagement = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
+              <CardTitle className="portal-heading flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
                 Tenant Management
               </CardTitle>
               <CardDescription>

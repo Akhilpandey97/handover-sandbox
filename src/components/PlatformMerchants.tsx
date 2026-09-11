@@ -529,8 +529,8 @@ export const PlatformMerchants = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Server className="h-6 w-6 text-primary" /> Platform Merchants
+          <h2 className="portal-heading flex items-center gap-2">
+            <Server className="h-4 w-4 text-primary" /> Platform Merchants
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Tracked separately from main projects — across {PLATFORMS.join(", ")}.

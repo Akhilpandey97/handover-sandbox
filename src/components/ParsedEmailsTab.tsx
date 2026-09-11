@@ -136,13 +136,13 @@ export const ParsedEmailsTab = () => {
   const newCount = emails.filter((e) => e.status === "new").length;
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="mx-auto max-w-[1500px] space-y-4">
+      <Card className="shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
+              <CardTitle className="portal-heading flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />
                 Parsed Emails
                 {newCount > 0 && (
                   <Badge variant="destructive" className="ml-2">
@@ -173,7 +173,7 @@ export const ParsedEmailsTab = () => {
 
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={emails.length > 0 ? "p-0" : undefined}>
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -186,8 +186,8 @@ export const ParsedEmailsTab = () => {
             </div>
           ) : (
             <div className="overflow-auto">
-              <Table>
-                <TableHeader>
+              <Table wrapperClassName="rounded-none border-0 bg-transparent shadow-none">
+                <TableHeader className="table-header-tint">
                   <TableRow>
                     <TableHead className="w-[100px]">Status</TableHead>
                     <TableHead>Brand Name</TableHead>

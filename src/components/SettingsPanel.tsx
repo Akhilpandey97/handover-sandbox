@@ -330,10 +330,10 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-[1500px] space-y-4">
       {/* Save bar */}
       {hasChanges && (
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-background/95 backdrop-blur border border-border rounded-lg p-3">
+        <div className="sticky top-0 z-20 flex items-center justify-between rounded-lg border border-border bg-card p-3 shadow-sm">
           <p className="text-sm text-muted-foreground">
             You have <strong>{Object.keys(draft).length}</strong> unsaved change(s)
           </p>
@@ -390,19 +390,19 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
         {/* General Tab */}
         <TabsContent value="general" className="space-y-6">
           {perms.canManageBranding && <LogoUpload />}
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />General & Teams
+              <CardTitle className="portal-heading flex items-center gap-2">
+                <Settings className="h-4 w-4 text-primary" />General & Teams
               </CardTitle>
               <CardDescription>Application branding, team names, and responsibility labels</CardDescription>
             </CardHeader>
             <CardContent>{renderLabelGroups(GENERAL_GROUPS)}</CardContent>
           </Card>
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Tags className="h-5 w-5" />Project States
+              <CardTitle className="portal-heading flex items-center gap-2">
+                <Tags className="h-4 w-4 text-primary" />Project States
               </CardTitle>
               <CardDescription>Configure project state labels</CardDescription>
             </CardHeader>
@@ -418,10 +418,10 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
 
         {/* Field Labels Tab */}
         <TabsContent value="fields">
-          <Card>
+           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Tags className="h-5 w-5" />Field Labels
+              <CardTitle className="portal-heading flex items-center gap-2">
+                 <Tags className="h-4 w-4 text-primary" />Field Labels
               </CardTitle>
               <CardDescription>Customise labels for built-in project fields, links, dates, and notes</CardDescription>
             </CardHeader>
@@ -451,10 +451,10 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
               COLOR_GROUPS.flatMap(g => g.keys).map(({ key }) => [key, getValue(key)])
             )}
           />
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />Colours & Branding
+              <CardTitle className="portal-heading flex items-center gap-2">
+                <Palette className="h-4 w-4 text-primary" />Colours & Branding
               </CardTitle>
               <CardDescription>Fine-tune individual colours for team badges, card backgrounds, and state indicators</CardDescription>
             </CardHeader>
@@ -464,10 +464,10 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
 
         {/* Email Tab */}
         <TabsContent value="email">
-          <Card>
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />Email Monitoring
+              <CardTitle className="portal-heading flex items-center gap-2">
+                <Mail className="h-4 w-4 text-primary" />Email Monitoring
               </CardTitle>
               <CardDescription>Configure email parsing for auto-creating projects from emails</CardDescription>
             </CardHeader>

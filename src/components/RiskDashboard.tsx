@@ -198,7 +198,7 @@ export const RiskDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-[1500px] space-y-4">
       {/* Risk engine verdicts — deterministic, with AI prose layered on top */}
       <Card className="shadow-sm border-border">
         <CardHeader className="border-b bg-muted/30">
@@ -304,23 +304,23 @@ export const RiskDashboard = () => {
       </Card>
 
       {/* Filters + Add */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 shadow-sm">
         <Select value={filterCategory} onValueChange={setFilterCategory}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Category" /></SelectTrigger>
+          <SelectTrigger className="h-8 w-48 text-xs"><SelectValue placeholder="Category" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             {CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filterSeverity} onValueChange={setFilterSeverity}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Severity" /></SelectTrigger>
+          <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Severity" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Severities</SelectItem>
             {SEVERITIES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             {STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
@@ -328,17 +328,17 @@ export const RiskDashboard = () => {
         </Select>
         <div className="flex-1" />
         {!isReadOnly && (
-          <Button onClick={() => openDialog()} className="gap-2">
-            <Plus className="h-4 w-4" /> Add Risk
+          <Button onClick={() => openDialog()} size="sm" className="h-8 gap-1.5 text-xs">
+            <Plus className="h-3.5 w-3.5" /> Add Risk
           </Button>
         )}
       </div>
 
       {/* Risk Table */}
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
+          <Table wrapperClassName="rounded-none border-0 bg-transparent shadow-none">
+            <TableHeader className="table-header-tint">
               <TableRow>
                 <TableHead>Project</TableHead>
                 <TableHead>Risk</TableHead>
