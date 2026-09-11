@@ -123,7 +123,7 @@ import { formatGoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { toast } from "sonner";
 import { fetchAiInsights } from "@/utils/aiInsights";
-import { cn } from "@/lib/utils";
+import { cn, greeting } from "@/lib/utils";
 
 // Report components
 import { ExecutiveDashboard } from "./reports/ExecutiveDashboard";
@@ -1642,8 +1642,7 @@ export const ManagerDashboard = () => {
                 <>
                   <div className="mb-4 flex items-end justify-between gap-4">
                     <div>
-                      <h1 className="text-xl font-semibold tracking-tight text-foreground">Welcome, {currentUser?.name}</h1>
-                      <p className="mt-0.5 text-xs text-muted-foreground">Here's your overview for today</p>
+                      <h1 className="text-xl font-semibold tracking-tight text-foreground">{greeting()}, {currentUser?.name} — here are your actions for today</h1>
                     </div>
                     <DashletBuilder
                       items={builderItems}

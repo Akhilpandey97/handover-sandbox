@@ -26,7 +26,7 @@ import { type Project, type ProjectState, getProjectFunnelStage, projectStateLab
 import { getActiveFunnelStages } from "@/data/funnelConfig";
 import { formatGoLiveDate } from "./GoLiveDate";
 import { arrToCrore } from "@/lib/arr";
-import { cn } from "@/lib/utils";
+import { cn, greeting } from "@/lib/utils";
 import { parseDashboardPath, projectViewPath } from "@/lib/dashboard-routes";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
@@ -309,7 +309,7 @@ export const TeamDashboard = () => {
           <div className={cn("p-4 sm:p-6", (resolvedTab === "projects" || resolvedTab === "hi-there") && "flex min-h-0 flex-1 flex-col")}>
             {resolvedTab === "projects" && <div className="mb-3 flex shrink-0 flex-wrap items-center justify-center gap-2"><div className="flex items-center gap-1" role="tablist" aria-label="Project views">{[{ value: "kanban", label: "Kanban", icon: GripVertical }, { value: "golive", label: "Go-Live Tracker", icon: CalendarDays }].map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" size="sm" role="tab" aria-selected={projectView === value} onClick={() => navigate({ to: projectViewPath(value as "kanban" | "golive") })} className={cn("h-8 gap-1.5 text-xs", projectView === value && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground")}><Icon className="h-3.5 w-3.5" />{label}</Button>)}</div><div ref={setProjectToolbarHost} className="flex flex-wrap items-center gap-2" /></div>}
             {resolvedTab === "dashboard" && <div className="mx-auto max-w-[1500px]">
-              <div className="mb-4 flex items-end justify-between gap-4"><div><h1 className="text-xl font-semibold tracking-tight text-foreground">Welcome, {currentUser.name}</h1><p className="mt-0.5 text-xs text-muted-foreground">Here's your overview for today</p></div><DashletBuilder items={builderItems} hidden={hidden} onToggle={toggleHidden} custom={customDashlets} onAddCustom={addCustom} onRemoveCustom={removeCustom} /></div>
+              <div className="mb-4 flex items-end justify-between gap-4"><div><h1 className="text-xl font-semibold tracking-tight text-foreground">{greeting()}, {currentUser.name} — here are your actions for today</h1></div><DashletBuilder items={builderItems} hidden={hidden} onToggle={toggleHidden} custom={customDashlets} onAddCustom={addCustom} onRemoveCustom={removeCustom} /></div>
               <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">{visibleOrder.map((id) => dashlets[id] ? <DashletSlot key={id} className={id === "kpi" ? "row-span-1 lg:col-span-2" : "lg:col-span-1"} isDragging={dragging === id} onDragStart={() => onDragStart(id)} onDragOver={() => onDragOver(id)} onDragEnd={onDragEnd}>{dashlets[id]}</DashletSlot> : null)}</div>
               <ProjectListDialog title={drillDown?.title || ""} description={drillDown?.description} projects={drillDown?.projects || []} open={!!drillDown} onOpenChange={(open) => { if (!open) setDrillDown(null); }} />
               {rejectTarget && <RejectTransferDialog project={rejectTarget} open={!!rejectTarget} onOpenChange={(open) => { if (!open) setRejectTarget(null); }} onReject={(reason) => { rejectProject(rejectTarget.id, reason); setRejectTarget(null); }} />}
