@@ -248,46 +248,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /**
-   * Hands off to Google and returns via the redirect, where detectSessionInUrl
-   * picks the session up and onAuthStateChange resolves the profile.
-   *
-   * Google refuses to render its consent screen inside an iframe, so when the
-   * app is framed — the Lovable editor preview — we take the handoff to a new
-   * top-level tab instead of navigating the frame into a dead end.
+   * Managed Google sign-in. The helper handles the editor preview popup and the
+   * full-page redirect, then sets the session; onAuthStateChange resolves the
+   * profile from there.
    */
   const loginWithGoogle = async (): Promise<GoogleSignInResult> => {
     try {
       setAccessError(null);
-      const framed = typeof window !== "undefined" && window.parent !== window;
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-          // Let people pick an account instead of silently reusing the one
-          // their browser happens to be signed into.
-          queryParams: { prompt: "select_account" },
-          // Drive the navigation ourselves so the framed case can escape.
-          skipBrowserRedirect: true,
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: "select_account" },
       });
 
-      if (error) return { success: false, error: error.message };
-      if (!data?.url) {
-        return { success: false, error: "Google sign-in is not configured for this workspace" };
+      if (result.error) {
+        return { success: false, error: result.error.message ?? "Could not start Google sign-in" };
       }
 
-      if (framed) {
-        const opened = window.open(data.url, "_blank", "noopener,noreferrer");
-        if (!opened) {
-          return {
-            success: false,
-            error: "Allow pop-ups to sign in with Google, or open the app in its own tab",
-          };
-        }
-        return { success: true, openedInNewTab: true };
-      }
-
-      window.location.href = data.url;
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
