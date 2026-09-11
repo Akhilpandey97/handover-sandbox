@@ -68,12 +68,6 @@ export function PortalVisitsReport() {
     });
   }, [visits, search, projectFilter, projects]);
 
-  const stats = useMemo(() => {
-    const uniqueEmails = new Set(filtered.map(v => v.email)).size;
-    const uniqueProjects = new Set(filtered.map(v => v.project_id)).size;
-    return { total: filtered.length, uniqueEmails, uniqueProjects };
-  }, [filtered]);
-
   const projectOptions = useMemo(() => {
     const ids = Array.from(new Set(visits.map(v => v.project_id)));
     return ids.map(id => ({ id, name: projects[id]?.merchant_name || id.slice(0, 8) }));
@@ -98,15 +92,6 @@ export function PortalVisitsReport() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Total Visits</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats.total}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Unique Visitors</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats.uniqueEmails}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground">Projects Tracked</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats.uniqueProjects}</div></CardContent></Card>
-      </div>
-
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2">
           <CardTitle className="portal-heading flex items-center gap-2"><Eye className="w-4 h-4" /> Merchant Portal Visits</CardTitle>
