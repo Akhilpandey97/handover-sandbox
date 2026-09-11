@@ -189,7 +189,17 @@ export const TeamDashboard = () => {
               <p className="mt-1 text-[11px] text-muted-foreground">No incoming projects need acceptance.</p>
             </div>
           ) : (
-            <div className="space-y-2.5">{incomingProjects.map((project) => <ProjectCardNew key={project.id} project={project} riskVerdict={verdicts[project.id]} />)}</div>
+            <div className="divide-y divide-border">
+              {incomingProjects.map((project) => (
+                <div key={project.id} className="flex items-center justify-between gap-3 px-1 py-2">
+                  <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{project.merchantName}</p>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Button size="sm" className="h-7 px-2.5 text-xs" onClick={() => acceptProject(project.id)}>Accept</Button>
+                    <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs" onClick={() => setRejectTarget(project)}>Reject</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </section>
