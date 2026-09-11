@@ -123,7 +123,7 @@ import { formatGoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { toast } from "sonner";
 import { fetchAiInsights } from "@/utils/aiInsights";
-import { cn } from "@/lib/utils";
+import { cn, greeting } from "@/lib/utils";
 
 // Report components
 import { ExecutiveDashboard } from "./reports/ExecutiveDashboard";

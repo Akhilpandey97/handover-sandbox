@@ -26,7 +26,7 @@ import { type Project, type ProjectState, getProjectFunnelStage, projectStateLab
 import { getActiveFunnelStages } from "@/data/funnelConfig";
 import { formatGoLiveDate } from "./GoLiveDate";
 import { arrToCrore } from "@/lib/arr";
-import { cn } from "@/lib/utils";
+import { cn, greeting } from "@/lib/utils";
 import { parseDashboardPath, projectViewPath } from "@/lib/dashboard-routes";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
