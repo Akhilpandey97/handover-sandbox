@@ -183,7 +183,7 @@ export const MeetingSchedulerDialog = ({
       title: title.trim(),
       agenda: agenda.trim() || undefined,
       provider,
-      join_url: joinUrl.trim(),
+      join_url: link,
       scheduled_at: new Date(scheduledAt).toISOString(),
       duration_minutes: Number(duration) || 30,
       attendees: finalAttendees,
