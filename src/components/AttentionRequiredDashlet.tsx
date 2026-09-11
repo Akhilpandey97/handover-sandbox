@@ -8,7 +8,6 @@ import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { GoLiveDate } from "./GoLiveDate";
 import { AttentionReasonBlock } from "./AttentionReason";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
 import type { Project } from "@/data/projectsData";
 
 
