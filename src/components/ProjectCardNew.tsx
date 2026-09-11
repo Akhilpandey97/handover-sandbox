@@ -166,16 +166,17 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
 
   const isPending = project.pendingAcceptance && currentUser?.team === project.currentOwnerTeam;
 
-  // Can reject if pending and team is integration or ms (not mint, since mint is the first team)
-  const canReject = isPending && (currentUser?.team === "integration" || currentUser?.team === "ms");
+  // Any team can reject a pending project — it goes back to whoever sent it. If there is
+  // nothing to send it back to, the mutation surfaces that as the error.
+  const canReject = isPending;
   const handleAccept = () => {
     acceptProject(project.id);
     toast.success(`Accepted ${project.merchantName}`);
   };
 
   const handleReject = (reason: string) => {
+    // The mutation reports its own success/failure, including the real reason it failed.
     rejectProject(project.id, reason);
-    toast.success(`Rejected ${project.merchantName} — sent back for corrections`);
   };
 
   const handleTransfer = (assigneeId: string, assigneeName: string, notes: string) => {
