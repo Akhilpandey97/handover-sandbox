@@ -62,6 +62,7 @@ export const UserManagement = () => {
   const [selectedUserName, setSelectedUserName] = useState<string>("");
   const [newPassword, setNewPassword] = useState("");
   const [isSettingPassword, setIsSettingPassword] = useState(false);
+  const [resettingId, setResettingId] = useState<string | null>(null);
 
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
