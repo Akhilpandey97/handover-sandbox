@@ -175,6 +175,13 @@ export const useProjectsQuery = () => {
 
       if (projectsError) throw projectsError;
 
+      const { data: credentialRows } = await supabase
+        .from("project_credentials")
+        .select("*");
+      const credentialsByProject = new Map(
+        (credentialRows ?? []).map((row) => [row.project_id, row]),
+      );
+
       // Fetch profiles for owner name lookup
       const { data: profiles } = await supabase.from("profiles").select("id, name");
       const profileMap = new Map<string, string>();
@@ -270,6 +277,7 @@ export const useProjectsQuery = () => {
         // step with the checklist until somebody sets the date themselves.
         return transformDbProject({
           ...project,
+          ...(credentialsByProject.get(project.id) ?? {}),
           checklist_items: items,
           responsibility_logs: logsByProject.get(project.id) || [],
           transfer_history: transfersByProject.get(project.id) || [],
@@ -409,6 +417,7 @@ const diffProject = (oldP: Project | undefined, newP: Project): { field: string;
 // Update project mutation
 export const useUpdateProject = () => {
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
 
   return useMutation({
     mutationFn: async (project: Project) => {
@@ -465,27 +474,36 @@ export const useUpdateProject = () => {
            config_id: project.configId || null,
            sandbox_mid: project.sandboxMid || null,
            sandbox_app_id: project.sandboxAppId || null,
-           sandbox_app_secret: project.sandboxAppSecret || null,
            sandbox_base_url: project.sandboxBaseUrl || null,
            sandbox_config_id: project.sandboxConfigId || null,
-           sandbox_kwikpass_jwe_key: project.sandboxKwikpassJweKey || null,
            prod_mid: project.prodMid || null,
            prod_app_id: project.prodAppId || null,
-           prod_app_secret: project.prodAppSecret || null,
            prod_base_url: project.prodBaseUrl || null,
            prod_config_id: project.prodConfigId || null,
-           prod_kwikpass_jwe_key: project.prodKwikpassJweKey || null,
             mcp_config_id: project.mcpConfigId || null,
             enable_mcp_document: project.enableMcpDocument || false,
             enable_kp: project.enableKp || false,
-            kp_prod_jwe_key: project.kpProdJweKey || null,
-            kp_sandbox_jwe_key: project.kpSandboxJweKey || 'zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI',
              faq_help: (project.faqHelp ?? []) as any,
              payment_simulator_link: project.paymentSimulatorLink || null,
          })
         .eq("id", project.id);
 
       if (error) throw error;
+      if (currentUser?.tenantId && ["admin", "super_admin", "superadmin"].includes(currentUser.team)) {
+        const { error: credentialsError } = await supabase
+          .from("project_credentials")
+          .upsert({
+            project_id: project.id,
+            tenant_id: currentUser.tenantId,
+            sandbox_app_secret: project.sandboxAppSecret || null,
+            sandbox_kwikpass_jwe_key: project.sandboxKwikpassJweKey || null,
+            prod_app_secret: project.prodAppSecret || null,
+            prod_kwikpass_jwe_key: project.prodKwikpassJweKey || null,
+            kp_prod_jwe_key: project.kpProdJweKey || null,
+            kp_sandbox_jwe_key: project.kpSandboxJweKey || null,
+          }, { onConflict: "project_id" });
+        if (credentialsError) throw credentialsError;
+      }
       return { project, changes: diffProject(oldProject, project) };
     },
     onSuccess: ({ project, changes }) => {
