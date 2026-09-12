@@ -21,7 +21,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { UserPlus, Users, RefreshCw, Key, Pencil, Trash2 } from "lucide-react";
+import { UserPlus, Users, RefreshCw, Key, Pencil, Trash2, Mail } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
 
 interface UserWithRole {
@@ -62,6 +62,7 @@ export const UserManagement = () => {
   const [selectedUserName, setSelectedUserName] = useState<string>("");
   const [newPassword, setNewPassword] = useState("");
   const [isSettingPassword, setIsSettingPassword] = useState(false);
+  const [resettingId, setResettingId] = useState<string | null>(null);
 
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -171,6 +172,25 @@ export const UserManagement = () => {
       toast.error(error.message || "Failed to set password");
     } finally {
       setIsSettingPassword(false);
+    }
+  };
+
+  /**
+   * Emails the user a recovery link. This goes through the auth service, so the
+   * admin never sees or sets the new password.
+   */
+  const handleSendResetEmail = async (user: UserWithRole) => {
+    setResettingId(user.id);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success(`Password reset email sent to ${user.email}`);
+    } catch (error: any) {
+      toast.error(error.message || "Could not send reset email");
+    } finally {
+      setResettingId(null);
     }
   };
 
@@ -330,6 +350,9 @@ export const UserManagement = () => {
                     <div className="flex items-center justify-end gap-1">
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(user)} title="Edit user">
                         <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" disabled={resettingId === user.id} onClick={() => handleSendResetEmail(user)} title="Send password reset email">
+                        <Mail className={`h-4 w-4 ${resettingId === user.id ? "animate-pulse" : ""}`} />
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => { setSelectedUserId(user.id); setSelectedUserName(user.name); setNewPassword(""); setPasswordDialogOpen(true); }} title="Set password">
                         <Key className="h-4 w-4" />
