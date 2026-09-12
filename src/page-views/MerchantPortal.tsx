@@ -131,7 +131,7 @@ function buildStagesFromChecklist(checklist: PortalData["checklist"]): { num: nu
   }
   return checklist.map((item, i) => ({
     num: i + 1,
-    label: item.title.length > 18 ? item.title.substring(0, 16) + "…" : item.title,
+    label: item.title,
   }));
 }
 
@@ -243,7 +243,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
       <button
         onClick={() => setOpen(true)}
         data-tour="tour-ai"
-        className="fixed bottom-5 left-5 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
+        className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
         style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.accent})` }}
         title="Handover Assist Chat"
       >
@@ -253,7 +253,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
   }
 
   return (
-    <div className="fixed bottom-5 left-5 z-50 w-[380px] max-h-[560px] rounded-2xl shadow-2xl border border-border bg-card flex flex-col overflow-hidden">
+    <div className="fixed bottom-5 right-5 z-50 w-[380px] max-w-[calc(100vw-2.5rem)] max-h-[560px] rounded-2xl shadow-2xl border border-border bg-card flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border" style={{ background: BRAND.primary }}>
         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -641,6 +641,7 @@ export default function MerchantPortal() {
 
   const currentStage = useMemo(() => (data ? deriveCurrentStage(data) : 1), [data]);
   const orgName = data?.branding?.org_name || "Handover";
+  const orgLogoUrl = data?.branding?.org_logo_url || data?.branding?.logo_url || "";
 
   // ===== NO TOKEN =====
   if (!token) {
@@ -813,17 +814,26 @@ export default function MerchantPortal() {
       )}>
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
-            <span className={cn(
-              "flex items-center justify-center rounded-xl gradient-primary shadow-[var(--shadow-soft)] shrink-0",
-              sidebarCollapsed ? "h-8 w-8" : "h-11 w-11",
-            )}>
-              <Zap className={cn("text-primary-foreground", sidebarCollapsed ? "h-4 w-4" : "h-5 w-5")} fill="currentColor" />
-            </span>
+            {orgLogoUrl ? (
+              <img
+                src={orgLogoUrl}
+                alt={`${orgName} logo`}
+                className={cn(
+                  "shrink-0 rounded-xl bg-sidebar-accent object-contain shadow-[var(--shadow-soft)]",
+                  sidebarCollapsed ? "h-8 w-8" : "h-11 w-11",
+                )}
+              />
+            ) : (
+              <span className={cn(
+                "flex shrink-0 items-center justify-center rounded-xl gradient-primary shadow-[var(--shadow-soft)]",
+                sidebarCollapsed ? "h-8 w-8" : "h-11 w-11",
+              )}>
+                <Zap className={cn("text-primary-foreground", sidebarCollapsed ? "h-4 w-4" : "h-5 w-5")} fill="currentColor" />
+              </span>
+            )}
             {!sidebarCollapsed && (
               <>
-                <div className="min-w-0 flex-1">
-                  <KwikAssistLogo size="sm" onClick={() => setActivePage("integration")} />
-                </div>
+                <div className="min-w-0 flex-1" />
                 <div className="flex shrink-0 items-center gap-0.5">
                   <button
                     onClick={() => setSearchOpen((open) => !open)}
@@ -1232,10 +1242,6 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
               {project.brand_url || "—"} · {project.platform} · {project.integration_type || "Standard"}
             </p>
           </div>
-          <span className="text-xs font-bold px-3 py-1.5 rounded-full whitespace-nowrap border"
-            style={{ background: BRAND.primarySoft, color: BRAND.primary, borderColor: `${BRAND.primary}30` }}>
-            Stage {currentStage}: {stages[currentStage - 1]?.label}
-          </span>
         </div>
         {brdProgress && brdProgress.total > 0 && brdProgress.status !== "completed" && (
           <button
@@ -1283,14 +1289,14 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         <div className="h-2 bg-muted rounded-full overflow-hidden mb-6 mt-3">
           <div className="h-full rounded-full transition-all duration-700" style={{ width: `${checklist_progress.percent}%`, background: `linear-gradient(90deg, ${BRAND.accent}, ${BRAND.primary})` }} />
         </div>
-        <div className="flex items-center justify-between px-2 overflow-x-auto">
+        <div className="flex items-start gap-3 overflow-x-auto px-2 pb-2">
           {stages.map((stage, i) => {
             const isDone = data.checklist[i]?.completed;
             const isCurrent = stage.num === currentStage;
             const isFuture = !isDone && !isCurrent;
             return (
-              <div key={stage.num} className="flex items-center">
-                <div className="flex flex-col items-center min-w-[52px]">
+              <div key={stage.num} className="flex min-w-0 flex-1 items-start">
+                <div className="flex min-w-[110px] flex-1 flex-col items-center">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all",
                     isFuture && "bg-muted text-muted-foreground border border-border"
@@ -1300,7 +1306,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                     {isDone ? <CheckCircle2 className="w-5 h-5" /> : stage.num}
                   </div>
                   <span className={cn(
-                    "mt-2 text-[10px] text-center leading-tight max-w-[60px]",
+                    "mt-2 max-w-[150px] whitespace-normal text-center text-[10px] leading-tight",
                     isFuture && "text-muted-foreground"
                   )}
                     style={isDone ? { color: BRAND.green } : isCurrent ? { color: BRAND.accent, fontWeight: 700 } : {}}>
@@ -1308,7 +1314,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                   </span>
                 </div>
                 {i < stages.length - 1 && (
-                  <div className={cn("w-6 lg:w-10 h-0.5 mx-0.5 mt-[-20px]")}
+                  <div className={cn("mt-5 h-0.5 min-w-5 flex-1")}
                     style={{ background: isDone ? BRAND.green : darkMode_bg() }} />
                 )}
               </div>
@@ -2081,57 +2087,22 @@ function PaymentSimulatorPage({ link }: { link: string }) {
 
 function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
-  const defaultFaqs: { q: string; a: string }[] = [
-    { q: "What is a BRD and why is a sign-off required?", a: "The Business Requirement Document (BRD) outlines all essential business requirements for the Kwik Checkout integration. Sign-off is crucial to ensure alignment between Handover and the merchant on expectations and deliverables before commencing integration." },
-    { q: "Why is pre-Handover data and GA access required?", a: "Pre-Handover data is essential for benchmarking value delivery (VD) metrics, while Google Analytics (GA) access enables progress tracking from Day 0." },
-    { q: "What integrations must be completed on the merchant's end alongside Handover integration?", a: "The merchant must integrate the Handover SDK, Update Order API (including automatic refund handling), and mandatory frontend events critical to the functionality of Kwik Checkout." },
-    { q: "What parameters must be passed in the Handover SDK to invoke Kwik Checkout?", a: "• merchant_id: Provided by Handover for sandbox and production environments\n• phone_number: For logged-in user flow (optional for guest users)\n• merchant_checkout_id: Cart ID of the current transaction\n• customer_token: Access/Bearer token for registered users (optional)\n• utm_params: For lead source-level analysis (optional)" },
-    { q: "Why is it necessary to share UAT test cases with Handover?", a: "Sharing test cases ensures comprehensive validation of user flows and merchant-specific scenarios prior to sandbox readiness." },
-    { q: "What is the recommended method for conducting production testing without going live?", a: "Switching from sandbox MID/API URL to production MID/API URL while pointing the sandbox store to Handover's production environment." },
-    { q: "How can a manual refund be initiated?", a: "Manual refunds can be initiated through the Merchant Dashboard with admin-level access." },
-    { q: "What distinguishes Sandbox UAT from Production UAT?", a: "Sandbox UAT involves full integration testing across all flows. Production UAT primarily verifies payment method functionality, dashboard data reflection, and refund/return workflows." },
-    { q: "What is the acceptable API response time for merchants?", a: "Response time under 250ms is considered acceptable; exceeding this indicates suboptimal performance." },
-    { q: "Why does the error \"Merchant Data Not Found\" occur?", a: "This error typically results from misconfigured credentials, such as an incorrect MID or API URL on either Handover or merchant side." },
-    { q: "What are the mandatory frontend events for Go Live?", a: "• order-complete: Redirect from Handover's \"Congratulations\" page to Merchant's \"Thank You\" page\n• checkout-close: Return to source if checkout is closed\n• checkout-initiation-failure: Fallback to native checkout if the Handover Checkout fails to load." },
-    { q: "How is wallet functionality handled on Kwik Checkout?", a: "Wallet functionality is supported via merchant-provided APIs for wallet balance, apply, and remove actions. Details are available in the integration document." },
-    { q: "How is \"Out of Stock\" condition managed during checkout?", a: "The handling mechanism must be implemented using merchant APIs and event triggers; refer to Handover's documentation for integration steps." },
-    { q: "Can an order be created before payment and updated post confirmation?", a: "Yes, merchants can create an order on initiation and update it post successful payment. Handover supports retries and provides webhook support for transaction failures." },
-    { q: "Can Handover SDK be integrated in a local environment?", a: "No, Kwik Checkout must be deployed on a server; local integration is not supported." },
-    { q: "What causes the error \"Cart is Inactive\" during multiple tab access?", a: "This error arises from parallel checkout attempts. Use the \"checkout-close\" event to gracefully handle this scenario." },
-    { q: "Why can't merchants place orders using card/net banking on sandbox?", a: "Only Freecharge is enabled for prepaid simulation in the sandbox. Full payment gateway options are available in the production environment." },
-    { q: "What payment methods are available in the Handover sandbox?", a: "Cash on Delivery and Wallet-Freecharge (simulation only for prepaid flow)." },
-    { q: "Why do card transactions below INR 5 fail on a sandbox?", a: "Most banks reject low-value transactions. Use a cart value above INR 5 to test successfully." },
-    { q: "Can customers edit wallet amounts on checkout?", a: "Currently, wallet amounts cannot be manually edited by customers." },
-    { q: "Why does the cart page refresh when the Handover popup is triggered?", a: "The cart page refreshes to fetch updated details from all active carts." },
-    { q: "What payment methods are supported by Handover?", a: "• Cash On Delivery\n• UPI (e.g., Google Pay, PhonePe)\n• Credit/Debit Cards\n• Net Banking\n• Wallets (e.g., Amazon Pay, Airtel Money)\n• NCEMI" },
-    { q: "Do we offer no cost EMI? How does it work?", a: "Yes we offer no cost EMI. We allow creation of payment offers on EMI which allows merchants to offer instant discounts equivalent to interest charged by the bank, thereby making the effective interest 0.\n\nFor example, if the cart value is 100 and interest charged is 10 then an upfront discount of 10 is given to cover the interest charged. The bank would continue to charge the interest on each EMI but interest + principal would be equal to the cart value.\n\nNote: Any additional charges like EMI processing fee/GST are not covered by this discount. For more details reach out to your Program Manager/Customer Success Manager." },
-    { q: "Does the address list show duplicates?", a: "Yes, if duplicate checks aren't implemented by the merchant. Use a unique `address_id` to avoid this." },
-    { q: "Does the checkout show only the shipping address?", a: "Yes, only the shipping address is shown during checkout." },
-    { q: "Can users change countries in the shipping address?", a: "No, Handover currently supports only domestic checkouts within India." },
-    { q: "Can customers select existing shipping addresses during checkout?", a: "Yes, users can switch between existing addresses or add new ones." },
-    { q: "Is the 'Deliver To' option visible on the payment page?", a: "It depends on the chosen flow:\n• Regular Flow: Address verification before payment (no 'Deliver To' option)\n• Click to Payment Flow: 'Deliver To' shown on payment page for verification" },
-    { q: "Does Handover send refund webhook responses?", a: "Yes, for successful, failed, and initiated refunds, upon merchant request." },
-    { q: "Does Handover send webhook responses for transactions?", a: "Yes, for both successful and failed transactions, on merchant request." },
-    { q: "What validations are in place for addresses?", a: "• Gibberish content is flagged\n• First names are mandatory; last names default to '.' if absent\n• Minimum 12 characters required\n• Warnings issued for poor input before proceeding\n• Mandatory fields are enforced\n• Email id is mandatory\n• Language should be English" },
-    { q: "Are house number and area fields mandatory in addresses?", a: "Yes, to prevent invalid or insufficient address entries that could lead to high RTO rates." },
-    { q: "Are UPI options visible on the Instagram browser?", a: "Yes, UPI methods are accessible even via Instagram in-app browsers." },
-    { q: "When does Truecaller trigger during checkout?", a: "If Truecaller is active, it will auto-fill the mobile number during checkout." },
-    { q: "What is the role of the 'Order Complete' event?", a: "It redirects users to the Thank You page after successful payment completion." },
-    { q: "Can Handover access addresses tied to merchant platform login numbers?", a: "No, address visibility is limited to the number used for Handover login." },
-    { q: "What is the field that merchants can use for the authentication of the Payment details?", a: "The \"hmac\" field is the one you can use for the authentication of the payment details. Please find the code for decrypting the hmac and verifying:\n\nexport const generateHMACForTransactionWebhook = (payload: IComputeTransactionWebhookHMACPayload): string => {\n  const hashPayload = `${payload.merchantReferenceId}|${payload.paymentId}|${payload.amount}`;\n  const hashGen = createHash('sha512');\n  return hashGen.update(hashPayload).digest('hex');\n};" },
-  ];
-  const managed = managedFaqs
+  const faqs = managedFaqs
     .filter(f => f.question.trim() && f.answer.trim())
     .map(f => ({ q: f.question, a: f.answer }));
-  const faqs = [...managed, ...defaultFaqs];
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-foreground">FAQ & Help</h1>
-        <p className="text-sm text-muted-foreground">Common questions about Handover API integration.</p>
+        <p className="text-sm text-muted-foreground">Answers shared by your project team.</p>
       </div>
       <div className="space-y-2">
+        {faqs.length === 0 && (
+          <Card className="p-5 text-sm text-muted-foreground">
+            No FAQs have been added to this project yet.
+          </Card>
+        )}
         {faqs.map((faq, i) => (
           <Card key={i} className="overflow-hidden">
             <button

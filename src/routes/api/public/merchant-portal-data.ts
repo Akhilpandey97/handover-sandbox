@@ -669,7 +669,7 @@ async function handler(req: Request): Promise<Response> {
       const { data: settings } = await supabase
         .from("app_settings").select("key, value").eq("tenant_id", tenantId);
       (settings ?? []).forEach((s: any) => {
-        if (["org_name", "primary_color", "logo_url"].includes(s.key)) branding[s.key] = s.value;
+        if (["org_name", "primary_color", "logo_url", "org_logo_url"].includes(s.key)) branding[s.key] = s.value;
         if (s.key.startsWith("field_")) labels[s.key] = s.value;
       });
     }
