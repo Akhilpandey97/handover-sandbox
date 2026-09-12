@@ -375,7 +375,7 @@ export const ChecklistDialog = ({
                   </div>
 
                   {/* Checklist Items */}
-                  <div className="space-y-3 pl-2 border-l-2 border-border ml-4">
+                  <div className="space-y-3 pl-2 ml-4">
                     {checklistItems.map((item, index) => {
                       const timeStats = calculateTimeByParty(item.responsibilityLog);
                       const itemTeam = (item.ownerTeam || "").toLowerCase();
