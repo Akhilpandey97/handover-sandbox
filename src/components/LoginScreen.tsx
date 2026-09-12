@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,21 @@ export const LoginScreen = () => {
       toast.error(result.error || "Invalid credentials");
     }
     setIsLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Enter your email address first");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("If that email has an account, a reset link is on its way");
   };
 
   const handleGoogleLogin = async () => {
@@ -167,6 +183,17 @@ export const LoginScreen = () => {
                 )}
               </Button>
             </form>
+
+            <div className="mt-3 text-center">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={handleForgotPassword}
+                className="text-xs text-muted-foreground transition-colors hover:text-primary"
+              >
+                Forgot password?
+              </button>
+            </div>
 
             <div className="mt-6 border-t pt-4 text-center">
               <button
