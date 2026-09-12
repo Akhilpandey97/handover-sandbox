@@ -23,6 +23,8 @@
 - [ ] Restrict private storage reads to the matching tenant or project.
 
 ## Done (later)
+- [x] Customer portal branding/roadmap cleanup: organisation logo, bottom-right
+      chat, full checklist names, no stage badge, and project-only FAQs.
 - [x] Aligned all remaining tabs with the Dashboard and Projects visual system.
 - [x] Rebuilt Settings → Integrations as one compact card per integration.
 - [x] Revamped the standard user dashboard with the manager shell, user-scoped
