@@ -31,6 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface EditProjectDialogProps {
   project: Project | null;
