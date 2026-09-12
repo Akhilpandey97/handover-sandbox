@@ -2212,8 +2212,6 @@ export type Database = {
           integration_type: string | null
           jira_link: string | null
           kick_off_date: string
-          kp_prod_jwe_key: string | null
-          kp_sandbox_jwe_key: string | null
           mandatory_apis: string[]
           mcp_config_id: string | null
           merchant_name: string
@@ -2226,19 +2224,15 @@ export type Database = {
           phase2_comment: string | null
           platform: string | null
           prod_app_id: string | null
-          prod_app_secret: string | null
           prod_base_url: string | null
           prod_config_id: string | null
-          prod_kwikpass_jwe_key: string | null
           prod_mid: string | null
           project_notes: string | null
           project_state: Database["public"]["Enums"]["project_state"] | null
           sales_spoc: string | null
           sandbox_app_id: string | null
-          sandbox_app_secret: string | null
           sandbox_base_url: string | null
           sandbox_config_id: string | null
-          sandbox_kwikpass_jwe_key: string | null
           sandbox_mid: string | null
           sow_link: string | null
           tenant_id: string | null
@@ -2278,8 +2272,6 @@ export type Database = {
           integration_type?: string | null
           jira_link?: string | null
           kick_off_date: string
-          kp_prod_jwe_key?: string | null
-          kp_sandbox_jwe_key?: string | null
           mandatory_apis?: string[]
           mcp_config_id?: string | null
           merchant_name: string
@@ -2292,19 +2284,15 @@ export type Database = {
           phase2_comment?: string | null
           platform?: string | null
           prod_app_id?: string | null
-          prod_app_secret?: string | null
           prod_base_url?: string | null
           prod_config_id?: string | null
-          prod_kwikpass_jwe_key?: string | null
           prod_mid?: string | null
           project_notes?: string | null
           project_state?: Database["public"]["Enums"]["project_state"] | null
           sales_spoc?: string | null
           sandbox_app_id?: string | null
-          sandbox_app_secret?: string | null
           sandbox_base_url?: string | null
           sandbox_config_id?: string | null
-          sandbox_kwikpass_jwe_key?: string | null
           sandbox_mid?: string | null
           sow_link?: string | null
           tenant_id?: string | null
@@ -2344,8 +2332,6 @@ export type Database = {
           integration_type?: string | null
           jira_link?: string | null
           kick_off_date?: string
-          kp_prod_jwe_key?: string | null
-          kp_sandbox_jwe_key?: string | null
           mandatory_apis?: string[]
           mcp_config_id?: string | null
           merchant_name?: string
@@ -2358,19 +2344,15 @@ export type Database = {
           phase2_comment?: string | null
           platform?: string | null
           prod_app_id?: string | null
-          prod_app_secret?: string | null
           prod_base_url?: string | null
           prod_config_id?: string | null
-          prod_kwikpass_jwe_key?: string | null
           prod_mid?: string | null
           project_notes?: string | null
           project_state?: Database["public"]["Enums"]["project_state"] | null
           sales_spoc?: string | null
           sandbox_app_id?: string | null
-          sandbox_app_secret?: string | null
           sandbox_base_url?: string | null
           sandbox_config_id?: string | null
-          sandbox_kwikpass_jwe_key?: string | null
           sandbox_mid?: string | null
           sow_link?: string | null
           tenant_id?: string | null
