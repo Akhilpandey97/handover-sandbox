@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Project, ProjectLinks, ProjectDates, ProjectNotes, ProjectFaqHelp } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
 import { CustomFieldsForm } from "./CustomFieldsRenderer";
 import {
@@ -30,6 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface EditProjectDialogProps {
   project: Project | null;
@@ -45,6 +47,8 @@ export const EditProjectDialog = ({
   onSave,
 }: EditProjectDialogProps) => {
   const { getLabel } = useLabels();
+  const { currentUser } = useAuth();
+  const canManageCredentials = !!currentUser && ["admin", "super_admin", "superadmin"].includes(currentUser.team);
   const { fields: customFields } = useCustomFields();
   const { values: customValues, setValues: setCustomValues, saveValues } = useCustomFieldValues(project?.id);
   const [editedProject, setEditedProject] = useState<Project | null>(null);
@@ -275,7 +279,7 @@ export const EditProjectDialog = ({
 
         <ScrollArea className="min-h-0 flex-1 px-6 py-4">
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 mb-4">
+            <TabsList className={cn("grid w-full mb-4", canManageCredentials ? "grid-cols-7" : "grid-cols-6")}>
               <TabsTrigger value="info" className="gap-1 text-xs">
                 <Building2 className="h-3 w-3" />
                 Info
@@ -284,10 +288,12 @@ export const EditProjectDialog = ({
                 <Link2 className="h-3 w-3" />
                 Links
               </TabsTrigger>
-              <TabsTrigger value="credentials" className="gap-1 text-xs">
-                <KeyRound className="h-3 w-3" />
-                Credentials
-              </TabsTrigger>
+              {canManageCredentials && (
+                <TabsTrigger value="credentials" className="gap-1 text-xs">
+                  <KeyRound className="h-3 w-3" />
+                  Credentials
+                </TabsTrigger>
+              )}
               <TabsTrigger value="dates" className="gap-1 text-xs">
                 <Calendar className="h-3 w-3" />
                 Dates
@@ -584,7 +590,7 @@ export const EditProjectDialog = ({
               )}
             </TabsContent>
 
-            <TabsContent value="credentials" className="space-y-6">
+            {canManageCredentials && <TabsContent value="credentials" className="space-y-6">
               <div>
                 <h3 className="text-sm font-semibold mb-3">Sandbox Credentials</h3>
                 <div className="grid grid-cols-2 gap-3">
@@ -697,7 +703,7 @@ export const EditProjectDialog = ({
                   </div>
                 </div>
               </div>
-            </TabsContent>
+            </TabsContent>}
 
             <TabsContent value="custom" className="space-y-6">
               {customFields.length > 0 && (

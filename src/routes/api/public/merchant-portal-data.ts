@@ -628,7 +628,7 @@ async function handler(req: Request): Promise<Response> {
       .from("projects").select("*").eq("id", projectId).maybeSingle();
     if (projectError || !project) return json({ error: "Project not found" }, 404);
 
-    const [checklistRes, ownerRes, customFieldsRes, customValsRes, uploadsRes] = await Promise.all([
+    const [checklistRes, ownerRes, customFieldsRes, customValsRes, uploadsRes, credentialsRes] = await Promise.all([
       supabase.from("checklist_items").select("id, title, completed, completed_at, phase, owner_team, sort_order, due_date, is_task")
         .eq("project_id", projectId).eq("is_task", false).order("sort_order", { ascending: true }),
       project.assigned_owner
@@ -639,7 +639,9 @@ async function handler(req: Request): Promise<Response> {
         : Promise.resolve({ data: [] }),
       supabase.from("custom_field_values").select("field_id, value").eq("project_id", projectId),
       supabase.from("merchant_portal_uploads").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
+      supabase.from("project_credentials").select("*").eq("project_id", projectId).maybeSingle(),
     ]);
+    const projectCredentials = (credentialsRes as any).data ?? {};
 
     const valMap = new Map<string, string | null>();
     ((customValsRes as any).data ?? []).forEach((v: any) => valMap.set(v.field_id, v.value));
@@ -734,16 +736,16 @@ async function handler(req: Request): Promise<Response> {
     const dbProd: Record<string, string> = {};
     if (project.sandbox_mid) dbSandbox.mid = project.sandbox_mid;
     if (project.sandbox_app_id) dbSandbox.app_id = project.sandbox_app_id;
-    if (project.sandbox_app_secret) dbSandbox.app_secret = project.sandbox_app_secret;
+    if (projectCredentials.sandbox_app_secret) dbSandbox.app_secret = projectCredentials.sandbox_app_secret;
     if (project.sandbox_base_url) dbSandbox.base_url = project.sandbox_base_url;
     if (project.sandbox_config_id) dbSandbox.config_id = project.sandbox_config_id;
-    if (project.sandbox_kwikpass_jwe_key) dbSandbox.kwikpass_jwe_key = project.sandbox_kwikpass_jwe_key;
+    if (projectCredentials.sandbox_kwikpass_jwe_key) dbSandbox.kwikpass_jwe_key = projectCredentials.sandbox_kwikpass_jwe_key;
     if (project.prod_mid) dbProd.mid = project.prod_mid;
     if (project.prod_app_id) dbProd.app_id = project.prod_app_id;
-    if (project.prod_app_secret) dbProd.app_secret = project.prod_app_secret;
+    if (projectCredentials.prod_app_secret) dbProd.app_secret = projectCredentials.prod_app_secret;
     if (project.prod_base_url) dbProd.base_url = project.prod_base_url;
     if (project.prod_config_id) dbProd.config_id = project.prod_config_id;
-    if (project.prod_kwikpass_jwe_key) dbProd.kwikpass_jwe_key = project.prod_kwikpass_jwe_key;
+    if (projectCredentials.prod_kwikpass_jwe_key) dbProd.kwikpass_jwe_key = projectCredentials.prod_kwikpass_jwe_key;
 
     const mergedCredentials = jiraCredentials
       ? {
@@ -771,8 +773,8 @@ async function handler(req: Request): Promise<Response> {
         enable_mcp_document: project.enable_mcp_document || false,
         mcp_config_id: project.mcp_config_id || null,
         enable_kp: project.enable_kp || false,
-        kp_prod_jwe_key: project.kp_prod_jwe_key || null,
-        kp_sandbox_jwe_key: project.kp_sandbox_jwe_key || 'zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI',
+        kp_prod_jwe_key: projectCredentials.kp_prod_jwe_key || null,
+        kp_sandbox_jwe_key: projectCredentials.kp_sandbox_jwe_key || 'zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI',
         faq_help: Array.isArray(project.faq_help) ? project.faq_help : [],
         payment_simulator_link: project.payment_simulator_link || null,
       },

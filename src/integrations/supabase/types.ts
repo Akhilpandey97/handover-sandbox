@@ -1694,6 +1694,60 @@ export type Database = {
           },
         ]
       }
+      project_credentials: {
+        Row: {
+          created_at: string
+          kp_prod_jwe_key: string | null
+          kp_sandbox_jwe_key: string | null
+          prod_app_secret: string | null
+          prod_kwikpass_jwe_key: string | null
+          project_id: string
+          sandbox_app_secret: string | null
+          sandbox_kwikpass_jwe_key: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          kp_prod_jwe_key?: string | null
+          kp_sandbox_jwe_key?: string | null
+          prod_app_secret?: string | null
+          prod_kwikpass_jwe_key?: string | null
+          project_id: string
+          sandbox_app_secret?: string | null
+          sandbox_kwikpass_jwe_key?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          kp_prod_jwe_key?: string | null
+          kp_sandbox_jwe_key?: string | null
+          prod_app_secret?: string | null
+          prod_kwikpass_jwe_key?: string | null
+          project_id?: string
+          sandbox_app_secret?: string | null
+          sandbox_kwikpass_jwe_key?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_credentials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_credentials_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_email_context: {
         Row: {
           action_items: Json | null
