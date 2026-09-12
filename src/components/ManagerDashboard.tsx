@@ -1296,7 +1296,7 @@ export const ManagerDashboard = () => {
                   ))}
                 </>
               )}
-              <div className="my-1 h-px bg-border" />
+              {myAccess.length > 0 && <div className="my-1 h-px bg-border" />}
               <div className="flex items-center justify-between rounded-md px-2 py-1 text-sm text-foreground">
                 <span>Theme</span>
                 <ThemeToggle />
