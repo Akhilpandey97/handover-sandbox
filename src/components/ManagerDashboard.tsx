@@ -1270,11 +1270,7 @@ export const ManagerDashboard = () => {
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent side="right" align="end" className="w-56 p-1.5">
-              <div className="px-2 py-1.5">
-                <p className="truncate text-sm font-medium text-foreground">{currentUser?.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{teamLabels[currentUser?.team ?? ""] || "Manager"}</p>
-              </div>
+            <PopoverContent side="top" align="start" className="w-44 p-1.5">
               {/* Workspaces this person has been granted. Their way in — the
                   grant alone does not move them anywhere. */}
               {myAccess.length > 0 && (
