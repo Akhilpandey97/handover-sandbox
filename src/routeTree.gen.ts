@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashRouteImport } from './routes/_dash'
 import { Route as BrdRouteImport } from './routes/brd'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as DashIndexRouteImport } from './routes/_dash.index'
 import { Route as DashArchivedRouteImport } from './routes/_dash.archived'
 import { Route as DashDashboardRouteImport } from './routes/_dash.dashboard'
@@ -94,6 +95,11 @@ const BrdRoute = BrdRouteImport.update({
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashIndexRoute = DashIndexRouteImport.update({
@@ -475,6 +481,7 @@ export interface FileRoutesByFullPath {
   '/': typeof DashIndexRoute
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/archived': typeof DashArchivedRoute
   '/dashboard': typeof DashDashboardRoute
   '/emails': typeof DashEmailsRoute
@@ -547,6 +554,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/archived': typeof DashArchivedRoute
   '/dashboard': typeof DashDashboardRoute
   '/emails': typeof DashEmailsRoute
@@ -622,6 +630,7 @@ export interface FileRoutesById {
   '/_dash': typeof DashRouteWithChildren
   '/brd': typeof BrdRoute
   '/portal': typeof PortalRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/_dash/archived': typeof DashArchivedRoute
   '/_dash/dashboard': typeof DashDashboardRoute
   '/_dash/emails': typeof DashEmailsRoute
@@ -698,6 +707,7 @@ export interface FileRouteTypes {
     | '/'
     | '/brd'
     | '/portal'
+    | '/reset-password'
     | '/archived'
     | '/dashboard'
     | '/emails'
@@ -770,6 +780,7 @@ export interface FileRouteTypes {
   to:
     | '/brd'
     | '/portal'
+    | '/reset-password'
     | '/archived'
     | '/dashboard'
     | '/emails'
@@ -844,6 +855,7 @@ export interface FileRouteTypes {
     | '/_dash'
     | '/brd'
     | '/portal'
+    | '/reset-password'
     | '/_dash/archived'
     | '/_dash/dashboard'
     | '/_dash/emails'
@@ -919,6 +931,7 @@ export interface RootRouteChildren {
   DashRoute: typeof DashRouteWithChildren
   BrdRoute: typeof BrdRoute
   PortalRoute: typeof PortalRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
   ApiPublicAiActionsRoute: typeof ApiPublicAiActionsRoute
   ApiPublicAiAttentionReasonRoute: typeof ApiPublicAiAttentionReasonRoute
@@ -990,6 +1003,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dash/': {
@@ -1563,6 +1583,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashRoute: DashRouteWithChildren,
   BrdRoute: BrdRoute,
   PortalRoute: PortalRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
   ApiPublicAiActionsRoute: ApiPublicAiActionsRoute,
   ApiPublicAiAttentionReasonRoute: ApiPublicAiAttentionReasonRoute,
