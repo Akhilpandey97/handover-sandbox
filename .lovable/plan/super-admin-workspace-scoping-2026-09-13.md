@@ -42,7 +42,8 @@ Set up (support access), which is logged. Nothing changes for non-super-admins.
 - [x] Restrictive policy generated for every public table with `tenant_id` except `tenant_access_grants` / `tenant_access_events`: super admins limited to `get_user_tenant_id(auth.uid())`; null-tenant rows allowed; own `profiles` / `user_roles` / `notifications` rows allowed so a support session can load and leave
 - [x] Migration: `supabase/migrations/20260913140000_super_admin_workspace_boundary.sql`
 - [x] Rollback script (below)
-- [ ] Apply the SQL, verify
+- [x] Apply the SQL (2026-09-13: boundary policy present on all 49 tenant tables)
+- [ ] Confirm no tenant table has RLS switched off
 
 ### Verify after applying
 
@@ -79,8 +80,10 @@ While inside a customer workspace, a super admin cannot read their own home work
 
 ## Verification
 
-- [ ] Super admin sees only their workspace; Tenants page counts correct
-- [ ] Creating a tenant works
-- [ ] Entering a customer via Set up shows only that customer
-- [ ] Normal admin sees no change
-- [ ] Merchant portal still loads
+Confirmed working in the app on 2026-09-13.
+
+- [x] Super admin sees only their workspace; Tenants page counts correct
+- [x] Creating a tenant works
+- [x] Entering a customer via Set up shows only that customer
+- [x] Normal admin sees no change
+- [x] Merchant portal still loads
