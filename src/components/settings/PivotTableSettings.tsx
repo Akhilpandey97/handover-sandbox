@@ -4,6 +4,7 @@ import { CustomField } from "@/hooks/useCustomFields";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,6 +139,7 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
       const { data } = await supabase
         .from("saved_reports")
         .select("*")
+        .eq("tenant_id", tenantScope(currentUser?.tenantId))
         .order("created_at", { ascending: false });
       if (data) {
         const pivotReports = data
@@ -156,7 +158,7 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
       }
     };
     fetchReports();
-  }, []);
+  }, [currentUser?.tenantId]);
 
   const toggleScheduleDay = (day: string) => {
     setScheduleDays(prev => {

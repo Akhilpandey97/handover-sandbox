@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantScope } from "@/lib/tenant-scope";
 import { useQueryClient } from "@tanstack/react-query";
 import { FieldMappingDialog } from "./FieldMappingDialog";
 
@@ -228,9 +229,11 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
         setProgress(Math.round(((i + 1) / projects.length) * 100));
 
         try {
+          // A duplicate MID only counts inside the workspace being imported into.
           const { data: existing } = await supabase
             .from("projects")
             .select("id")
+            .eq("tenant_id", tenantScope(currentUser?.tenantId))
             .eq("mid", project.mid)
             .maybeSingle();
 

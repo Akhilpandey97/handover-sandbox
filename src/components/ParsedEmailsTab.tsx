@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Project, createDefaultChecklist } from "@/data/projectsData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,12 +70,13 @@ export const ParsedEmailsTab = () => {
     const { data, error } = await supabase
       .from("parsed_emails")
       .select("*")
+      .eq("tenant_id", tenantScope(currentUser?.tenantId))
       .order("received_at", { ascending: false });
     if (!error && data) {
       setEmails(data as unknown as ParsedEmail[]);
     }
     setLoading(false);
-  }, []);
+  }, [currentUser?.tenantId]);
 
 
 

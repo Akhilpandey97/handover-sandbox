@@ -3,6 +3,8 @@ import { Project } from "@/data/projectsData";
 import { teamColorClass, TeamRole } from "@/data/teams";
 import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import {
   Dialog,
   DialogContent,
@@ -48,6 +50,8 @@ export const TransferDialog = ({
   const [teamMembers, setTeamMembers] = useState<ProfileUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { teamLabels } = useLabels();
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
 
   const nextTeam = getNextTeam(project.currentOwnerTeam as TeamRole);
 
@@ -61,6 +65,7 @@ export const TransferDialog = ({
         const { data, error } = await supabase
           .from("profiles")
           .select("id, name, email, team")
+          .eq("tenant_id", tenantId)
           .eq("team", nextTeam)
           .order("name");
 
@@ -75,7 +80,7 @@ export const TransferDialog = ({
     };
 
     fetchTeamMembers();
-  }, [open, nextTeam]);
+  }, [open, nextTeam, tenantId]);
 
   const handleTransfer = () => {
     if (!selectedAssignee) return;

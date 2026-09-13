@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,6 +47,7 @@ const teamColors: Record<string, string> = {
 
 export const UserManagement = () => {
   const { teamLabels } = useLabels();
+  const { currentUser } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -88,13 +91,15 @@ export const UserManagement = () => {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
+        .eq("tenant_id", tenantScope(currentUser?.tenantId))
         .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;
 
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("*");
+        .select("*")
+        .in("user_id", (profiles || []).map((p) => p.id));
 
       if (rolesError) throw rolesError;
 

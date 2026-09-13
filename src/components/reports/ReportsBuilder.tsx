@@ -4,6 +4,7 @@ import { CustomField } from "@/hooks/useCustomFields";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -198,6 +199,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
       const { data } = await supabase
         .from("saved_reports")
         .select("*")
+        .eq("tenant_id", tenantScope(currentUser?.tenantId))
         .order("created_at", { ascending: false });
       if (data) {
         setSavedReports(data.map((r: any) => ({
@@ -206,7 +208,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
       }
     };
     fetchReports();
-  }, []);
+  }, [currentUser?.tenantId]);
 
   const toggleColumn = (key: string) => {
     setSelectedColumns(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);

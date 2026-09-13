@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -232,6 +233,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       let projectQuery = supabase
         .from("projects")
         .select("id, merchant_name, arr, current_phase, project_state, assigned_owner, expected_go_live_date, tracker_month, platform")
+        .eq("tenant_id", tenantScope(currentUser?.tenantId))
         .eq("archived", false)
         .or(`tracker_month.eq.${month},and(expected_go_live_date.gte.${from},expected_go_live_date.lte.${to})`);
       if (allowedProjectIds) projectQuery = projectQuery.in("id", allowedProjectIds);

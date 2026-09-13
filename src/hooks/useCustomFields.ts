@@ -107,16 +107,21 @@ export const useCustomFieldValues = (projectId: string | undefined) => {
 
 /** Batch-fetch custom field values for all projects at once (cached) */
 export const useAllCustomFieldValues = (projectIds: string[]) => {
+  const { currentUser } = useAuth();
+  const tenantId = currentUser?.tenantId || null;
   const { data, isLoading } = useQuery({
-    queryKey: ["custom_field_values", "all"],
+    queryKey: ["custom_field_values", "all", tenantId],
     enabled: projectIds.length > 0,
     staleTime: 5 * 60_000,
     gcTime: 15 * 60_000,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Scoped to the workspace being worked in; RLS alone lets super admins read every tenant.
+      let q = supabase
         .from("custom_field_values")
         .select("project_id, field_id, value");
+      q = tenantId ? q.eq("tenant_id", tenantId) : q.eq("tenant_id", "00000000-0000-0000-0000-000000000000");
+      const { data, error } = await q;
       if (error) throw error;
       const map: Record<string, Record<string, string>> = {};
       (data || []).forEach((r: any) => {

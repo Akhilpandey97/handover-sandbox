@@ -3,6 +3,8 @@ import { Project } from "@/data/projectsData";
 import { TeamRole } from "@/data/teams";
 import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { sendNotification } from "@/utils/sendNotification";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -37,6 +39,8 @@ export interface AssignOwnerDialogProps {
 export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onAssigned }: AssignOwnerDialogProps) => {
   const queryClient = useQueryClient();
   const { teamLabels } = useLabels();
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const isBulk = !!projectIds && projectIds.length > 0;
   const [targetTeam, setTargetTeam] = useState<TeamRole>(project?.currentOwnerTeam || "mint");
   const [targetOwner, setTargetOwner] = useState<string>(project?.assignedOwner || "");
@@ -60,10 +64,12 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
     const fetchMembers = async () => {
       setIsLoading(true);
       try {
-        // Fetch team members for selected team
+        // Fetch team members for selected team, in the workspace being worked in.
+        // Roles are matched by user, so the profile lookups carry the tenant filter.
         const { data: profiles } = await supabase
           .from("profiles")
           .select("id, name, email, team")
+          .eq("tenant_id", tenantId)
           .eq("team", targetTeam);
 
         const { data: userRoles } = await supabase
@@ -78,6 +84,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
           const { data: extra } = await supabase
             .from("profiles")
             .select("id, name, email, team")
+            .eq("tenant_id", tenantId)
             .in("id", roleUserIds);
           extra?.forEach(p => {
             if (!allProfiles.find(ap => ap.id === p.id)) {
@@ -97,6 +104,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
           const { data: managerProfiles } = await supabase
             .from("profiles")
             .select("id, name, email, team")
+            .eq("tenant_id", tenantId)
             .in("id", managerIds);
           managerProfiles?.forEach(p => {
             if (!allProfiles.find(ap => ap.id === p.id)) {
@@ -113,7 +121,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
       }
     };
     fetchMembers();
-  }, [targetTeam, open]);
+  }, [targetTeam, open, tenantId]);
 
   const handleAssign = async () => {
     setIsAssigning(true);

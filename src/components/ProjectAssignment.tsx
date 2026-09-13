@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { sendNotification } from "@/utils/sendNotification";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, CheckCircle2, FolderKanban, User } from "lucide-react";
@@ -26,6 +28,8 @@ export const ProjectAssignment = () => {
   const { projects } = useProjects();
   const queryClient = useQueryClient();
   const { teamLabels } = useLabels();
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [targetTeam, setTargetTeam] = useState<TeamRole>("mint");
   const [targetOwner, setTargetOwner] = useState<string>("");
@@ -44,6 +48,7 @@ export const ProjectAssignment = () => {
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("id, name, email, team")
+          .eq("tenant_id", tenantId)
           .eq("team", targetTeam);
 
         if (profilesError) throw profilesError;
@@ -65,6 +70,7 @@ export const ProjectAssignment = () => {
           const { data: additionalProfiles } = await supabase
             .from("profiles")
             .select("id, name, email, team")
+            .eq("tenant_id", tenantId)
             .in("id", roleUserIds);
           
           if (additionalProfiles) {
@@ -86,7 +92,7 @@ export const ProjectAssignment = () => {
     };
 
     fetchTeamMembers();
-  }, [targetTeam]);
+  }, [targetTeam, tenantId]);
 
   // Show all projects for assignment
   const assignableProjects = projects;

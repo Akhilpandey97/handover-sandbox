@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 
 export interface FormTemplate {
   id: string;
@@ -32,6 +33,8 @@ export interface FormResponse {
 }
 
 export const useFormTemplates = () => {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const [templates, setTemplates] = useState<FormTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,10 +43,11 @@ export const useFormTemplates = () => {
     const { data, error } = await supabase
       .from("checklist_form_templates")
       .select("*")
+      .eq("tenant_id", tenantId)
       .order("created_at", { ascending: true });
     if (!error && data) setTemplates(data as FormTemplate[]);
     setIsLoading(false);
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
 
@@ -77,6 +81,8 @@ export const useFormFields = (templateId: string | null) => {
 };
 
 export const useFormAssignments = () => {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const [assignments, setAssignments] = useState<FormAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -84,10 +90,11 @@ export const useFormAssignments = () => {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("checklist_form_assignments")
-      .select("*");
+      .select("*")
+      .eq("tenant_id", tenantId);
     if (!error && data) setAssignments(data as FormAssignment[]);
     setIsLoading(false);
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => { fetchAssignments(); }, [fetchAssignments]);
 

@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 
 export interface DynamicTeam {
   id: string;
@@ -18,10 +20,13 @@ export const SYSTEM_TEAMS: DynamicTeam[] = [
 ];
 
 export const useTeams = () => {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const { data: dbTeams = [], isLoading } = useQuery({
-    queryKey: ["teams"],
+    queryKey: ["teams", tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("teams").select("*").order("sort_order");
+      // Team names are per workspace; a super admin would otherwise get every tenant's teams.
+      const { data, error } = await supabase.from("teams").select("*").eq("tenant_id", tenantId).order("sort_order");
       if (error) throw error;
       return data || [];
     },

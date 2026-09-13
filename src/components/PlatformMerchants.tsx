@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { apiAuthHeaders } from "@/lib/api-invoke";
 import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -245,6 +246,7 @@ export const PlatformMerchants = () => {
     const { data, error } = await supabase
       .from("profiles")
       .select("id, name, email")
+      .eq("tenant_id", tenantScope(currentUser?.tenantId))
       .order("name", { ascending: true });
     if (!error) {
       setUsers((data || []) as UserProfile[]);
@@ -256,6 +258,7 @@ export const PlatformMerchants = () => {
     const { data, error } = await supabase
       .from("platform_merchants")
       .select("*")
+      .eq("tenant_id", tenantScope(currentUser?.tenantId))
       .order("created_at", { ascending: false });
     if (error) {
       toast.error("Failed to load platform merchants");

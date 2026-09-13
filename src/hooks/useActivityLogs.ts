@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 
 export interface ActivityLog {
   id: string;
@@ -15,12 +17,15 @@ export interface ActivityLog {
 }
 
 export const useActivityLogs = (limit = 200) => {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   return useQuery({
-    queryKey: ["activity_logs", limit],
+    queryKey: ["activity_logs", tenantId, limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("activity_logs")
         .select("*")
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .limit(limit);
       if (error) throw error;

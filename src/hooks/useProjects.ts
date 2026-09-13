@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { toast } from "sonner";
 import type { Project, ProjectChecklist, ResponsibilityLog, ChecklistResponsibilityLog, TransferRecord, ResponsibilityParty, ProjectPhase, ProjectState } from "@/data/projectsData";
 import type { TeamRole } from "@/data/teams";
@@ -139,13 +140,18 @@ export const useProjectsQuery = () => {
   const { currentUser } = useAuth();
 
   return useQuery({
-    queryKey: ["projects", currentUser?.id],
+    // The tenant is part of the key so a support session never shows another
+    // workspace's cached projects.
+    queryKey: ["projects", currentUser?.tenantId, currentUser?.id],
     enabled: !!currentUser,
     staleTime: 3 * 60_000, // 3 min — this pulls 5 tables, keep DB IO low
     gcTime: 15 * 60_000,
     refetchOnWindowFocus: false,
     queryFn: async () => {
       const PAGE_SIZE = 1000;
+      // Every read below is limited to the workspace being worked in. RLS lets
+      // super admins read every tenant, so relying on it mixed workspaces together.
+      const tenantId = tenantScope(currentUser?.tenantId);
 
       const fetchAllChecklistItems = async () => {
         const all: any[] = [];
@@ -153,6 +159,7 @@ export const useProjectsQuery = () => {
           const { data, error } = await supabase
             .from("checklist_items")
             .select("*")
+            .eq("tenant_id", tenantId)
             // IMPORTANT: ordering only by sort_order will group many projects together and,
             // combined with the 1000-row limit, can drop later checklist rows (e.g. Integration).
             .order("project_id", { ascending: true })
@@ -171,19 +178,21 @@ export const useProjectsQuery = () => {
       const { data: projects, error: projectsError } = await supabase
         .from("projects")
         .select("*")
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false });
 
       if (projectsError) throw projectsError;
 
       const { data: credentialRows } = await supabase
         .from("project_credentials")
-        .select("*");
+        .select("*")
+        .eq("tenant_id", tenantId);
       const credentialsByProject = new Map(
         (credentialRows ?? []).map((row) => [row.project_id, row]),
       );
 
       // Fetch profiles for owner name lookup
-      const { data: profiles } = await supabase.from("profiles").select("id, name");
+      const { data: profiles } = await supabase.from("profiles").select("id, name").eq("tenant_id", tenantId);
       const profileMap = new Map<string, string>();
       profiles?.forEach(p => profileMap.set(p.id, p.name));
 
@@ -194,6 +203,7 @@ export const useProjectsQuery = () => {
       const { data: projectLogs, error: projectLogsError } = await supabase
         .from("project_responsibility_logs")
         .select("*")
+        .eq("tenant_id", tenantId)
         .order("started_at", { ascending: true });
 
       if (projectLogsError) throw projectLogsError;
@@ -202,6 +212,7 @@ export const useProjectsQuery = () => {
       const { data: checklistLogs, error: checklistLogsError } = await supabase
         .from("checklist_responsibility_logs")
         .select("*")
+        .eq("tenant_id", tenantId)
         .order("started_at", { ascending: true });
 
       if (checklistLogsError) throw checklistLogsError;
@@ -210,6 +221,7 @@ export const useProjectsQuery = () => {
       const { data: transfers, error: transfersError } = await supabase
         .from("transfer_history")
         .select("*")
+        .eq("tenant_id", tenantId)
         .order("transferred_at", { ascending: true });
 
       if (transfersError) throw transfersError;
@@ -804,9 +816,11 @@ export const useRejectProject = () => {
       // Look up the previous assigned_owner from the project's history
       let previousOwnerId: string | null = null;
       if (lastTransfer?.transferred_by) {
+        // Names repeat across workspaces; only match someone in this one.
         const { data: prevOwnerProfile } = await supabase
           .from("profiles")
           .select("id")
+          .eq("tenant_id", tenantScope(currentUser?.tenantId))
           .eq("name", lastTransfer.transferred_by)
           .limit(1)
           .maybeSingle();

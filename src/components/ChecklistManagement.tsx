@@ -5,6 +5,7 @@ import { TeamRole } from "@/data/teams";
 import { teamToProjectPhase } from "@/data/projectsData";
 import { checklistDueDate } from "@/lib/checklistDueDate";
 import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useTeams } from "@/hooks/useTeams";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,19 +54,22 @@ interface ChecklistTemplate {
   standardDuration: number | null;
 }
 
-// Fetch checklist templates from dedicated table
-const useChecklistTemplates = (isSuperAdmin: boolean) => {
+// Fetch checklist templates from dedicated table, for the workspace being worked in.
+// Super admins used to read every tenant's templates here and merge duplicates;
+// writes already target one workspace, so reads now do too.
+const useChecklistTemplates = (tenantId: string) => {
   return useQuery({
-    queryKey: ["checklist-templates", isSuperAdmin],
+    queryKey: ["checklist-templates", tenantId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("checklist_templates")
         .select("id, title, owner_team, phase, sort_order, standard_duration")
+        .eq("tenant_id", tenantId)
         .order("sort_order", { ascending: true });
 
       if (error) throw error;
 
-      const mapped = (data || []).map((item) => ({
+      return (data || []).map((item) => ({
         id: item.id,
         title: item.title,
         ownerTeam: item.owner_team as TeamRole,
@@ -73,17 +77,6 @@ const useChecklistTemplates = (isSuperAdmin: boolean) => {
         sortOrder: item.sort_order ?? 0,
         standardDuration: item.standard_duration ?? null,
       }));
-
-      // Super admins see templates across every tenant — collapse duplicates
-      // (same team + title) so edits apply once and propagate everywhere.
-      if (!isSuperAdmin) return mapped;
-      const seen = new Set<string>();
-      return mapped.filter((t) => {
-        const key = `${t.ownerTeam}|${t.title}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
     },
   });
 };
@@ -93,7 +86,7 @@ export const ChecklistManagement = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
   const isSuperAdmin = currentUser?.team === "super_admin";
-  const { data: templates = [], isLoading } = useChecklistTemplates(isSuperAdmin);
+  const { data: templates = [], isLoading } = useChecklistTemplates(tenantScope(currentUser?.tenantId));
   const { teamLabels } = useLabels();
 
   // Tenants this admin may write to: all tenants for super admins, own tenant otherwise.

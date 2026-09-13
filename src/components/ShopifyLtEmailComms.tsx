@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { toast } from "@/hooks/use-toast";
 import { ShopifyLtSheetMatch } from "@/components/ShopifyLtSheetMatch";
 
@@ -147,11 +148,12 @@ export const ShopifyLtEmailComms = () => {
   });
 
   const { data: savedStatuses } = useQuery({
-    queryKey: ["shopify-lt-thread-status"],
+    queryKey: ["shopify-lt-thread-status", currentUser?.tenantId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shopify_lt_thread_status")
-        .select("thread_id, status, ai_summary, ai_summary_at, ai_status, ai_confidence, ai_evidence");
+        .select("thread_id, status, ai_summary, ai_summary_at, ai_status, ai_confidence, ai_evidence")
+        .eq("tenant_id", tenantScope(currentUser?.tenantId));
       if (error) throw error;
       return Object.fromEntries(
         (data || []).map((r: any) => [

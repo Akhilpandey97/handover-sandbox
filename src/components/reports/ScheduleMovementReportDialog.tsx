@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { apiAuthHeaders } from "@/lib/api-invoke";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,11 +54,12 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
     const { data } = await (supabase as any)
       .from("movement_report_schedules")
       .select("*")
+      .eq("tenant_id", tenantScope(currentUser?.tenantId))
       .eq("timeframe", timeframe)
       .order("created_at", { ascending: false });
     setSchedules((data as Schedule[]) || []);
     setLoading(false);
-  }, [timeframe]);
+  }, [timeframe, currentUser?.tenantId]);
 
   useEffect(() => {
     if (open) {

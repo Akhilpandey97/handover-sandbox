@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantScope } from "@/lib/tenant-scope";
 import { useFormTemplates, useFormFields, useFormAssignments } from "@/hooks/useChecklistForms";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,11 +63,15 @@ export const ChecklistFormsManager = () => {
   // Fetch checklist templates for assignment
   useEffect(() => {
     const fetch = async () => {
-      const { data } = await supabase.from("checklist_templates").select("id, title, phase, owner_team").order("sort_order");
+      const { data } = await supabase
+        .from("checklist_templates")
+        .select("id, title, phase, owner_team")
+        .eq("tenant_id", tenantScope(currentUser?.tenantId))
+        .order("sort_order");
       if (data) setChecklistTemplates(data);
     };
     fetch();
-  }, []);
+  }, [currentUser?.tenantId]);
 
   // Template CRUD
   const openCreateTemplate = () => {

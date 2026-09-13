@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,10 +73,11 @@ export const ShopifySmeTab = () => {
     const { data, error } = await supabase
       .from("shopify_sme_merchants")
       .select("*")
+      .eq("tenant_id", tenantScope(currentUser?.tenantId))
       .order("received_at", { ascending: false });
     if (!error && data) setRows(data as unknown as SmeRow[]);
     setLoading(false);
-  }, []);
+  }, [currentUser?.tenantId]);
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 

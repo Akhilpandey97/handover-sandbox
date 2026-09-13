@@ -110,6 +110,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
 import { AiChatBot } from "./AiChatBot";
 import { useMyTenantAccess, useEnterTenant } from "@/hooks/useTenantAccess";
+import { tenantScope } from "@/lib/tenant-scope";
 import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
 import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
@@ -366,11 +367,14 @@ export const ManagerDashboard = () => {
   const [allProfiles, setAllProfiles] = useState<{ id: string; name: string; team: string }[]>([]);
   useEffect(() => {
     const fetchProfiles = async () => {
-      const { data } = await supabase.from("profiles").select("id, name, team");
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, name, team")
+        .eq("tenant_id", tenantScope(currentUser?.tenantId));
       setAllProfiles(data || []);
     };
     fetchProfiles();
-  }, []);
+  }, [currentUser?.tenantId]);
 
   const TAB_CONFIG_KEYS = ["dashboard", "projects", "risks", "reports", "settings", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails", "tenants", "archived", "hi-there"];
 

@@ -4,6 +4,7 @@ import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { calculateTimeFromChecklist, formatDuration, projectStateLabels } from "@/data/projectsData";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -45,7 +46,8 @@ export const SalesDashboard = () => {
       try {
         const { data, error } = await supabase
           .from("checklist_tasks")
-          .select("status");
+          .select("status")
+          .eq("tenant_id", tenantScope(currentUser?.tenantId));
         if (!error && data) {
           const open = data.filter(t => t.status === "open").length;
           const inProgress = data.filter(t => t.status === "in_progress").length;
@@ -59,7 +61,7 @@ export const SalesDashboard = () => {
       }
     };
     fetchTasks();
-  }, []);
+  }, [currentUser?.tenantId]);
 
   if (!currentUser) return null;
 

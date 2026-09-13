@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 
 export interface MovementChange {
   field: string;
@@ -37,8 +39,10 @@ const fetchAll = async <T,>(
 };
 
 export const useMovementReport = (timeframe: "daily" | "weekly") => {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   return useQuery({
-    queryKey: ["movement_report", timeframe],
+    queryKey: ["movement_report", tenantId, timeframe],
     queryFn: async (): Promise<Record<string, MovementEntry[]>> => {
       // Strict calendar window in IST (UTC+5:30):
       //  - daily  = today 00:00 IST → now
@@ -62,6 +66,7 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
         supabase
           .from("activity_logs")
           .select("id, entity_id, entity_type, category, action_type, description, user_name, metadata, created_at")
+          .eq("tenant_id", tenantId)
           .gte("created_at", since)
           .lte("created_at", until)
           .order("created_at", { ascending: false })
@@ -72,6 +77,7 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
         supabase
           .from("project_comment_logs")
           .select("id, project_id, field_name, content, author_name, created_at")
+          .eq("tenant_id", tenantId)
           .gte("created_at", since)
           .lte("created_at", until)
           .order("created_at", { ascending: false })
@@ -82,6 +88,7 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
         supabase
           .from("checklist_comments")
           .select("id, checklist_item_id, comment, user_name, created_at")
+          .eq("tenant_id", tenantId)
           .gte("created_at", since)
           .lte("created_at", until)
           .order("created_at", { ascending: false })

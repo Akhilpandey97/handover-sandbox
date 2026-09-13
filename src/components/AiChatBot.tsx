@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
+import { tenantScope } from "@/lib/tenant-scope";
 import { logActivity } from "@/hooks/useActivityLogs";
 import { arrCroreValue } from "@/lib/arr";
 import { apiAuthHeaders } from "@/lib/api-invoke";
@@ -178,11 +179,11 @@ export const AiChatBot = () => {
    */
   useEffect(() => {
     let cancelled = false;
-    supabase.from("profiles").select("id, name").order("name").then(({ data }) => {
+    supabase.from("profiles").select("id, name").eq("tenant_id", tenantScope(currentUser?.tenantId)).order("name").then(({ data }) => {
       if (!cancelled) setPeople((data || []) as Array<{ id: string; name: string }>);
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [currentUser?.tenantId]);
 
   useEffect(() => {
     if (!window.speechSynthesis) return;

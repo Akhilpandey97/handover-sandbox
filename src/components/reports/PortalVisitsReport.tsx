@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,8 @@ const PAGE_LABEL: Record<string, string> = {
 };
 
 export function PortalVisitsReport() {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const [visits, setVisits] = useState<VisitRow[]>([]);
   const [projects, setProjects] = useState<Record<string, ProjectMini>>({});
   const [loading, setLoading] = useState(true);
@@ -40,6 +44,7 @@ export function PortalVisitsReport() {
       const { data: v } = await supabase
         .from("merchant_portal_visits")
         .select("id, project_id, email, page, visited_at, user_agent")
+        .eq("tenant_id", tenantId)
         .order("visited_at", { ascending: false })
         .limit(2000);
       const rows = (v || []) as VisitRow[];
@@ -54,7 +59,7 @@ export function PortalVisitsReport() {
       }
       setLoading(false);
     })();
-  }, []);
+  }, [tenantId]);
 
   const filtered = useMemo(() => {
     return visits.filter(v => {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,14 +42,16 @@ export const WORKFLOW_FIELDS = [
 ] as const;
 
 const useProfiles = () => {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const [profiles, setProfiles] = useState<Array<{ id: string; name: string; team: string | null }>>([]);
   useEffect(() => {
     let cancelled = false;
-    supabase.from("profiles").select("id, name, team").order("name").then(({ data }) => {
+    supabase.from("profiles").select("id, name, team").eq("tenant_id", tenantId).order("name").then(({ data }) => {
       if (!cancelled) setProfiles((data || []) as typeof profiles);
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [tenantId]);
   return profiles;
 };
 

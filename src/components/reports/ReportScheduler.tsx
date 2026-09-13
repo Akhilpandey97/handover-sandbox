@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { apiAuthHeaders } from "@/lib/api-invoke";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,9 +78,10 @@ export const ReportScheduler = () => {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    const tenantId = tenantScope(currentUser?.tenantId);
     const [reportsRes, execRes] = await Promise.all([
-      supabase.from("saved_reports").select("*").order("created_at", { ascending: false }),
-      supabase.from("report_executions").select("*").order("triggered_at", { ascending: false }).limit(100),
+      supabase.from("saved_reports").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
+      supabase.from("report_executions").select("*").eq("tenant_id", tenantId).order("triggered_at", { ascending: false }).limit(100),
     ]);
     if (reportsRes.data) {
       setReports(reportsRes.data.map((r: any) => ({
@@ -96,7 +98,7 @@ export const ReportScheduler = () => {
       })));
     }
     setLoading(false);
-  }, []);
+  }, [currentUser?.tenantId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

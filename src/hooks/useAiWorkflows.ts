@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { tenantScope } from "@/lib/tenant-scope";
 import { toast } from "sonner";
 
 export interface AiWorkflow {
@@ -19,12 +21,15 @@ export interface AiWorkflow {
 }
 
 export const useAiWorkflows = () => {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   return useQuery({
-    queryKey: ["ai_workflows"],
+    queryKey: ["ai_workflows", tenantId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ai_workflows")
         .select("*")
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []) as AiWorkflow[];
