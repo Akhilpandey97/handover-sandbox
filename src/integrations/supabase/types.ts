@@ -2786,6 +2786,45 @@ export type Database = {
           },
         ]
       }
+      tenant_access_events: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          created_at: string
+          detail: Json
+          event: string
+          grant_id: string | null
+          id: string
+          subject_name: string | null
+          subject_user_id: string
+          tenant_id: string
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          detail?: Json
+          event: string
+          grant_id?: string | null
+          id?: string
+          subject_name?: string | null
+          subject_user_id: string
+          tenant_id: string
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          detail?: Json
+          event?: string
+          grant_id?: string | null
+          id?: string
+          subject_name?: string | null
+          subject_user_id?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       tenant_access_grants: {
         Row: {
           created_at: string
@@ -2796,6 +2835,7 @@ export type Database = {
           id: string
           reason: string | null
           revoked_at: string | null
+          role: string
           tenant_id: string
         }
         Insert: {
@@ -2807,6 +2847,7 @@ export type Database = {
           id?: string
           reason?: string | null
           revoked_at?: string | null
+          role?: string
           tenant_id: string
         }
         Update: {
@@ -2818,6 +2859,7 @@ export type Database = {
           id?: string
           reason?: string | null
           revoked_at?: string | null
+          role?: string
           tenant_id?: string
         }
         Relationships: [
@@ -3141,6 +3183,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _is_platform_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      _log_support_access: {
+        Args: {
+          _detail?: Json
+          _event: string
+          _grant_id: string
+          _subject: string
+          _tenant_id: string
+        }
+        Returns: undefined
+      }
+      _support_grant_role: { Args: { _user_id: string }; Returns: string }
       active_support_tenant: { Args: { _user_id: string }; Returns: string }
       can_read_checklist_attachment: {
         Args: { objname: string }
@@ -3150,17 +3204,34 @@ export type Database = {
         Args: { objname: string }
         Returns: boolean
       }
+      create_tenant: {
+        Args: { _logo_url?: string; _name: string; _slug: string }
+        Returns: string
+      }
       cron_token_matches: { Args: { _token: string }; Returns: boolean }
       delete_team_cascade: {
         Args: { _slug: string; _team_id: string }
         Returns: undefined
       }
       get_user_role: { Args: { _user_id: string }; Returns: string }
+      get_user_role_home: { Args: { _user_id: string }; Returns: string }
       get_user_tenant_id: { Args: { _user_id: string }; Returns: string }
       is_gokwik_general: { Args: { _user_id: string }; Returns: boolean }
+      is_gokwik_general_home: { Args: { _user_id: string }; Returns: boolean }
       is_manager: { Args: { _user_id: string }; Returns: boolean }
+      is_manager_home: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_tenant_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_tenant_admin_home: { Args: { _user_id: string }; Returns: boolean }
+      my_support_session: {
+        Args: never
+        Returns: {
+          expires_at: string
+          grant_id: string
+          role: string
+          tenant_id: string
+        }[]
+      }
       project_last_activity: {
         Args: { _tenant_id: string }
         Returns: {
@@ -3174,6 +3245,25 @@ export type Database = {
       }
       role: { Args: never; Returns: string }
       storage_path_project_id: { Args: { objname: string }; Returns: string }
+      support_session_for: {
+        Args: { _user_id: string }
+        Returns: {
+          applies_role: boolean
+          expires_at: string
+          grant_id: string
+          home_tenant_id: string
+          role: string
+          tenant_id: string
+        }[]
+      }
+      tenant_stats: {
+        Args: never
+        Returns: {
+          project_count: number
+          tenant_id: string
+          user_count: number
+        }[]
+      }
       uid: { Args: never; Returns: string }
       workflow_transfer_project: {
         Args: { _project_id: string; _to_team: string }
