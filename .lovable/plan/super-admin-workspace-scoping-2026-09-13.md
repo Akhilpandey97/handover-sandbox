@@ -35,12 +35,47 @@ Set up (support access), which is logged. Nothing changes for non-super-admins.
 
 ## Phase 2 — The database enforces it
 
-- [ ] `tenant_stats()` RPC for the Tenants page counts (super admin only)
-- [ ] `create_tenant()` RPC so default teams are inserted server-side, not by the browser
-- [ ] Confirm "Create Manager" goes through a service-role route
-- [ ] Restrictive policy on the 48 tenant tables (not `tenant_access_grants` / `tenant_access_events`): super admins limited to `get_user_tenant_id(auth.uid())`
-- [ ] Rollback script (drop the restrictive policies)
-- [ ] Hand over the SQL, apply, verify
+- [x] `tenant_stats()` RPC for the Tenants page counts (super admin only); page falls back to per-tenant counts until deployed
+- [x] `create_tenant()` RPC so default teams are inserted server-side, not by the browser; page falls back until deployed
+- [x] Confirm "Create Manager" goes through a service-role route (`create-user`, service role — unaffected)
+- [x] Confirm no server route queries with a user token (all use the service role)
+- [x] Restrictive policy generated for every public table with `tenant_id` except `tenant_access_grants` / `tenant_access_events`: super admins limited to `get_user_tenant_id(auth.uid())`; null-tenant rows allowed; own `profiles` / `user_roles` / `notifications` rows allowed so a support session can load and leave
+- [x] Migration: `supabase/migrations/20260913140000_super_admin_workspace_boundary.sql`
+- [x] Rollback script (below)
+- [ ] Apply the SQL, verify
+
+### Verify after applying
+
+```sql
+-- Tables now carrying the boundary
+SELECT tablename FROM pg_policies
+WHERE policyname = 'Super admins stay in the current workspace' ORDER BY 1;
+
+-- Tenant tables with RLS switched off: the policy has no effect there
+SELECT c.relname FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relkind = 'r' AND NOT c.relrowsecurity
+  AND EXISTS (SELECT 1 FROM information_schema.columns col
+              WHERE col.table_schema = 'public' AND col.table_name = c.relname AND col.column_name = 'tenant_id');
+```
+
+### Rollback
+
+```sql
+DO $$
+DECLARE r record;
+BEGIN
+  FOR r IN SELECT schemaname, tablename FROM pg_policies
+           WHERE policyname = 'Super admins stay in the current workspace' LOOP
+    EXECUTE format('DROP POLICY %I ON %I.%I', 'Super admins stay in the current workspace', r.schemaname, r.tablename);
+  END LOOP;
+END $$;
+-- tenant_stats() and create_tenant() are harmless to keep.
+```
+
+### Known effect
+
+While inside a customer workspace, a super admin cannot read their own home workspace's data (by design). Opening grants from Tenants → Set up lists grantees from the home workspace, so do that from home.
 
 ## Verification
 

@@ -82,16 +82,29 @@ export const TenantManagement = () => {
       if (error) throw error;
       setTenants(data || []);
 
-      // Fetch stats per tenant
+      // Counts across every workspace come from one server-side function: the
+      // database keeps a super admin's direct reads inside the current workspace.
       const statsMap = new Map<string, TenantStats>();
-      for (const tenant of data || []) {
-        const { count: userCount } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("tenant_id", tenant.id);
-        const { count: projectCount } = await supabase.from("projects").select("*", { count: "exact", head: true }).eq("tenant_id", tenant.id);
-        statsMap.set(tenant.id, {
-          tenant_id: tenant.id,
-          user_count: userCount || 0,
-          project_count: projectCount || 0,
-        });
+      const { data: stats, error: statsError } = await (supabase as any).rpc("tenant_stats");
+      if (!statsError) {
+        for (const s of (stats || []) as Array<{ tenant_id: string; user_count: number; project_count: number }>) {
+          statsMap.set(s.tenant_id, {
+            tenant_id: s.tenant_id,
+            user_count: Number(s.user_count) || 0,
+            project_count: Number(s.project_count) || 0,
+          });
+        }
+      } else {
+        // Database without tenant_stats() yet: count per tenant as before.
+        for (const tenant of data || []) {
+          const { count: userCount } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("tenant_id", tenant.id);
+          const { count: projectCount } = await supabase.from("projects").select("*", { count: "exact", head: true }).eq("tenant_id", tenant.id);
+          statsMap.set(tenant.id, {
+            tenant_id: tenant.id,
+            user_count: userCount || 0,
+            project_count: projectCount || 0,
+          });
+        }
       }
       setTenantStats(statsMap);
     } catch (error) {
@@ -129,28 +142,40 @@ export const TenantManagement = () => {
         if (error) throw error;
         toast.success("Tenant updated successfully");
       } else {
-        const { data: newTenant, error } = await supabase
-          .from("tenants")
-          .insert({
-            name: tenantName,
-            slug: tenantSlug,
-            logo_url: tenantLogoUrl || null,
-          })
-          .select("id")
-          .single();
-        if (error) throw error;
+        // The new workspace's default teams belong to it, not to the workspace
+        // being worked in, so the database creates both together.
+        const { error: rpcError } = await (supabase as any).rpc("create_tenant", {
+          _name: tenantName,
+          _slug: tenantSlug,
+          _logo_url: tenantLogoUrl || null,
+        });
 
-        const { error: teamsError } = await supabase.from("teams").insert(
-          SYSTEM_TEAMS.map((t) => ({
-            name: t.name,
-            slug: t.slug,
-            color: t.color,
-            is_system: true,
-            sort_order: t.sort_order,
-            tenant_id: newTenant.id,
-          }))
-        );
-        if (teamsError) throw teamsError;
+        // PGRST202: the function is not deployed yet. Create it the old way.
+        if (rpcError && rpcError.code !== "PGRST202") throw rpcError;
+        if (rpcError) {
+          const { data: newTenant, error } = await supabase
+            .from("tenants")
+            .insert({
+              name: tenantName,
+              slug: tenantSlug,
+              logo_url: tenantLogoUrl || null,
+            })
+            .select("id")
+            .single();
+          if (error) throw error;
+
+          const { error: teamsError } = await supabase.from("teams").insert(
+            SYSTEM_TEAMS.map((t) => ({
+              name: t.name,
+              slug: t.slug,
+              color: t.color,
+              is_system: true,
+              sort_order: t.sort_order,
+              tenant_id: newTenant.id,
+            }))
+          );
+          if (teamsError) throw teamsError;
+        }
 
         toast.success("Tenant created successfully");
       }
