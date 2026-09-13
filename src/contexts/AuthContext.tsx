@@ -22,6 +22,8 @@ export interface AuthUser {
   homeTenantId: string | null;
   /** Set only while working inside someone else's workspace. */
   supportTenantId: string | null;
+  /** When the support session's grant runs out. */
+  supportExpiresAt?: string | null;
 }
 
 interface AuthContextType {
@@ -85,20 +87,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Fetch role from user_roles table
       const { data: roleData } = await withTimeout(
-        supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle() as any,
+        supabase.from("user_roles").select("role").eq("user_id", userId) as any,
         8000,
         { data: null, error: null } as any,
       );
-
-      const team = ((roleData as any)?.role || (profile as any).team) as TeamRole;
+      // A person can hold more than one role (say admin and super_admin).
+      // maybeSingle() errors on that and silently dropped them to profile.team,
+      // so use the highest role they hold.
+      const ROLE_RANK = ["super_admin", "superadmin", "admin", "manager"];
+      const roleRows = ((roleData as { role: string }[] | null) ?? []).map((r) => r.role);
+      const topRole =
+        ROLE_RANK.find((r) => roleRows.includes(r)) ?? roleRows[0] ?? null;
 
       // Resolved server-side, so an expired or revoked grant simply stops
-      // working — the client is never asked to be honest about it.
-      const { data: supportTenant } = await withTimeout(
-        (supabase as any).rpc("active_support_tenant", { _user_id: userId }),
+      // working — the client is never asked to be honest about it. The session
+      // also carries the role the grant allows, which stands in for the
+      // person's own role inside that workspace (super admins keep theirs).
+      const { data: session, error: sessionError } = await withTimeout(
+        (supabase as any).rpc("my_support_session").maybeSingle(),
         8000,
         { data: null, error: null } as any,
       );
+      let supportTenant: string | null = (session as any)?.tenant_id ?? null;
+      const supportRole: string | null = (session as any)?.role ?? null;
+      const supportExpiresAt: string | null = (session as any)?.expires_at ?? null;
+      if (sessionError) {
+        // A database without the hardening migration yet: tenant only, own role.
+        const { data } = await withTimeout(
+          (supabase as any).rpc("active_support_tenant", { _user_id: userId }),
+          8000,
+          { data: null, error: null } as any,
+        );
+        supportTenant = (data as string | null) ?? null;
+      }
+
+      const team = (supportRole || topRole || (profile as any).team) as TeamRole;
 
       const homeTenantId = (profile as any).tenant_id ?? null;
       return {
@@ -108,9 +131,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: (profile as any).name,
           email: (profile as any).email,
           team: team,
-          tenantId: (supportTenant as string | null) ?? homeTenantId,
+          tenantId: supportTenant ?? homeTenantId,
           homeTenantId,
-          supportTenantId: (supportTenant as string | null) ?? null,
+          supportTenantId: supportTenant,
+          supportExpiresAt: supportTenant ? supportExpiresAt : null,
         },
       };
     } catch (error) {
@@ -209,6 +233,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // A grant can be revoked or run out mid-session. The database stops honouring
+  // it at once; reload so the screens stop showing the customer's workspace too.
+  const supportTenantId = currentUser?.supportTenantId ?? null;
+  const supportExpiresAt = currentUser?.supportExpiresAt ?? null;
+  useEffect(() => {
+    if (!supportTenantId) return;
+    let stopped = false;
+
+    const check = async () => {
+      const userId = currentUserRef.current?.id;
+      if (!userId) return;
+      try {
+        const { data, error } = await (supabase as any).rpc("active_support_tenant", { _user_id: userId });
+        // A failed check proves nothing; only a definite answer moves anyone.
+        if (stopped || error) return;
+        if (((data as string | null) ?? null) !== supportTenantId) window.location.reload();
+      } catch {
+        // Offline or similar: try again on the next tick.
+      }
+    };
+
+    const interval = window.setInterval(check, 60_000);
+    const onFocus = () => { void check(); };
+    window.addEventListener("focus", onFocus);
+
+    const msToExpiry = supportExpiresAt ? new Date(supportExpiresAt).getTime() - Date.now() + 1_000 : NaN;
+    const expiryTimer = msToExpiry > 0 && msToExpiry < 2_147_483_647
+      ? window.setTimeout(check, msToExpiry)
+      : undefined;
+
+    return () => {
+      stopped = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      if (expiryTimer !== undefined) window.clearTimeout(expiryTimer);
+    };
+  }, [supportTenantId, supportExpiresAt]);
 
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {

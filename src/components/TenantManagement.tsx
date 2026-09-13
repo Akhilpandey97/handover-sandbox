@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SYSTEM_TEAMS } from "@/hooks/useTeams";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useStartTenantAccess } from "@/hooks/useTenantAccess";
+import { useStartTenantAccess, type SupportAccessRole } from "@/hooks/useTenantAccess";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -37,19 +37,25 @@ export const TenantManagement = () => {
   const [accessDays, setAccessDays] = useState("7");
   const [accessReason, setAccessReason] = useState("");
   const [accessGrantee, setAccessGrantee] = useState("self");
+  const [accessRole, setAccessRole] = useState<SupportAccessRole>("manager");
   const [staff, setStaff] = useState<Array<{ id: string; name: string }>>([]);
   const startAccess = useStartTenantAccess();
+  const { currentUser } = useAuth();
+  const homeTenantId = currentUser?.homeTenantId ?? null;
 
   // Who the access can be given to. Setup work is usually done by someone other
-  // than whoever grants it.
+  // than whoever grants it — but always someone on your own team, never a
+  // member of another customer. The database enforces the same rule.
   useEffect(() => {
+    if (!homeTenantId) return;
     let cancelled = false;
-    supabase.from("profiles").select("id, name").order("name").then(({ data }) => {
-      if (!cancelled) setStaff((data || []) as Array<{ id: string; name: string }>);
+    supabase.from("profiles").select("id, name").eq("tenant_id", homeTenantId).order("name").then(({ data }) => {
+      if (!cancelled) {
+        setStaff(((data || []) as Array<{ id: string; name: string }>).filter((u) => u.id !== currentUser?.id));
+      }
     });
     return () => { cancelled = true; };
-  }, []);
-  const { currentUser } = useAuth();
+  }, [homeTenantId, currentUser?.id]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantStats, setTenantStats] = useState<Map<string, TenantStats>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
@@ -466,6 +472,20 @@ export const TenantManagement = () => {
               </Select>
             </div>
             <div className="space-y-1.5">
+              <Label className="text-xs font-medium text-muted-foreground">Works as</Label>
+              <Select value={accessRole} onValueChange={(v) => setAccessRole(v as SupportAccessRole)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manager">Manager — projects, checklists and users</SelectItem>
+                  <SelectItem value="admin">Admin — also integrations, credentials and API keys</SelectItem>
+                  <SelectItem value="gokwik_general">General — view only</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                Replaces their own role inside this workspace for as long as the access lasts.
+              </p>
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground">Access for</Label>
               <Select value={accessDays} onValueChange={setAccessDays}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -496,6 +516,7 @@ export const TenantManagement = () => {
                 tenantName: accessTarget.name,
                 days: Number(accessDays),
                 reason: accessReason.trim(),
+                role: accessRole,
                 grantTo: accessGrantee === "self" ? undefined : accessGrantee,
               }, { onSuccess: () => setAccessTarget(null) })}
             >

@@ -70,6 +70,51 @@ export async function isCronCaller(req: Request): Promise<boolean> {
   }
 }
 
+export interface UserScope {
+  /** The tenant the person is working in now: the customer's during a support session. */
+  tenantId: string | null;
+  /** The person's own tenant, unchanged by a support session. */
+  homeTenantId: string | null;
+  roles: string[];
+  supportGrantId: string | null;
+}
+
+/**
+ * Tenant and roles for a signed-in user, as the database sees them.
+ *
+ * Reading profiles.tenant_id and user_roles directly ignores support access, so
+ * a route would act in the grantee's own workspace, with their own role, while
+ * the screen that called it shows the customer's. During a session this
+ * returns the customer's tenant and the grant's role instead (super admins keep
+ * their own roles). Without the session function it falls back to the old reads.
+ */
+export async function resolveUserScope(
+  client: ReturnType<typeof admin>,
+  userId: string,
+): Promise<UserScope> {
+  const [{ data: profile }, { data: roleRows }, { data: session }] = await Promise.all([
+    client.from("profiles").select("tenant_id").eq("id", userId).maybeSingle(),
+    client.from("user_roles").select("role").eq("user_id", userId),
+    (client as any).rpc("support_session_for", { _user_id: userId }).maybeSingle(),
+  ]);
+
+  const homeTenantId = (profile as { tenant_id: string | null } | null)?.tenant_id ?? null;
+  const homeRoles = ((roleRows || []) as { role: string }[]).map((r) => r.role);
+  const s = session as
+    | { grant_id: string; tenant_id: string; role: string; applies_role: boolean }
+    | null;
+
+  if (!s?.grant_id) {
+    return { tenantId: homeTenantId, homeTenantId, roles: homeRoles, supportGrantId: null };
+  }
+  return {
+    tenantId: s.tenant_id,
+    homeTenantId,
+    roles: s.applies_role && s.role !== "none" ? [s.role] : homeRoles,
+    supportGrantId: s.grant_id,
+  };
+}
+
 /** Resolve a signed-in user from the request's bearer JWT. */
 export async function userCaller(req: Request): Promise<Caller | null> {
   const token = bearerToken(req);
@@ -81,16 +126,11 @@ export async function userCaller(req: Request): Promise<Caller | null> {
     const user = data.user;
     if (!user) return null;
 
-    const [{ data: profile }, { data: roleRows }] = await Promise.all([
-      client.from("profiles").select("tenant_id").eq("id", user.id).maybeSingle(),
-      client.from("user_roles").select("role").eq("user_id", user.id),
-    ]);
-
-    const roles = ((roleRows || []) as { role: string }[]).map((r) => r.role);
+    const { tenantId, roles } = await resolveUserScope(client, user.id);
     return {
       kind: "user",
       userId: user.id,
-      tenantId: (profile as { tenant_id: string | null } | null)?.tenant_id ?? null,
+      tenantId,
       roles,
       isAdmin: roles.some((r) => ADMIN_ROLES.includes(r)),
     };

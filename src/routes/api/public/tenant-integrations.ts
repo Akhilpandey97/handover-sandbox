@@ -6,6 +6,7 @@ import {
   invalidateTenantIntegrations,
   type TenantIntegrations,
 } from "@/lib/tenant-integrations.server";
+import { resolveUserScope } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,21 +34,12 @@ async function authorize(req: Request): Promise<{
   const user = userData.user;
   if (!user) return { error: json({ error: "Unauthorized" }, 401) };
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("tenant_id")
-    .eq("id", user.id)
-    .maybeSingle();
-  const tenantId = (profile as { tenant_id: string | null } | null)?.tenant_id;
+  // Follows a support session into the customer's workspace, with the grant's role.
+  const scope = await resolveUserScope(admin, user.id);
+  const tenantId = scope.tenantId;
   if (!tenantId) return { error: json({ error: "No tenant for this user" }, 403) };
 
-  const { data: roles } = await admin
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", user.id);
-  const isAdmin = (roles || []).some((r: { role: string }) =>
-    ["super_admin", "admin"].includes(r.role),
-  );
+  const isAdmin = scope.roles.some((r) => ["super_admin", "admin"].includes(r));
   if (!isAdmin) return { error: json({ error: "Admins only" }, 403) };
 
   return { admin, tenantId };

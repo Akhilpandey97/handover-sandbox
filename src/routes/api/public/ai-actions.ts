@@ -4,6 +4,7 @@ import { brdUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
 import { notifyAssignment } from "@/lib/notify.server";
+import { resolveUserScope } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -62,7 +63,9 @@ async function handler(req: Request): Promise<Response> {
     }
 
     const { action, params } = await req.json();
-    const tenantId = profile.tenant_id;
+    // The workspace the person is working in, which is the customer's during a
+    // support session rather than profile.tenant_id.
+    const { tenantId } = await resolveUserScope(adminClient, user.id);
     const userName = profile.name;
 
     let result: any = { success: true };

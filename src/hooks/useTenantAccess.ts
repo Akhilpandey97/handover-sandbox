@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { logActivity } from "@/hooks/useActivityLogs";
+
+/** Roles a support grant can carry. It replaces the grantee's own role for the session. */
+export type SupportAccessRole = "manager" | "admin" | "gokwik_general";
 
 export interface TenantAccessGrant {
   id: string;
@@ -10,6 +12,7 @@ export interface TenantAccessGrant {
   granted_by: string;
   granted_by_name: string | null;
   reason: string | null;
+  role: string;
   expires_at: string;
   revoked_at: string | null;
   created_at: string;
@@ -20,8 +23,12 @@ export interface TenantAccessGrant {
  *
  * A super admin can already reach every tenant through RLS. What this adds is
  * intent and a record: you open a grant against one tenant for a set number of
- * days, the app then reads and writes as that tenant, and the grant says who
- * did it, when, and why.
+ * days and a set role, the app then reads and writes as that tenant, and the
+ * grant says who did it, when, and why.
+ *
+ * The record is kept by the database, not here: grants cannot be edited or
+ * deleted, and every grant, revocation, entry and exit is logged into the
+ * customer's workspace by triggers (see 20260913120000_support_access_hardening).
  */
 export const useTenantAccessGrants = (tenantId?: string) =>
   useQuery({
@@ -44,8 +51,10 @@ export const useStartTenantAccess = () => {
   const { currentUser } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ tenantId, tenantName, days, reason, grantTo }: {
+    mutationFn: async ({ tenantId, days, reason, role, grantTo }: {
       tenantId: string; tenantName: string; days: number; reason: string;
+      /** What the grantee may do inside the workspace. */
+      role: SupportAccessRole;
       /** Who gets the access. Defaults to the person granting it. */
       grantTo?: string;
     }) => {
@@ -55,6 +64,8 @@ export const useStartTenantAccess = () => {
       const expires = new Date();
       expires.setDate(expires.getDate() + days);
 
+      // granted_by and granted_by_name are overwritten by the database with
+      // the signed-in user; they are sent only so older schemas still accept it.
       const { error: grantError } = await (supabase as any)
         .from("tenant_access_grants")
         .insert({
@@ -63,6 +74,7 @@ export const useStartTenantAccess = () => {
           granted_by: currentUser.id,
           granted_by_name: currentUser.name,
           reason,
+          role,
           expires_at: expires.toISOString(),
         });
       if (grantError) throw grantError;
@@ -76,16 +88,6 @@ export const useStartTenantAccess = () => {
           .eq("id", currentUser.id);
         if (profileError) throw profileError;
       }
-
-      await logActivity({
-        action_type: "user",
-        category: "tenant",
-        description: recipient === currentUser.id
-          ? `Opened support access to "${tenantName}" for ${days} day${days === 1 ? "" : "s"} — ${reason}`
-          : `Granted support access to "${tenantName}" for ${days} day${days === 1 ? "" : "s"} — ${reason}`,
-        entity_type: "tenant",
-        entity_id: tenantId,
-      });
 
       return { tenantId, expiresAt: expires.toISOString(), entered: recipient === currentUser.id };
     },
@@ -112,14 +114,6 @@ export const useEndTenantAccess = () => {
         .update({ active_tenant_id: null })
         .eq("id", currentUser.id);
       if (error) throw error;
-
-      await logActivity({
-        action_type: "user",
-        category: "tenant",
-        description: "Closed support access",
-        entity_type: "tenant",
-        entity_id: currentUser.supportTenantId ?? undefined,
-      });
     },
     onSuccess: () => window.location.reload(),
   });
@@ -129,6 +123,7 @@ export const useRevokeTenantAccess = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (grantId: string) => {
+      // The database stamps its own time and ends the grantee's session.
       const { error } = await (supabase as any)
         .from("tenant_access_grants")
         .update({ revoked_at: new Date().toISOString() })
