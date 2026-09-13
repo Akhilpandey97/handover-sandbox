@@ -66,14 +66,21 @@ export const LoginScreen = () => {
       toast.error("Enter your email address first");
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const res = await fetch("/api/public/send-password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          redirectTo: `${window.location.origin}/reset-password`,
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Could not send reset email");
+      toast.success("If that email has an account, a reset link is on its way");
+    } catch (err) {
+      toast.error((err as Error).message);
     }
-    toast.success("If that email has an account, a reset link is on its way");
   };
 
   const handleGoogleLogin = async () => {

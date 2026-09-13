@@ -182,10 +182,16 @@ export const UserManagement = () => {
   const handleSendResetEmail = async (user: UserWithRole) => {
     setResettingId(user.id);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const res = await fetch("/api/public/send-password-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          redirectTo: `${window.location.origin}/reset-password`,
+        }),
       });
-      if (error) throw error;
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Could not send reset email");
       toast.success(`Password reset email sent to ${user.email}`);
     } catch (error: any) {
       toast.error(error.message || "Could not send reset email");

@@ -64,6 +64,7 @@ import { Route as ApiPublicSandboxTestRouteImport } from './routes/api/public/sa
 import { Route as ApiPublicSendMeetingInviteRouteImport } from './routes/api/public/send-meeting-invite'
 import { Route as ApiPublicSendMovementReportRouteImport } from './routes/api/public/send-movement-report'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
+import { Route as ApiPublicSendPasswordResetRouteImport } from './routes/api/public/send-password-reset'
 import { Route as ApiPublicSendPlatformWelcomeRouteImport } from './routes/api/public/send-platform-welcome'
 import { Route as ApiPublicSendScheduledMovementReportRouteImport } from './routes/api/public/send-scheduled-movement-report'
 import { Route as ApiPublicSendScheduledReportRouteImport } from './routes/api/public/send-scheduled-report'
@@ -376,6 +377,12 @@ const ApiPublicSendNotificationRoute =
     path: '/api/public/send-notification',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSendPasswordResetRoute =
+  ApiPublicSendPasswordResetRouteImport.update({
+    id: '/api/public/send-password-reset',
+    path: '/api/public/send-password-reset',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicSendPlatformWelcomeRoute =
   ApiPublicSendPlatformWelcomeRouteImport.update({
     id: '/api/public/send-platform-welcome',
@@ -531,6 +538,7 @@ export interface FileRoutesByFullPath {
   '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
+  '/api/public/send-password-reset': typeof ApiPublicSendPasswordResetRoute
   '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
   '/api/public/send-scheduled-movement-report': typeof ApiPublicSendScheduledMovementReportRoute
   '/api/public/send-scheduled-report': typeof ApiPublicSendScheduledReportRoute
@@ -605,6 +613,7 @@ export interface FileRoutesByTo {
   '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
+  '/api/public/send-password-reset': typeof ApiPublicSendPasswordResetRoute
   '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
   '/api/public/send-scheduled-movement-report': typeof ApiPublicSendScheduledMovementReportRoute
   '/api/public/send-scheduled-report': typeof ApiPublicSendScheduledReportRoute
@@ -681,6 +690,7 @@ export interface FileRoutesById {
   '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
+  '/api/public/send-password-reset': typeof ApiPublicSendPasswordResetRoute
   '/api/public/send-platform-welcome': typeof ApiPublicSendPlatformWelcomeRoute
   '/api/public/send-scheduled-movement-report': typeof ApiPublicSendScheduledMovementReportRoute
   '/api/public/send-scheduled-report': typeof ApiPublicSendScheduledReportRoute
@@ -757,6 +767,7 @@ export interface FileRouteTypes {
     | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
+    | '/api/public/send-password-reset'
     | '/api/public/send-platform-welcome'
     | '/api/public/send-scheduled-movement-report'
     | '/api/public/send-scheduled-report'
@@ -831,6 +842,7 @@ export interface FileRouteTypes {
     | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
+    | '/api/public/send-password-reset'
     | '/api/public/send-platform-welcome'
     | '/api/public/send-scheduled-movement-report'
     | '/api/public/send-scheduled-report'
@@ -906,6 +918,7 @@ export interface FileRouteTypes {
     | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
+    | '/api/public/send-password-reset'
     | '/api/public/send-platform-welcome'
     | '/api/public/send-scheduled-movement-report'
     | '/api/public/send-scheduled-report'
@@ -965,6 +978,7 @@ export interface RootRouteChildren {
   ApiPublicSendMeetingInviteRoute: typeof ApiPublicSendMeetingInviteRoute
   ApiPublicSendMovementReportRoute: typeof ApiPublicSendMovementReportRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
+  ApiPublicSendPasswordResetRoute: typeof ApiPublicSendPasswordResetRoute
   ApiPublicSendPlatformWelcomeRoute: typeof ApiPublicSendPlatformWelcomeRoute
   ApiPublicSendScheduledMovementReportRoute: typeof ApiPublicSendScheduledMovementReportRoute
   ApiPublicSendScheduledReportRoute: typeof ApiPublicSendScheduledReportRoute
@@ -1369,6 +1383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSendNotificationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/send-password-reset': {
+      id: '/api/public/send-password-reset'
+      path: '/api/public/send-password-reset'
+      fullPath: '/api/public/send-password-reset'
+      preLoaderRoute: typeof ApiPublicSendPasswordResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/send-platform-welcome': {
       id: '/api/public/send-platform-welcome'
       path: '/api/public/send-platform-welcome'
@@ -1620,6 +1641,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSendMeetingInviteRoute: ApiPublicSendMeetingInviteRoute,
   ApiPublicSendMovementReportRoute: ApiPublicSendMovementReportRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
+  ApiPublicSendPasswordResetRoute: ApiPublicSendPasswordResetRoute,
   ApiPublicSendPlatformWelcomeRoute: ApiPublicSendPlatformWelcomeRoute,
   ApiPublicSendScheduledMovementReportRoute:
     ApiPublicSendScheduledMovementReportRoute,
