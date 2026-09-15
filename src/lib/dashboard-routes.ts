@@ -48,6 +48,7 @@ export const SETTINGS_SUB_TABS = [
   "slack-alerts",
   "integrations",
   "navigation",
+  "buddy",
 ] as const;
 
 export const DEFAULT_REPORT_SUB_TAB = "builder";

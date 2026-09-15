@@ -13,7 +13,11 @@ interface Props {
   isLoading: boolean;
   canAct: boolean;
   projectName?: string | null;
+  /** The project Buddy is opened on; its checklist items are taggable with @. */
+  projectId?: string | null;
   mentionables: Mention[];
+  /** Checklist items per project id, offered after that project is open or @-mentioned. */
+  itemsByProject: Map<string, Mention[]>;
   listening: boolean;
   transcript: string;
   voiceSupported: boolean;
@@ -35,8 +39,24 @@ const tokenAt = (value: string, caret: number, sigil: "@" | "/") => {
   return { at, term };
 };
 
+const KIND_LABEL: Record<Mention["kind"], string> = { project: "Project", person: "Person", item: "Checklist" };
+
 export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
-  { isLoading, canAct, projectName, mentionables, listening, transcript, voiceSupported, onSend, onStop, onVoice, compact },
+  {
+    isLoading,
+    canAct,
+    projectName,
+    projectId,
+    mentionables,
+    itemsByProject,
+    listening,
+    transcript,
+    voiceSupported,
+    onSend,
+    onStop,
+    onVoice,
+    compact,
+  },
   ref,
 ) {
   const [value, setValue] = useState("");
@@ -52,67 +72,21 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   };
 
+  const placeCaretAtEnd = (text: string) =>
+    requestAnimationFrame(() => {
+      resize();
+      inputRef.current?.focus();
+      inputRef.current?.setSelectionRange(text.length, text.length);
+    });
+
   useImperativeHandle(ref, () => ({
     setText: (text, focus = true) => {
       setValue(text);
-      requestAnimationFrame(() => {
-        resize();
-        if (focus) {
-          inputRef.current?.focus();
-          inputRef.current?.setSelectionRange(text.length, text.length);
-        }
-      });
+      if (focus) placeCaretAtEnd(text);
+      else requestAnimationFrame(resize);
     },
     focus: () => inputRef.current?.focus(),
   }));
-
-  const options = useMemo(() => {
-    if (!menu) return [];
-    const q = menu.term.toLowerCase();
-    if (menu.kind === "command") {
-      return SLASH_COMMANDS.filter((c) => (canAct || !c.acts) && c.command.startsWith(q)).map((c) => ({
-        key: c.command,
-        primary: `/${c.command}`,
-        secondary: c.label,
-        apply: () => {
-          const text = c.template.replace("{project}", projectName ? projectName : "@");
-          if (c.sendNow) {
-            submit(text);
-          } else {
-            setValue(text);
-            requestAnimationFrame(() => {
-              inputRef.current?.focus();
-              inputRef.current?.setSelectionRange(text.length, text.length);
-              resize();
-            });
-          }
-        },
-      }));
-    }
-    return mentionables
-      .filter((m) => m.name.toLowerCase().includes(q))
-      .slice(0, 8)
-      .map((m) => ({
-        key: `${m.kind}-${m.id}`,
-        primary: m.name,
-        secondary: m.kind === "project" ? `Project${m.sub ? ` · ${m.sub}` : ""}` : `Person${m.sub ? ` · ${m.sub}` : ""}`,
-        apply: () => {
-          const el = inputRef.current;
-          const caret = el?.selectionStart ?? value.length;
-          const token = tokenAt(value, caret, "@");
-          if (!token) return;
-          const next = `${value.slice(0, token.at)}@${m.name} ${value.slice(caret)}`;
-          chosen.current.set(m.name, m);
-          setValue(next);
-          requestAnimationFrame(() => {
-            const pos = token.at + m.name.length + 2;
-            el?.focus();
-            el?.setSelectionRange(pos, pos);
-          });
-        },
-      }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [menu, mentionables, canAct, projectName, value]);
 
   const submit = (text = value) => {
     const t = text.trim();
@@ -124,6 +98,64 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
     chosen.current.clear();
     requestAnimationFrame(resize);
   };
+
+  const options = useMemo(() => {
+    if (!menu) return [];
+    const q = menu.term.toLowerCase();
+
+    if (menu.kind === "command") {
+      return SLASH_COMMANDS.filter((c) => (canAct || !c.acts) && c.command.startsWith(q)).map((c) => ({
+        key: c.command,
+        primary: `/${c.command}`,
+        secondary: c.label,
+        mono: true,
+        apply: () => {
+          const text = c.template.replace("{project}", projectName ? projectName : "@");
+          if (c.sendNow) submit(text);
+          else {
+            setValue(text);
+            placeCaretAtEnd(text);
+          }
+        },
+      }));
+    }
+
+    // Checklist items of the open project, and of any project already tagged in this message.
+    const projectIds = new Set<string>();
+    if (projectId) projectIds.add(projectId);
+    for (const m of chosen.current.values()) if (m.kind === "project" && value.includes(`@${m.name}`)) projectIds.add(m.id);
+    const items = Array.from(projectIds).flatMap((id) => itemsByProject.get(id) || []);
+
+    const match = (m: Mention) => !q || m.name.toLowerCase().includes(q);
+    const pool = [
+      ...mentionables.filter((m) => m.kind === "project" && match(m)).slice(0, 5),
+      ...items.filter(match).slice(0, 8),
+      ...mentionables.filter((m) => m.kind === "person" && match(m)).slice(0, 5),
+    ];
+
+    return pool.map((m) => ({
+      key: `${m.kind}-${m.id}`,
+      primary: m.name,
+      secondary: `${KIND_LABEL[m.kind]}${m.sub ? ` · ${m.sub}` : ""}`,
+      mono: false,
+      apply: () => {
+        const el = inputRef.current;
+        const caret = el?.selectionStart ?? value.length;
+        const token = tokenAt(value, caret, "@");
+        if (!token) return;
+        const next = `${value.slice(0, token.at)}@${m.name} ${value.slice(caret)}`;
+        chosen.current.set(m.name, m);
+        setValue(next);
+        requestAnimationFrame(() => {
+          const pos = token.at + m.name.length + 2;
+          el?.focus();
+          el?.setSelectionRange(pos, pos);
+          resize();
+        });
+      },
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menu, mentionables, itemsByProject, projectId, canAct, projectName, value]);
 
   const onChange = (next: string, caret: number) => {
     setValue(next);
@@ -150,7 +182,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
   return (
     <div className={cn("relative border-t border-border bg-card", compact ? "px-3 py-2.5" : "px-4 py-3")}>
       {menu && options.length > 0 && (
-        <div role="listbox" className="absolute bottom-full left-3 right-3 z-20 mb-2 max-h-64 overflow-y-auto rounded-xl border border-border bg-popover p-1 shadow-lg">
+        <div role="listbox" className="absolute bottom-full left-3 right-3 z-20 mb-2 max-h-72 overflow-y-auto rounded-xl border border-border bg-popover p-1 shadow-lg">
           {options.map((o, i) => (
             <button
               key={o.key}
@@ -168,8 +200,8 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
                 i === index ? "bg-primary-soft text-foreground" : "hover:bg-muted",
               )}
             >
-              <span className={cn("truncate font-medium", menu.kind === "command" && "font-mono text-xs")}>{o.primary}</span>
-              <span className="shrink-0 truncate text-xs text-muted-foreground">{o.secondary}</span>
+              <span className={cn("min-w-0 truncate font-medium", o.mono && "font-mono text-xs")}>{o.primary}</span>
+              <span className="max-w-[45%] shrink-0 truncate text-xs text-muted-foreground">{o.secondary}</span>
             </button>
           ))}
         </div>
@@ -190,7 +222,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
           rows={1}
           disabled={listening}
           aria-label="Message Buddy"
-          placeholder={projectName ? `Ask about ${projectName}, or type / for commands` : "Ask Buddy, or type / for commands and @ to mention"}
+          placeholder={projectName ? `Ask about ${projectName}, or type / for commands` : "Ask Buddy, or type / for commands and @ to tag"}
           onChange={(e) => onChange(e.target.value, e.target.selectionStart ?? e.target.value.length)}
           onKeyDown={onKeyDown}
           onBlur={() => window.setTimeout(() => setMenu(null), 120)}
@@ -236,7 +268,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
       </div>
       <p className="mt-1.5 hidden gap-3 px-1 text-2xs text-muted-foreground sm:flex">
         <span>/ commands</span>
-        <span>@ mention</span>
+        <span>@ projects, people and checklist items</span>
         <span>Shift + Enter for a new line</span>
       </p>
     </div>

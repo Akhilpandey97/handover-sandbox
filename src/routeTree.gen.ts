@@ -42,6 +42,7 @@ import { Route as ApiPublicApiKeysRouteImport } from './routes/api/public/api-ke
 import { Route as ApiPublicAssignShopifySmeOwnerRouteImport } from './routes/api/public/assign-shopify-sme-owner'
 import { Route as ApiPublicBackfillShopifySmeAssignmentsRouteImport } from './routes/api/public/backfill-shopify-sme-assignments'
 import { Route as ApiPublicBrdFormApiRouteImport } from './routes/api/public/brd-form-api'
+import { Route as ApiPublicBuddyBriefRouteImport } from './routes/api/public/buddy-brief'
 import { Route as ApiPublicCheckOverdueTasksRouteImport } from './routes/api/public/check-overdue-tasks'
 import { Route as ApiPublicCreateJiraTicketRouteImport } from './routes/api/public/create-jira-ticket'
 import { Route as ApiPublicCreateMeetingLinkRouteImport } from './routes/api/public/create-meeting-link'
@@ -250,6 +251,11 @@ const ApiPublicBackfillShopifySmeAssignmentsRoute =
 const ApiPublicBrdFormApiRoute = ApiPublicBrdFormApiRouteImport.update({
   id: '/api/public/brd-form-api',
   path: '/api/public/brd-form-api',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicBuddyBriefRoute = ApiPublicBuddyBriefRouteImport.update({
+  id: '/api/public/buddy-brief',
+  path: '/api/public/buddy-brief',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicCheckOverdueTasksRoute =
@@ -516,6 +522,7 @@ export interface FileRoutesByFullPath {
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
+  '/api/public/buddy-brief': typeof ApiPublicBuddyBriefRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
   '/api/public/create-meeting-link': typeof ApiPublicCreateMeetingLinkRoute
@@ -591,6 +598,7 @@ export interface FileRoutesByTo {
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
+  '/api/public/buddy-brief': typeof ApiPublicBuddyBriefRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
   '/api/public/create-meeting-link': typeof ApiPublicCreateMeetingLinkRoute
@@ -668,6 +676,7 @@ export interface FileRoutesById {
   '/api/public/assign-shopify-sme-owner': typeof ApiPublicAssignShopifySmeOwnerRoute
   '/api/public/backfill-shopify-sme-assignments': typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   '/api/public/brd-form-api': typeof ApiPublicBrdFormApiRoute
+  '/api/public/buddy-brief': typeof ApiPublicBuddyBriefRoute
   '/api/public/check-overdue-tasks': typeof ApiPublicCheckOverdueTasksRoute
   '/api/public/create-jira-ticket': typeof ApiPublicCreateJiraTicketRoute
   '/api/public/create-meeting-link': typeof ApiPublicCreateMeetingLinkRoute
@@ -745,6 +754,7 @@ export interface FileRouteTypes {
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
+    | '/api/public/buddy-brief'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-jira-ticket'
     | '/api/public/create-meeting-link'
@@ -820,6 +830,7 @@ export interface FileRouteTypes {
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
+    | '/api/public/buddy-brief'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-jira-ticket'
     | '/api/public/create-meeting-link'
@@ -896,6 +907,7 @@ export interface FileRouteTypes {
     | '/api/public/assign-shopify-sme-owner'
     | '/api/public/backfill-shopify-sme-assignments'
     | '/api/public/brd-form-api'
+    | '/api/public/buddy-brief'
     | '/api/public/check-overdue-tasks'
     | '/api/public/create-jira-ticket'
     | '/api/public/create-meeting-link'
@@ -956,6 +968,7 @@ export interface RootRouteChildren {
   ApiPublicAssignShopifySmeOwnerRoute: typeof ApiPublicAssignShopifySmeOwnerRoute
   ApiPublicBackfillShopifySmeAssignmentsRoute: typeof ApiPublicBackfillShopifySmeAssignmentsRoute
   ApiPublicBrdFormApiRoute: typeof ApiPublicBrdFormApiRoute
+  ApiPublicBuddyBriefRoute: typeof ApiPublicBuddyBriefRoute
   ApiPublicCheckOverdueTasksRoute: typeof ApiPublicCheckOverdueTasksRoute
   ApiPublicCreateJiraTicketRoute: typeof ApiPublicCreateJiraTicketRoute
   ApiPublicCreateMeetingLinkRoute: typeof ApiPublicCreateMeetingLinkRoute
@@ -1227,6 +1240,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/brd-form-api'
       fullPath: '/api/public/brd-form-api'
       preLoaderRoute: typeof ApiPublicBrdFormApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/buddy-brief': {
+      id: '/api/public/buddy-brief'
+      path: '/api/public/buddy-brief'
+      fullPath: '/api/public/buddy-brief'
+      preLoaderRoute: typeof ApiPublicBuddyBriefRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/check-overdue-tasks': {
@@ -1617,6 +1637,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicBackfillShopifySmeAssignmentsRoute:
     ApiPublicBackfillShopifySmeAssignmentsRoute,
   ApiPublicBrdFormApiRoute: ApiPublicBrdFormApiRoute,
+  ApiPublicBuddyBriefRoute: ApiPublicBuddyBriefRoute,
   ApiPublicCheckOverdueTasksRoute: ApiPublicCheckOverdueTasksRoute,
   ApiPublicCreateJiraTicketRoute: ApiPublicCreateJiraTicketRoute,
   ApiPublicCreateMeetingLinkRoute: ApiPublicCreateMeetingLinkRoute,

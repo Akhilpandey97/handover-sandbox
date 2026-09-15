@@ -37,6 +37,7 @@ const storableActions = (actions?: BuddyAction[]) =>
 const metaOf = (m: BuddyMessage) => ({
   steps: m.steps?.length ? m.steps : undefined,
   sources: m.sources?.length ? m.sources : undefined,
+  reports: m.reports?.length ? m.reports : undefined,
   actions: storableActions(m.actions),
   feedback: m.feedback,
   error: m.error,
@@ -51,6 +52,7 @@ const fromRow = (r: Row): BuddyMessage => ({
   createdAt: r.created_at,
   steps: r.metadata?.steps,
   sources: r.metadata?.sources,
+  reports: r.metadata?.reports,
   actions: r.metadata?.actions,
   feedback: r.metadata?.feedback,
   error: r.metadata?.error,
@@ -307,6 +309,9 @@ export function useBuddyChat({ page, onAnswer }: { page: BuddyPage; onAnswer?: (
               case "sources":
                 patchMessage(assistant.id, (m) => ({ ...m, sources: mergeSources(m.sources, evt.items) }));
                 break;
+              case "report":
+                patchMessage(assistant.id, (m) => ({ ...m, reports: [...(m.reports || []), evt.report] }));
+                break;
               case "actions":
                 proposed = evt.calls.map((c) => ({ callId: c.id, name: c.name, arguments: c.arguments || {}, status: "previewing" }));
                 patchMessage(assistant.id, (m) => ({ ...m, actions: proposed }));
@@ -387,8 +392,17 @@ export function useBuddyChat({ page, onAnswer }: { page: BuddyPage; onAnswer?: (
 
   const cancel = useCallback(
     (messageId: string, callId: string) => {
+      const action = messagesRef.current.find((x) => x.id === messageId)?.actions?.find((a) => a.callId === callId);
       patchAction(messageId, callId, (a) => ({ ...a, status: "cancelled" }));
       persistMeta(messageId);
+      if (action) {
+        void logActivity({
+          action_type: "ai",
+          category: "buddy_action_cancelled",
+          description: `Cancelled a Buddy action: ${action.preview?.title || action.name.replace(/_/g, " ")}`,
+          metadata: { action: action.name },
+        });
+      }
     },
     [patchAction, persistMeta],
   );

@@ -1,10 +1,11 @@
 import { apiAuthHeaders } from "@/lib/api-invoke";
-import type { ActionPreview, BuddyPage, BuddySource, Mention } from "./types";
+import type { ActionPreview, BuddyPage, BuddyReport, BuddySource, Mention } from "./types";
 
 export type ChatEvent =
   | { type: "delta"; content: string }
   | { type: "step"; label: string }
   | { type: "sources"; items: BuddySource[] }
+  | { type: "report"; report: BuddyReport }
   | { type: "actions"; calls: { id: string; name: string; arguments: Record<string, any> }[] }
   | { type: "error"; message: string };
 

@@ -54,7 +54,7 @@ export const READ_TOOL_DEFS = [
     function: {
       name: "get_project",
       description:
-        "Everything about one project: details, checklist with due dates and who holds each item, open tasks, open risks, transfers, recent notes, meetings with minutes, and Jira tickets. Use before answering anything specific to a project or preparing a summary, handover or meeting brief.",
+        "Everything about one project: details, checklist items with ids, due dates and who holds each, tasks with ids and status, recent checklist comments, open risks, transfers, recent notes, meetings with minutes, and Jira tickets. Use before answering anything specific to a project, preparing a summary, handover or meeting brief, or changing a checklist item or task.",
       parameters: {
         type: "object",
         properties: { project_id: { type: "string" } },
@@ -95,10 +95,12 @@ export const READ_TOOL_DEFS = [
   },
 ] as const;
 
-export const READ_TOOL_NAMES = new Set(READ_TOOL_DEFS.map((t) => t.function.name));
+export const READ_TOOL_NAMES = new Set<string>(READ_TOOL_DEFS.map((t) => t.function.name));
 
 const PROJECT_COLUMNS =
   "id, merchant_name, mid, project_state, current_phase, current_owner_team, assigned_owner, expected_go_live_date, go_live_date, arr, platform, category, current_responsibility, kick_off_date, updated_at, pending_acceptance";
+
+const TASK_STATUS_LABELS: Record<string, string> = { open: "Open", in_progress: "In progress", done: "Done" };
 
 /** Postgres LIKE needs %/_ escaped; PostgREST .or() needs commas and parens kept out. */
 const safeLike = (s: string) => s.replace(/[%_\\]/g, (m) => `\\${m}`).replace(/[,()]/g, " ").trim();
@@ -236,25 +238,40 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
   }
 
   const today = todayIso();
-  const [items, tasks, risks, transfers, notes, meetings, jira, owners] = await Promise.all([
+  const [items, tasks, risks, transfers, notes, meetings, jira] = await Promise.all([
     caller.client.from("checklist_items").select("id, title, phase, owner_team, completed, completed_at, due_date, current_responsibility").eq("tenant_id", caller.tenantId).eq("project_id", id).order("sort_order", { ascending: true }),
-    caller.client.from("checklist_tasks").select("title, status, priority, due_date, assigned_to").eq("tenant_id", caller.tenantId).eq("project_id", id).neq("status", "completed").limit(30),
+    caller.client.from("checklist_tasks").select("id, checklist_item_id, title, status, priority, due_date, assigned_to").eq("tenant_id", caller.tenantId).eq("project_id", id).order("created_at", { ascending: false }).limit(60),
     caller.client.from("project_risks").select("title, severity, category, status, description, mitigation_plan, mitigation_due_at").eq("tenant_id", caller.tenantId).eq("project_id", id).in("status", ["open", "mitigating"]).limit(20),
     caller.client.from("transfer_history").select("from_team, to_team, transferred_by, transferred_at, accepted_at, notes").eq("tenant_id", caller.tenantId).eq("project_id", id).order("transferred_at", { ascending: false }).limit(5),
     caller.client.from("project_comment_logs").select("field_name, content, author_name, created_at").eq("tenant_id", caller.tenantId).eq("project_id", id).order("created_at", { ascending: false }).limit(8),
-    caller.client.from("checklist_meetings").select("title, scheduled_at, status, provider, join_url, attendees, analysis_status, mom_comment_id").eq("tenant_id", caller.tenantId).eq("project_id", id).order("scheduled_at", { ascending: false }).limit(5),
+    caller.client.from("checklist_meetings").select("title, scheduled_at, status, provider, join_url, attendees, analysis_status, mom_comment_id, checklist_item_id").eq("tenant_id", caller.tenantId).eq("project_id", id).order("scheduled_at", { ascending: false }).limit(5),
     caller.client.from("project_jira_tickets").select("jira_key, summary, status, priority, due_date, assignee_name").eq("tenant_id", caller.tenantId).eq("project_id", id).limit(15),
-    ownerNames(caller, [p.assigned_owner]),
   ]);
 
+  const itemRows = (items.data || []) as any[];
+  const itemTitle = new Map(itemRows.map((c) => [c.id, c.title]));
+  const taskRows = (tasks.data || []) as any[];
   const meetingRows = (meetings.data || []) as any[];
   const momIds = meetingRows.map((m) => m.mom_comment_id).filter(Boolean);
-  const { data: moms } = momIds.length
-    ? await caller.client.from("checklist_comments").select("id, comment").eq("tenant_id", caller.tenantId).in("id", momIds)
-    : { data: [] as any[] };
-  const momById = new Map(((moms || []) as { id: string; comment: string }[]).map((c) => [c.id, c.comment]));
 
-  const checklist = ((items.data || []) as any[]).map((c) => ({
+  const [owners, moms, comments] = await Promise.all([
+    ownerNames(caller, [p.assigned_owner, ...taskRows.map((t) => t.assigned_to)]),
+    momIds.length
+      ? caller.client.from("checklist_comments").select("id, comment").eq("tenant_id", caller.tenantId).in("id", momIds)
+      : Promise.resolve({ data: [] as any[] }),
+    itemRows.length
+      ? caller.client
+          .from("checklist_comments")
+          .select("id, checklist_item_id, comment, user_name, created_at")
+          .eq("tenant_id", caller.tenantId)
+          .in("checklist_item_id", itemRows.map((c) => c.id))
+          .order("created_at", { ascending: false })
+          .limit(12)
+      : Promise.resolve({ data: [] as any[] }),
+  ]);
+  const momById = new Map((((moms as any).data || []) as { id: string; comment: string }[]).map((c) => [c.id, c.comment]));
+
+  const checklist = itemRows.map((c) => ({
     item_id: c.id,
     title: c.title,
     team: c.owner_team,
@@ -297,7 +314,23 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
         overdue: checklist.filter((c) => c.overdue).length,
       },
       checklist,
-      open_tasks: tasks.data || [],
+      tasks: taskRows.map((t) => ({
+        task_id: t.id,
+        title: t.title,
+        status: TASK_STATUS_LABELS[t.status] || t.status,
+        priority: t.priority,
+        due: t.due_date,
+        assigned_to: owners.get(t.assigned_to) || (t.assigned_to ? "Someone" : "Nobody"),
+        under_item: itemTitle.get(t.checklist_item_id) || null,
+        item_id: t.checklist_item_id,
+      })),
+      recent_checklist_comments: (((comments as any).data || []) as any[]).map((c) => ({
+        item: itemTitle.get(c.checklist_item_id) || null,
+        item_id: c.checklist_item_id,
+        by: c.user_name,
+        at: c.created_at,
+        comment: clampText(c.comment, 400),
+      })),
       open_risks: risks.data || [],
       transfers: transfers.data || [],
       recent_notes: ((notes.data || []) as any[]).map((n) => ({ ...n, content: clampText(n.content, 400) })),
@@ -308,6 +341,7 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
         provider: m.provider,
         join_url: m.join_url,
         attendees: m.attendees,
+        checklist_item: itemTitle.get(m.checklist_item_id) || null,
         minutes: clampText(momById.get(m.mom_comment_id) || null, 1500),
       })),
       jira_tickets: jira.data || [],

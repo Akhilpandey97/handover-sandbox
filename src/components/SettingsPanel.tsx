@@ -21,6 +21,7 @@ import { EglRulesSettings } from "./settings/EglRulesSettings";
 import { IntegrationsSettings } from "./settings/IntegrationsSettings";
 import { usePermissions } from "@/hooks/usePermissions";
 import { NoAccessCard } from "@/components/NoAccessCard";
+import { BuddySettings } from "@/components/buddy/BuddySettings";
 
 interface LabelGroup {
   title: string;
@@ -384,6 +385,9 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
             <TabsTrigger value="activity-log" className="gap-1.5">
               <Activity className="h-3.5 w-3.5" />Activity Log
             </TabsTrigger>
+            <TabsTrigger value="buddy" className="gap-1.5">
+              <Zap className="h-3.5 w-3.5" />Buddy
+            </TabsTrigger>
           </TabsList>
         )}
 
@@ -501,6 +505,11 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
         {/* Activity Log Tab */}
         <TabsContent value="activity-log">
           <ActivityLogViewer />
+        </TabsContent>
+
+        {/* Buddy Tab */}
+        <TabsContent value="buddy">
+          <BuddySettings />
         </TabsContent>
       </Tabs>
     </div>

@@ -44,6 +44,18 @@ export interface BuddyAction {
   result?: ActionResult;
 }
 
+/** A table and chart Buddy built from a question. */
+export interface BuddyReport {
+  title: string;
+  subtitle?: string;
+  columns: { key: string; label: string; numeric?: boolean }[];
+  rows: Record<string, string | number | null>[];
+  chart?: { type: "bar" | "line"; x: string; y: string[] };
+  /** Reports-builder column keys, when it can be saved to Reports. */
+  saveColumns?: string[];
+  total: number;
+}
+
 export interface BuddyMessage {
   id: string;
   dbId?: string;
@@ -52,6 +64,7 @@ export interface BuddyMessage {
   createdAt: string;
   steps?: string[];
   sources?: BuddySource[];
+  reports?: BuddyReport[];
   actions?: BuddyAction[];
   error?: string;
   stopped?: boolean;
@@ -65,7 +78,7 @@ export interface BuddyPage {
 }
 
 export interface Mention {
-  kind: "project" | "person";
+  kind: "project" | "person" | "item";
   id: string;
   name: string;
   sub?: string;

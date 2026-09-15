@@ -870,6 +870,7 @@ export const ManagerDashboard = () => {
     funnel: { label: "Project Stages" },
     "risk-rules": { label: "Risk Rules" },
     "activity-log": { label: "Activity Log" },
+    buddy: { label: "Buddy" },
     "slack-alerts": { label: "Slack Alerts" },
     integrations: { label: "Integrations" },
     navigation: { label: "Navigation" },

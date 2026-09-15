@@ -18,6 +18,7 @@ const LABELS: Record<string, string> = {
   "slack-alerts": "Slack Alerts",
   integrations: "Integrations",
   navigation: "Navigation",
+  buddy: "Buddy",
 };
 
 export const Route = createFileRoute("/_dash/settings/$subTab")({

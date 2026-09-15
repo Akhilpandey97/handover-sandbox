@@ -51,7 +51,8 @@ export const ActionCard = ({ action, onApprove, onCancel, onUndo }: Props) => {
   const undoUntil = action.result?.undoUntil ? new Date(action.result.undoUntil).getTime() : 0;
   const now = useNow(action.status === "done" && !!action.result?.undoable && undoUntil > Date.now());
   const canUndo = action.status === "done" && !!action.result?.undoable && undoUntil > now;
-  const goTo = (href: string) => navigate({ to: href } as never);
+  const goTo = (href: string) =>
+    /^https?:\/\//.test(href) ? window.open(href, "_blank", "noopener,noreferrer") : navigate({ to: href } as never);
 
   if (action.status === "previewing") {
     return (

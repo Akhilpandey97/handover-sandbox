@@ -42,9 +42,12 @@ export interface ActionPreview {
 }
 
 export interface UndoPlan {
-  table: "projects" | "checklist_items" | "checklist_tasks" | "project_risks";
-  /** "update" restores before-values; "delete" removes rows the action created. */
-  op: "update" | "delete";
+  table: "projects" | "checklist_items" | "checklist_tasks" | "project_risks" | "checklist_comments";
+  /**
+   * "update" restores before-values; "delete" removes rows the action created;
+   * "insert" puts back rows the action deleted (before holds the whole row).
+   */
+  op: "update" | "delete" | "insert";
   rows: { id: string; before?: Record<string, unknown> }[];
 }
 
@@ -623,7 +626,7 @@ export const actionLabel = (name: string) => ACTIONS[name]?.label || name.replac
 
 // ── Undo ───────────────────────────────────────────────────────────────────
 
-const UNDO_TABLES = new Set(["projects", "checklist_items", "checklist_tasks", "project_risks"]);
+const UNDO_TABLES = new Set(["projects", "checklist_items", "checklist_tasks", "project_risks", "checklist_comments"]);
 
 export async function undoAction(c: BuddyCaller, logId: string) {
   const { data: log } = await c.client
@@ -643,6 +646,11 @@ export async function undoAction(c: BuddyCaller, logId: string) {
   for (const r of plan!.rows) {
     if (plan!.op === "delete") {
       const { error } = await c.client.from(plan!.table).delete().eq("id", r.id).eq("tenant_id", c.tenantId);
+      if (error) throw error;
+    } else if (plan!.op === "insert") {
+      // Put back a row the action deleted, only into this workspace.
+      if (!r.before || (r.before as { tenant_id?: string }).tenant_id !== c.tenantId) fail("That action can't be undone.");
+      const { error } = await c.client.from(plan!.table).insert(r.before!);
       if (error) throw error;
     } else {
       const { error } = await c.client.from(plan!.table).update(r.before || {}).eq("id", r.id).eq("tenant_id", c.tenantId);
@@ -668,3 +676,7 @@ export async function undoAction(c: BuddyCaller, logId: string) {
   });
   return { message: "Undone. The previous values are back." };
 }
+
+// Shared with more-actions.server.ts, which registers the rest of Buddy's actions.
+export { fail, fmtDate, loadPerson, loadProject, projectLink, sendResendEmail };
+export type { ActionDef };

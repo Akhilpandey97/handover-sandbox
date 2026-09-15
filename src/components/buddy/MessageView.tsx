@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ActionCard } from "./ActionCard";
 import { BuddyAvatar } from "./BuddyAvatar";
 import { Markdown } from "./Markdown";
+import { ReportCard } from "./ReportCard";
 import type { BuddyMessage } from "./types";
 
 interface Props {
@@ -59,6 +60,10 @@ export const MessageView = ({ message, isLast, compact, onRetry, onFeedback, onA
         )}
 
         {message.content && <Markdown content={message.content} />}
+
+        {message.reports?.map((r, i) => (
+          <ReportCard key={i} report={r} />
+        ))}
 
         {message.actions?.map((a) => (
           <ActionCard

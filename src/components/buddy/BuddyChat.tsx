@@ -9,6 +9,7 @@ import { tenantScope } from "@/lib/tenant-scope";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BuddyAvatar } from "./BuddyAvatar";
+import { DailyBrief, ProjectSuggestions } from "./BuddyBrief";
 import { Composer, type ComposerHandle } from "./Composer";
 import { MessageView } from "./MessageView";
 import { ThreadList } from "./ThreadList";
@@ -78,6 +79,18 @@ export const BuddyChat = ({ variant, page, onClose }: Props) => {
     () => [...scoped.map((p) => ({ kind: "project" as const, id: p.id, name: p.merchantName, sub: p.mid })), ...people],
     [scoped, people],
   );
+
+  // Checklist items per project, for tagging with @ once a project is open or mentioned.
+  const itemsByProject = useMemo(() => {
+    const map = new Map<string, Mention[]>();
+    for (const p of pageProject && !scoped.includes(pageProject) ? [...scoped, pageProject] : scoped) {
+      map.set(
+        p.id,
+        (p.checklist || []).map((c) => ({ kind: "item" as const, id: c.id, name: c.title, sub: p.merchantName })),
+      );
+    }
+    return map;
+  }, [scoped, pageProject]);
 
   // Keep the newest message in view while an answer streams in.
   const last = chat.messages[chat.messages.length - 1];
@@ -223,6 +236,11 @@ export const BuddyChat = ({ variant, page, onClose }: Props) => {
                       : "Ask about your projects, checklists, risks and next steps."}
                 </p>
               </div>
+              {pageProject ? (
+                <ProjectSuggestions projectId={pageProject.id} onPick={(prompt, draft) => runStarter({ label: prompt, prompt, draft })} />
+              ) : (
+                <DailyBrief onPick={(prompt, draft) => runStarter({ label: prompt, prompt, draft })} />
+              )}
               <StarterGroup title="Ask" items={starters.ask} onPick={runStarter} />
               {canAct && <StarterGroup title="Do" items={starters.act} onPick={runStarter} />}
             </div>
@@ -249,7 +267,9 @@ export const BuddyChat = ({ variant, page, onClose }: Props) => {
         isLoading={chat.isLoading}
         canAct={canAct}
         projectName={pageProject?.merchantName}
+        projectId={pageProject?.id}
         mentionables={mentionables}
+        itemsByProject={itemsByProject}
         listening={voice.listening}
         transcript={voice.transcript}
         voiceSupported={voice.supported}

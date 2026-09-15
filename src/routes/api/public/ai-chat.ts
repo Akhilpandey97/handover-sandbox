@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { buddyCaller, corsHeaders, json, PHASE_LABELS, STATE_LABELS, todayIso } from "@/lib/buddy/scope.server";
 import { READ_TOOL_DEFS, READ_TOOL_NAMES, runReadTool, type BuddySource } from "@/lib/buddy/read-tools.server";
+import { REPORT_TOOL_DEF, runReportTool } from "@/lib/buddy/report-tool.server";
 import { ACTION_TOOL_DEFS } from "@/lib/buddy/actions.server";
 import "@/lib/buddy/more-actions.server";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
@@ -16,6 +17,7 @@ import { loadBuddySettings } from "@/lib/buddy/settings.server";
  * Streams server-sent events, one JSON object per event:
  *   { type: "step", label }          what Buddy is doing ("Read Urban Threads")
  *   { type: "sources", items }       projects and data behind the answer
+ *   { type: "report", report }       a table and chart built for the user
  *   { type: "delta", content }       answer text
  *   { type: "actions", calls }       proposed changes, for approval
  *   { type: "error", message }
@@ -37,7 +39,7 @@ interface PageContext {
 }
 
 interface Mention {
-  kind: "project" | "person";
+  kind: "project" | "person" | "item";
   id: string;
   name: string;
 }
@@ -52,6 +54,8 @@ const PAGE_NAMES: Record<string, string> = {
   emails: "emails",
   archived: "archived projects",
 };
+
+const isReadTool = (name: string) => READ_TOOL_NAMES.has(name) || name === REPORT_TOOL_DEF.function.name;
 
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -98,12 +102,18 @@ async function handler(req: Request): Promise<Response> {
   const mentionLines = (body.mentions || [])
     .filter((m) => m && m.id && m.name)
     .slice(0, 10)
-    .map((m) => (m.kind === "project" ? `- project "${m.name}" (project_id=${m.id})` : `- person "${m.name}" (user_id=${m.id})`));
+    .map((m) =>
+      m.kind === "project"
+        ? `- project "${m.name}" (project_id=${m.id})`
+        : m.kind === "item"
+          ? `- checklist item "${m.name}" (item_id=${m.id})`
+          : `- person "${m.name}" (user_id=${m.id})`,
+    );
 
   const allowedActions = caller.canAct
     ? ACTION_TOOL_DEFS.filter((t) => !settings.disabled_actions.includes(t.function.name))
     : [];
-  const tools = [...READ_TOOL_DEFS, ...allowedActions];
+  const tools = [...READ_TOOL_DEFS, REPORT_TOOL_DEF, ...allowedActions];
 
   const system = [
     `You are Buddy, the assistant inside Handover, a tool for tracking merchant onboarding and integration projects. Today is ${todayIso()}.`,
@@ -120,6 +130,9 @@ How to answer:
 - Write dates like "26 Sep" and money like "₹4.2 Cr".
 - If the data doesn't say, say so.
 
+Reports:
+- When the user asks for a report, a chart, a breakdown or trend, or a list they want to keep, call build_report. The table and chart appear in the chat with download and save buttons, so reply with the one or two key takeaways only.
+
 Summaries:
 - For a project summary, handover summary, meeting prep or meeting recap, read the project with get_project first and use these sections: Status, Done, Open (with who holds each item), Risks, Next steps. For meeting prep, lead with open questions for the call; for a recap, use the latest meeting's minutes.
 
@@ -127,9 +140,12 @@ Changing things:
 ${
   caller.canAct
     ? `- To change anything, call the matching action tool. The user sees an approval card with before and after values, so don't ask "shall I?" first and don't restate the details. Say in one short sentence what you've prepared.
-- Get ids from the read tools first (project_id from search_projects or get_project, user ids from list_people). Never invent ids.
+- Get ids from the read tools first (project_id from search_projects or get_project, item and task ids from get_project, user ids from list_people). Never invent ids.
 - Propose one action per reply unless the user asked for several.
-- For emails, write the full subject and body yourself in a clear, friendly, professional tone, signed with the user's name.`
+- For emails, write the full subject and body yourself in a clear, friendly, professional tone, signed with the user's name. Use send_email for merchants or anyone outside Handover, and send_notification for teammates inside Handover.
+- Meeting links: use create_meeting_link. Times are IST (+05:30) unless the user says otherwise; if no time was given, ask for it. Attach the meeting to a checklist item when one clearly fits, so it's saved and invites go out.
+- Tasks, checklist comments and checklist changes need item or task ids: read the project with get_project first, or use a tagged checklist item.
+- "Who holds" a single checklist item is toggle_item_responsibility; who the whole project waits on is toggle_responsibility.`
     : `- This user can't make changes. If they ask, explain that a manager or admin can, and offer to prepare the information instead.`
 }`,
   ]
@@ -141,6 +157,9 @@ ${
     async start(controller) {
       const emit = (evt: unknown) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(evt)}\n\n`));
       const convo: any[] = [{ role: "system", content: system }, ...history.map((m) => ({ role: m.role, content: m.content }))];
+      const toolsUsed: string[] = [];
+      let actionsProposed = 0;
+      let failed = false;
       if (pageSources.length) emit({ type: "sources", items: pageSources });
 
       try {
@@ -153,6 +172,7 @@ ${
           });
 
           if (!res.ok || !res.body) {
+            failed = true;
             const message =
               res.status === 429
                 ? "Buddy is getting a lot of requests. Try again in a moment."
@@ -216,8 +236,9 @@ ${
             });
           if (parsed.length === 0) break;
 
-          const actionCalls = parsed.filter((c) => !READ_TOOL_NAMES.has(c.name as any));
+          const actionCalls = parsed.filter((c) => !isReadTool(c.name));
           if (actionCalls.length > 0) {
+            actionsProposed += actionCalls.length;
             emit({ type: "actions", calls: actionCalls.map((c) => ({ id: c.id, name: c.name, arguments: c.args })) });
             break;
           }
@@ -228,9 +249,14 @@ ${
             tool_calls: parsed.map((c) => ({ id: c.id, type: "function", function: { name: c.name, arguments: c.raw } })),
           });
           for (const call of parsed) {
-            const result = await runReadTool(caller, call.name, call.args);
+            toolsUsed.push(call.name);
+            const result =
+              call.name === REPORT_TOOL_DEF.function.name
+                ? await runReportTool(caller, call.args)
+                : await runReadTool(caller, call.name, call.args);
             emit({ type: "step", label: result.step });
             if (result.sources.length) emit({ type: "sources", items: result.sources });
+            if ("report" in result && result.report) emit({ type: "report", report: result.report });
             convo.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(result.data).slice(0, TOOL_RESULT_LIMIT) });
           }
 
@@ -240,12 +266,32 @@ ${
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
+          failed = true;
           console.error("ai-chat error:", err);
           emit({ type: "error", message: "Buddy hit a problem answering that. Try again." });
         }
       } finally {
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
+        // Usage for Settings → Buddy. The question text is not stored.
+        await caller.client
+          .from("activity_logs")
+          .insert({
+            tenant_id: caller.tenantId,
+            user_id: caller.userId,
+            user_name: caller.name,
+            action_type: "ai",
+            category: "buddy_question",
+            description: "Asked Buddy a question",
+            metadata: {
+              via: "buddy_chat",
+              tools: toolsUsed,
+              actions_proposed: actionsProposed,
+              page: body.page?.projectId ? "project" : body.page?.path?.split("/").filter(Boolean)[0] || null,
+            },
+            status: failed ? "failed" : "success",
+          })
+          .then(() => undefined, () => undefined);
       }
     },
   });
