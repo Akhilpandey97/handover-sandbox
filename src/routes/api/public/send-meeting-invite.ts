@@ -157,17 +157,17 @@ async function handler(req: Request): Promise<Response> {
     const html = `
       <div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px">
         <h2 style="margin:0 0 4px;font-size:18px">${escapeHtml(meeting.title)}</h2>
-        ${projectName ? `<p style="margin:0 0 16px;color:#64748b;font-size:13px">${escapeHtml(projectName)}</p>` : ""}
+        ${projectName ? `<p style="margin:0 0 16px;color:#546978;font-size:13px">${escapeHtml(projectName)}</p>` : ""}
         <p style="margin:0 0 4px"><strong>When:</strong> ${escapeHtml(when)} (${meeting.duration_minutes} min)</p>
         <p style="margin:0 0 16px"><strong>Where:</strong> ${escapeHtml(providerLabel)}</p>
         ${meeting.agenda ? `<p style="margin:0 0 16px;white-space:pre-wrap">${escapeHtml(meeting.agenda)}</p>` : ""}
         <p style="margin:0 0 20px">
           <a href="${escapeHtml(meeting.join_url)}"
-             style="background:#2563eb;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">
+             style="background:#24598a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">
             Join ${escapeHtml(providerLabel)}
           </a>
         </p>
-        <p style="margin:0;color:#64748b;font-size:12px">
+        <p style="margin:0;color:#546978;font-size:12px">
           The calendar invitation is attached. Minutes are posted back to the project checklist after the call.
         </p>
       </div>`;

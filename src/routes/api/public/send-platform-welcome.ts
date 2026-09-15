@@ -102,7 +102,7 @@ ${senderName || "[POC Name]"} | ${orgName}
 ${senderMobile || ""}`;
 
     const html = `
-      <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; color:#1e293b;">
+      <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; color:#11263b;">
         <p>Hi <strong>${brandPocName || "there"}</strong>,</p>
         <p>Welcome aboard! We're thrilled to have <strong>${brandName}</strong> live on ${orgName}.<br/>
         Here's everything you need to get started.</p>

@@ -20,7 +20,7 @@ const PADDING = 8;
 const TOOLTIP_W = 340;
 const TOOLTIP_GAP = 14;
 
-export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#1e3a8a" }: Props) => {
+export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#24598a" }: Props) => {
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [tick, setTick] = useState(0);

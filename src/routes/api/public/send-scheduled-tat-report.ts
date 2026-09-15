@@ -115,12 +115,12 @@ function buildReport(projects: any[], granularity: "monthly" | "quarterly") {
 }
 
 function renderHtml(title: string, granularity: "monthly" | "quarterly", data: ReturnType<typeof buildReport>) {
-  const th = `background:#f1f5f9;padding:8px 10px;text-align:left;font-size:12px;color:#334155;border-bottom:1px solid #cbd5e1;`;
-  const td = `padding:8px 10px;font-size:13px;color:#1e293b;border-bottom:1px solid #e2e8f0;`;
-  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:900px;margin:0 auto;padding:20px;color:#1e293b;">`;
+  const th = `background:#eef3f6;padding:8px 10px;text-align:left;font-size:12px;color:#3b5466;border-bottom:1px solid #c3d1d9;`;
+  const td = `padding:8px 10px;font-size:13px;color:#11263b;border-bottom:1px solid #d5e0e6;`;
+  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:900px;margin:0 auto;padding:20px;color:#11263b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
-  html += `<p style="margin:0 0 14px;color:#64748b;font-size:12px;">Grouped by ${granularity} · Generated ${new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata" })} IST</p>`;
-  html += `<div style="background:#f1f5f9;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;">
+  html += `<p style="margin:0 0 14px;color:#546978;font-size:12px;">Grouped by ${granularity} · Generated ${new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata" })} IST</p>`;
+  html += `<div style="background:#eef3f6;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;">
     <div><strong>${data.overall.count}</strong> Live merchants</div>
     <div>Total ARR: <strong>${data.overall.totalArr.toFixed(3)} Cr</strong></div>
     <div>Avg TAT: <strong>${data.overall.avgTat.toFixed(2)} days</strong></div>
@@ -128,12 +128,12 @@ function renderHtml(title: string, granularity: "monthly" | "quarterly", data: R
   </div>`;
 
   if (data.groups.length === 0) {
-    html += `<p style="color:#64748b;">No projects with both Kick-off and Go-Live dates.</p>`;
+    html += `<p style="color:#546978;">No projects with both Kick-off and Go-Live dates.</p>`;
   }
 
   for (const g of data.groups) {
     html += `<h2 style="font-size:15px;margin:18px 0 6px;">${escapeHtml(g.label)}
-      <span style="font-weight:normal;color:#64748b;font-size:12px;">
+      <span style="font-weight:normal;color:#546978;font-size:12px;">
         · ${g.rows.length} merchants · Avg TAT ${g.avgTat.toFixed(2)}d · Avg Network ${g.avgNet.toFixed(2)}d
       </span></h2>`;
     html += `<table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
@@ -149,7 +149,7 @@ function renderHtml(title: string, granularity: "monthly" | "quarterly", data: R
       </tr></thead><tbody>`;
     g.rows.forEach((r: any, i: number) => {
       html += `<tr>
-        <td style="${td};color:#64748b;">${i + 1}</td>
+        <td style="${td};color:#546978;">${i + 1}</td>
         <td style="${td};font-weight:600;">${escapeHtml(r.merchant)}</td>
         <td style="${td}">${escapeHtml(r.platform)}</td>
         <td style="${td};text-align:right;">${r.arr}</td>
@@ -159,7 +159,7 @@ function renderHtml(title: string, granularity: "monthly" | "quarterly", data: R
         <td style="${td};text-align:right;">${r.netDays}</td>
       </tr>`;
     });
-    html += `<tr style="background:#f8fafc;">
+    html += `<tr style="background:#f7fafc;">
       <td colspan="3" style="${td};font-weight:700;">Total</td>
       <td style="${td};text-align:right;font-weight:700;">${g.totalArr.toFixed(3)}</td>
       <td colspan="2" style="${td};text-align:right;font-weight:700;">Average TAT</td>
@@ -169,7 +169,7 @@ function renderHtml(title: string, granularity: "monthly" | "quarterly", data: R
     html += `</tbody></table>`;
   }
 
-  html += `<p style="color:#94a3b8;font-size:11px;margin-top:24px;">Automated TAT report from MINT.</p>`;
+  html += `<p style="color:#546978;font-size:11px;margin-top:24px;">Automated TAT report from MINT.</p>`;
   html += `</div>`;
   return html;
 }

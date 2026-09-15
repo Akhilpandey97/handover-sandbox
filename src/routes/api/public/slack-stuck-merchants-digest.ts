@@ -102,8 +102,8 @@ async function handler(req: Request): Promise<Response> {
 
       const html = buildDigestHtml(stuck, tag, hours, tenantCreds);
       const subject = stuck.length
-        ? `🚨 ${stuck.length} merchant${stuck.length > 1 ? "s" : ""} pending response (${hours}h+) — ${formatDateIST()}`
-        : `✅ No stuck merchants (test) — ${formatDateIST()}`;
+        ? `${stuck.length} merchant${stuck.length > 1 ? "s" : ""} pending response (${hours}h+) — ${formatDateIST()}`
+        : `No stuck merchants (test) — ${formatDateIST()}`;
 
       const resp = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -297,9 +297,9 @@ function buildDigestHtml(
   creds: { app_base_url: string | null },
 ): string {
   if (items.length === 0) {
-    return `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;padding:16px;color:#111">
-      <p>✅ No stuck merchants matched <code>${escapeHtml(tag)}</code> (>${hours}h).</p>
-      <p style="color:#666;font-size:12px">This is a test digest.</p>
+    return `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;padding:16px;color:#11263b">
+      <p>No stuck merchants matched <code>${escapeHtml(tag)}</code> (>${hours}h).</p>
+      <p style="color:#546978;font-size:12px">This is a test digest.</p>
     </div>`;
   }
 
@@ -312,31 +312,31 @@ function buildDigestHtml(
       });
       const note = escapeHtml(it.last_note).slice(0, 400);
       return `
-      <div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#fff">
-        <div style="font-size:15px;font-weight:600;color:#111;margin-bottom:4px">
+      <div style="border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#ffffff">
+        <div style="font-size:15px;font-weight:600;color:#11263b;margin-bottom:4px">
           ${url
-            ? `<a href="${url}" style="color:#0b66ff;text-decoration:none">${escapeHtml(it.merchant_name)}</a>`
+            ? `<a href="${url}" style="color:#24598a;text-decoration:none">${escapeHtml(it.merchant_name)}</a>`
             : escapeHtml(it.merchant_name)}
-          <span style="color:#6b7280;font-weight:400;font-size:13px"> · ${escapeHtml(it.funnel_stage)} · ${it.hours_stuck}h stuck</span>
+          <span style="color:#546978;font-weight:400;font-size:13px"> · ${escapeHtml(it.funnel_stage)} · ${it.hours_stuck}h stuck</span>
         </div>
-        <div style="font-size:13px;color:#374151;margin-bottom:6px">
+        <div style="font-size:13px;color:#3b5466;margin-bottom:6px">
           <strong>Item:</strong> ${escapeHtml(it.item_title)}
         </div>
-        <div style="font-size:13px;color:#374151;margin-bottom:6px">
-          <strong>Last note</strong> <span style="color:#6b7280">(${escapeHtml(it.last_note_by)})</span>: ${note}
+        <div style="font-size:13px;color:#3b5466;margin-bottom:6px">
+          <strong>Last note</strong> <span style="color:#546978">(${escapeHtml(it.last_note_by)})</span>: ${note}
         </div>
-        ${it.sales_spoc ? `<div style="font-size:12px;color:#6b7280">Sales SPOC: ${escapeHtml(it.sales_spoc)}</div>` : ""}
+        ${it.sales_spoc ? `<div style="font-size:12px;color:#546978">Sales SPOC: ${escapeHtml(it.sales_spoc)}</div>` : ""}
       </div>`;
     })
     .join("");
 
-  return `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#f9fafb;padding:16px;color:#111">
-    <h2 style="margin:0 0 12px;font-size:17px">🚨 Merchants pending response (${hours}h+)</h2>
-    <p style="margin:0 0 14px;color:#374151;font-size:13px">
+  return `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#f7fafc;padding:16px;color:#11263b">
+    <h2 style="margin:0 0 12px;font-size:17px">Merchants pending response (${hours}h+)</h2>
+    <p style="margin:0 0 14px;color:#3b5466;font-size:13px">
       ${items.length} merchant${items.length > 1 ? "s have" : " has"} a checklist note tagged <code>${escapeHtml(tag)}</code> older than ${hours}h with no follow-up.
     </p>
     ${rows}
-    <p style="color:#9ca3af;font-size:11px;margin-top:14px">
+    <p style="color:#546978;font-size:11px;margin-top:14px">
       Auto-generated daily at 12:00 PM IST. Add a new comment without <code>${escapeHtml(tag)}</code> to drop a merchant from tomorrow's digest.
     </p>
   </div>`;

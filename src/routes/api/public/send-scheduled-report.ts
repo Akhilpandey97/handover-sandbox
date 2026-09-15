@@ -219,29 +219,29 @@ function buildPivotHtml(projects: any[], pivotRowField: string, pivotColField: s
 
   const rowLabel = PIVOT_FIELD_LABELS[pivotRowField] || pivotRowField;
   const th = (txt: string, extra = "") =>
-    `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #e2e8f0;background:#f1f5f9;font-size:12px;color:#475569;white-space:nowrap;${extra}">${txt}</th>`;
+    `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d5e0e6;background:#eef3f6;font-size:12px;color:#3b5466;white-space:nowrap;${extra}">${txt}</th>`;
   const td = (txt: string, bg = "#ffffff", bold = false) =>
-    `<td style="padding:6px 12px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#334155;background:${bg};text-align:right;${bold ? "font-weight:600;" : ""}">${txt}</td>`;
+    `<td style="padding:6px 12px;border-bottom:1px solid #d5e0e6;font-size:12px;color:#3b5466;background:${bg};text-align:right;${bold ? "font-weight:600;" : ""}">${txt}</td>`;
   const tdLeft = (txt: string, bg = "#ffffff", bold = false) =>
-    `<td style="padding:6px 12px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#334155;background:${bg};${bold ? "font-weight:600;" : ""}">${txt}</td>`;
+    `<td style="padding:6px 12px;border-bottom:1px solid #d5e0e6;font-size:12px;color:#3b5466;background:${bg};${bold ? "font-weight:600;" : ""}">${txt}</td>`;
 
   const headerCols = sortedCols.map(c => th(c, "text-align:right;")).join("");
-  const grandTotalHeader = showGrandTotal ? th("Grand Total", "text-align:right;background:#e2e8f0;") : "";
+  const grandTotalHeader = showGrandTotal ? th("Grand Total", "text-align:right;background:#d5e0e6;") : "";
 
   const bodyRows = sortedRows.map((row, i) => {
-    const bg = i % 2 === 0 ? "#ffffff" : "#f8fafc";
+    const bg = i % 2 === 0 ? "#ffffff" : "#f7fafc";
     const rowTotal = sortedCols.reduce((s, c) => s + (result[row]?.[c] || 0), 0);
     const cells = sortedCols.map(c => td(formatAggVal(pivotValueField, result[row]?.[c] || 0, pivotAggType), bg)).join("");
     const gtCell = showGrandTotal ? td(formatAggVal(pivotValueField, rowTotal, pivotAggType), bg, true) : "";
     return `<tr>${tdLeft(row, bg)}${cells}${gtCell}</tr>`;
   }).join("");
 
-  const grandTotalCells = sortedCols.map(c => td(formatAggVal(pivotValueField, grandTotals[c] || 0, pivotAggType), "#e8edf5", true)).join("");
+  const grandTotalCells = sortedCols.map(c => td(formatAggVal(pivotValueField, grandTotals[c] || 0, pivotAggType), "#e6f0f5", true)).join("");
   const overallTotal = Object.values(grandTotals).reduce((s, v) => s + v, 0);
   const grandTotalRow = `<tr>
-    ${tdLeft("Grand Total", "#e8edf5", true)}
+    ${tdLeft("Grand Total", "#e6f0f5", true)}
     ${grandTotalCells}
-    ${showGrandTotal ? td(formatAggVal(pivotValueField, overallTotal, pivotAggType), "#dde4f0", true) : ""}
+    ${showGrandTotal ? td(formatAggVal(pivotValueField, overallTotal, pivotAggType), "#d5e0e6", true) : ""}
   </tr>`;
 
   return `
@@ -469,12 +469,12 @@ async function sendReportEmail(
     // Mobile cards: one card per row
     mobileCardsHtml = pivot.sortedRows.map(r => {
       const cells = pivot.sortedCols.map(c =>
-        `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:#64748b;">${c}</span><span style="color:#0f172a;font-weight:500;">${formatAggVal(pivot.pivotValueField, pivot.result[r]?.[c] || 0, pivot.pivotAggType)}</span></div>`
+        `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:#546978;">${c}</span><span style="color:#11263b;font-weight:500;">${formatAggVal(pivot.pivotValueField, pivot.result[r]?.[c] || 0, pivot.pivotAggType)}</span></div>`
       ).join("");
       const gt = pivot.showGrandTotal
-        ? `<div style="display:flex;justify-content:space-between;padding:6px 0 0;margin-top:6px;border-top:1px solid #e2e8f0;font-size:13px;font-weight:600;"><span style="color:#475569;">Grand Total</span><span style="color:#0f172a;">${formatAggVal(pivot.pivotValueField, pivot.rowTotals[r], pivot.pivotAggType)}</span></div>`
+        ? `<div style="display:flex;justify-content:space-between;padding:6px 0 0;margin-top:6px;border-top:1px solid #d5e0e6;font-size:13px;font-weight:600;"><span style="color:#3b5466;">Grand Total</span><span style="color:#11263b;">${formatAggVal(pivot.pivotValueField, pivot.rowTotals[r], pivot.pivotAggType)}</span></div>`
         : "";
-      return `<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin-bottom:8px;"><div style="font-weight:600;font-size:14px;color:#0f172a;margin-bottom:8px;">${r}</div>${cells}${gt}</div>`;
+      return `<div style="background:#ffffff;border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:8px;"><div style="font-weight:600;font-size:14px;color:#11263b;margin-bottom:8px;">${r}</div>${cells}${gt}</div>`;
     }).join("");
 
     const colLabel = pivotColField !== "none" ? (PIVOT_FIELD_LABELS[pivotColField] || pivotColField) : "—";
@@ -483,12 +483,12 @@ async function sendReportEmail(
     plainTextBody = `${report.name}\nScheduled Report — ${dateStr}\n\n${buildPivotPlainText(pivot)}\n\n${footerText}`;
   } else {
     const headerRow = columns.map((c: string) =>
-      `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #e2e8f0;background:#f1f5f9;font-size:12px;color:#475569;">${columnLabels[c] || c}</th>`
+      `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d5e0e6;background:#eef3f6;font-size:12px;color:#3b5466;">${columnLabels[c] || c}</th>`
     ).join("");
     const bodyRows = filteredProjects.map((p: any, i: number) => {
-      const bgColor = i % 2 === 0 ? "#ffffff" : "#f8fafc";
+      const bgColor = i % 2 === 0 ? "#ffffff" : "#f7fafc";
       const cells = columns.map((c: string) =>
-        `<td style="padding:6px 12px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#334155;background:${bgColor};">${getFlatCellValue(p, c)}</td>`
+        `<td style="padding:6px 12px;border-bottom:1px solid #d5e0e6;font-size:12px;color:#3b5466;background:${bgColor};">${getFlatCellValue(p, c)}</td>`
       ).join("");
       return `<tr>${cells}</tr>`;
     }).join("");
@@ -497,9 +497,9 @@ async function sendReportEmail(
     // Mobile cards: one card per project (label-value pairs)
     mobileCardsHtml = filteredProjects.map((p: any) => {
       const rows = columns.map((c: string) =>
-        `<div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:13px;"><span style="color:#64748b;flex-shrink:0;">${columnLabels[c] || c}</span><span style="color:#0f172a;text-align:right;word-break:break-word;">${getFlatCellValue(p, c) || "—"}</span></div>`
+        `<div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:13px;"><span style="color:#546978;flex-shrink:0;">${columnLabels[c] || c}</span><span style="color:#11263b;text-align:right;word-break:break-word;">${getFlatCellValue(p, c) || "—"}</span></div>`
       ).join("");
-      return `<div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;margin-bottom:8px;">${rows}</div>`;
+      return `<div style="background:#ffffff;border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:8px;">${rows}</div>`;
     }).join("");
 
     const filterSummary = filterState && (filterState.activeFilterCount > 0 || filterState.sortField !== "none")
@@ -523,7 +523,7 @@ async function sendReportEmail(
 <meta name="x-apple-disable-message-reformatting">
 <title>${report.name}</title>
 <style>
-  body { margin:0; padding:0; background:#f1f5f9; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+  body { margin:0; padding:0; background:#eef3f6; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
   /* Outlook ignores the body font on tables, so restate it there. */
   table, td, th, div, p, h1 { font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
   .wrap { max-width:900px; margin:0 auto; padding:16px; }
@@ -540,19 +540,19 @@ async function sendReportEmail(
 </head>
 <body>
   <div class="wrap">
-    <div class="header" style="background:linear-gradient(135deg,#3b82f6,#6366f1);padding:18px 20px;border-radius:12px 12px 0 0;color:#ffffff;">
-      <h1 style="margin:0;font-size:18px;font-weight:600;">${isPivot ? "📊" : "📋"} ${report.name}</h1>
+    <div class="header" style="background:#1d3a5c;padding:18px 20px;border-radius:12px 12px 0 0;color:#ffffff;">
+      <h1 style="margin:0;font-size:18px;font-weight:600;">${report.name}</h1>
       <p style="margin:4px 0 0;font-size:13px;opacity:0.9;">Scheduled Report — ${dateStr}</p>
     </div>
-    <div style="background:#ffffff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;overflow:hidden;">
+    <div style="background:#ffffff;border:1px solid #d5e0e6;border-top:none;border-radius:0 0 12px 12px;overflow:hidden;">
       <div class="desktop-table" style="overflow-x:auto;">
         ${tableHtml}
       </div>
-      <div class="mobile-cards" style="padding:0 12px 4px;background:#f8fafc;">
+      <div class="mobile-cards" style="padding:0 12px 4px;background:#f7fafc;">
         ${mobileCardsHtml}
       </div>
-      <div style="padding:12px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;">
-        <p style="margin:0;font-size:11px;color:#94a3b8;">${footerText}</p>
+      <div style="padding:12px 16px;background:#f7fafc;border-top:1px solid #d5e0e6;">
+        <p style="margin:0;font-size:11px;color:#546978;">${footerText}</p>
       </div>
     </div>
   </div>
@@ -564,7 +564,7 @@ async function sendReportEmail(
 
   // Use Resend batch endpoint — single API call for up to 100 recipients
   // avoids the 2 req/sec rate limit that caused later recipients to be dropped.
-  const subject = `📊 Report: ${report.name} — ${new Date().toLocaleDateString()}`;
+  const subject = `Report: ${report.name} — ${new Date().toLocaleDateString()}`;
   const from = resendFrom(creds);
   const replyTo = resendReplyTo(creds);
   const chunkSize = 100;

@@ -176,22 +176,22 @@ const buildFunnelEmailHtml = (
     const funnel = funnelStageLabels[getProjectFunnelStage(p)];
     const line1 = ai?.line1 || fallback;
     const line2 = ai?.line2 || "";
-    return `<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13px;line-height:1.5;color:#1e293b;">
+    return `<div style="padding:10px 0;border-bottom:1px solid #eef3f6;font-size:13px;line-height:1.5;color:#11263b;">
       <div><strong style="font-size:14px;">${escapeHtml(p.merchantName)}</strong></div>
-      <div style="color:#475569;font-size:12px;margin:2px 0 6px;">ARR: <strong>${escapeHtml(formatArr(p.arr))}</strong> &nbsp;|&nbsp; EGL: <strong>${escapeHtml(formatEgl(p.dates?.expectedGoLiveDate))}</strong> &nbsp;|&nbsp; ${escapeHtml(funnel)} · ${escapeHtml(projectStateLabels[p.projectState])}</div>
+      <div style="color:#3b5466;font-size:12px;margin:2px 0 6px;">ARR: <strong>${escapeHtml(formatArr(p.arr))}</strong> &nbsp;|&nbsp; EGL: <strong>${escapeHtml(formatEgl(p.dates?.expectedGoLiveDate))}</strong> &nbsp;|&nbsp; ${escapeHtml(funnel)} · ${escapeHtml(projectStateLabels[p.projectState])}</div>
       <div>${escapeHtml(line1)}</div>
-      ${line2 ? `<div style="color:#475569;margin-top:2px;">${escapeHtml(line2)}</div>` : ""}
+      ${line2 ? `<div style="color:#3b5466;margin-top:2px;">${escapeHtml(line2)}</div>` : ""}
     </div>`;
   };
 
   const totalActive = filtered.filter(isActive).length;
   const totalInactive = filtered.length - totalActive;
 
-  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
+  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#11263b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
-  html += `<p style="margin:0 0 14px;color:#64748b;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</p>`;
-  html += `<div style="background:#f1f5f9;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;">
-    <strong>${filtered.length}</strong> projects · <strong style="color:#059669;">${totalActive}</strong> Active · <strong style="color:#64748b;">${totalInactive}</strong> Inactive
+  html += `<p style="margin:0 0 14px;color:#546978;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</p>`;
+  html += `<div style="background:#eef3f6;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;">
+    <strong>${filtered.length}</strong> projects · <strong style="color:#116958;">${totalActive}</strong> Active · <strong style="color:#546978;">${totalInactive}</strong> Inactive
   </div>`;
 
   for (const stage of funnelOrder) {
@@ -201,17 +201,17 @@ const buildFunnelEmailHtml = (
     const inactive = list.filter(p => !isActive(p));
 
     html += `<div style="margin-bottom:26px;">
-      <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#0f172a;color:#fff;border-radius:4px;">
+      <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#1d3a5c;color:#ffffff;border-radius:4px;">
         ${escapeHtml(funnelStageLabels[stage])} · ${list.length} projects · ${active.length} Active / ${inactive.length} Inactive
       </h2>`;
     if (active.length > 0) {
       html += active.map(renderLine).join("");
     } else {
-      html += `<p style="color:#94a3b8;font-size:12px;margin:0 0 6px;">No movement this period.</p>`;
+      html += `<p style="color:#546978;font-size:12px;margin:0 0 6px;">No movement this period.</p>`;
     }
     if (inactive.length > 0) {
-      html += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0;font-size:12px;color:#94a3b8;">
-        <strong style="color:#64748b;">Inactive (${inactive.length}):</strong> ${inactive.map(p => escapeHtml(p.merchantName)).join(", ")}
+      html += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #d5e0e6;font-size:12px;color:#546978;">
+        <strong style="color:#546978;">Inactive (${inactive.length}):</strong> ${inactive.map(p => escapeHtml(p.merchantName)).join(", ")}
       </div>`;
     }
     html += `</div>`;
@@ -238,34 +238,34 @@ const buildBucketedEmailHtml = (
     const funnel = funnelStageLabels[getProjectFunnelStage(p)];
     const line1 = ai?.line1 || fallback;
     const line2 = ai?.line2 || "";
-    return `<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13px;line-height:1.5;color:#1e293b;">
+    return `<div style="padding:10px 0;border-bottom:1px solid #eef3f6;font-size:13px;line-height:1.5;color:#11263b;">
       <div><strong style="font-size:14px;">${escapeHtml(p.merchantName)}</strong></div>
-      <div style="color:#475569;font-size:12px;margin:2px 0 6px;">ARR: <strong>${escapeHtml(formatArr(p.arr))}</strong> &nbsp;|&nbsp; EGL: <strong>${escapeHtml(formatEgl(p.dates?.expectedGoLiveDate))}</strong> &nbsp;|&nbsp; ${escapeHtml(funnel)} · ${escapeHtml(projectStateLabels[p.projectState])}</div>
+      <div style="color:#3b5466;font-size:12px;margin:2px 0 6px;">ARR: <strong>${escapeHtml(formatArr(p.arr))}</strong> &nbsp;|&nbsp; EGL: <strong>${escapeHtml(formatEgl(p.dates?.expectedGoLiveDate))}</strong> &nbsp;|&nbsp; ${escapeHtml(funnel)} · ${escapeHtml(projectStateLabels[p.projectState])}</div>
       <div>${escapeHtml(line1)}</div>
-      ${line2 ? `<div style="color:#475569;margin-top:2px;">${escapeHtml(line2)}</div>` : ""}
+      ${line2 ? `<div style="color:#3b5466;margin-top:2px;">${escapeHtml(line2)}</div>` : ""}
     </div>`;
   };
 
   const section = (label: string, color: string, list: Project[], emptyText: string) => {
     const body = list.length === 0
-      ? `<p style="color:#94a3b8;font-size:12px;margin:0;">${emptyText}</p>`
+      ? `<p style="color:#546978;font-size:12px;margin:0;">${emptyText}</p>`
       : list.map(renderLine).join("");
     return `<div style="margin-bottom:24px;">
-      <h2 style="font-size:15px;margin:0 0 8px;padding:6px 10px;background:${color};color:#fff;border-radius:4px;display:inline-block;">${label} (${list.length})</h2>
+      <h2 style="font-size:15px;margin:0 0 8px;padding:6px 10px;background:${color};color:#ffffff;border-radius:4px;display:inline-block;">${label} (${list.length})</h2>
       ${body}
     </div>`;
   };
 
-  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
+  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#11263b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
-  html += `<p style="margin:0 0 18px;color:#64748b;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</p>`;
-  html += section("Wins", "#059669", activeBuckets.wins, "No new wins this period.");
-  html += section("Updates", "#2563eb", activeBuckets.updates, "No active updates this period.");
-  html += section("Lowlights", "#dc2626", activeBuckets.lowlights, "No lowlights this period.");
+  html += `<p style="margin:0 0 18px;color:#546978;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</p>`;
+  html += section("Wins", "#116958", activeBuckets.wins, "No new wins this period.");
+  html += section("Updates", "#24598a", activeBuckets.updates, "No active updates this period.");
+  html += section("Lowlights", "#ad1f1f", activeBuckets.lowlights, "No lowlights this period.");
   if (inactive.length > 0) {
     html += `<div style="margin-top:32px;">
-      <h2 style="font-size:14px;color:#64748b;margin:0 0 8px;border-top:1px solid #e2e8f0;padding-top:14px;">Inactive (${inactive.length})</h2>
-      <p style="margin:0;font-size:12px;color:#94a3b8;">${inactive.map(p => escapeHtml(p.merchantName)).join(", ")}</p>
+      <h2 style="font-size:14px;color:#546978;margin:0 0 8px;border-top:1px solid #d5e0e6;padding-top:14px;">Inactive (${inactive.length})</h2>
+      <p style="margin:0;font-size:12px;color:#546978;">${inactive.map(p => escapeHtml(p.merchantName)).join(", ")}</p>
     </div>`;
   }
   html += `</div>`;

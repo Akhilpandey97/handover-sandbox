@@ -61,6 +61,19 @@ line checked to differ from HEAD only in class names (0 exceptions). A first
 attempt that tokenised string literals broke `AiChatBot.tsx`; all files were
 restored from HEAD and redone with the safer codemod.
 
+### 7. Emails and standalone HTML (missed by the first pass)
+
+The first audit only scanned the app UI; server routes under `src/routes/api`
+were excluded, and email HTML was wrongly marked "left as is". Emails can't read
+CSS variables, but they can use the same hex values as the light theme.
+
+- [x] 11 templates onto Handover hex: notifications (assignment, transfer, rejection), scheduled report, movement report (server + in-app copy), TAT report, password reset, meeting invite, platform welcome, merchant portal magic link, stuck-merchants digest, error page
+- [x] Gradients → solid: headers `#1d3a5c` (navy), buttons and links `#24598a` (primary), rejection / blocked `#ad1f1f`
+- [x] Text `#11263b` / `#3b5466` / `#546978`; lines `#d5e0e6`; grounds `#f7fafc` / `#eef3f6`; status pairs from the theme. Faint greys (`#94a3b8`) moved up to muted: they measured below 4.5:1
+- [x] Emoji removed from email subjects and headings
+- [x] Guided tour default `brandColor` `#1e3a8a` → `#24598a`
+- [ ] Sender names still say "MINT Updates" / "MINT Alerts"
+
 ## Verification
 
 - [x] Typecheck 0 errors; production build passes; new utilities present in built CSS

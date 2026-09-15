@@ -334,19 +334,19 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
     const funnel = funnelLabels[getFunnelStage(p)];
     const line1 = ai?.line1 || fallback;
     const line2 = ai?.line2 || "";
-    return `<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;font-size:13px;line-height:1.5;color:#1e293b;">
+    return `<div style="padding:10px 0;border-bottom:1px solid #eef3f6;font-size:13px;line-height:1.5;color:#11263b;">
       <div><strong style="font-size:14px;">${escapeHtml(p.merchant_name)}</strong></div>
-      <div style="color:#475569;font-size:12px;margin:2px 0 6px;">ARR: <strong>${escapeHtml(formatArr(p.arr))}</strong> &nbsp;|&nbsp; EGL: <strong>${escapeHtml(formatEgl(p.expected_go_live_date))}</strong> &nbsp;|&nbsp; ${escapeHtml(funnel)} · ${escapeHtml(stateLabels[p.project_state] || p.project_state)}</div>
+      <div style="color:#3b5466;font-size:12px;margin:2px 0 6px;">ARR: <strong>${escapeHtml(formatArr(p.arr))}</strong> &nbsp;|&nbsp; EGL: <strong>${escapeHtml(formatEgl(p.expected_go_live_date))}</strong> &nbsp;|&nbsp; ${escapeHtml(funnel)} · ${escapeHtml(stateLabels[p.project_state] || p.project_state)}</div>
       <div>${escapeHtml(line1)}</div>
-      ${line2 ? `<div style="color:#475569;margin-top:2px;">${escapeHtml(line2)}</div>` : ""}
+      ${line2 ? `<div style="color:#3b5466;margin-top:2px;">${escapeHtml(line2)}</div>` : ""}
     </div>`;
   };
 
-  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#1e293b;">`;
+  let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:780px;margin:0 auto;padding:20px;color:#11263b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
-  html += `<p style="margin:0 0 14px;color:#64748b;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata" })}</p>`;
-  html += `<div style="background:#f1f5f9;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;">
-    <strong>${projects.length}</strong> projects · <strong style="color:#059669;">${totalActive}</strong> Active · <strong style="color:#64748b;">${totalInactive}</strong> Inactive
+  html += `<p style="margin:0 0 14px;color:#546978;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata" })}</p>`;
+  html += `<div style="background:#eef3f6;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;">
+    <strong>${projects.length}</strong> projects · <strong style="color:#116958;">${totalActive}</strong> Active · <strong style="color:#546978;">${totalInactive}</strong> Inactive
   </div>`;
 
   if (timeframe === "daily") {
@@ -375,11 +375,11 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
         return "—";
       };
 
-      html += `<div style="margin-bottom:26px;border:2px solid #dc2626;border-radius:8px;overflow:hidden;">
-        <h2 style="font-size:14px;margin:0;padding:10px 14px;background:#dc2626;color:#fff;">
-          🚨 BLOCKED · ${blockedProjects.length} project${blockedProjects.length === 1 ? "" : "s"} — needs attention
+      html += `<div style="margin-bottom:26px;border:2px solid #ad1f1f;border-radius:8px;overflow:hidden;">
+        <h2 style="font-size:14px;margin:0;padding:10px 14px;background:#ad1f1f;color:#ffffff;">
+          Blocked · ${blockedProjects.length} project${blockedProjects.length === 1 ? "" : "s"} — needs attention
         </h2>
-        <div style="padding:6px 14px 12px;background:#fef2f2;">`;
+        <div style="padding:6px 14px 12px;background:#fdecec;">`;
       for (const p of blockedProjects) {
         const ai = aiMap[p.id];
         const blockerLine =
@@ -389,16 +389,16 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
         const unblockNeeded = ai?.line2 || nextItemByProject[p.id] || "Confirm next checklist step with owner.";
         const owner = p.assigned_owner_name || p.assigned_owner || "Unassigned";
         const respSide = responsibilityLabel(p.current_responsibility);
-        html += `<div style="padding:10px 0;border-bottom:1px solid #fecaca;font-size:13px;line-height:1.5;color:#1e293b;">
-          <div><strong style="font-size:14px;color:#991b1b;">${escapeHtml(p.merchant_name)}</strong>
-            <span style="color:#7f1d1d;font-size:11px;margin-left:6px;">${escapeHtml(funnelLabels[getFunnelStage(p)])} · ${escapeHtml(stateLabels[p.project_state] || p.project_state)}</span>
+        html += `<div style="padding:10px 0;border-bottom:1px solid #f3c4c4;font-size:13px;line-height:1.5;color:#11263b;">
+          <div><strong style="font-size:14px;color:#8f1a1a;">${escapeHtml(p.merchant_name)}</strong>
+            <span style="color:#8f1a1a;font-size:11px;margin-left:6px;">${escapeHtml(funnelLabels[getFunnelStage(p)])} · ${escapeHtml(stateLabels[p.project_state] || p.project_state)}</span>
           </div>
-          <div style="color:#475569;font-size:12px;margin:2px 0 6px;">
+          <div style="color:#3b5466;font-size:12px;margin:2px 0 6px;">
             ARR: <strong>${escapeHtml(formatArr(p.arr))}</strong> &nbsp;|&nbsp; EGL: <strong>${escapeHtml(formatEgl(p.expected_go_live_date))}</strong>
           </div>
-          <div><span style="color:#991b1b;font-weight:600;">Blocked on:</span> ${escapeHtml(respSide)} &middot; Owner: <strong>${escapeHtml(owner)}</strong></div>
-          <div style="margin-top:2px;"><span style="color:#991b1b;font-weight:600;">Blocker:</span> ${escapeHtml(blockerLine)}</div>
-          <div style="margin-top:2px;"><span style="color:#065f46;font-weight:600;">To unblock:</span> ${escapeHtml(unblockNeeded)}</div>
+          <div><span style="color:#8f1a1a;font-weight:600;">Blocked on:</span> ${escapeHtml(respSide)} &middot; Owner: <strong>${escapeHtml(owner)}</strong></div>
+          <div style="margin-top:2px;"><span style="color:#8f1a1a;font-weight:600;">Blocker:</span> ${escapeHtml(blockerLine)}</div>
+          <div style="margin-top:2px;"><span style="color:#116958;font-weight:600;">To unblock:</span> ${escapeHtml(unblockNeeded)}</div>
         </div>`;
       }
       html += `</div></div>`;
@@ -413,17 +413,17 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
       const activeList = list.filter(isActive);
       const inactiveList = list.filter((p) => !isActive(p));
       html += `<div style="margin-bottom:26px;">
-        <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#0f172a;color:#fff;border-radius:4px;">
+        <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#1d3a5c;color:#ffffff;border-radius:4px;">
           ${escapeHtml(funnelLabels[stage])} · ${list.length} projects · ${activeList.length} Active / ${inactiveList.length} Inactive
         </h2>`;
       if (activeList.length > 0) {
         html += activeList.map(renderLine).join("");
       } else {
-        html += `<p style="color:#94a3b8;font-size:12px;margin:0 0 6px;">No movement this period.</p>`;
+        html += `<p style="color:#546978;font-size:12px;margin:0 0 6px;">No movement this period.</p>`;
       }
       if (inactiveList.length > 0) {
-        html += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #e2e8f0;font-size:12px;color:#94a3b8;">
-          <strong style="color:#64748b;">Inactive (${inactiveList.length}):</strong> ${inactiveList.map((p) => escapeHtml(p.merchant_name)).join(", ")}
+        html += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #d5e0e6;font-size:12px;color:#546978;">
+          <strong style="color:#546978;">Inactive (${inactiveList.length}):</strong> ${inactiveList.map((p) => escapeHtml(p.merchant_name)).join(", ")}
         </div>`;
       }
       html += `</div>`;
@@ -440,16 +440,16 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
 
     const section = (label: string, color: string, list: any[], emptyText: string) => {
       const body = list.length === 0
-        ? `<p style="color:#94a3b8;font-size:12px;margin:0;">${emptyText}</p>`
+        ? `<p style="color:#546978;font-size:12px;margin:0;">${emptyText}</p>`
         : list.map(renderLine).join("");
       return `<div style="margin-bottom:24px;">
-        <h2 style="font-size:15px;margin:0 0 8px;padding:6px 10px;background:${color};color:#fff;border-radius:4px;display:inline-block;">${label} (${list.length})</h2>
+        <h2 style="font-size:15px;margin:0 0 8px;padding:6px 10px;background:${color};color:#ffffff;border-radius:4px;display:inline-block;">${label} (${list.length})</h2>
         ${body}
       </div>`;
     };
-    html += section("Wins", "#059669", buckets.wins, "No new wins this period.");
-    html += section("Updates", "#2563eb", buckets.updates, "No active updates this period.");
-    html += section("Lowlights", "#dc2626", buckets.lowlights, "No lowlights this period.");
+    html += section("Wins", "#116958", buckets.wins, "No new wins this period.");
+    html += section("Updates", "#24598a", buckets.updates, "No active updates this period.");
+    html += section("Lowlights", "#ad1f1f", buckets.lowlights, "No lowlights this period.");
   }
 
   html += `</div>`;
