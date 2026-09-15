@@ -1,486 +1,119 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
-import { brdUrl } from "@/lib/app-links.server";
+import { buddyCaller, corsHeaders, json } from "@/lib/buddy/scope.server";
+import {
+  DEFAULT_BULK_LIMIT,
+  UNDO_WINDOW_MS,
+  getAction,
+  isActionError,
+  undoAction,
+} from "@/lib/buddy/actions.server";
+import "@/lib/buddy/more-actions.server";
+import { loadBuddySettings } from "@/lib/buddy/settings.server";
 
-import { createClient } from "@supabase/supabase-js";
-import { notifyAssignment } from "@/lib/notify.server";
-import { resolveUserScope } from "@/lib/api-auth.server";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const SUPABASE_URL = process.env['SUPABASE_URL']!;
-const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-
+/**
+ * Buddy's actions: preview, execute and undo.
+ *
+ * Every request is checked here, on the server: the caller must be signed in,
+ * the action must belong to their workspace, their role must be allowed to act,
+ * and the workspace must not have switched the action off. The browser only
+ * ever proposes.
+ */
 async function handler(req: Request): Promise<Response> {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Use POST" }, 405, corsHeaders);
+
+  const caller = await buddyCaller(req);
+  if (!caller) return json({ error: "Sign in again to use Buddy." }, 401, corsHeaders);
+
+  const body = (await req.json().catch(() => ({}))) as {
+    mode?: "preview" | "execute" | "undo";
+    action?: string;
+    params?: Record<string, any>;
+    log_id?: string;
+  };
+  const mode = body.mode || "execute";
+
+  if (!caller.canAct) {
+    return json({ error: "Your role can't make changes through Buddy. A manager or admin can." }, 403, corsHeaders);
   }
 
   try {
-    // Get user from auth header
-    const authHeader = req.headers.get("authorization") || "";
-    const token = authHeader.replace("Bearer ", "");
-    
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      // Fail with something that names the missing setting. Passing an
-      // undefined key into createClient only yields "supabaseKey is required".
-      console.error("ai-actions: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not configured");
-      return new Response(JSON.stringify({ error: "Server is not configured for AI actions" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (mode === "undo") {
+      if (!body.log_id) return json({ error: "Nothing to undo." }, 400, corsHeaders);
+      return json(await undoAction(caller, body.log_id), 200, corsHeaders);
     }
 
-    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const name = String(body.action || "");
+    const def = getAction(name);
+    if (!def) return json({ error: `Buddy doesn't know how to ${name.replace(/_/g, " ") || "do that"}.` }, 400, corsHeaders);
 
-    // Validate the caller's token with the service-role client, as every other
-    // endpoint here does. This used to build a second client from
-    // SUPABASE_ANON_KEY — a name set nowhere in this project, so createClient
-    // threw "supabaseKey is required" and every approved action failed.
-    const { data: { user }, error: authError } = await adminClient.auth.getUser(token);
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const settings = await loadBuddySettings(caller);
+    if (settings.disabled_actions.includes(name)) {
+      return json({ error: `${def.label} is switched off for this workspace.` }, 403, corsHeaders);
+    }
+    const ctx = { req, bulkLimit: settings.bulk_limit || DEFAULT_BULK_LIMIT };
+    const params = body.params || {};
+
+    if (mode === "preview") {
+      return json(await def.preview(caller, params, ctx), 200, corsHeaders);
     }
 
-    // Get user profile for tenant_id
-    const { data: profile } = await adminClient
-      .from("profiles")
-      .select("tenant_id, name")
-      .eq("id", user.id)
+    const outcome = await def.execute(caller, params, ctx);
+    const { data: log } = await caller.client
+      .from("activity_logs")
+      .insert({
+        tenant_id: caller.tenantId,
+        user_id: caller.userId,
+        user_name: caller.name,
+        action_type: "ai",
+        category: outcome.log.category,
+        description: outcome.log.description,
+        entity_type: outcome.log.entityType,
+        entity_id: outcome.log.entityId,
+        metadata: { action: name, params, result: { message: outcome.message }, undo: outcome.undo, log_category: outcome.log.category, via: "buddy" },
+        status: "success",
+      })
+      .select("id")
       .single();
-    
-    if (!profile) {
-      return new Response(JSON.stringify({ error: "Profile not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
-    const { action, params } = await req.json();
-    // The workspace the person is working in, which is the customer's during a
-    // support session rather than profile.tenant_id.
-    const { tenantId } = await resolveUserScope(adminClient, user.id);
-    const userName = profile.name;
-
-    let result: any = { success: true };
-    let logDescription = "";
-    let logCategory = "general";
-    let logEntityType = "";
-    let logEntityId = "";
-    let logStatus = "success";
-
-    switch (action) {
-      case "assign_owner": {
-        const { project_id, owner_id, owner_name } = params;
-        const { error } = await adminClient
-          .from("projects")
-          .update({ assigned_owner: owner_id })
-          .eq("id", project_id)
-          .eq("tenant_id", tenantId);
-        if (error) throw error;
-        // The client dialogs email the new owner; doing it here too means the
-        // assistant's assignment is not silently different from a manual one.
-        await notifyAssignment(req, {
-          tenantId,
-          projectId: project_id,
-          ownerId: owner_id,
-          assignedBy: userName,
-        });
-        logDescription = `AI assigned owner "${owner_name}" to project`;
-        logCategory = "project";
-        logEntityType = "project";
-        logEntityId = project_id;
-        result = { success: true, message: `Owner "${owner_name}" assigned successfully` };
-        break;
-      }
-
-      case "update_project_field": {
-        const { project_id, field, value } = params;
-        const allowedFields = [
-          "project_state", "current_phase", "platform", "category",
-          "arr", "txns_per_day", "aov", "sales_spoc", "integration_type",
-          "pg_onboarding", "go_live_percent", "expected_go_live_date",
-          "project_notes", "mint_notes", "current_phase_comment",
-        ];
-        if (!allowedFields.includes(field)) {
-          throw new Error(`Field "${field}" is not allowed to be updated`);
-        }
-        
-        // For note/comment fields, log to timeline instead of overwriting
-        const noteFields = ["project_notes", "mint_notes", "current_phase_comment"];
-        if (noteFields.includes(field)) {
-          // Log the new note to the timeline
-          await adminClient.from("project_comment_logs").insert({
-            project_id,
-            author_name: `AI (via ${userName})`,
-            author_type: "ai",
-            field_name: field,
-            content: value,
-            tenant_id: tenantId,
-          });
-          
-          // Also update the field with latest value (append style)
-          const { data: existing } = await adminClient
-            .from("projects")
-            .select(field)
-            .eq("id", project_id)
-            .eq("tenant_id", tenantId)
-            .single();
-          
-          const timestamp = new Date().toLocaleString();
-          const existingVal = existing?.[field as keyof typeof existing] || "";
-          const newVal = existingVal 
-            ? `${existingVal}\n\n[${timestamp} - AI] ${value}` 
-            : `[${timestamp} - AI] ${value}`;
-          
-          const { error } = await adminClient
-            .from("projects")
-            .update({ [field]: newVal })
-            .eq("id", project_id)
-            .eq("tenant_id", tenantId);
-          if (error) throw error;
-        } else {
-          const { error } = await adminClient
-            .from("projects")
-            .update({ [field]: value })
-            .eq("id", project_id)
-            .eq("tenant_id", tenantId);
-          if (error) throw error;
-        }
-        
-        logDescription = `AI updated project field "${field}" to "${value}"`;
-        logCategory = "project";
-        logEntityType = "project";
-        logEntityId = project_id;
-        result = { success: true, message: `Field "${field}" updated successfully` };
-        break;
-      }
-
-      case "create_workflow": {
-        const { name, description, trigger_type, trigger_config, action_type, action_config } = params;
-        const { data, error } = await adminClient
-          .from("ai_workflows")
-          .insert({
-            tenant_id: tenantId,
-            name,
-            description,
-            trigger_type,
-            trigger_config,
-            action_type,
-            action_config,
-            created_by: user.id,
-            created_by_name: userName,
-          })
-          .select()
-          .single();
-        if (error) throw error;
-        logDescription = `AI created workflow "${name}"`;
-        logCategory = "workflow";
-        logEntityType = "workflow";
-        logEntityId = data.id;
-        result = { success: true, message: `Workflow "${name}" created successfully`, workflow: data };
-        break;
-      }
-
-      case "update_workflow": {
-        const { workflow_id, updates } = params;
-        const { error } = await adminClient
-          .from("ai_workflows")
-          .update({ ...updates, updated_at: new Date().toISOString() })
-          .eq("id", workflow_id)
-          .eq("tenant_id", tenantId);
-        if (error) throw error;
-        logDescription = `AI updated workflow`;
-        logCategory = "workflow";
-        logEntityType = "workflow";
-        logEntityId = workflow_id;
-        result = { success: true, message: "Workflow updated successfully" };
-        break;
-      }
-
-      case "delete_workflow": {
-        const { workflow_id } = params;
-        const { error } = await adminClient
-          .from("ai_workflows")
-          .delete()
-          .eq("id", workflow_id)
-          .eq("tenant_id", tenantId);
-        if (error) throw error;
-        logDescription = `AI deleted workflow`;
-        logCategory = "workflow";
-        logEntityType = "workflow";
-        logEntityId = workflow_id;
-        result = { success: true, message: "Workflow deleted successfully" };
-        break;
-      }
-
-      case "bulk_update_projects": {
-        const { project_ids, field, value } = params;
-        const { error } = await adminClient
-          .from("projects")
-          .update({ [field]: value })
-          .in("id", project_ids)
-          .eq("tenant_id", tenantId);
-        if (error) throw error;
-        logDescription = `AI bulk-updated "${field}" to "${value}" on ${project_ids.length} projects`;
-        logCategory = "project";
-        logEntityType = "project";
-        logEntityId = project_ids.join(",");
-        result = { success: true, message: `Updated ${project_ids.length} projects` };
-        break;
-      }
-
-      case "trigger_brd": {
-        const { project_id } = params;
-        
-        // Get project details
-        const { data: project, error: projErr } = await adminClient
-          .from("projects")
-          .select("merchant_name, mid, contact_email")
-          .eq("id", project_id)
-          .eq("tenant_id", tenantId)
-          .single();
-        if (projErr || !project) throw new Error("Project not found");
-        if (!project.contact_email) throw new Error("Project has no contact email set in the 'Merchant Contact Email' field. Please add it first.");
-
-        // This tenant's BRD template. Unscoped, this picked up whichever
-        // company's template happened to match first.
-        const { data: formTemplate, error: formErr } = await adminClient
-          .from("checklist_form_templates")
-          .select("id, name")
-          .eq("tenant_id", tenantId)
-          .ilike("name", "%BRD%")
-          .limit(1)
-          .maybeSingle();
-        if (formErr || !formTemplate) throw new Error("No BRD Form template found. Please create one in Settings → Checklist Forms.");
-        const form_template_id = formTemplate.id;
-
-        // Create BRD session
-        const { data: session, error: sessErr } = await adminClient
-          .from("brd_sessions")
-          .insert({
-            project_id,
-            form_template_id,
-            merchant_email: project.contact_email,
-            tenant_id: tenantId,
-          })
-          .select("token")
-          .single();
-        if (sessErr || !session) throw new Error("Failed to create BRD session");
-
-        const tenantCreds = await getTenantIntegrations(tenantId);
-        const brdLink = brdUrl(tenantCreds, session.token);
-
-        // Send email via Resend
-        const RESEND_API_KEY = tenantCreds.resend_api_key;
-        if (RESEND_API_KEY) {
-          const emailResponse = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${RESEND_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              from: resendFrom(tenantCreds, "MINT Updates"),
-              ...resendReplyTo(tenantCreds),
-              to: [project.contact_email],
-              subject: `📋 BRD Form Required: ${project.merchant_name}`,
-              html: `
-                <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                  <div style="background: linear-gradient(135deg, #3b82f6, #6366f1); padding: 20px; border-radius: 12px 12px 0 0; color: white;">
-                    <h1 style="margin: 0; font-size: 20px;">📋 BRD Form Required</h1>
-                  </div>
-                  <div style="background: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;">
-                    <p style="margin: 0 0 16px;">Hi,</p>
-                    <p style="margin: 0 0 16px;">We need you to complete the <strong>${formTemplate.name}</strong> form for project <strong>${project.merchant_name}</strong> (MID: ${project.mid}).</p>
-                    <p style="margin: 0 0 16px;">Please click the button below to fill out the form. Your responses will be automatically recorded.</p>
-                    <div style="margin: 24px 0; text-align: center;">
-                      <a href="${brdLink}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #6366f1); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 600;">Fill BRD Form →</a>
-                    </div>
-                    <p style="margin: 0; color: #64748b; font-size: 13px;">If the button doesn't work, copy this link: ${brdLink}</p>
-                  </div>
-                </div>
-              `,
-            }),
-          });
-
-          if (!emailResponse.ok) {
-            const errData = await emailResponse.json();
-            console.error("Resend error:", errData);
-            // Continue even if email fails - the link is still valid
-          }
-        }
-
-        logDescription = `AI triggered BRD form "${formTemplate.name}" for ${project.merchant_name} → ${project.contact_email}`;
-        logCategory = "project";
-        logEntityType = "project";
-        logEntityId = project_id;
-        result = { 
-          success: true, 
-          message: `BRD form "${formTemplate.name}" sent to ${project.contact_email} for ${project.merchant_name}. The merchant will receive an email with a link to fill out the form. Once completed, the BRD Excel file will be automatically saved to the project's BRD Link field.`,
-          brd_link: brdLink,
-        };
-        break;
-      }
-
-      case "create_project": {
-        const allowedFields = [
-          "merchant_name", "mid", "kick_off_date", "platform", "category",
-          "arr", "txns_per_day", "aov", "brand_url", "contact_email",
-          "sales_spoc", "integration_type", "pg_onboarding",
-          "current_phase", "current_owner_team", "project_state",
-          "expected_go_live_date", "project_notes", "mint_notes",
-          "jira_link", "sow_link", "brd_link",
-        ];
-        // Whitelist incoming params
-        const insertRow: Record<string, any> = { tenant_id: tenantId, created_by: user.id };
-        for (const k of allowedFields) {
-          if (params[k] !== undefined && params[k] !== null && params[k] !== "") {
-            insertRow[k] = params[k];
-          }
-        }
-        // Validate required
-        if (!insertRow.merchant_name || !insertRow.mid || !insertRow.kick_off_date) {
-          throw new Error("merchant_name, mid, and kick_off_date are required to create a project");
-        }
-        // Validate enums
-        const phaseEnum = ["mint", "integration", "ms", "completed"];
-        const stateEnum = ["not_started", "on_hold", "in_progress", "live", "blocked"];
-        if (insertRow.current_phase && !phaseEnum.includes(insertRow.current_phase)) {
-          throw new Error(`Invalid current_phase. Must be one of: ${phaseEnum.join(", ")}`);
-        }
-        if (insertRow.project_state && !stateEnum.includes(insertRow.project_state)) {
-          throw new Error(`Invalid project_state. Must be one of: ${stateEnum.join(", ")}`);
-        }
-        // Check MID uniqueness within tenant
-        const { data: existing } = await adminClient
-          .from("projects")
-          .select("id")
-          .eq("tenant_id", tenantId)
-          .eq("mid", insertRow.mid)
-          .maybeSingle();
-        if (existing) throw new Error(`A project with MID "${insertRow.mid}" already exists in this tenant`);
-
-        const { data: created, error } = await adminClient
-          .from("projects")
-          .insert(insertRow)
-          .select("id, merchant_name, mid, kick_off_date")
-          .single();
-        if (error) throw error;
-
-        // Checklist items are seeded automatically by the database trigger on projects insert.
-        const { count: seededCount } = await adminClient
-          .from("checklist_items")
-          .select("id", { count: "exact", head: true })
-          .eq("project_id", created.id);
-
-        logDescription = `AI created project "${created.merchant_name}" (MID: ${created.mid}) with ${seededCount ?? 0} checklist items`;
-        logCategory = "project";
-        logEntityType = "project";
-        logEntityId = created.id;
-        result = { success: true, message: `Project "${created.merchant_name}" (MID: ${created.mid}) created successfully`, project: created };
-        break;
-      }
-
-      case "toggle_responsibility": {
-        const { project_id, party } = params;
-        const validParties = ["gokwik", "merchant", "neutral"];
-        if (!validParties.includes(party)) {
-          throw new Error(`Invalid party "${party}". Must be one of: ${validParties.join(", ")}`);
-        }
-        const { error } = await adminClient
-          .from("projects")
-          .update({ current_responsibility: party })
-          .eq("id", project_id)
-          .eq("tenant_id", tenantId);
-        if (error) throw error;
-        logDescription = `AI toggled project responsibility to "${party}"`;
-        logCategory = "project";
-        logEntityType = "project";
-        logEntityId = project_id;
-        result = { success: true, message: `Project responsibility set to "${party}" successfully` };
-        break;
-      }
-
-      case "get_available_actions": {
-        // Return all available actions for suggestion display
-        result = {
-          success: true,
-          actions: [
-            { id: "assign_owner", label: "Assign Owner", description: "Assign an owner to a project", needsApproval: true },
-            { id: "update_project_field", label: "Update Project Field", description: "Update any project field (state, phase, notes, etc.)", needsApproval: true },
-            { id: "create_workflow", label: "Create Workflow", description: "Create an automated workflow rule", needsApproval: true },
-            { id: "bulk_update_projects", label: "Bulk Update Projects", description: "Update a field across multiple projects at once", needsApproval: true },
-            { id: "trigger_brd", label: "Trigger BRD", description: "Send BRD form to merchant via email", needsApproval: true },
-            { id: "toggle_responsibility", label: "Toggle Responsibility", description: "Change which party is responsible: internal, merchant or neutral", needsApproval: true },
-            { id: "analyze_risks", label: "Analyze Risks", description: "Identify at-risk projects based on timelines and blockers", needsApproval: false },
-            { id: "suggest_workflows", label: "Suggest Workflows", description: "Get AI-recommended automation workflows", needsApproval: false },
-            { id: "team_workload", label: "Team Workload Summary", description: "Get a summary of workloads across teams", needsApproval: false },
-          ],
-        };
-        break;
-      }
-
-      default:
-        throw new Error(`Unknown action: ${action}`);
-    }
-
-    // Log the activity
-    if (action !== "get_available_actions") {
-      await adminClient.from("activity_logs").insert({
-        tenant_id: tenantId,
-        user_id: user.id,
-        user_name: userName,
-        action_type: "ai",
-        category: logCategory,
-        description: logDescription,
-        entity_type: logEntityType,
-        entity_id: logEntityId,
-        metadata: { action, params, result },
-        status: logStatus,
-      });
-    }
-
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json(
+      {
+        success: true,
+        message: outcome.message,
+        link: outcome.link,
+        log_id: (log as { id: string } | null)?.id,
+        undoable: !!outcome.undo,
+        undo_until: outcome.undo ? new Date(Date.now() + UNDO_WINDOW_MS).toISOString() : undefined,
+      },
+      200,
+      corsHeaders,
+    );
   } catch (e) {
-    console.error("ai-actions error:", e);
-
-    // Try to log the failure
-    try {
-      const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-      const body = await req.clone().json().catch(() => ({}));
-      await adminClient.from("activity_logs").insert({
-        action_type: "ai",
-        category: "api",
-        description: `AI action failed: ${e instanceof Error ? e.message : "Unknown error"}`,
-        metadata: { error: e instanceof Error ? e.message : "Unknown", body },
-        status: "failed",
-      });
-    } catch { /* ignore logging errors */ }
-
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const message = e instanceof Error ? e.message : "Something went wrong.";
+    if (mode === "execute") {
+      await caller.client
+        .from("activity_logs")
+        .insert({
+          tenant_id: caller.tenantId,
+          user_id: caller.userId,
+          user_name: caller.name,
+          action_type: "ai",
+          category: "api",
+          description: `Buddy couldn't ${String(body.action || "act").replace(/_/g, " ")}: ${message}`,
+          metadata: { action: body.action, params: body.params, error: message, via: "buddy" },
+          status: "failed",
+        })
+        .then(() => undefined, () => undefined);
+    }
+    if (!isActionError(e)) console.error("ai-actions error:", e);
+    return json({ error: message }, isActionError(e) ? 400 : 500, corsHeaders);
   }
 }
 
 export const Route = createFileRoute("/api/public/ai-actions")({
   server: {
     handlers: {
-      GET: ({ request }) => handler(request),
       POST: ({ request }) => handler(request),
-      PUT: ({ request }) => handler(request),
-      PATCH: ({ request }) => handler(request),
-      DELETE: ({ request }) => handler(request),
       OPTIONS: ({ request }) => handler(request),
     },
   },

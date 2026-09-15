@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import ProjectWorkspace from "@/pages/ProjectWorkspace";
-import { BuddyBubble } from "@/components/BuddyBubble";
+import { BuddyDrawer } from "@/components/buddy/BuddyDrawer";
 
 type ProjectSearch = { tab?: string; item?: string; task?: string; comment?: string; from?: "kanban" | "list" | "go-live" };
 
@@ -31,7 +31,7 @@ function ProjectWorkspacePage() {
   return (
     <>
       <ProjectWorkspace />
-      <BuddyBubble />
+      <BuddyDrawer />
     </>
   );
 }

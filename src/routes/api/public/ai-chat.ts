@@ -1,304 +1,264 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { requireInternalCaller } from "@/lib/api-auth.server";
+import { buddyCaller, corsHeaders, json, PHASE_LABELS, STATE_LABELS, todayIso } from "@/lib/buddy/scope.server";
+import { READ_TOOL_DEFS, READ_TOOL_NAMES, runReadTool, type BuddySource } from "@/lib/buddy/read-tools.server";
+import { ACTION_TOOL_DEFS } from "@/lib/buddy/actions.server";
+import "@/lib/buddy/more-actions.server";
+import { loadBuddySettings } from "@/lib/buddy/settings.server";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+/**
+ * Buddy's conversation endpoint.
+ *
+ * The model loop runs here. When the model asks to read data, the server runs
+ * the read tool against the caller's workspace and loops; when it proposes a
+ * change, the proposal goes back to the browser, which shows an approval card.
+ * Nothing about scope or permissions is taken from the request body.
+ *
+ * Streams server-sent events, one JSON object per event:
+ *   { type: "step", label }          what Buddy is doing ("Read Urban Threads")
+ *   { type: "sources", items }       projects and data behind the answer
+ *   { type: "delta", content }       answer text
+ *   { type: "actions", calls }       proposed changes, for approval
+ *   { type: "error", message }
+ * followed by `data: [DONE]`.
+ */
+
+const MODEL = "google/gemini-3-flash-preview";
+const MAX_ROUNDS = 6;
+const TOOL_RESULT_LIMIT = 24_000;
+
+interface ClientMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+interface PageContext {
+  path?: string;
+  projectId?: string | null;
+}
+
+interface Mention {
+  kind: "project" | "person";
+  id: string;
+  name: string;
+}
+
+const PAGE_NAMES: Record<string, string> = {
+  dashboard: "the dashboard",
+  projects: "the projects list",
+  risks: "the risks page",
+  reports: "reports",
+  settings: "settings",
+  "go-live": "the go-live tracker",
+  emails: "emails",
+  archived: "archived projects",
 };
 
-const TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "assign_owner",
-      description: "Assign an owner to a project by their user ID and name",
-      parameters: {
-        type: "object",
-        properties: {
-          project_id: { type: "string", description: "The project UUID to assign" },
-          owner_id: { type: "string", description: "The user UUID to assign as owner" },
-          owner_name: { type: "string", description: "The display name of the owner" },
-        },
-        required: ["project_id", "owner_id", "owner_name"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "update_project_field",
-      description: "Update a specific field on a project. Allowed fields: project_state, current_phase, platform, category, arr, txns_per_day, aov, sales_spoc, integration_type, pg_onboarding, go_live_percent, expected_go_live_date, project_notes, mint_notes, current_phase_comment",
-      parameters: {
-        type: "object",
-        properties: {
-          project_id: { type: "string", description: "The project UUID" },
-          field: { type: "string", description: "The database field name to update (snake_case, exactly as listed in schema)" },
-          value: { type: "string", description: "The new value for the field" },
-        },
-        required: ["project_id", "field", "value"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "create_workflow",
-      description: "Create an automated workflow rule that triggers actions based on conditions. Trigger types: time_based (delay-based), field_change (when a field changes to a value), event (on project creation, transfer, etc.). Action types: assign_owner, update_field, send_notification, transfer_project.",
-      parameters: {
-        type: "object",
-        properties: {
-          name: { type: "string", description: "Short name for the workflow" },
-          description: { type: "string", description: "What this workflow does" },
-          trigger_type: { type: "string", enum: ["time_based", "field_change", "event"], description: "When to trigger" },
-          trigger_config: {
-            type: "object",
-            description: "Trigger configuration. For time_based: {delay_hours, condition_field, condition_value}. For field_change: {field, from_value, to_value}. For event: {event_name}.",
-          },
-          action_type: { type: "string", enum: ["assign_owner", "update_field", "send_notification", "transfer_project"], description: "What action to perform" },
-          action_config: {
-            type: "object",
-            description: "Action configuration. For assign_owner: {owner_id, owner_name}. For update_field: {field, value}. For send_notification: {message}. For transfer_project: {to_team}.",
-          },
-        },
-        required: ["name", "description", "trigger_type", "trigger_config", "action_type", "action_config"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "bulk_update_projects",
-      description: "Update a field across multiple projects at once. Use with caution.",
-      parameters: {
-        type: "object",
-        properties: {
-          project_ids: { type: "array", items: { type: "string" }, description: "Array of project UUIDs" },
-          field: { type: "string", description: "The field to update" },
-          value: { type: "string", description: "The new value" },
-        },
-        required: ["project_ids", "field", "value"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "trigger_brd",
-      description: "Trigger a BRD (Business Requirements Document) form for a project. This sends an email to the merchant's contact email with a link to fill out the BRD Form. Once the merchant completes the form, responses are saved as an Excel file and the URL is stored in the project's BRD Link field. Uses the 'BRD Form' template automatically.",
-      parameters: {
-        type: "object",
-        properties: {
-          project_id: { type: "string", description: "The project UUID to trigger BRD for" },
-        },
-        required: ["project_id"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "toggle_responsibility",
-      description: "Toggle the current responsibility party for a project between 'gokwik', 'merchant', or 'neutral'. Use this when asked to change who is currently responsible or who the ball is with.",
-      parameters: {
-        type: "object",
-        properties: {
-          project_id: { type: "string", description: "The project UUID" },
-          party: { type: "string", enum: ["gokwik", "merchant", "neutral"], description: "The responsibility party to set" },
-        },
-        required: ["project_id", "party"],
-      },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "create_project",
-      description: "Create a new project in the system. Required: merchant_name, mid, kick_off_date (YYYY-MM-DD). All other fields are optional with sensible defaults. Use exact snake_case field names and valid enum values from the schema.",
-      parameters: {
-        type: "object",
-        properties: {
-          merchant_name: { type: "string", description: "Merchant/brand name (required)" },
-          mid: { type: "string", description: "Merchant ID — unique identifier (required)" },
-          kick_off_date: { type: "string", description: "Project start date in YYYY-MM-DD format (required). If user doesn't provide one, use today's date." },
-          platform: { type: "string", description: "E.g. Shopify, WooCommerce, Magento, Custom. Defaults to 'Custom'." },
-          category: { type: "string", description: "Business category (e.g. Fashion, Electronics, Beauty)" },
-          arr: { type: "number", description: "Annual Recurring Revenue in Crores (numeric)" },
-          txns_per_day: { type: "number", description: "Average transactions per day" },
-          aov: { type: "number", description: "Average Order Value" },
-          brand_url: { type: "string", description: "Brand website URL" },
-          contact_email: { type: "string", description: "Merchant contact email (used for BRD and notifications)" },
-          sales_spoc: { type: "string", description: "Sales single-point-of-contact name" },
-          integration_type: { type: "string", description: "Integration type. Defaults to 'Standard'." },
-          pg_onboarding: { type: "string", description: "Payment gateway onboarding info" },
-          current_phase: { type: "string", enum: ["mint", "integration", "ms", "completed"], description: "Project phase. Defaults to 'mint'." },
-          current_owner_team: { type: "string", description: "Team currently owning the project (e.g. mint, integration, ms). Defaults to 'mint'." },
-          project_state: { type: "string", enum: ["not_started", "on_hold", "in_progress", "live", "blocked"], description: "Defaults to 'not_started'." },
-          expected_go_live_date: { type: "string", description: "Expected go-live date in YYYY-MM-DD format" },
-          project_notes: { type: "string", description: "Initial project notes" },
-          mint_notes: { type: "string", description: "Internal pre-sales team notes (mint_notes column)" },
-          jira_link: { type: "string" },
-          sow_link: { type: "string" },
-          brd_link: { type: "string" },
-        },
-        required: ["merchant_name", "mid", "kick_off_date"],
-      },
-    },
-  },
-];
-
-// Comprehensive schema reference so the AI always uses correct field names + enums
-const SCHEMA_REFERENCE = `
-DATABASE SCHEMA REFERENCE (use these EXACT snake_case field names and enum values):
-
-═══ projects table ═══
-Required: merchant_name (text), mid (text, unique), kick_off_date (date YYYY-MM-DD)
-Identifiers: id (uuid), tenant_id (uuid)
-Core fields:
-  - platform (text, default 'Custom') — Shopify | WooCommerce | Magento | Custom | etc.
-  - category (text) — Fashion | Electronics | Beauty | F&B | etc.
-  - arr (numeric, in Crores), txns_per_day (int), aov (numeric)
-  - brand_url (text), contact_email (text)
-  - sales_spoc (text), integration_type (text, default 'Standard')
-  - pg_onboarding (text)
-Phase & state:
-  - current_phase: ENUM 'mint' | 'integration' | 'ms' | 'completed' (default 'mint')
-  - current_owner_team (text, default 'mint') — mint | integration | ms | manager | super_admin | gokwik_general
-  - project_state: ENUM 'not_started' | 'on_hold' | 'in_progress' | 'live' | 'blocked' (default 'not_started')
-  - current_responsibility: ENUM 'gokwik' | 'merchant' | 'neutral' (default 'neutral')
-  - pending_acceptance (bool), assigned_owner (uuid), go_live_percent (int 0-100)
-Dates: expected_go_live_date, go_live_date (date)
-Notes (append-style with timestamp via AI): project_notes, mint_notes, current_phase_comment, phase2_comment
-Links: jira_link, brd_link, sow_link, mint_checklist_link, integration_checklist_link
-Flags: archived (bool), archived_at (ts)
-
-═══ Other key tables ═══
-- checklist_items: project_id, title, phase, owner_team, completed, current_responsibility, due_date, sort_order, is_task
-- checklist_tasks: checklist_item_id, project_id, title, status, priority ('low'|'medium'|'high'), assigned_to, due_date
-- ai_workflows: name, trigger_type, trigger_config, action_type, action_config, is_active
-- custom_fields: field_key, field_label, field_type ('text'|'number'|'date'|'select'), options
-- transfer_history: project_id, from_team, to_team, transferred_by, accepted_by, notes
-
-═══ Enums ═══
-- project_phase: mint | integration | ms | completed
-- project_state: not_started | on_hold | in_progress | live | blocked
-- responsibility_party: gokwik | merchant | neutral
-- team_role: mint | integration | ms | manager | super_admin | gokwik_general
-
-CRITICAL RULES:
-1. Always use snake_case field names exactly as listed above (NOT camelCase like merchantName).
-2. Use enum values exactly as listed (lowercase, underscores).
-3. Dates must be YYYY-MM-DD format.
-4. For create_project: if user doesn't specify kick_off_date, use today's date.
-5. mid must be unique — if uncertain, ask the user.
-`;
-
 async function handler(req: Request): Promise<Response> {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Use POST" }, 405, corsHeaders);
+
+  const caller = await buddyCaller(req);
+  if (!caller) return json({ error: "Sign in again to use Buddy." }, 401, corsHeaders);
+
+  const apiKey = process.env["LOVABLE_API_KEY"];
+  if (!apiKey) return json({ error: "Buddy isn't configured on this server." }, 500, corsHeaders);
+
+  const body = (await req.json().catch(() => ({}))) as {
+    messages?: ClientMessage[];
+    page?: PageContext;
+    mentions?: Mention[];
+  };
+  const history = (body.messages || [])
+    .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
+    .slice(-30);
+  if (history.length === 0) return json({ error: "Ask Buddy something first." }, 400, corsHeaders);
+
+  const settings = await loadBuddySettings(caller);
+
+  // ── What the user is looking at, resolved here rather than trusted ──────
+  let pageLine = "";
+  const pageSources: BuddySource[] = [];
+  if (body.page?.projectId) {
+    const { data } = await caller.client
+      .from("projects")
+      .select("id, merchant_name, mid, project_state, current_phase, assigned_owner")
+      .eq("tenant_id", caller.tenantId)
+      .eq("id", body.page.projectId)
+      .maybeSingle();
+    const p = data as any;
+    if (p && (caller.portfolio || p.assigned_owner === caller.userId)) {
+      pageLine = `The user has project "${p.merchant_name}" (MID ${p.mid}, project_id=${p.id}, ${STATE_LABELS[p.project_state] || p.project_state}, ${PHASE_LABELS[p.current_phase] || p.current_phase}) open. Questions like "this project" or "why is it slipping" mean this one unless they name another.`;
+      pageSources.push({ kind: "project", id: p.id, label: p.merchant_name });
+    }
+  } else if (body.page?.path) {
+    const first = body.page.path.split("/").filter(Boolean)[0] || "dashboard";
+    pageLine = `The user is on ${PAGE_NAMES[first] || "the dashboard"}.`;
   }
 
-  const denied = await requireInternalCaller(req, corsHeaders);
-  if (denied) return denied;
+  const mentionLines = (body.mentions || [])
+    .filter((m) => m && m.id && m.name)
+    .slice(0, 10)
+    .map((m) => (m.kind === "project" ? `- project "${m.name}" (project_id=${m.id})` : `- person "${m.name}" (user_id=${m.id})`));
 
-  try {
-    const { messages, projectContext, enableActions } = await req.json();
-    const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+  const allowedActions = caller.canAct
+    ? ACTION_TOOL_DEFS.filter((t) => !settings.disabled_actions.includes(t.function.name))
+    : [];
+  const tools = [...READ_TOOL_DEFS, ...allowedActions];
 
-    const today = new Date().toISOString().slice(0, 10);
+  const system = [
+    `You are Buddy, the assistant inside Handover, a tool for tracking merchant onboarding and integration projects. Today is ${todayIso()}.`,
+    `You're talking to ${caller.name}. Their scope is ${caller.portfolio ? "every project in their workspace" : "only the projects assigned to them"}.`,
+    pageLine,
+    mentionLines.length ? `They referred to these specifically; act on them unless they say otherwise:\n${mentionLines.join("\n")}` : "",
+    settings.instructions ? `Workspace instructions from an admin:\n${settings.instructions}` : "",
+    `
+How to answer:
+- Answer from live data, never from memory. Before answering anything about projects, people, checklists, tasks, risks, meetings or numbers, call the read tools. Call several if you need to.
+- Lead with the answer in one sentence, then the detail. Be brief and specific.
+- For three or more projects or items, use a markdown table. Use merchant names exactly as the tools return them.
+- Never show ids, database field names or raw enum values. Use the labels the tools return.
+- Write dates like "26 Sep" and money like "₹4.2 Cr".
+- If the data doesn't say, say so.
 
-    const systemPrompt = `You are an AI assistant for a project management dashboard. You can both answer questions AND take actions on projects.
+Summaries:
+- For a project summary, handover summary, meeting prep or meeting recap, read the project with get_project first and use these sections: Status, Done, Open (with who holds each item), Risks, Next steps. For meeting prep, lead with open questions for the call; for a recap, use the latest meeting's minutes.
 
-Today's date: ${today}
+Changing things:
+${
+  caller.canAct
+    ? `- To change anything, call the matching action tool. The user sees an approval card with before and after values, so don't ask "shall I?" first and don't restate the details. Say in one short sentence what you've prepared.
+- Get ids from the read tools first (project_id from search_projects or get_project, user ids from list_people). Never invent ids.
+- Propose one action per reply unless the user asked for several.
+- For emails, write the full subject and body yourself in a clear, friendly, professional tone, signed with the user's name.`
+    : `- This user can't make changes. If they ask, explain that a manager or admin can, and offer to prepare the information instead.`
+}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
-${SCHEMA_REFERENCE}
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const emit = (evt: unknown) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(evt)}\n\n`));
+      const convo: any[] = [{ role: "system", content: system }, ...history.map((m) => ({ role: m.role, content: m.content }))];
+      if (pageSources.length) emit({ type: "sources", items: pageSources });
 
-${projectContext ? `CURRENT PROJECT DATA CONTEXT:\n${projectContext}\n\n` : ""}
+      try {
+        for (let round = 0; round < MAX_ROUNDS; round++) {
+          const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ model: MODEL, messages: convo, tools, tool_choice: "auto", stream: true }),
+            signal: req.signal,
+          });
 
-CAPABILITIES - You can:
-1. **Answer questions** about projects, timelines, team workloads, risks
-2. **Create projects** using the create_project tool (requires merchant_name, mid, kick_off_date)
-3. **Assign owners** to projects using the assign_owner tool
-4. **Update project fields** like state, phase, notes using update_project_field tool
-5. **Create automated workflows** using the create_workflow tool
-6. **Bulk update** multiple projects using bulk_update_projects tool
-7. **Trigger BRD** - Send a BRD form to a merchant using the trigger_brd tool
-8. **Toggle Responsibility** - Switch the responsible party (internal, merchant or neutral) using toggle_responsibility tool
+          if (!res.ok || !res.body) {
+            const message =
+              res.status === 429
+                ? "Buddy is getting a lot of requests. Try again in a moment."
+                : res.status === 402
+                  ? "This workspace has run out of AI credits. An admin can add more."
+                  : "Buddy couldn't reach the AI service. Try again.";
+            if (res.status !== 429 && res.status !== 402) console.error("ai-chat gateway error:", res.status, await res.text().catch(() => ""));
+            emit({ type: "error", message });
+            break;
+          }
 
-GUIDELINES:
-- Be concise and actionable
-- When asked to make changes, USE THE TOOLS to actually make the changes
-- **IMPORTANT: All actions require user approval before execution.**
-- ALWAYS use exact snake_case field names and valid enum values from the schema reference above
-- For create_project: if the user gives a project name without an MID, ask for the MID. If kick_off_date is omitted, use today (${today}).
-- For note fields (project_notes, mint_notes, current_phase_comment), new notes are APPENDED with timestamps
-- After executing an action, confirm what was done
-- Reference specific project names and MIDs when available`;
+          let text = "";
+          const calls = new Map<number, { id: string; name: string; args: string }>();
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          const handleLine = (line: string) => {
+            if (!line.startsWith("data: ")) return;
+            const payload = line.slice(6).trim();
+            if (!payload || payload === "[DONE]") return;
+            try {
+              const delta = JSON.parse(payload).choices?.[0]?.delta;
+              if (delta?.content) {
+                text += delta.content;
+                emit({ type: "delta", content: delta.content });
+              }
+              for (const tc of delta?.tool_calls || []) {
+                const idx = tc.index ?? 0;
+                const acc = calls.get(idx) || { id: "", name: "", args: "" };
+                if (tc.id) acc.id = tc.id;
+                if (tc.function?.name) acc.name += tc.function.name;
+                if (tc.function?.arguments) acc.args += tc.function.arguments;
+                calls.set(idx, acc);
+              }
+            } catch {
+              // A partial JSON line; the next chunk completes it.
+            }
+          };
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let nl: number;
+            while ((nl = buffer.indexOf("\n")) !== -1) {
+              handleLine(buffer.slice(0, nl).replace(/\r$/, ""));
+              buffer = buffer.slice(nl + 1);
+            }
+          }
+          if (buffer.trim()) buffer.split("\n").forEach((l) => handleLine(l.replace(/\r$/, "")));
 
-    const body: any = {
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages,
-      ],
-      stream: true,
-    };
+          const parsed = Array.from(calls.values())
+            .filter((c) => c.name)
+            .map((c, i) => {
+              let args: Record<string, any> = {};
+              try {
+                args = c.args ? JSON.parse(c.args) : {};
+              } catch {
+                args = {};
+              }
+              return { id: c.id || `call_${round}_${i}`, name: c.name, args, raw: c.args || "{}" };
+            });
+          if (parsed.length === 0) break;
 
-    // Add tools when actions are enabled
-    if (enableActions !== false) {
-      body.tools = TOOLS;
-    }
+          const actionCalls = parsed.filter((c) => !READ_TOOL_NAMES.has(c.name as any));
+          if (actionCalls.length > 0) {
+            emit({ type: "actions", calls: actionCalls.map((c) => ({ id: c.id, name: c.name, arguments: c.args })) });
+            break;
+          }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+          convo.push({
+            role: "assistant",
+            content: text || "",
+            tool_calls: parsed.map((c) => ({ id: c.id, type: "function", function: { name: c.name, arguments: c.raw } })),
+          });
+          for (const call of parsed) {
+            const result = await runReadTool(caller, call.name, call.args);
+            emit({ type: "step", label: result.step });
+            if (result.sources.length) emit({ type: "sources", items: result.sources });
+            convo.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(result.data).slice(0, TOOL_RESULT_LIMIT) });
+          }
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+          if (round === MAX_ROUNDS - 1) {
+            emit({ type: "delta", content: "\n\nI couldn't finish looking that up. Try a narrower question." });
+          }
+        }
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          console.error("ai-chat error:", err);
+          emit({ type: "error", message: "Buddy hit a problem answering that. Try again." });
+        }
+      } finally {
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+        controller.close();
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      return new Response(JSON.stringify({ error: "AI request failed" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    },
+  });
 
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
-  } catch (e) {
-    console.error("chat error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  return new Response(stream, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+  });
 }
 
 export const Route = createFileRoute("/api/public/ai-chat")({
   server: {
     handlers: {
-      GET: ({ request }) => handler(request),
       POST: ({ request }) => handler(request),
-      PUT: ({ request }) => handler(request),
-      PATCH: ({ request }) => handler(request),
-      DELETE: ({ request }) => handler(request),
       OPTIONS: ({ request }) => handler(request),
     },
   },
