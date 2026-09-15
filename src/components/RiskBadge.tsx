@@ -34,7 +34,7 @@ export const RiskBadge = ({
       aria-label="Why this project needs attention"
       className={cn("shrink-0 focus:outline-none focus:ring-2 focus:ring-ring rounded", className)}
     >
-      <Badge className="bg-red-600 hover:bg-red-700 text-white border-transparent text-[10px] px-1.5 py-0 font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors">
+      <Badge className="bg-destructive hover:bg-destructive text-destructive-foreground border-transparent text-2xs px-1.5 py-0 font-semibold inline-flex items-center gap-1 cursor-pointer transition-colors">
         Attention
         <Eye className="h-2.5 w-2.5 opacity-70" />
       </Badge>

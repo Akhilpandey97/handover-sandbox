@@ -66,20 +66,20 @@ export const MerchantResponsibility = ({ projects }: Props) => {
         <Card>
           <CardContent className="p-6">
             <div className="grid grid-cols-2 gap-6 mb-4">
-              <div className="bg-gradient-to-br from-primary/10 to-blue-500/5 rounded-xl p-4 text-center">
+              <div className="bg-gradient-to-br from-primary/10 to-info/5 rounded-xl p-4 text-center">
                 <Building2 className="h-6 w-6 mx-auto text-primary mb-2" />
                 <p className="text-2xl font-bold text-primary">{formatDuration(totalGokwik)}</p>
                 <p className="text-xs text-muted-foreground">{responsibilityLabels.gokwik} (Internal) — {Math.round((totalGokwik / totalAll) * 100)}%</p>
               </div>
-              <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 rounded-xl p-4 text-center">
-                <Users className="h-6 w-6 mx-auto text-amber-500 mb-2" />
-                <p className="text-2xl font-bold text-amber-500">{formatDuration(totalMerchant)}</p>
+              <div className="bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl p-4 text-center">
+                <Users className="h-6 w-6 mx-auto text-warning-strong mb-2" />
+                <p className="text-2xl font-bold text-warning-strong">{formatDuration(totalMerchant)}</p>
                 <p className="text-xs text-muted-foreground">{responsibilityLabels.merchant} (External) — {Math.round((totalMerchant / totalAll) * 100)}%</p>
               </div>
             </div>
             <div className="flex h-4 rounded-full overflow-hidden">
               <div className="bg-primary transition-all" style={{ width: `${(totalGokwik / totalAll) * 100}%` }} />
-              <div className="bg-amber-500 transition-all" style={{ width: `${(totalMerchant / totalAll) * 100}%` }} />
+              <div className="bg-warning transition-all" style={{ width: `${(totalMerchant / totalAll) * 100}%` }} />
             </div>
           </CardContent>
         </Card>
@@ -92,7 +92,7 @@ export const MerchantResponsibility = ({ projects }: Props) => {
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-red-500" />
+                  <Building2 className="h-4 w-4 text-destructive-strong" />
                   Blocker Analysis (Internal vs External)
                 </CardTitle>
                 {expandedSection === "blocker" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -117,11 +117,11 @@ export const MerchantResponsibility = ({ projects }: Props) => {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.name}</TableCell>
                       <TableCell className="text-primary">{formatDuration(p.gokwikTime)}</TableCell>
-                      <TableCell className="text-amber-500">{formatDuration(p.merchantTime)}</TableCell>
+                      <TableCell className="text-warning-strong">{formatDuration(p.merchantTime)}</TableCell>
                       <TableCell>
                         <div className="flex h-2 w-24 rounded-full overflow-hidden">
                           <div className="bg-primary" style={{ width: `${p.gokwikPct}%` }} />
-                          <div className="bg-amber-500" style={{ width: `${p.merchantPct}%` }} />
+                          <div className="bg-warning" style={{ width: `${p.merchantPct}%` }} />
                         </div>
                       </TableCell>
                       <TableCell>

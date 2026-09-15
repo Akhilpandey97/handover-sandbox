@@ -73,7 +73,7 @@ export const TacticalLists = ({ projects }: Props) => {
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
+                  <AlertCircle className="h-4 w-4 text-destructive-strong" />
                   "At Risk" Watchlist
                   {atRiskProjects.length > 0 && (
                     <Badge variant="destructive" className="text-xs">{atRiskProjects.length} overdue</Badge>
@@ -88,7 +88,7 @@ export const TacticalLists = ({ projects }: Props) => {
             <CardContent>
               {atRiskProjects.length === 0 ? (
                 <div className="text-center py-6">
-                  <Badge className="bg-emerald-500/10 text-emerald-600 text-sm px-4 py-2">
+                  <Badge className="bg-success/10 text-success-strong text-sm px-4 py-2">
                     ✅ No at-risk projects — all on track!
                   </Badge>
                 </div>
@@ -106,7 +106,7 @@ export const TacticalLists = ({ projects }: Props) => {
                   </TableHeader>
                   <TableBody>
                     {atRiskProjects.map(p => (
-                      <TableRow key={p.id} className="bg-red-50/50 dark:bg-red-950/10">
+                      <TableRow key={p.id} className="bg-destructive/50">
                         <TableCell className="font-medium">{p.merchantName}</TableCell>
                         <TableCell>{p.dates.expectedGoLiveDate}</TableCell>
                         <TableCell>
@@ -132,7 +132,7 @@ export const TacticalLists = ({ projects }: Props) => {
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-amber-500" />
+                  <Trophy className="h-4 w-4 text-warning-strong" />
                   Task Completion Leaderboard
                 </CardTitle>
                 {expandedSection === "leaderboard" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}

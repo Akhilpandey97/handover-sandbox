@@ -153,18 +153,18 @@ function exportResults(items: ChecklistRow[], config: SandboxConfig) {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  pass: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  fail: "text-red-600 bg-red-50 border-red-200",
-  skip: "text-amber-600 bg-amber-50 border-amber-200",
-  running: "text-blue-600 bg-blue-50 border-blue-200",
+  pass: "text-success-strong bg-success-soft border-success/30",
+  fail: "text-destructive-strong bg-destructive-soft border-destructive/30",
+  skip: "text-warning-strong bg-warning-soft border-warning/30",
+  running: "text-info-strong bg-info-soft border-info/30",
   pending: "text-muted-foreground bg-muted border-border",
 };
 
 const STATUS_ICON: Record<string, React.ReactNode> = {
-  pass: <CheckCircle2 className="h-4 w-4 text-emerald-500" />,
-  fail: <XCircle className="h-4 w-4 text-red-500" />,
-  skip: <SkipForward className="h-4 w-4 text-amber-500" />,
-  running: <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />,
+  pass: <CheckCircle2 className="h-4 w-4 text-success-strong" />,
+  fail: <XCircle className="h-4 w-4 text-destructive-strong" />,
+  skip: <SkipForward className="h-4 w-4 text-warning-strong" />,
+  running: <Loader2 className="h-4 w-4 text-info-strong animate-spin" />,
   pending: <ChevronRight className="h-4 w-4 text-muted-foreground" />,
 };
 
@@ -299,7 +299,7 @@ export const SandboxTesting = () => {
                 Chat
               </Button>
               <Button variant={view === "results" ? "default" : "outline"} size="sm" className="text-xs h-7" onClick={() => setView("results")} disabled={checklist.length === 0 && !isRunning}>
-                Results {checklist.length > 0 && <Badge variant="secondary" className="ml-1 text-[10px] px-1">{checklist.length}</Badge>}
+                Results {checklist.length > 0 && <Badge variant="secondary" className="ml-1 text-2xs px-1">{checklist.length}</Badge>}
               </Button>
               {allConfigured && !isRunning && !isDone && (
                 <Button size="sm" className="text-xs h-7 gap-1" onClick={handleRunTests}>
@@ -335,7 +335,7 @@ export const SandboxTesting = () => {
             <div className="p-4 space-y-3">
               {messages.map(msg => (
                 <div key={msg.id} className={cn("flex gap-2 items-start", msg.role === "user" ? "flex-row-reverse" : "flex-row")}>
-                  <div className={cn("h-7 w-7 rounded-full shrink-0 flex items-center justify-center text-[11px] font-bold shadow-sm mt-0.5", msg.role === "assistant" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
+                  <div className={cn("h-7 w-7 rounded-full shrink-0 flex items-center justify-center text-2xs font-bold shadow-sm mt-0.5", msg.role === "assistant" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground")}>
                     {msg.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-3.5 w-3.5" />}
                   </div>
                   <div className={cn("max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm", msg.role === "assistant" ? "bg-card border border-border/60 text-foreground" : "bg-primary text-primary-foreground")}>
@@ -413,9 +413,9 @@ export const SandboxTesting = () => {
                 <div className="grid grid-cols-4 gap-3 text-center">
                   {[
                     { label: "Total", value: total, color: "text-foreground" },
-                    { label: "Passed", value: passCount, color: "text-emerald-600" },
-                    { label: "Failed", value: failCount, color: "text-red-600" },
-                    { label: "Skipped", value: skipCount, color: "text-amber-600" },
+                    { label: "Passed", value: passCount, color: "text-success-strong" },
+                    { label: "Failed", value: failCount, color: "text-destructive-strong" },
+                    { label: "Skipped", value: skipCount, color: "text-warning-strong" },
                   ].map(s => (
                     <div key={s.label} className="space-y-0.5">
                       <p className={cn("text-2xl font-bold", s.color)}>{s.value}</p>
@@ -452,8 +452,8 @@ export const SandboxTesting = () => {
                     <div className="flex-1 min-w-0 space-y-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium truncate">{test.testCase}</span>
-                        <Badge variant="outline" className="text-[10px] h-4 px-1.5 shrink-0">{test.category}</Badge>
-                        <Badge className={cn("text-[10px] h-4 px-1.5 border shrink-0", STATUS_COLORS[test.status])}>
+                        <Badge variant="outline" className="text-2xs h-4 px-1.5 shrink-0">{test.category}</Badge>
+                        <Badge className={cn("text-2xs h-4 px-1.5 border shrink-0", STATUS_COLORS[test.status])}>
                           {test.status}
                         </Badge>
                       </div>
@@ -474,7 +474,7 @@ export const SandboxTesting = () => {
         <Card className="border-border/50 shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+              <AlertTriangle className="h-3.5 w-3.5 text-warning-strong shrink-0" />
               <span>Tests are powered by AI analysis. Actual browser-level testing may produce different results.</span>
               <span className="mx-1">·</span>
               <Globe className="h-3.5 w-3.5 shrink-0" />

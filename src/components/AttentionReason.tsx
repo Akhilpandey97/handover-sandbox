@@ -50,14 +50,14 @@ export const AttentionReasonBlock = ({
   return (
     <div className={cn("space-y-1.5 text-xs leading-relaxed", className)}>
       <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-normal text-muted-foreground">
+        <span className="inline-flex items-center gap-1 text-2xs font-semibold tracking-normal text-muted-foreground">
           <Sparkles className="h-3 w-3 text-primary" /> AI explanation
         </span>
         {reason && (
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); void regenerate(); }}
-            className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+            className="text-2xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
           >
             <RefreshCw className="h-3 w-3" /> Refresh
           </button>
@@ -84,7 +84,7 @@ export const AttentionReasonBlock = ({
           {reason.evidence && reason.evidence.length > 0 && (
             <ul className="space-y-0.5 pt-0.5">
               {reason.evidence.map((e, i) => (
-                <li key={i} className="flex gap-1.5 text-[11px] text-muted-foreground">
+                <li key={i} className="flex gap-1.5 text-2xs text-muted-foreground">
                   <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-primary/60" />
                   <span>{e}</span>
                 </li>
@@ -131,7 +131,7 @@ export const AttentionReasonPopover = ({
         <ul className="space-y-1.5">
           {reasons.map((r, i) => (
             <li key={i} className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
-              <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-red-500" />
+              <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-destructive" />
               <span>{r}</span>
             </li>
           ))}

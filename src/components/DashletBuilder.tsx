@@ -44,7 +44,7 @@ export const DashletBuilder = ({ items, hidden, onToggle, custom, onAddCustom, o
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-3">
         <p className="text-sm font-semibold text-foreground">Dashlets</p>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">Turn sections on or off. Drag them on the dashboard to reorder.</p>
+        <p className="mt-0.5 text-2xs text-muted-foreground">Turn sections on or off. Drag them on the dashboard to reorder.</p>
         <div className="mt-2 max-h-56 space-y-1.5 overflow-y-auto pr-1">
           {items.map((item) => (
             <div key={item.id} className="flex items-center justify-between gap-2 rounded-md px-1.5 py-1 hover:bg-muted/50">
@@ -64,11 +64,11 @@ export const DashletBuilder = ({ items, hidden, onToggle, custom, onAddCustom, o
         <div className="mt-3 space-y-2 border-t border-border pt-3">
           <p className="text-xs font-semibold text-foreground">New dashlet</p>
           <div className="space-y-1">
-            <Label className="text-[11px]">Title</Label>
+            <Label className="text-2xs">Title</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Projects by platform" className="h-8 text-xs" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[11px]">Group by field</Label>
+            <Label className="text-2xs">Group by field</Label>
             <Select value={field} onValueChange={setField}>
               <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>

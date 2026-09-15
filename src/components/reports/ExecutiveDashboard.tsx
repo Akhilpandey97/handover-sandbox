@@ -89,7 +89,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-emerald-500" />
+                  <DollarSign className="h-4 w-4 text-success-strong" />
                   Revenue Realization Forecast
                   <Badge variant="secondary">{totalPipelineArr.toFixed(2)} Cr in pipeline</Badge>
                 </CardTitle>
@@ -117,7 +117,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                       <TableRow key={i}>
                         <TableCell className="font-medium">{row.month}</TableCell>
                         <TableCell>{row.count}</TableCell>
-                        <TableCell className="font-semibold text-emerald-600">{row.totalArr.toFixed(2)}</TableCell>
+                        <TableCell className="font-semibold text-success-strong">{row.totalArr.toFixed(2)}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {row.projects.map((p, j) => (
@@ -144,7 +144,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
-                  <Rocket className="h-4 w-4 text-amber-500" />
+                  <Rocket className="h-4 w-4 text-warning-strong" />
                   Go-Live Velocity
                 </CardTitle>
                 {expandedSection === "velocity" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -171,7 +171,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                       <TableRow key={i}>
                         <TableCell className="font-medium">{row.month}</TableCell>
                         <TableCell>{row.kickOffs}</TableCell>
-                        <TableCell className="text-emerald-600 font-semibold">{row.goLive}</TableCell>
+                        <TableCell className="text-success-strong font-semibold">{row.goLive}</TableCell>
                         <TableCell>
                           <Badge variant={row.goLive >= row.kickOffs ? "default" : "destructive"} className="text-xs">
                             {row.goLive >= row.kickOffs ? "+" : ""}{row.goLive - row.kickOffs}

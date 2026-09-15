@@ -121,34 +121,30 @@ const tabOptions: Array<{ value: WorkspaceTab; label: string }> = [
   { value: "jira", label: "Jira" },
 ];
 
+// Project states use the theme's status tokens, so they read the same as
+// everywhere else in the product and switch with dark mode.
 const stateToneMap: Record<ProjectState, string> = {
-  not_started: "bg-[#eff4fb] text-[#5d718f] border-[#d8e2f0]",
-  on_hold: "bg-[#fff4db] text-[#9a6700] border-[#ffe3a3]",
-  in_progress: "bg-[#edf3ff] text-[#244b8f] border-[#d3e0f7]",
-  live: "bg-[#ecf8f1] text-[#246447] border-[#d2eadb]",
-  blocked: "bg-[#fff0f0] text-[#b5474d] border-[#ffd2d5]",
+  not_started: "bg-muted text-muted-foreground border-border",
+  on_hold: "bg-warning-soft text-warning-strong border-warning/30",
+  in_progress: "bg-info-soft text-info-strong border-info/30",
+  live: "bg-success-soft text-success-strong border-success/30",
+  blocked: "bg-destructive-soft text-destructive-strong border-destructive/30",
 };
 
-const stateSelectToneMap: Record<ProjectState, string> = {
-  not_started: "border-[#d8e2f0] bg-[#eff4fb] text-[#5d718f]",
-  on_hold: "border-[#ffe3a3] bg-[#fff4db] text-[#9a6700]",
-  in_progress: "border-[#d3e0f7] bg-[#edf3ff] text-[#244b8f]",
-  live: "border-[#d2eadb] bg-[#ecf8f1] text-[#246447]",
-  blocked: "border-[#ffd2d5] bg-[#fff0f0] text-[#b5474d]",
-};
+const stateSelectToneMap: Record<ProjectState, string> = stateToneMap;
 
 const activityToneMap: Record<ActivityKind, string> = {
-  user: "bg-emerald-500",
+  user: "bg-success",
   system: "bg-slate-500",
-  handoff: "bg-blue-500",
-  milestone: "bg-amber-500",
+  handoff: "bg-info",
+  milestone: "bg-warning",
 };
 
 const activityBadgeToneMap: Record<ActivityKind, string> = {
-  user: "bg-[#ecf8f1] text-[#246447] border-[#d2eadb]",
-  system: "bg-[#eff4fb] text-[#5d718f] border-[#d8e2f0]",
-  handoff: "bg-[#edf3ff] text-[#244b8f] border-[#d3e0f7]",
-  milestone: "bg-[#fff4db] text-[#9a6700] border-[#ffe3a3]",
+  user: "bg-success-soft text-success-strong border-success/30",
+  system: "bg-muted text-muted-foreground border-border",
+  handoff: "bg-info-soft text-info-strong border-info/30",
+  milestone: "bg-warning-soft text-warning-strong border-warning/30",
 };
 
 const formatDateTime = (value?: string) => {
@@ -341,7 +337,7 @@ const riskAssessmentFromVerdict = (verdict: RiskVerdict | undefined): RiskAssess
     return {
       score,
       label: "High risk",
-      tone: "bg-rose-100 text-rose-800 border-rose-200",
+      tone: "bg-destructive-soft text-destructive-strong border-destructive/30",
       drivers: findings.map((f) => ({ label: f.detail, points: f.magnitude ?? 0 })),
     };
   }
@@ -349,7 +345,7 @@ const riskAssessmentFromVerdict = (verdict: RiskVerdict | undefined): RiskAssess
   return {
     score,
     label: "Low risk",
-    tone: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    tone: "bg-success-soft text-success-strong border-success/30",
     drivers: [{ label: "No major delivery or ownership risks detected", points: 0 }],
   };
 };
@@ -399,12 +395,12 @@ const buildActionDrivenSummary = (
         : nextPending
           ? `Prioritize "${nextPending.title}" with the ${project.currentOwnerTeam} team to maintain delivery momentum.`
           : "No immediate execution blocker is visible in the current delivery data.",
-      tone: "border-[#d3e0f7] bg-[#f5f8fc]",
+      tone: "border-primary/20 bg-primary-soft",
     },
     {
       title: "Delivery status",
       body: `${project.merchantName} is in ${project.currentPhase} and currently marked ${project.projectState.replace(/_/g, " ")} with ${completedChecklist}/${project.checklist.length} checklist items complete.`,
-      tone: "border-[#d8e2f0] bg-white",
+      tone: "border-border bg-card",
     },
     {
       title: "Risk watch",
@@ -412,14 +408,14 @@ const buildActionDrivenSummary = (
         risk.label === "High risk"
           ? `High risk. ${risk.drivers.map((d) => d.label).join("; ")}.`
           : "No risk rules are currently firing for this project.",
-      tone: "border-[#d8e2f0] bg-white",
+      tone: "border-border bg-card",
     },
     {
       title: "Operational insight",
       body:
         aiSignal ||
         `${openTasksCount} checklist item${openTasksCount === 1 ? "" : "s"} remain open. Review notes, handoff readiness, and linked documentation before the next status update.`,
-      tone: "border-[#d8e2f0] bg-white",
+      tone: "border-border bg-card",
     },
   ];
 
@@ -696,9 +692,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   };
 
   return (
-    <div className={cn("flex flex-col overflow-hidden bg-[#f4f8fc] dark:bg-background", inModal ? "h-full rounded-lg border border-slate-200 dark:border-border" : "h-screen")}>
+    <div className={cn("flex flex-col overflow-hidden bg-background", inModal ? "h-full rounded-lg border border-border" : "h-screen")}>
       {/* Unified header */}
-      <div className="shrink-0 border-b border-slate-200 bg-white px-5 py-3 dark:border-border dark:bg-card">
+      <div className="shrink-0 border-b border-border bg-card px-5 py-3">
         <div className="mx-auto flex max-w-[1680px] items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             {inModal ? (
@@ -727,7 +723,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             )}
             <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0 dark:text-muted-foreground" />
             <div className="flex items-center gap-2 min-w-0">
-              <h1 className="max-w-[34vw] truncate text-2xl font-semibold leading-none tracking-tight text-slate-950 dark:text-foreground">{project.merchantName}</h1>
+              <h1 className="max-w-[34vw] truncate heading-page text-foreground">{project.merchantName}</h1>
               <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} className="ml-2" />
               {/* Prev/Next navigation inline */}
               {inModal && projectIds && projectIds.length > 1 && onNavigate && (() => {
@@ -805,7 +801,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
                 <div className="col-span-2 min-w-0">
-                  <p className="text-[10px] font-bold tracking-[0.1em] text-muted-foreground">{getLabel("field_project_state")}</p>
+                  <p className="text-2xs font-bold tracking-widest text-muted-foreground">{getLabel("field_project_state")}</p>
                   <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
                     <SelectTrigger className={cn("mt-1 h-9 w-full text-sm font-semibold", stateSelectToneMap[project.projectState])}>
                       <SelectValue />
@@ -822,7 +818,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   [getLabel("field_arr"), formatArrCr(project.arr)],
                 ].map(([label, value]) => (
                   <div key={label} className="min-w-0">
-                    <p className="text-[10px] font-bold tracking-[0.1em] text-muted-foreground">{label}</p>
+                    <p className="text-2xs font-bold tracking-widest text-muted-foreground">{label}</p>
                     <p className="mt-1 truncate text-sm font-semibold text-foreground" title={value}>{value}</p>
                   </div>
                 ))}
@@ -867,7 +863,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               { label: "Needs Attention", value: isAtRisk ? "Yes" : "—" },
             ].map((item) => (
               <div key={item.label} className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-border dark:bg-card">
-                <p className="text-[10px] font-bold tracking-[0.1em] text-slate-500 dark:text-muted-foreground">{item.label}</p>
+                <p className="text-2xs font-bold tracking-widest text-slate-500 dark:text-muted-foreground">{item.label}</p>
                 <p className="truncate text-sm font-semibold text-slate-900 dark:text-foreground" title={item.value}>{item.value}</p>
               </div>
             ))}
@@ -882,7 +878,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className="rounded-none border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-slate-500 data-[state=active]:border-sky-700 data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none dark:text-muted-foreground dark:data-[state=active]:text-foreground"
+                    className="rounded-none border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-slate-500 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none dark:text-muted-foreground dark:data-[state=active]:text-foreground"
                   >
                     {tab.label}
                   </TabsTrigger>
@@ -890,7 +886,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-[#f4f8fc] px-4 py-4 dark:bg-background">
+            <div className="flex-1 overflow-y-auto bg-background px-4 py-4">
               {/* OVERVIEW TAB — Rich dashboard */}
               <TabsContent value="overview" className="m-0">
                 <div className="space-y-3">
@@ -903,9 +899,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       { label: "Handoffs", value: `${project.transferHistory.length}`, sub: `${activityFeed.length} total events` },
                     ].map((metric) => (
                       <div key={metric.label} className="rounded-lg border border-border/60 bg-card/80 p-3">
-                        <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground">{metric.label}</p>
+                        <p className="text-2xs font-semibold tracking-widest text-muted-foreground">{metric.label}</p>
                         <p className="mt-1 text-xl font-bold tracking-tight text-foreground">{metric.value}</p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">{metric.sub}</p>
+                        <p className="mt-0.5 text-2xs text-muted-foreground">{metric.sub}</p>
                       </div>
                     ))}
                   </div>
@@ -914,7 +910,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   <div className="grid grid-cols-2 gap-2">
                     {/* Checklist breakdown */}
                     <div className="rounded-lg border border-border/60 bg-card/80 p-3">
-                      <p className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground">Checklist by team</p>
+                      <p className="text-2xs font-semibold tracking-widest text-muted-foreground">Checklist by team</p>
                       <div className="mt-2 space-y-1.5">
                         {Object.entries(
                           project.checklist.reduce(
@@ -931,7 +927,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           <div key={team}>
                             <div className="flex items-center justify-between mb-0.5">
                               <p className="text-xs font-semibold text-foreground">{teamLabels[team] || team}</p>
-                              <span className="text-[11px] font-semibold text-muted-foreground">{summary.done}/{summary.total}</span>
+                              <span className="text-2xs font-semibold text-muted-foreground">{summary.done}/{summary.total}</span>
                             </div>
                             <Progress value={summary.total ? (summary.done / summary.total) * 100 : 0} className="h-1 bg-secondary" />
                           </div>
@@ -942,8 +938,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     {/* Recent activity snapshot */}
                     <div className="rounded-lg border border-border/60 bg-card/80 p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground">Recent activity</p>
-                        <button type="button" onClick={() => setActiveTab("activity")} className="text-[11px] font-semibold text-primary hover:underline">View all</button>
+                        <p className="text-2xs font-semibold tracking-widest text-muted-foreground">Recent activity</p>
+                        <button type="button" onClick={() => setActiveTab("activity")} className="text-2xs font-semibold text-primary hover:underline">View all</button>
                       </div>
                       <div className="space-y-1.5">
                         {activityFeed.slice(0, 4).map((item) => (
@@ -951,7 +947,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                             <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", activityToneMap[item.kind])} />
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-semibold text-foreground truncate">{item.title}</p>
-                              <p className="text-[11px] text-muted-foreground">{item.actor} · {item.timestampLabel}</p>
+                              <p className="text-2xs text-muted-foreground">{item.actor} · {item.timestampLabel}</p>
                             </div>
                           </div>
                         ))}
@@ -986,7 +982,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 <div className="space-y-2">
                   {noteSections.map(([label, value]) => (
                     <div key={label} className="rounded-lg border border-border/60 bg-card/80 p-3">
-                      <p className="text-[11px] font-semibold tracking-[0.18em] text-muted-foreground">{label}</p>
+                      <p className="text-2xs font-semibold tracking-widest text-muted-foreground">{label}</p>
                       <p className="mt-1.5 text-sm leading-relaxed text-foreground">{value}</p>
                     </div>
                   ))}
@@ -996,18 +992,18 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               <TabsContent value="details" className="m-0">
                 <div className="max-w-3xl space-y-2">
                   <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-border dark:bg-muted/30">
-                    <p className="text-xs font-bold tracking-[0.1em] text-slate-500 dark:text-muted-foreground">Project overview</p>
+                    <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-muted-foreground">Project overview</p>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Project ID</span><Badge variant="outline" className="max-w-[175px] truncate px-1.5 py-0.5 text-[10px] font-semibold">MID {project.mid}</Badge></div>
-                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">State</span><span className="font-semibold text-sky-700">{stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span></div>
-                      {isAtRisk && <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Needs Attention</span><span className="font-semibold text-rose-600">Yes</span></div>}
+                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Project ID</span><Badge variant="outline" className="max-w-[175px] truncate px-1.5 py-0.5 text-2xs font-semibold">MID {project.mid}</Badge></div>
+                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">State</span><span className="font-semibold text-pending-strong">{stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span></div>
+                      {isAtRisk && <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Needs Attention</span><span className="font-semibold text-destructive-strong">Yes</span></div>}
                       <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Go-live</span><span className="font-semibold text-slate-700 dark:text-foreground">{formatGoLiveDate(project)}</span></div>
                     </div>
                   </div>
 
                   <div className="px-4 py-3">
 
-                    <p className="mb-2 text-xs font-bold tracking-[0.1em] text-slate-500">Update state</p>
+                    <p className="mb-2 text-xs font-bold tracking-widest text-slate-500">Update state</p>
                     <Select value={project.projectState} onValueChange={(v) => handleStateChange(v as ProjectState)}>
                       <SelectTrigger className={cn("h-9 rounded-md text-sm font-semibold border", stateSelectToneMap[project.projectState])}>
                         <SelectValue />
@@ -1064,11 +1060,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           <div className="grid grid-cols-2 gap-1.5 pt-1">
                             <div className="rounded-md border border-border/60 bg-card/80 px-2 py-1.5 text-center">
                               <p className="text-xs font-bold text-foreground">{formatDuration(timeByParty.gokwik)}</p>
-                              <p className="text-[10px] tracking-normal text-muted-foreground">Internal</p>
+                              <p className="text-2xs tracking-normal text-muted-foreground">Internal</p>
                             </div>
                             <div className="rounded-md border border-border/60 bg-card/80 px-2 py-1.5 text-center">
                               <p className="text-xs font-bold text-foreground">{formatDuration(timeByParty.merchant)}</p>
-                              <p className="text-[10px] tracking-normal text-muted-foreground">Merchant</p>
+                              <p className="text-2xs tracking-normal text-muted-foreground">Merchant</p>
                             </div>
                           </div>
                         </div>
@@ -1150,7 +1146,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           onClick={() => setExpandedSections(prev => ({ ...prev, [section.key]: !prev[section.key] }))}
                           className="flex w-full items-center justify-between group"
                         >
-                          <p className="text-xs font-bold tracking-[0.1em] text-slate-500 dark:text-muted-foreground">{section.title}</p>
+                          <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-muted-foreground">{section.title}</p>
                           <ChevronDown className={cn("h-3 w-3 text-slate-400 transition-transform dark:text-muted-foreground", expandedSections[section.key] ? "rotate-0" : "-rotate-90")} />
                         </button>
                         {expandedSections[section.key] && (

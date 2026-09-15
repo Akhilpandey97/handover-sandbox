@@ -175,7 +175,7 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
 
       {/* Tooltip */}
       <div
-        className="absolute bg-white dark:bg-[#141e30] rounded-xl shadow-2xl border border-slate-200 dark:border-[#253553] overflow-hidden"
+        className="absolute bg-popover text-popover-foreground rounded-xl shadow-2xl border border-border overflow-hidden"
         style={tipStyle}
       >
         <div className="px-4 py-3 flex items-center justify-between gap-3" style={{ background: brandColor }}>
@@ -192,13 +192,13 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
           </button>
         </div>
         <div className="px-5 py-4">
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1.5">{step.title}</h3>
-          <p className="text-[13px] leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-line">{step.body}</p>
+          <h3 className="heading-card text-foreground mb-1.5">{step.title}</h3>
+          <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{step.body}</p>
         </div>
-        <div className="px-4 py-3 border-t border-slate-100 dark:border-[#253553] flex items-center justify-between bg-slate-50/60 dark:bg-[#0f1a2e]">
+        <div className="px-4 py-3 border-t border-border flex items-center justify-between bg-muted/60">
           <button
             onClick={onClose}
-            className="text-[11px] font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+            className="text-2xs font-medium text-muted-foreground hover:text-foreground"
           >
             Skip tour
           </button>
@@ -206,7 +206,7 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
             <button
               onClick={prev}
               disabled={idx === 0}
-              className="px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1a2740] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+              className="px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
             >
               <ArrowLeft className="w-3 h-3" /> Back
             </button>

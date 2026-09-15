@@ -65,9 +65,9 @@ const defaultStart = () => {
 
 const statusStyles: Record<ChecklistMeeting["analysis_status"], string> = {
   pending: "bg-muted text-muted-foreground",
-  processing: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300",
-  done: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-  failed: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+  processing: "bg-pending-soft text-pending-strong",
+  done: "bg-success-soft text-success-strong",
+  failed: "bg-destructive-soft text-destructive-strong",
 };
 
 export const MeetingSchedulerDialog = ({
@@ -240,10 +240,10 @@ export const MeetingSchedulerDialog = ({
                         {when.toLocaleString()} · {meeting.duration_minutes} min · {providerLabel}
                       </p>
                       {meeting.attendees.length > 0 && (
-                        <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                        <p className="mt-1 truncate text-2xs text-muted-foreground">
                           {meeting.attendees.join(", ")}
                           {meeting.invite_sent_at && (
-                            <span className="ml-1 text-emerald-600 dark:text-emerald-400">
+                            <span className="ml-1 text-success-strong">
                               · invited
                             </span>
                           )}
@@ -269,7 +269,7 @@ export const MeetingSchedulerDialog = ({
                   </div>
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <Badge className={cn("text-[10px]", statusStyles[meeting.analysis_status])}>
+                    <Badge className={cn("text-2xs", statusStyles[meeting.analysis_status])}>
                       {meeting.analysis_status === "done" && (
                         <CheckCircle2 className="mr-1 h-3 w-3" />
                       )}
@@ -285,7 +285,7 @@ export const MeetingSchedulerDialog = ({
                             : "Awaiting transcript"}
                     </Badge>
                     {meeting.transcript_source && (
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-2xs text-muted-foreground">
                         via {meeting.transcript_source.replace("_", " ")}
                       </span>
                     )}
@@ -303,12 +303,12 @@ export const MeetingSchedulerDialog = ({
                   </div>
 
                   {meeting.analysis_error && (
-                    <p className="mt-2 text-[11px] text-destructive">{meeting.analysis_error}</p>
+                    <p className="mt-2 text-2xs text-destructive">{meeting.analysis_error}</p>
                   )}
 
                   {transcriptFor === meeting.id && (
                     <div className="mt-2 space-y-2 rounded-md bg-muted/40 p-2">
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-2xs text-muted-foreground">
                         {meeting.transcript
                           ? "A transcript is already stored. Paste a replacement below, or run the analysis on what is there."
                           : "Paste the transcript to analyse it now. Otherwise it arrives from the provider on its own."}
@@ -400,7 +400,7 @@ export const MeetingSchedulerDialog = ({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-6 gap-1 px-2 text-[11px]"
+                      className="h-6 gap-1 px-2 text-2xs"
                       disabled={generating || !scheduledAt}
                       onClick={() => generateLink()}
                     >
@@ -418,7 +418,7 @@ export const MeetingSchedulerDialog = ({
                     placeholder={providerMeta.hint}
                     className="h-9"
                   />
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-2xs text-muted-foreground">
                     Left blank, the link is created in your {providerMeta.label} account on save.
                   </p>
                 </div>
@@ -451,7 +451,7 @@ export const MeetingSchedulerDialog = ({
                   {attendees.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1">
                       {attendees.map((email) => (
-                        <Badge key={email} variant="secondary" className="gap-1 text-[10px]">
+                        <Badge key={email} variant="secondary" className="gap-1 text-2xs">
                           {email}
                           <button
                             type="button"

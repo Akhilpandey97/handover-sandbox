@@ -76,9 +76,9 @@ interface ProjectCardNewProps {
 const defaultPhaseConfig = {
   mint: { 
     bg: "bg-card dark:bg-[hsl(222,18%,16%)]", 
-    border: "border-blue-200/60 dark:border-blue-700/50",
-    badge: "bg-blue-500 hover:bg-blue-600",
-    accent: "text-blue-600 dark:text-blue-400"
+    border: "border-info/60",
+    badge: "bg-info hover:bg-info",
+    accent: "text-info-strong"
   },
   integration: { 
     bg: "bg-card dark:bg-[hsl(222,18%,16%)]", 
@@ -88,9 +88,9 @@ const defaultPhaseConfig = {
   },
   ms: { 
     bg: "bg-card dark:bg-[hsl(222,18%,16%)]", 
-    border: "border-emerald-200/60 dark:border-emerald-700/50",
-    badge: "bg-emerald-500 hover:bg-emerald-600",
-    accent: "text-emerald-600 dark:text-emerald-400"
+    border: "border-success/60",
+    badge: "bg-success hover:bg-success",
+    accent: "text-success-strong"
   },
   completed: { 
     bg: "bg-card dark:bg-[hsl(222,18%,16%)]", 
@@ -235,7 +235,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
 
   const getResponsibilityDisplay = () => {
     if (computedResponsibility === "gokwik") return { label: responsibilityLabels.gokwik, icon: Building2, color: "text-primary bg-primary/10" };
-    if (computedResponsibility === "merchant") return { label: responsibilityLabels.merchant, icon: Users, color: "text-amber-600 bg-amber-500/10" };
+    if (computedResponsibility === "merchant") return { label: responsibilityLabels.merchant, icon: Users, color: "text-warning-strong bg-warning/10" };
     return { label: responsibilityLabels.neutral, icon: Clock, color: "text-muted-foreground bg-muted" };
   };
 
@@ -267,19 +267,19 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                     </button>
                     <RiskBadge projectId={project.id} verdict={riskVerdict} />
                     {isPending && (
-                      <Badge className="bg-amber-500 text-white animate-pulse px-2 py-0.5 text-xs font-semibold">
+                      <Badge className="bg-warning text-warning-foreground animate-pulse px-2 py-0.5 text-xs font-semibold">
                         <Sparkles className="h-3 w-3 mr-1" />
                         NEW
                       </Badge>
                     )}
                     {isRejected && (
-                      <Badge className="bg-red-500 text-white px-2 py-0.5 text-xs font-semibold border border-red-600 animate-pulse">
+                      <Badge className="bg-destructive text-destructive-foreground px-2 py-0.5 text-xs font-semibold border border-destructive animate-pulse">
                         <XCircle className="h-3 w-3 mr-1" />
                         REJECTED — Action Needed
                       </Badge>
                     )}
                     {!project.assignedOwner && project.notes?.currentPhaseComment?.includes("needs manager review") && (
-                      <Badge className="bg-orange-500 text-white px-2 py-0.5 text-xs font-semibold animate-pulse">
+                      <Badge className="bg-warning text-warning-foreground px-2 py-0.5 text-xs font-semibold animate-pulse">
                         <UserPlus className="h-3 w-3 mr-1" />
                         NEEDS ASSIGNMENT
                       </Badge>
@@ -302,9 +302,9 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                       const stage = getProjectFunnelStage(project);
                       if (stage === "none") return null;
                       const cls: Record<string, string> = {
-                        live: "bg-emerald-500 hover:bg-emerald-600 text-white",
-                        under_integration: "bg-amber-500 hover:bg-amber-600 text-white",
-                        pre_integration: "bg-sky-500 hover:bg-sky-600 text-white",
+                        live: "bg-success hover:bg-success text-success-foreground",
+                        under_integration: "bg-warning hover:bg-warning text-warning-foreground",
+                        pre_integration: "bg-pending hover:bg-pending text-pending-foreground",
                         sales: "bg-violet-500 hover:bg-violet-600 text-white",
                       };
                       return (
@@ -324,11 +324,11 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                     <Select value={project.projectState} onValueChange={(val) => handleStateChange(val as ProjectState)}>
                       <SelectTrigger className={cn(
                         "h-6 w-auto gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium shadow-none focus:ring-0",
-                        project.projectState === "live" && "border-emerald-300 bg-emerald-100 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
-                        project.projectState === "in_progress" && "border-blue-300 bg-blue-100 text-blue-800 dark:border-blue-700 dark:bg-blue-950/50 dark:text-blue-300",
-                        project.projectState === "on_hold" && "border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+                        project.projectState === "live" && "border-success/30 bg-success-soft text-success-strong",
+                        project.projectState === "in_progress" && "border-info/30 bg-info-soft text-info-strong",
+                        project.projectState === "on_hold" && "border-warning/30 bg-warning-soft text-warning-strong",
                         project.projectState === "not_started" && "border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300",
-                        project.projectState === "blocked" && "border-red-300 bg-red-100 text-red-800 dark:border-red-700 dark:bg-red-950/50 dark:text-red-300",
+                        project.projectState === "blocked" && "border-destructive/30 bg-destructive-soft text-destructive-strong",
                       )}>
                         <SelectValue />
                       </SelectTrigger>
@@ -344,7 +344,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                       isPending ? (
                         <>
                           <Badge
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs px-2.5 py-0.5 cursor-pointer"
+                            className="bg-success hover:bg-success text-success-foreground text-xs px-2.5 py-0.5 cursor-pointer"
                             onClick={handleAccept}
                           >
                             <CheckCircle2 className="h-3 w-3 mr-1" />
@@ -383,7 +383,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-600 hover:bg-blue-100 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                    className="h-9 w-9 text-slate-600 hover:bg-info-soft hover:text-info-strong dark:text-slate-300"
                     onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
                     title="View details"
                     aria-label="View details"
@@ -393,7 +393,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-600 hover:bg-blue-100 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                    className="h-9 w-9 text-slate-600 hover:bg-info-soft hover:text-info-strong dark:text-slate-300"
                     onClick={() => setChecklistOpen(true)}
                     title="Open checklist"
                     aria-label="Open checklist"
@@ -403,7 +403,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-600 hover:bg-blue-100 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                    className="h-9 w-9 text-slate-600 hover:bg-info-soft hover:text-info-strong dark:text-slate-300"
                     onClick={() => setEditOpen(true)}
                     title="Edit project"
                     aria-label="Edit project"
@@ -413,7 +413,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-600 hover:bg-blue-100 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                    className="h-9 w-9 text-slate-600 hover:bg-info-soft hover:text-info-strong dark:text-slate-300"
                     onClick={() => setActivityHistoryOpen(true)}
                     title="Activity history"
                     aria-label="Activity history"
@@ -437,7 +437,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
               {aiDialogType === "insights" ? (
                 <><Brain className="h-5 w-5 text-violet-600" /> AI Project Insights</>
               ) : (
-                <><ListChecks className="h-5 w-5 text-cyan-600" /> AI Task Summary</>
+                <><ListChecks className="h-5 w-5 text-info-strong" /> AI Task Summary</>
               )}
               <span className="text-sm font-normal text-muted-foreground">— {project.merchantName}</span>
             </DialogTitle>

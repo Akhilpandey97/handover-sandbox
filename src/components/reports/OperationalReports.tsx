@@ -84,7 +84,7 @@ export const OperationalReports = ({ projects }: Props) => {
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-500" />
+                  <Clock className="h-4 w-4 text-info-strong" />
                   Stage Duration Analysis (Bottleneck Detector)
                 </CardTitle>
                 {expandedSection === "stage" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -129,7 +129,7 @@ export const OperationalReports = ({ projects }: Props) => {
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <AlertTriangle className="h-4 w-4 text-warning-strong" />
                   Aging Report (Stalled Projects)
                   {agingReport.filter(p => p.daysSinceStart > 60).length > 0 && (
                     <Badge variant="destructive" className="text-xs">{agingReport.filter(p => p.daysSinceStart > 60).length} zombie</Badge>
@@ -159,7 +159,7 @@ export const OperationalReports = ({ projects }: Props) => {
                   </TableHeader>
                   <TableBody>
                     {agingReport.map(p => (
-                      <TableRow key={p.id} className={p.daysSinceStart > 90 ? "bg-red-50 dark:bg-red-950/20" : p.daysSinceStart > 60 ? "bg-amber-50 dark:bg-amber-950/20" : ""}>
+                      <TableRow key={p.id} className={p.daysSinceStart > 90 ? "bg-destructive-soft" : p.daysSinceStart > 60 ? "bg-warning-soft" : ""}>
                         <TableCell className="font-medium">{p.merchantName}</TableCell>
                         <TableCell>{p.dates.kickOffDate}</TableCell>
                         <TableCell>
@@ -210,7 +210,7 @@ export const OperationalReports = ({ projects }: Props) => {
                 </TableHeader>
                 <TableBody>
                   {resourceLoad.map((r, i) => (
-                    <TableRow key={i} className={r.activeCount > 5 ? "bg-amber-50 dark:bg-amber-950/20" : ""}>
+                    <TableRow key={i} className={r.activeCount > 5 ? "bg-warning-soft" : ""}>
                       <TableCell className="font-medium">{r.name}</TableCell>
                       <TableCell><Badge variant="outline">{teamLabels[r.team] || r.team}</Badge></TableCell>
                       <TableCell>

@@ -104,7 +104,7 @@ export const SalesDashboard = () => {
               <BarChart3 className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-foreground">Sales Dashboard</h1>
+              <h1 className="heading-section text-foreground">Sales Dashboard</h1>
               <p className="text-xs text-muted-foreground">Welcome, {currentUser.name}</p>
             </div>
           </div>
@@ -135,9 +135,9 @@ export const SalesDashboard = () => {
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-muted-foreground tracking-normal">Live ARR</span>
-                <Rocket className="h-4 w-4 text-emerald-500" />
+                <Rocket className="h-4 w-4 text-success-strong" />
               </div>
-              <p className="text-2xl font-bold text-emerald-600">₹{formatArrCr(liveArr)}</p>
+              <p className="text-2xl font-bold text-success-strong">₹{formatArrCr(liveArr)}</p>
               <p className="text-xs text-muted-foreground mt-1">{liveProjects} live</p>
             </CardContent>
           </Card>
@@ -145,7 +145,7 @@ export const SalesDashboard = () => {
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-muted-foreground tracking-normal">Active</span>
-                <Clock className="h-4 w-4 text-amber-500" />
+                <Clock className="h-4 w-4 text-warning-strong" />
               </div>
               <p className="text-2xl font-bold text-foreground">{activeProjects}</p>
               <p className="text-xs text-muted-foreground mt-1">{blockedProjects} blocked</p>
@@ -186,17 +186,17 @@ export const SalesDashboard = () => {
                   </div>
                   <Progress value={taskPercent} className="h-2" />
                   <div className="grid grid-cols-3 gap-3 pt-2">
-                    <div className="text-center p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-                      <p className="text-2xl font-bold text-amber-600">{taskStats.open}</p>
-                      <p className="text-xs text-amber-600/80 font-medium mt-1">Pending</p>
+                    <div className="text-center p-3 rounded-lg bg-warning-soft border border-warning/30">
+                      <p className="text-2xl font-bold text-warning-strong">{taskStats.open}</p>
+                      <p className="text-xs text-warning-strong/80 font-medium mt-1">Pending</p>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                      <p className="text-2xl font-bold text-blue-600">{taskStats.in_progress}</p>
-                      <p className="text-xs text-blue-600/80 font-medium mt-1">In Progress</p>
+                    <div className="text-center p-3 rounded-lg bg-info-soft border border-info/30">
+                      <p className="text-2xl font-bold text-info-strong">{taskStats.in_progress}</p>
+                      <p className="text-xs text-info-strong/80 font-medium mt-1">In Progress</p>
                     </div>
-                    <div className="text-center p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800">
-                      <p className="text-2xl font-bold text-emerald-600">{taskStats.completed}</p>
-                      <p className="text-xs text-emerald-600/80 font-medium mt-1">Completed</p>
+                    <div className="text-center p-3 rounded-lg bg-success-soft border border-success/30">
+                      <p className="text-2xl font-bold text-success-strong">{taskStats.completed}</p>
+                      <p className="text-xs text-success-strong/80 font-medium mt-1">Completed</p>
                     </div>
                   </div>
                 </>
@@ -233,7 +233,7 @@ export const SalesDashboard = () => {
                   </div>
                   <div className="h-3 rounded-full bg-muted overflow-hidden">
                     <div
-                      className="h-full bg-amber-500 rounded-full transition-all"
+                      className="h-full bg-warning rounded-full transition-all"
                       style={{ width: `${totalGokwikTime + totalMerchantTime > 0 ? (totalMerchantTime / (totalGokwikTime + totalMerchantTime)) * 100 : 0}%` }}
                     />
                   </div>
@@ -263,10 +263,10 @@ export const SalesDashboard = () => {
                 const count = projects.filter(p => p.projectState === state).length;
                 const stateColors: Record<string, string> = {
                   not_started: "bg-muted text-muted-foreground",
-                  in_progress: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400",
-                  on_hold: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400",
-                  blocked: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-400",
-                  live: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400",
+                  in_progress: "bg-info-soft text-info-strong",
+                  on_hold: "bg-warning-soft text-warning-strong",
+                  blocked: "bg-destructive-soft text-destructive-strong",
+                  live: "bg-success-soft text-success-strong",
                 };
                 return (
                   <div key={state} className={cn("rounded-lg p-4 text-center", stateColors[state])}>

@@ -116,7 +116,7 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
               <ArrowUpDown className="h-3 w-3" />
               Sort
               {sortField !== "none" && (
-                <Badge variant="default" className="ml-0.5 h-4 px-1 text-[10px]">1</Badge>
+                <Badge variant="default" className="ml-0.5 h-4 px-1 text-2xs">1</Badge>
               )}
               <ChevronDown className="h-3 w-3" />
             </Button>
@@ -177,7 +177,7 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
               <SlidersHorizontal className="h-3 w-3" />
               Filters
               {activeFilterCount > 0 && (
-                <Badge variant="default" className="ml-0.5 h-4 px-1 text-[10px]">{activeFilterCount}</Badge>
+                <Badge variant="default" className="ml-0.5 h-4 px-1 text-2xs">{activeFilterCount}</Badge>
               )}
               <ChevronDown className="h-3 w-3" />
             </Button>

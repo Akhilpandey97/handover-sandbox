@@ -274,7 +274,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
       {groups.map((group, gi) => (
         <div key={gi}>
           {gi > 0 && <Separator className="mb-6" />}
-          <h3 className="text-base font-semibold mb-1">{group.title}</h3>
+          <h3 className="heading-card mb-1">{group.title}</h3>
           <p className="text-sm text-muted-foreground mb-4">{group.description}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {group.keys.map(({ key, label }) => (
@@ -299,7 +299,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
       {groups.map((group, gi) => (
         <div key={gi}>
           {gi > 0 && <Separator className="mb-6" />}
-          <h3 className="text-base font-semibold mb-1">{group.title}</h3>
+          <h3 className="heading-card mb-1">{group.title}</h3>
           <p className="text-sm text-muted-foreground mb-4">{group.description}</p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {group.keys.map(({ key, label }) => (

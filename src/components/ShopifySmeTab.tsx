@@ -54,8 +54,8 @@ const OWNER_OPTIONS = [
 ];
 
 const statusColors: Record<string, string> = {
-  new: "bg-blue-500/10 text-blue-600 border-blue-200",
-  reviewed: "bg-amber-500/10 text-amber-600 border-amber-200",
+  new: "bg-info/10 text-info-strong border-info/30",
+  reviewed: "bg-warning/10 text-warning-strong border-warning/30",
   dismissed: "bg-muted text-muted-foreground border-muted",
 };
 
@@ -183,7 +183,7 @@ export const ShopifySmeTab = () => {
                 </TableHeader>
                 <TableBody>
                   {rows.map(r => (
-                    <TableRow key={r.id} className={r.status === "new" ? "bg-blue-500/5" : ""}>
+                    <TableRow key={r.id} className={r.status === "new" ? "bg-info/5" : ""}>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[r.status] || ""}>{r.status}</Badge>
                       </TableCell>

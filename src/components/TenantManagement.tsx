@@ -506,7 +506,7 @@ export const TenantManagement = () => {
                   <SelectItem value="gokwik_general">General — view only</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-2xs text-muted-foreground">
                 Replaces their own role inside this workspace for as long as the access lasts.
               </p>
             </div>

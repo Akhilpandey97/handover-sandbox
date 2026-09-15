@@ -515,7 +515,7 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
                           <TableCell className="text-sm">{res.matched || "—"}</TableCell>
                           <TableCell>
                             {res.matched ? (
-                              <Badge variant="outline" className="gap-1 text-emerald-600 border-emerald-300">
+                              <Badge variant="outline" className="gap-1 text-success-strong border-success/30">
                                 <CheckCircle2 className="h-3 w-3" /> {res.confidence}
                               </Badge>
                             ) : res.account ? (
@@ -523,7 +523,7 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
                                 <XCircle className="h-3 w-3" /> No match
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                              <Badge variant="outline" className="gap-1 text-warning-strong border-warning/30">
                                 <AlertCircle className="h-3 w-3" /> Blank
                               </Badge>
                             )}
@@ -531,7 +531,7 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
                           <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">
                             {res.row ? (
                               res.row.isLive ? (
-                                <Badge variant="outline" className="text-emerald-600 border-emerald-300">Live</Badge>
+                                <Badge variant="outline" className="text-success-strong border-success/30">Live</Badge>
                               ) : (
                                 statusText(res.row)
                               )

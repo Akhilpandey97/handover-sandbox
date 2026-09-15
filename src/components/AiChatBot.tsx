@@ -766,7 +766,7 @@ export const AiChatBot = () => {
             <Plus className="h-4 w-4" /> New chat
           </Button>
         </div>
-        <p className="px-4 pb-1 text-[11px] font-semibold text-muted-foreground">Recent</p>
+        <p className="px-4 pb-1 text-2xs font-semibold text-muted-foreground">Recent</p>
         <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-3">
           {conversations.length === 0 ? (
             <p className="px-2 py-2 text-xs text-muted-foreground">No conversations yet.</p>
@@ -890,8 +890,8 @@ export const AiChatBot = () => {
                     <span className="whitespace-pre-wrap">{msg.content}</span>
                   )}
                   <div className={cn("flex items-center gap-1 mt-1", msg.role === "user" ? "justify-end" : "justify-start")}>
-                    <span className="text-[10px] text-muted-foreground">{msg.time}</span>
-                    {msg.role === "user" && <CheckCheck className="h-3 w-3 text-blue-500" />}
+                    <span className="text-2xs text-muted-foreground">{msg.time}</span>
+                    {msg.role === "user" && <CheckCheck className="h-3 w-3 text-info-strong" />}
                   </div>
                 </div>
               </div>
@@ -902,8 +902,8 @@ export const AiChatBot = () => {
               <div className="flex justify-start">
                 {/* What is being approved sits with the buttons rather than in a
                     separate message, so the two cannot become separated. */}
-                <div className="max-w-[90%] rounded-2xl rounded-bl-md border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950/30">
-                  <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
+                <div className="max-w-[90%] rounded-2xl rounded-bl-md border border-warning/30 bg-warning-soft px-4 py-3">
+                  <p className="text-xs font-semibold text-warning-strong">
                     Approve this action?
                   </p>
                   <p className="mt-1 text-xs font-medium text-foreground">
@@ -911,7 +911,7 @@ export const AiChatBot = () => {
                   </p>
                   <dl className="mt-1.5 space-y-0.5">
                     {Object.entries(pendingApproval.toolCall.arguments || {}).map(([k, v]) => (
-                      <div key={k} className="flex gap-2 text-[11px]">
+                      <div key={k} className="flex gap-2 text-2xs">
                         <dt className="shrink-0 text-muted-foreground">{k.replace(/_/g, " ")}</dt>
                         <dd className="min-w-0 break-words text-foreground/90">
                           {typeof v === "object" ? JSON.stringify(v) : String(v)}
@@ -961,11 +961,11 @@ export const AiChatBot = () => {
                       i === mentionIndex ? "bg-primary/10 text-primary" : "hover:bg-muted",
                     )}
                   >
-                    <span className="shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
+                    <span className="shrink-0 rounded px-1.5 py-0.5 text-2xs font-medium bg-muted text-muted-foreground">
                       {m.kind === "project" ? "Project" : "Person"}
                     </span>
                     <span className="min-w-0 flex-1 truncate font-medium">{m.name}</span>
-                    {m.sub && <span className="shrink-0 text-[10px] text-muted-foreground">{m.sub}</span>}
+                    {m.sub && <span className="shrink-0 text-2xs text-muted-foreground">{m.sub}</span>}
                   </button>
                 ))}
               </div>
@@ -973,7 +973,7 @@ export const AiChatBot = () => {
             {/* Live transcript indicator */}
             {isListening && (
               <div className="flex items-center gap-2 mb-2 px-1">
-                <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+                <span className="h-2 w-2 rounded-full bg-destructive animate-pulse shrink-0" />
                 <span className="text-xs text-muted-foreground truncate">
                   {liveTranscript || "Listening…"}
                 </span>
@@ -1004,7 +1004,7 @@ export const AiChatBot = () => {
                 className={cn(
                   "h-10 w-10 rounded-full flex items-center justify-center shrink-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
                   isListening
-                    ? "bg-red-500 text-white hover:bg-red-600 animate-pulse"
+                    ? "bg-destructive text-destructive-foreground hover:bg-destructive animate-pulse"
                     : "bg-muted text-muted-foreground hover:bg-muted/80 border"
                 )}
               >

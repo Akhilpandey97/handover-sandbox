@@ -170,17 +170,17 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">{s.name}</span>
-                      <Badge variant="secondary" className="text-[10px]">
+                      <Badge variant="secondary" className="text-2xs">
                         <Clock className="h-3 w-3 mr-0.5 inline" />
                         {s.days.join(", ")} @ {s.time_ist} IST
                       </Badge>
-                      {!s.enabled && <Badge variant="outline" className="text-[10px]">Paused</Badge>}
+                      {!s.enabled && <Badge variant="outline" className="text-2xs">Paused</Badge>}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1 truncate">
                       To: {s.recipients.join(", ")}
                     </p>
                     {s.last_sent_at && (
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                      <p className="text-2xs text-muted-foreground mt-0.5">
                         Last sent: {new Date(s.last_sent_at).toLocaleString()}
                       </p>
                     )}

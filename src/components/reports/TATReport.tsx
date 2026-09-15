@@ -318,9 +318,9 @@ export const TATReport = ({ projects }: Props) => {
                     <TableHead className="text-right">TAT (Go-live − Kickoff)</TableHead>
                     <TableHead className="text-right">TAT (Network days)</TableHead>
                     <TableHead className="text-right text-purple-700 dark:text-purple-300">Sales</TableHead>
-                    <TableHead className="text-right text-sky-700 dark:text-sky-300">Pre-Integ</TableHead>
+                    <TableHead className="text-right text-pending-strong">Pre-Integ</TableHead>
                     <TableHead
-                      className="text-right text-amber-700 dark:text-amber-300 cursor-pointer select-none hover:underline"
+                      className="text-right text-warning-strong cursor-pointer select-none hover:underline"
                       onClick={() => setExpandUnder(v => !v)}
                       title="Click to expand checklist-level TAT"
                     >
@@ -330,7 +330,7 @@ export const TATReport = ({ projects }: Props) => {
                       </span>
                     </TableHead>
                     {expandUnder && UNDER_STAGE_LABELS.map(lbl => (
-                      <TableHead key={lbl} className="text-right text-amber-600 dark:text-amber-400 text-xs">{lbl}</TableHead>
+                      <TableHead key={lbl} className="text-right text-warning-strong text-xs">{lbl}</TableHead>
                     ))}
                     <TableHead className="text-right">Total</TableHead>
                   </TableRow>

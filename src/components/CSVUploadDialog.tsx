@@ -380,7 +380,7 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
               <div className="space-y-2">
                 <div className="flex items-center gap-4 text-sm">
                   {successCount > 0 && (
-                    <span className="flex items-center gap-1 text-green-600">
+                    <span className="flex items-center gap-1 text-success-strong">
                       <CheckCircle2 className="h-4 w-4" />
                       {successCount} imported
                     </span>

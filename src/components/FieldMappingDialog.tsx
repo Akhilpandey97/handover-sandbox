@@ -271,7 +271,7 @@ export const FieldMappingDialog = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         {currentValue ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                          <CheckCircle2 className="h-4 w-4 text-success-strong shrink-0" />
                         ) : (
                           <XCircle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                         )}
@@ -310,7 +310,7 @@ export const FieldMappingDialog = ({
                               <span className="flex items-center gap-1.5">
                                 {field.label}
                                 {field.required && (
-                                  <Badge variant="outline" className="text-[10px] px-1 py-0">
+                                  <Badge variant="outline" className="text-2xs px-1 py-0">
                                     Required
                                   </Badge>
                                 )}
@@ -348,7 +348,7 @@ export const FieldMappingDialog = ({
         <DialogFooter className="flex items-center justify-between sm:justify-between">
           <div className="flex items-center gap-2 text-sm">
             {!Object.values(mapping).includes("merchant_name") && !aiLoading && (
-              <span className="flex items-center gap-1 text-amber-600">
+              <span className="flex items-center gap-1 text-warning-strong">
                 <AlertCircle className="h-4 w-4" />
                 Merchant Name mapping required
               </span>

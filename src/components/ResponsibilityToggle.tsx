@@ -51,7 +51,7 @@ export const ResponsibilityToggle = ({
           <ToggleGroupItem 
             value="merchant" 
             aria-label={responsibilityLabels.merchant}
-            className="text-xs px-2 py-0.5 h-6 rounded-none data-[state=on]:bg-amber-500 data-[state=on]:text-white"
+            className="text-xs px-2 py-0.5 h-6 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
           >
             <Users className="h-3 w-3 mr-1" />
             {responsibilityLabels.merchant?.charAt(0) || "M"}
@@ -93,7 +93,7 @@ export const ResponsibilityToggle = ({
           <ToggleGroupItem 
             value="merchant" 
             aria-label={responsibilityLabels.merchant}
-            className="text-xs px-3 py-1 h-8 rounded-none data-[state=on]:bg-amber-500 data-[state=on]:text-white"
+            className="text-xs px-3 py-1 h-8 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
           >
             <Users className="h-3 w-3 mr-1" />
             {responsibilityLabels.merchant}
@@ -113,7 +113,7 @@ export const ResponsibilityToggle = ({
             <Building2 className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">{responsibilityLabels.gokwik}</span>
             {project.currentResponsibility === "gokwik" && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary text-primary-foreground">
+              <Badge variant="secondary" className="text-2xs px-1.5 py-0 bg-primary text-primary-foreground">
                 Active
               </Badge>
             )}
@@ -125,20 +125,20 @@ export const ResponsibilityToggle = ({
         <div
           className={`p-3 rounded-lg transition-all ${
             project.currentResponsibility === "merchant"
-              ? "bg-amber-100 dark:bg-amber-900/30 border-2 border-amber-300 dark:border-amber-700"
+              ? "bg-warning-soft border-2 border-warning/30"
               : "bg-muted/50 border border-transparent"
           }`}
         >
           <div className="flex items-center gap-2 mb-1">
-            <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <Users className="h-4 w-4 text-warning-strong" />
             <span className="text-sm font-medium">{responsibilityLabels.merchant}</span>
             {project.currentResponsibility === "merchant" && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-amber-500 text-white">
+              <Badge variant="secondary" className="text-2xs px-1.5 py-0 bg-warning text-warning-foreground">
                 Active
               </Badge>
             )}
           </div>
-          <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
+          <p className="text-lg font-bold text-warning-strong">
             {formatDuration(timeByParty.merchant)}
           </p>
           <p className="text-xs text-muted-foreground">Total time</p>

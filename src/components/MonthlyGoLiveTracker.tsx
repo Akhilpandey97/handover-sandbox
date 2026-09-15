@@ -51,17 +51,17 @@ type Insight = {
 };
 
 const STAGE_BADGE: Record<string, string> = {
-  live: "bg-emerald-500 text-white",
-  under_integration: "bg-amber-500 text-white",
-  pre_integration: "bg-sky-500 text-white",
+  live: "bg-success text-success-foreground",
+  under_integration: "bg-warning text-warning-foreground",
+  pre_integration: "bg-pending text-pending-foreground",
   sales: "bg-violet-500 text-white",
   none: "bg-muted text-muted-foreground",
 };
 
 const CONF_BADGE: Record<string, string> = {
-  High: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
-  Medium: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
-  Low: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+  High: "bg-success-soft text-success-strong",
+  Medium: "bg-warning-soft text-warning-strong",
+  Low: "bg-destructive-soft text-destructive-strong",
 };
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -431,7 +431,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
               <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
                 <p className="text-xs font-semibold">Filters</p>
                 {activeFilterCount > 0 && (
-                  <Button variant="ghost" size="sm" className="h-6 text-[11px] gap-1" onClick={clearFilters}><X className="h-3 w-3" /> Reset</Button>
+                  <Button variant="ghost" size="sm" className="h-6 text-2xs gap-1" onClick={clearFilters}><X className="h-3 w-3" /> Reset</Button>
                 )}
               </div>
               <div className="overflow-y-auto flex-1 min-h-0 p-3 space-y-2.5">
@@ -565,8 +565,8 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                 const isUrl = /^https?:\/\//i.test(blockerText);
                 const stage = stageOf(p.id);
                 return (
-                  <TableRow key={p.id} onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id }, search: { from: "go-live" } })} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-red-50/40 dark:bg-red-500/5")}>
-                    <TableCell className={cn("font-medium whitespace-nowrap", isBlocked && "text-red-600 dark:text-red-400")} title={p.merchant_name}>
+                  <TableRow key={p.id} onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id }, search: { from: "go-live" } })} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-destructive/40")}>
+                    <TableCell className={cn("font-medium whitespace-nowrap", isBlocked && "text-destructive-strong")} title={p.merchant_name}>
                       <button
                         type="button"
                         onClick={(event) => { event.stopPropagation(); navigate({ to: "/projects/$projectId", params: { projectId: p.id }, search: { from: "go-live" } }); }}
@@ -669,7 +669,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                       <TableCell className="whitespace-nowrap tabular-nums">
                         {dateLabel(p.expected_go_live_date)}
                         {fullProjects.find(fp => fp.id === p.id)?.dates?.expectedGoLiveDateIsDerived && (
-                          <span className="ml-1 text-[10px] text-muted-foreground" title="Estimated from the latest checklist due date — no go-live date has been set on this project">est.</span>
+                          <span className="ml-1 text-2xs text-muted-foreground" title="Estimated from the latest checklist due date — no go-live date has been set on this project">est.</span>
                         )}
                       </TableCell>
                     )}

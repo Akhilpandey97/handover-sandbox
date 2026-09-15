@@ -56,12 +56,12 @@ const getCategoryIcon = (category: string) => {
 
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case "project": return "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300";
-    case "checklist": return "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300";
+    case "project": return "bg-info-soft text-info-strong";
+    case "checklist": return "bg-success-soft text-success-strong";
     case "transfer": return "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300";
-    case "comment": return "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300";
-    case "risk": return "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300";
-    case "email": return "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300";
+    case "comment": return "bg-warning-soft text-warning-strong";
+    case "risk": return "bg-destructive-soft text-destructive-strong";
+    case "email": return "bg-info-soft text-info-strong";
     case "jira": return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300";
     case "portal": return "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300";
     default: return "bg-muted text-muted-foreground";
@@ -70,12 +70,12 @@ const getCategoryColor = (category: string) => {
 
 const getTimelineColor = (category: string) => {
   switch (category) {
-    case "project": return "bg-blue-500";
-    case "checklist": return "bg-green-500";
+    case "project": return "bg-info";
+    case "checklist": return "bg-success";
     case "transfer": return "bg-purple-500";
-    case "comment": return "bg-amber-500";
-    case "risk": return "bg-red-500";
-    case "email": return "bg-cyan-500";
+    case "comment": return "bg-warning";
+    case "risk": return "bg-destructive";
+    case "email": return "bg-info";
     case "jira": return "bg-indigo-500";
     case "portal": return "bg-teal-500";
     default: return "bg-muted-foreground";
@@ -175,7 +175,7 @@ export const ProjectActivityHistoryPanel = ({
             {grouped.map(([dateKey, items]) => (
               <div key={dateKey}>
                 <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm pb-2 mb-2.5">
-                  <p className="text-[11px] font-semibold text-muted-foreground tracking-normal">
+                  <p className="text-2xs font-semibold text-muted-foreground tracking-normal">
                     {format(new Date(dateKey), "EEEE, MMM d, yyyy")}
                   </p>
                 </div>
@@ -206,15 +206,15 @@ export const ProjectActivityHistoryPanel = ({
                                 {entry.metadata?.changes && Array.isArray(entry.metadata.changes) && entry.metadata.changes.length > 0 && (
                                   <div className="mt-1.5 space-y-0.5">
                                     {entry.metadata.changes.map((c: { field: string; from: string; to: string }, ci: number) => (
-                                      <div key={ci} className="flex items-center gap-1.5 text-[11px]">
+                                      <div key={ci} className="flex items-center gap-1.5 text-2xs">
                                         <span className="font-medium text-muted-foreground">{c.field}:</span>
                                         {c.from && (
-                                          <span className="line-through text-red-500/70 max-w-[120px] truncate" title={c.from}>
+                                          <span className="line-through text-destructive-strong/70 max-w-[120px] truncate" title={c.from}>
                                             {c.from}
                                           </span>
                                         )}
                                         <ArrowRight className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-                                        <span className="text-green-600 dark:text-green-400 max-w-[200px] truncate" title={c.to}>
+                                        <span className="text-success-strong max-w-[200px] truncate" title={c.to}>
                                           {c.to || "—"}
                                         </span>
                                       </div>
@@ -224,19 +224,19 @@ export const ProjectActivityHistoryPanel = ({
 
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                                   {entry.userName && (
-                                    <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                    <span className="inline-flex items-center gap-1 text-2xs text-muted-foreground">
                                       <User className="h-3 w-3" />
                                       {entry.userName}
                                     </span>
                                   )}
-                                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                  <span className="inline-flex items-center gap-1 text-2xs text-muted-foreground">
                                     <Clock className="h-3 w-3" />
                                     {format(new Date(entry.timestamp), "h:mm a")}
                                     <span className="opacity-60">
                                       ({formatDistanceToNow(new Date(entry.timestamp), { addSuffix: true })})
                                     </span>
                                   </span>
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 capitalize">
+                                  <Badge variant="outline" className="text-2xs px-1.5 py-0 h-4 capitalize">
                                     {entry.category}
                                   </Badge>
                                 </div>

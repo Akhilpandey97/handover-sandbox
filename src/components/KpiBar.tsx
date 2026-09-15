@@ -57,19 +57,19 @@ export const KpiBar = ({ items, storageKey }: { items: KpiBoxItem[]; storageKey:
             </button>
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="truncate text-[11px] font-medium text-muted-foreground">{kpi.label}</p>
+                <p className="truncate text-2xs font-medium text-muted-foreground">{kpi.label}</p>
                 <p className="mt-0.5 text-2xl font-semibold leading-tight tracking-tight text-foreground">{kpi.value}</p>
               </div>
               <span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", kpi.tone)}>
                 <kpi.icon className="h-3.5 w-3.5" />
               </span>
             </div>
-            <p className="mt-1.5 truncate text-[11px] text-muted-foreground" title={kpi.sub}>{kpi.sub}</p>
+            <p className="mt-1.5 truncate text-2xs text-muted-foreground" title={kpi.sub}>{kpi.sub}</p>
             {!!kpi.attentionCount && kpi.attentionCount > 0 && (
               <button
                 type="button"
                 onClick={(event) => { event.stopPropagation(); kpi.onAttentionClick?.(); }}
-                className="mt-0.5 text-[11px] font-semibold text-red-600 hover:underline dark:text-red-400"
+                className="mt-0.5 text-2xs font-semibold text-destructive-strong hover:underline"
               >
                 {kpi.attentionCount} need attention
               </button>

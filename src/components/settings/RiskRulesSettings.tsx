@@ -82,7 +82,7 @@ export const RiskRulesSettings = () => {
                 onChange={(e) => update(idx, { label: e.target.value })}
                 className="h-8 max-w-xs text-sm font-medium"
               />
-              <Badge variant="outline" className="text-[10px] tracking-normal">
+              <Badge variant="outline" className="text-2xs tracking-normal">
                 {rule.severity}
               </Badge>
               <Button
@@ -126,7 +126,7 @@ export const RiskRulesSettings = () => {
                                 : [...(rule.states || []), s],
                             })
                           }
-                          className={`text-[11px] px-2 py-0.5 rounded-full border transition-colors ${
+                          className={`text-2xs px-2 py-0.5 rounded-full border transition-colors ${
                             on ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:bg-muted"
                           }`}
                         >

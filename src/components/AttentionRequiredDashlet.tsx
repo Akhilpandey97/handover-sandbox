@@ -41,7 +41,7 @@ export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { proje
           <p className="text-sm font-semibold text-foreground">
             Projects Needing Attention
             {rows.length > 0 && (
-              <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-500/15 dark:text-red-300">
+              <span className="ml-2 rounded-full bg-destructive-soft px-2 py-0.5 text-xs font-semibold text-destructive-strong">
                 {rows.length}
               </span>
             )}

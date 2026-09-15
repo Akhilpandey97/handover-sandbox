@@ -57,13 +57,13 @@ const MessageBubble = ({ msg }: { msg: ProjectEmailMessage }) => {
         className={cn(
           "max-w-[78%] rounded-2xl px-3 py-2 shadow-sm border",
           internal
-            ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 rounded-tr-sm"
+            ? "bg-success-soft border-success/30 rounded-tr-sm"
             : "bg-card border-border rounded-tl-sm"
         )}
       >
         <div className="flex items-baseline justify-between gap-3 mb-1">
           <span className="text-xs font-semibold text-foreground truncate">{sender}</span>
-          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{dateLabel}</span>
+          <span className="text-2xs text-muted-foreground whitespace-nowrap">{dateLabel}</span>
         </div>
         <pre className="text-xs whitespace-pre-wrap font-sans text-foreground/90 leading-relaxed">
           {cleanBody || "(empty message)"}

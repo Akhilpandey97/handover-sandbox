@@ -199,7 +199,7 @@ export const ProjectDetailsDialog = ({
                     computedResponsibility === "gokwik"
                       ? "bg-primary/10 text-primary"
                       : computedResponsibility === "merchant"
-                      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                      ? "bg-warning-soft text-warning-strong"
                       : "bg-muted text-muted-foreground"
                   }
                 >
@@ -221,12 +221,12 @@ export const ProjectDetailsDialog = ({
                 </div>
                 <p className="text-lg font-bold text-primary">{formatDuration(timeByParty.gokwik)}</p>
               </div>
-              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-center">
+              <div className="p-3 rounded-lg bg-warning-soft border border-warning/30 text-center">
                 <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-1">
                   <Clock className="h-3 w-3" />
                   {responsibilityLabels.merchant} Time
                 </div>
-                <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{formatDuration(timeByParty.merchant)}</p>
+                <p className="text-lg font-bold text-warning-strong">{formatDuration(timeByParty.merchant)}</p>
               </div>
             </div>
 
@@ -333,8 +333,8 @@ export const ProjectDetailsDialog = ({
               <h4 className="text-sm font-semibold mb-3">Notes</h4>
               <div className="space-y-3">
                 {project.notes.mintNotes && (
-                  <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
-                    <p className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-1">{getLabel("field_mint_notes")}</p>
+                  <div className="p-3 rounded-lg bg-info-soft border border-info/30">
+                    <p className="text-xs font-medium text-info-strong mb-1">{getLabel("field_mint_notes")}</p>
                     <p className="text-sm">{project.notes.mintNotes}</p>
                   </div>
                 )}
@@ -378,7 +378,7 @@ export const ProjectDetailsDialog = ({
                             {format(new Date(transfer.transferredAt), "dd MMM yyyy, HH:mm")}
                           </p>
                           {transfer.acceptedBy && (
-                            <p className="text-xs text-green-600">
+                            <p className="text-xs text-success-strong">
                               Accepted by {transfer.acceptedBy} on{" "}
                               {format(new Date(transfer.acceptedAt!), "dd MMM yyyy, HH:mm")}
                             </p>
@@ -475,8 +475,8 @@ export const ProjectDetailsDialog = ({
               {emailContext && (
                 <div className="space-y-3">
                   {emailContext.summary && (
-                    <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900">
-                      <p className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-1">Summary</p>
+                    <div className="p-3 rounded-lg bg-info-soft border border-info/30">
+                      <p className="text-xs font-medium text-info-strong mb-1">Summary</p>
                       <p className="text-sm">{emailContext.summary}</p>
                     </div>
                   )}
@@ -487,10 +487,10 @@ export const ProjectDetailsDialog = ({
                         const priority = (item.priority || "medium").toLowerCase();
                         const priorityColor =
                           priority === "high"
-                            ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300 border-red-200 dark:border-red-900"
+                            ? "bg-destructive-soft text-destructive-strong border-destructive/30"
                             : priority === "low"
                             ? "bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300 border-slate-200 dark:border-slate-800"
-                            : "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200 dark:border-amber-900";
+                            : "bg-warning-soft text-warning-strong border-warning/30";
                         const owner = item.owner || "Unknown";
                         const ownerColor =
                           owner === "GoKwik"
@@ -503,10 +503,10 @@ export const ProjectDetailsDialog = ({
                             <div className="flex items-start justify-between gap-2 mb-1">
                               <p className="text-sm font-medium leading-snug">{item.title}</p>
                               <div className="flex items-center gap-1 shrink-0">
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded border ${priorityColor}  font-medium`}>
+                                <span className={`text-2xs px-1.5 py-0.5 rounded border ${priorityColor}  font-medium`}>
                                   {priority}
                                 </span>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded border ${ownerColor} font-medium`}>
+                                <span className={`text-2xs px-1.5 py-0.5 rounded border ${ownerColor} font-medium`}>
                                   {owner === "GoKwik" ? responsibilityLabels.gokwik : owner}
                                 </span>
                               </div>
@@ -515,7 +515,7 @@ export const ProjectDetailsDialog = ({
                               <p className="text-xs text-muted-foreground">{item.description}</p>
                             )}
                             {(item.source || item.reference) && (
-                              <p className="text-[10px] text-muted-foreground mt-1.5">
+                              <p className="text-2xs text-muted-foreground mt-1.5">
                                 {item.source && <span className="tracking-normal">{item.source}</span>}
                                 {item.source && item.reference && " · "}
                                 {item.reference}

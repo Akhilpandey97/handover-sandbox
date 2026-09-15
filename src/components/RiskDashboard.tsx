@@ -33,10 +33,10 @@ const CATEGORIES = [
 ];
 
 const SEVERITIES = [
-  { value: "low", label: "Low", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
-  { value: "medium", label: "Medium", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" },
-  { value: "high", label: "High", color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" },
-  { value: "critical", label: "Critical", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
+  { value: "low", label: "Low", color: "bg-info-soft text-info-strong" },
+  { value: "medium", label: "Medium", color: "bg-warning-soft text-warning-strong" },
+  { value: "high", label: "High", color: "bg-warning-soft text-warning-strong" },
+  { value: "critical", label: "Critical", color: "bg-destructive-soft text-destructive-strong" },
 ];
 
 const STATUSES = [
@@ -254,9 +254,9 @@ export const RiskDashboard = () => {
                       <TableRow key={p.id} className="align-top">
                         <TableCell className="font-medium text-sm py-2">{p.merchantName}</TableCell>
                         <TableCell className="py-2">
-                          <Badge className="bg-red-600 hover:bg-red-600 text-white text-[11px] px-2 py-0">High Risk</Badge>
+                          <Badge className="bg-destructive hover:bg-destructive text-destructive-foreground text-2xs px-2 py-0">High Risk</Badge>
                           {overdue > 0 && (
-                            <span className="ml-1.5 text-[11px] font-medium text-red-600 dark:text-red-400">{overdue}d</span>
+                            <span className="ml-1.5 text-2xs font-medium text-destructive-strong">{overdue}d</span>
                           )}
                         </TableCell>
                         <TableCell className="py-2 text-xs text-muted-foreground max-w-[22rem]">
@@ -371,7 +371,7 @@ export const RiskDashboard = () => {
                 return (
                   <TableRow
                     key={risk.id}
-                    className={sla === "breached" ? "bg-red-50/50 dark:bg-red-950/10" : ""}
+                    className={sla === "breached" ? "bg-destructive/50" : ""}
                   >
                     <TableCell className="font-medium max-w-[140px] truncate">
                       <button
@@ -384,7 +384,7 @@ export const RiskDashboard = () => {
                     <TableCell className="max-w-[200px]">
                       <div className="truncate font-medium">{risk.title}</div>
                       {risk.trigger_type === "auto" && (
-                        <Badge variant="outline" className="text-[10px] mt-0.5">Auto</Badge>
+                        <Badge variant="outline" className="text-2xs mt-0.5">Auto</Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -416,8 +416,8 @@ export const RiskDashboard = () => {
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{ageStr(risk.created_at)}</TableCell>
                     <TableCell>
-                      {sla === "breached" && <Badge variant="destructive" className="text-[10px]">Breached</Badge>}
-                      {sla === "warning" && <Badge className="bg-orange-100 text-orange-800 text-[10px]">Due soon</Badge>}
+                      {sla === "breached" && <Badge variant="destructive" className="text-2xs">Breached</Badge>}
+                      {sla === "warning" && <Badge className="bg-warning-soft text-warning-strong text-2xs">Due soon</Badge>}
                       {sla === "ok" && risk.mitigation_due_at && (
                         <span className="text-xs text-muted-foreground">
                           {new Date(risk.mitigation_due_at).toLocaleDateString()}
@@ -428,7 +428,7 @@ export const RiskDashboard = () => {
                       {risk.mitigation_plan ? (
                         <span className="text-xs truncate block">{risk.mitigation_plan}</span>
                       ) : (
-                        <span className="text-xs text-red-500 italic">Missing</span>
+                        <span className="text-xs text-destructive-strong italic">Missing</span>
                       )}
                     </TableCell>
                     {!isReadOnly && (
@@ -439,7 +439,7 @@ export const RiskDashboard = () => {
                           </Button>
                           {!risk.escalated && (
                             <Button
-                              size="icon" variant="ghost" className="h-7 w-7 text-orange-600"
+                              size="icon" variant="ghost" className="h-7 w-7 text-warning-strong"
                               onClick={() => updateRisk.mutate({ id: risk.id, escalated: true })}
                               title="Escalate"
                             >

@@ -107,7 +107,7 @@ export const LoginScreen = () => {
             <Shield className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Handover</h1>
+            <h1 className="heading-section">Handover</h1>
             <p className="text-sm text-muted-foreground mt-1">
               {showSignup
                 ? "Tell us about yourself and we'll be in touch"
@@ -147,7 +147,7 @@ export const LoginScreen = () => {
 
             <div className="my-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-border" />
-              <span className="text-[11px] uppercase tracking-wide text-muted-foreground">or</span>
+              <span className="text-2xs uppercase tracking-wide text-muted-foreground">or</span>
               <div className="h-px flex-1 bg-border" />
             </div>
 

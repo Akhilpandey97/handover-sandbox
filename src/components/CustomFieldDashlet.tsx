@@ -82,7 +82,7 @@ export const CustomFieldDashlet = ({ title, field, projects, onDrillDown }: Prop
             >
               <span className="flex items-center justify-between gap-2 text-xs">
                 <span className="max-w-[60%] truncate font-medium text-foreground/80">{label}</span>
-                <span className="text-[11px] font-semibold tabular-nums">{list.length} · {pct}% · {arr.toFixed(2)} Cr {arrLabel}</span>
+                <span className="text-2xs font-semibold tabular-nums">{list.length} · {pct}% · {arr.toFixed(2)} Cr {arrLabel}</span>
               </span>
               <Progress value={pct} className="h-1.5" />
             </button>

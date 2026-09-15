@@ -580,7 +580,7 @@ export const ChecklistManagement = () => {
                           {editingItem?.id === item.id ? (
                             <>
                               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleUpdateItem}>
-                                <Save className="h-4 w-4 text-emerald-500" />
+                                <Save className="h-4 w-4 text-success-strong" />
                               </Button>
                               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingItem(null)}>
                                 <X className="h-4 w-4" />

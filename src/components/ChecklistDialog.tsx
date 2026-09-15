@@ -285,9 +285,9 @@ export const ChecklistDialog = ({
   };
 
   const priorityColors: Record<string, string> = {
-    low: "text-emerald-600 bg-emerald-500/10",
-    medium: "text-amber-600 bg-amber-500/10",
-    high: "text-red-600 bg-red-500/10",
+    low: "text-success-strong bg-success/10",
+    medium: "text-warning-strong bg-warning/10",
+    high: "text-destructive-strong bg-destructive/10",
   };
 
   return (
@@ -325,7 +325,7 @@ export const ChecklistDialog = ({
                   <Badge 
                     key={team}
                     variant={team === userTeam ? "default" : "outline"}
-                    className={`px-2 py-0.5 text-xs ${team === userTeam ? "" : "opacity-70"} ${isComplete ? "bg-emerald-500 text-white border-emerald-500" : ""}`}
+                    className={`px-2 py-0.5 text-xs ${team === userTeam ? "" : "opacity-70"} ${isComplete ? "bg-success text-success-foreground border-success" : ""}`}
                   >
                     {getTeamLabel(team)}: {count?.completed || 0}/{count?.total || 0}
                     {isComplete && <CheckCircle2 className="h-3 w-3 ml-1" />}
@@ -360,7 +360,7 @@ export const ChecklistDialog = ({
                         {getTeamLabel(team).charAt(0)}
                       </div>
                       <div>
-                        <h3 className="font-semibold">{getTeamLabel(team)}</h3>
+                        <h3 className="heading-card">{getTeamLabel(team)}</h3>
                         <p className="text-xs text-muted-foreground">{teamCount?.completed}/{teamCount?.total} items</p>
                       </div>
                     </div>
@@ -387,7 +387,7 @@ export const ChecklistDialog = ({
                           id={`checklist-item-${item.id}`}
                            className={`p-4 rounded-xl border transition-all scroll-mt-24 ${
                             item.completed 
-                              ? "bg-emerald-500/5 border-emerald-200 dark:border-emerald-800" 
+                              ? "bg-success/5 border-success/30" 
                               : "bg-card border-border hover:border-primary/30 hover:shadow-md"
                           }`}
                         >
@@ -431,7 +431,7 @@ export const ChecklistDialog = ({
                                   {item.title}
                                 </span>
                                 {item.completed && (
-                                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                                  <CheckCircle2 className="h-4 w-4 text-success-strong shrink-0" />
                                 )}
                                 {/* Form button */}
                                 {(() => {
@@ -552,7 +552,7 @@ export const ChecklistDialog = ({
                                   <span>{responsibilityLabels.gokwik}: {formatDuration(timeStats.gokwik)}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <Users className="h-3 w-3 text-amber-500" />
+                                  <Users className="h-3 w-3 text-warning-strong" />
                                   <span>{responsibilityLabels.merchant}: {formatDuration(timeStats.merchant)}</span>
                                 </div>
                               </div>
@@ -594,7 +594,7 @@ export const ChecklistDialog = ({
                                 <ToggleGroupItem 
                                   value="merchant" 
                                   aria-label={responsibilityLabels.merchant}
-                                  className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-amber-500 data-[state=on]:text-white"
+                                  className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
                                 >
                                   <Users className="h-3 w-3 mr-1" />
                                   {responsibilityLabels.merchant}
@@ -656,17 +656,17 @@ export const ChecklistDialog = ({
                                           <span className={`flex-1 text-sm ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
                                             {task.title}
                                           </span>
-                                          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${priorityColors[task.priority] || ""}`}>
+                                          <Badge variant="outline" className={`text-2xs px-1.5 py-0 ${priorityColors[task.priority] || ""}`}>
                                             <Flag className="h-2.5 w-2.5 mr-0.5" />
                                             {task.priority}
                                           </Badge>
                                           {task.assigned_to && (
-                                            <span className="text-[10px] text-muted-foreground">
+                                            <span className="text-2xs text-muted-foreground">
                                               {profiles.find(p => p.id === task.assigned_to)?.name || task.assigned_to}
                                             </span>
                                           )}
                                           {task.due_date && (
-                                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                            <span className="text-2xs text-muted-foreground flex items-center gap-0.5">
                                               <Calendar className="h-2.5 w-2.5" />
                                               {new Date(task.due_date).toLocaleDateString()}
                                             </span>

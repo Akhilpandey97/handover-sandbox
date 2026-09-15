@@ -52,7 +52,7 @@ export const SupportAccessBanner = () => {
     : null;
 
   return (
-    <div className="flex shrink-0 items-center justify-between gap-3 bg-amber-500 px-4 py-2 text-amber-950">
+    <div className="flex shrink-0 items-center justify-between gap-3 bg-warning px-4 py-2 text-warning-strong">
       <div className="flex min-w-0 items-center gap-2">
         <ShieldAlert className="h-4 w-4 shrink-0" />
         <p className="min-w-0 truncate text-xs font-medium">
@@ -67,7 +67,7 @@ export const SupportAccessBanner = () => {
       <Button
         size="sm"
         variant="outline"
-        className="h-7 shrink-0 gap-1.5 border-amber-900/30 bg-amber-100 text-xs text-amber-950 hover:bg-amber-50"
+        className="h-7 shrink-0 gap-1.5 border-warning/30 bg-warning-soft text-xs text-warning-strong hover:bg-warning-soft"
         onClick={() => endAccess.mutate()}
         disabled={endAccess.isPending}
       >

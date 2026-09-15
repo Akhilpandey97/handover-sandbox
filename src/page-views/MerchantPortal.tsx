@@ -14,31 +14,19 @@ import { GuidedTour, type TourStep } from "@/components/GuidedTour";
 const API_URL = `/api/public/merchant-portal-data`;
 const API_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Clean, professional palette
+// Portal accents. Primary and accent stay hex: they are Handover navy
+// (--color-navy) and some styles append a two-digit alpha to them.
+// Status colours come from the theme so they match the app and switch with dark mode.
 const BRAND = {
   primary: "#30658F",
   primaryLight: "#3f7fb0",
   primarySoft: "#e8f1f7",
   accent: "#3f7fb0",
-  accentLight: "#cfe1ee",
   logoKwik: "#30658F",
-  logoAssist: "#30658F",
-  green: "#16a34a",
-  greenLight: "#dcfce7",
-  red: "#dc2626",
-  redLight: "#fee2e2",
-  amber: "#d97706",
-  amberLight: "#fef3c7",
-  white: "#FFFFFF",
-  bg: "#F8FAFC",
-  // Dark theme - improved palette
-  bgDark: "#0c1220",
-  cardDark: "#141e30",
-  cardDarkHover: "#1a2740",
-  borderDark: "#253553",
-  textDark: "#e2e8f0",
-  textDarkMuted: "#94a3b8",
-  textDarkFaint: "#64748b",
+  green: "hsl(var(--success))",
+  greenLight: "hsl(var(--success-soft))",
+  amber: "hsl(var(--warning))",
+  amberLight: "hsl(var(--warning-soft))",
 };
 
 interface PortalUpload {
@@ -167,7 +155,7 @@ function CopyButton({ text }: { text: string }) {
       className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border transition-all
         border-border text-muted-foreground hover:text-foreground hover:bg-muted"
     >
-      {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+      {copied ? <Check className="w-3 h-3 text-success-strong" /> : <Copy className="w-3 h-3" />}
       {copied ? "Copied" : "Copy"}
     </button>
   );
@@ -179,7 +167,7 @@ function KwikAssistLogo({ size = "md", onClick }: { size?: "sm" | "md" | "lg"; o
   return (
     <button onClick={onClick} className={cn("font-bold tracking-tight", sizes[size])}>
       <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
-      <span className="text-[10px] text-muted-foreground ml-1 font-medium">Portal</span>
+      <span className="text-2xs text-muted-foreground ml-1 font-medium">Portal</span>
     </button>
   );
 }
@@ -261,7 +249,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
         </div>
         <div className="flex-1">
           <p className="text-sm font-bold text-white">Handover Assist</p>
-          <p className="text-[10px] text-white/70">Integration Support</p>
+          <p className="text-2xs text-white/70">Integration Support</p>
         </div>
         <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
           <ChevronDown className="w-5 h-5" />
@@ -658,10 +646,10 @@ export default function MerchantPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
-          <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center bg-red-50 dark:bg-red-900/30">
-            <ShieldAlert className="w-8 h-8 text-red-500" />
+          <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center bg-destructive-soft">
+            <ShieldAlert className="w-8 h-8 text-destructive-strong" />
           </div>
-          <h1 className="text-xl font-bold text-foreground mb-2">Access Denied</h1>
+          <h1 className="heading-section text-foreground mb-2">Access Denied</h1>
           <p className="text-muted-foreground text-sm">{resolveError || "No access token provided. Please use the link shared by your integration team."}</p>
         </div>
       </div>
@@ -691,7 +679,7 @@ export default function MerchantPortal() {
               <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md" style={{ background: BRAND.primary }}>
                 <Zap className="w-7 h-7 text-white" fill="white" />
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="heading-page">
                 <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
                 <span className="text-xs font-medium text-muted-foreground ml-1">Portal</span>
               </h1>
@@ -713,13 +701,13 @@ export default function MerchantPortal() {
                   placeholder="you@company.com"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-muted/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary transition-all text-sm"
                 />
-                <p className="text-[11px] text-muted-foreground mt-1.5">We use this to track your integration progress.</p>
+                <p className="text-2xs text-muted-foreground mt-1.5">We use this to track your integration progress.</p>
               </div>
 
               {loginError && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-500/15 border border-red-200 dark:border-red-500/30">
-                  <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm text-red-600 dark:text-red-300">{loginError}</p>
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive-soft border border-destructive/30">
+                  <AlertTriangle className="w-4 h-4 text-destructive-strong mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-destructive-strong">{loginError}</p>
                 </div>
               )}
 
@@ -743,13 +731,13 @@ export default function MerchantPortal() {
             </div>
 
             <div className="mt-6 pt-5 border-t border-border">
-              <p className="text-center text-[11px] text-muted-foreground">
+              <p className="text-center text-2xs text-muted-foreground">
                 Use the work email shared with your Handover integration team.
                 <br />Contact your project manager if you need assistance.
               </p>
             </div>
           </div>
-          <p className="text-center text-[10px] text-muted-foreground mt-4">Powered by Handover</p>
+          <p className="text-center text-2xs text-muted-foreground mt-4">Powered by Handover</p>
         </div>
       </div>
     );
@@ -773,8 +761,8 @@ export default function MerchantPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <div className="text-center max-w-md">
-          <ShieldAlert className="w-12 h-12 mx-auto mb-4 text-red-500" />
-          <h1 className="text-xl font-bold text-foreground mb-2">Access Denied</h1>
+          <ShieldAlert className="w-12 h-12 mx-auto mb-4 text-destructive-strong" />
+          <h1 className="heading-section text-foreground mb-2">Access Denied</h1>
           <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>
@@ -849,7 +837,7 @@ export default function MerchantPortal() {
                   >
                     <Bell className="h-4 w-4" />
                     {pendingItems.length > 0 && (
-                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-2xs font-bold text-destructive-foreground">
                         {pendingItems.length > 9 ? "9+" : pendingItems.length}
                       </span>
                     )}
@@ -922,7 +910,7 @@ export default function MerchantPortal() {
         {!sidebarCollapsed && notifOpen && (
           <div className="mx-3 mb-3 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-2">
             <div className="mb-1 flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-sidebar-foreground/70">
+              <span className="text-2xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">
                 Pending actions
               </span>
               <button
@@ -947,7 +935,7 @@ export default function MerchantPortal() {
                   >
                     <span className="block truncate text-xs font-medium text-sidebar-foreground">{item.title}</span>
                     {item.due_date && (
-                      <span className={cn("block text-[10px]", overdue ? "text-destructive" : "text-sidebar-foreground/60")}>
+                      <span className={cn("block text-2xs", overdue ? "text-destructive" : "text-sidebar-foreground/60")}>
                         Due {new Date(item.due_date).toLocaleDateString()}{overdue ? " · overdue" : ""}
                       </span>
                     )}
@@ -1011,7 +999,7 @@ export default function MerchantPortal() {
             {!sidebarCollapsed && (
               <span className="min-w-0 flex-1 text-left">
                 <span className="block truncate text-xs font-medium">{project.merchant_name}</span>
-                <span className="block text-[10px] text-sidebar-foreground/60">Customer portal</span>
+                <span className="block text-2xs text-sidebar-foreground/60">Customer portal</span>
               </span>
             )}
           </button>
@@ -1084,7 +1072,7 @@ function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour, coll
       </span>
       {!collapsed && <span className="flex-1 text-sm font-medium">{label}</span>}
       {!collapsed && badge !== undefined && (
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-[10px] font-bold">{badge}</span>
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-2xs font-bold">{badge}</span>
       )}
     </button>
   );
@@ -1166,9 +1154,9 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
   if (error) {
     return (
       <div className="p-10 max-w-xl mx-auto">
-        <div className="border border-red-200 bg-red-50 dark:bg-red-900/20 rounded-xl p-6 text-center">
-          <AlertTriangle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-          <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p>
+        <div className="border border-destructive/30 bg-destructive-soft rounded-xl p-6 text-center">
+          <AlertTriangle className="w-8 h-8 text-destructive-strong mx-auto mb-2" />
+          <p className="text-sm font-medium text-destructive-strong">{error}</p>
           <button onClick={() => fetchSession(true)} className="mt-3 text-xs font-bold text-white px-4 py-1.5 rounded" style={{ background: BRAND.primary }}>Retry</button>
         </div>
       </div>
@@ -1184,7 +1172,7 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
           <ClipboardList className="w-5 h-5 flex-shrink-0" style={{ color: BRAND.primary }} />
           <div className="min-w-0">
             <h1 className="text-base font-bold text-foreground truncate">BRD Form</h1>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-2xs text-muted-foreground">
               {info?.answered ?? 0}/{info?.total ?? 0} answered · {info?.percent ?? 0}% complete
               {info?.status === "completed" && " · Submitted"}
             </p>
@@ -1237,7 +1225,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <div>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">{project.merchant_name}</h1>
+            <h1 className="heading-page text-foreground">{project.merchant_name}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {project.brand_url || "—"} · {project.platform} · {project.integration_type || "Standard"}
             </p>
@@ -1258,7 +1246,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                 <p className="text-sm font-bold" style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }}>
                   BRD Form · {brdProgress.percent}% complete
                 </p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-2xs text-muted-foreground">
                   {brdProgress.answered}/{brdProgress.total} answered {brdProgress.status === "completed" ? "· Submitted" : "· Click to continue"}
                 </p>
               </div>
@@ -1278,7 +1266,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <Card className="p-6">
         <div className="flex items-start justify-between mb-1">
           <div>
-            <h2 className="text-base font-bold text-foreground">Integration Roadmap</h2>
+            <h2 className="heading-section text-foreground">Integration Roadmap</h2>
             <p className="text-sm text-muted-foreground">Stage {currentStage} of {totalStages} — {stages[currentStage - 1]?.label}</p>
           </div>
           <div className="text-right">
@@ -1306,7 +1294,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                     {isDone ? <CheckCircle2 className="w-5 h-5" /> : stage.num}
                   </div>
                   <span className={cn(
-                    "mt-2 max-w-[150px] whitespace-normal text-center text-[10px] leading-tight",
+                    "mt-2 max-w-[150px] whitespace-normal text-center text-2xs leading-tight",
                     isFuture && "text-muted-foreground"
                   )}
                     style={isDone ? { color: BRAND.green } : isCurrent ? { color: BRAND.accent, fontWeight: 700 } : {}}>
@@ -1326,7 +1314,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       {/* Full checklist with due dates */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-foreground">Checklist</h2>
+          <h2 className="heading-section text-foreground">Checklist</h2>
           <span className="text-xs font-semibold text-muted-foreground">
             {checklist_progress.completed} of {checklist_progress.total} complete
           </span>
@@ -1346,7 +1334,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
                   </span>
                 </div>
                 <span className={cn("text-xs whitespace-nowrap font-semibold",
-                  overdue ? "text-red-600 dark:text-red-400" : "text-muted-foreground")}>
+                  overdue ? "text-destructive-strong" : "text-muted-foreground")}>
                   {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
                 </span>
               </div>
@@ -1362,7 +1350,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         <Card className="p-5">
-          <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Project Overview</h3>
+          <h3 className="heading-card text-foreground mb-4">Project Overview</h3>
           <div className="divide-y divide-border">
             <OverviewRow label={portalLabel("field_platform", "Platform")} value={project.platform || "—"} />
             {data.custom_fields.filter(f => f.key === "arr" || f.label.toLowerCase() === "arr").map(f => (
@@ -1385,7 +1373,7 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         {/* Notes & Updates with timestamps */}
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-bold text-foreground tracking-normal">Notes & Updates</h3>
+            <h3 className="heading-card text-foreground">Notes & Updates</h3>
             <button onClick={onSaveNote} disabled={!noteText.trim()}
               className="text-xs font-bold text-white px-4 py-1.5 rounded transition-colors disabled:opacity-40"
               style={{ background: BRAND.primary }}>Save</button>
@@ -1438,8 +1426,8 @@ function NoteRow({ note, onEdit, onDelete }: { note: MerchantNote; onEdit: (text
             autoFocus
           />
           <div className="flex items-center gap-2">
-            <button onClick={save} className="text-[11px] font-bold text-white px-3 py-1 rounded" style={{ background: BRAND.primary }}>Save</button>
-            <button onClick={() => { setDraft(note.text); setEditing(false); }} className="text-[11px] font-medium text-muted-foreground hover:text-foreground px-2 py-1">Cancel</button>
+            <button onClick={save} className="text-2xs font-bold text-white px-3 py-1 rounded" style={{ background: BRAND.primary }}>Save</button>
+            <button onClick={() => { setDraft(note.text); setEditing(false); }} className="text-2xs font-medium text-muted-foreground hover:text-foreground px-2 py-1">Cancel</button>
           </div>
         </div>
       ) : (
@@ -1450,12 +1438,12 @@ function NoteRow({ note, onEdit, onDelete }: { note: MerchantNote; onEdit: (text
               <button onClick={() => setEditing(true)} className="p-1 rounded hover:bg-muted text-muted-foreground" title="Edit">
                 <Pencil className="w-3 h-3" />
               </button>
-              <button onClick={() => { if (confirm("Delete this note?")) onDelete(); }} className="p-1 rounded hover:bg-red-100 dark:hover:bg-red-500/20 text-muted-foreground hover:text-red-600 dark:hover:text-red-300" title="Delete">
+              <button onClick={() => { if (confirm("Delete this note?")) onDelete(); }} className="p-1 rounded hover:bg-destructive-soft text-muted-foreground hover:text-destructive-strong" title="Delete">
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-1">
+          <p className="text-2xs text-muted-foreground mt-1">
             {d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}
           </p>
         </>
@@ -1480,7 +1468,7 @@ function CredentialsPage({ project, credentials }: { project: PortalData["projec
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">My Credentials</h1>
+        <h1 className="heading-page text-foreground">My Credentials</h1>
         <p className="text-sm text-muted-foreground">Keep your App Secret secure. Do not share it publicly.</p>
       </div>
 
@@ -1496,7 +1484,7 @@ function CredentialsPage({ project, credentials }: { project: PortalData["projec
       </div>
 
       <Card className="p-6 space-y-5">
-        <h3 className="text-xs font-bold text-foreground tracking-normal">
+        <h3 className="heading-card text-foreground">
           {env === "sandbox" ? "Sandbox" : "Production"} Credentials
         </h3>
         <CredentialField label="MERCHANT ID (MID)" value={creds?.mid || project.mid || "NA"} />
@@ -1525,7 +1513,7 @@ function CredentialField({ label, value, masked, sensitive }: { label: string; v
   const displayVal = showToggle && !visible ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" : value;
   return (
     <div>
-      <p className="text-[10px] font-bold text-muted-foreground tracking-normal mb-1.5">{label}</p>
+      <p className="text-2xs font-bold text-muted-foreground tracking-normal mb-1.5">{label}</p>
       <div className="bg-muted/40 border border-border rounded-lg px-4 py-3 flex items-center justify-between">
         <span className="text-sm text-foreground font-mono">{displayVal}</span>
         <div className="flex items-center gap-2">
@@ -1593,7 +1581,7 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Documents & Resources</h1>
+        <h1 className="heading-page text-foreground">Documents & Resources</h1>
         <p className="text-sm text-muted-foreground">Access your integration documents and resources.</p>
       </div>
       <div className="space-y-3">
@@ -1608,9 +1596,9 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
                 <p className="text-xs text-muted-foreground">{doc.desc}</p>
               </div>
               <span className={cn(
-                "text-[10px] font-bold px-2.5 py-1 rounded",
-                doc.badgeColor === "blue" ? "bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300" :
-                "bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-300"
+                "text-2xs font-bold px-2.5 py-1 rounded",
+                doc.badgeColor === "blue" ? "bg-info-soft text-info-strong" :
+                "bg-success-soft text-success-strong"
               )}>{doc.badge}</span>
               <ExternalLink className="w-4 h-4 text-muted-foreground" />
             </Card>
@@ -1774,7 +1762,7 @@ console.log(payload);
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="heading-page text-foreground flex items-center gap-2">
             <KeyRound className="w-6 h-6" style={{ color: BRAND.primary }} />
             KwikPass Integration
           </h1>
@@ -1794,7 +1782,7 @@ console.log(payload);
 
       {/* Overview Card with features */}
       <div className="rounded-xl p-6" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
-        <h2 className="text-lg font-bold text-white mb-2">KwikPass Integration Guide</h2>
+        <h2 className="heading-section text-white mb-2">KwikPass Integration Guide</h2>
         <p className="text-sm text-white/80 mb-4">
           KwikPass enables user authentication, SSO, page-view event tracking, and retargeting via KwikChat.
         </p>
@@ -1808,7 +1796,7 @@ console.log(payload);
             <div key={i} className="bg-white/10 rounded-lg p-3 text-center">
               <span className="text-xl">{f.icon}</span>
               <p className="text-xs text-white font-medium mt-1">{f.label}</p>
-              <p className="text-[10px] text-white/60 mt-0.5">{f.desc}</p>
+              <p className="text-2xs text-white/60 mt-0.5">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -1816,14 +1804,14 @@ console.log(payload);
 
       {/* JWE Keys */}
       <Card className="p-5 space-y-4">
-        <h3 className="text-xs font-bold text-foreground tracking-normal">Your JWE Decryption Keys</h3>
+        <h3 className="heading-card text-foreground">Your JWE Decryption Keys</h3>
         <CredentialField label="SANDBOX JWE KEY" value={sandboxJweKey} masked sensitive />
         <CredentialField label="PRODUCTION JWE KEY" value={prodJweKey || "••••••••••••••••"} masked sensitive={!!prodJweKey} />
       </Card>
 
       {/* Step-by-step Guide */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Integration Steps</h3>
+        <h3 className="heading-card text-foreground mb-4">Integration Steps</h3>
         <div className="flex gap-2 flex-wrap mb-5">
           {steps.map((s, i) => (
             <button key={i} onClick={() => setActiveStep(i)}
@@ -1844,10 +1832,10 @@ console.log(payload);
           <div className="flex items-center gap-3">
             <h4 className="text-base font-bold text-foreground">{steps[activeStep].title}</h4>
             {(steps[activeStep] as any).badge && (
-              <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded border",
+              <span className={cn("text-2xs font-bold px-2 py-0.5 rounded border",
                 (steps[activeStep] as any).badgeColor === "red"
-                  ? "bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-300 border-red-200 dark:border-red-500/30"
-                  : "bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 border-blue-200 dark:border-blue-500/30"
+                  ? "bg-destructive-soft text-destructive-strong border-destructive/30"
+                  : "bg-info-soft text-info-strong border-info/30"
               )}>
                 {(steps[activeStep] as any).badge}
               </span>
@@ -1858,7 +1846,7 @@ console.log(payload);
             <p className="text-xs text-muted-foreground italic">{(steps[activeStep] as any).note}</p>
           )}
           <div className="relative">
-            <pre className="bg-muted text-green-400 dark:text-green-300 rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-border">
+            <pre className="bg-muted text-success rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-border">
               {steps[activeStep].code}
             </pre>
             <div className="absolute top-2 right-2">
@@ -1869,18 +1857,18 @@ console.log(payload);
           {/* Environment-specific changes table */}
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-[10px] font-bold text-muted-foreground tracking-normal mb-2">Sandbox vs Production Changes</p>
+              <p className="text-2xs font-bold text-muted-foreground tracking-normal mb-2">Sandbox vs Production Changes</p>
               <div className="border border-border rounded-lg overflow-hidden text-xs">
                 <div className="grid grid-cols-3 bg-muted/40 font-bold">
                   <div className="px-3 py-2 text-muted-foreground">Field</div>
-                  <div className="px-3 py-2 text-green-600 dark:text-green-400">Sandbox</div>
-                  <div className="px-3 py-2 text-amber-600 dark:text-amber-400">Production</div>
+                  <div className="px-3 py-2 text-success-strong">Sandbox</div>
+                  <div className="px-3 py-2 text-warning-strong">Production</div>
                 </div>
                 {(steps[activeStep] as any).envChanges.map((c: any, j: number) => (
                   <div key={j} className="grid grid-cols-3 border-t border-border">
                     <div className="px-3 py-2 font-medium text-foreground">{c.field}</div>
-                    <div className="px-3 py-2 text-green-600 dark:text-green-400 font-mono break-all">{c.sandbox}</div>
-                    <div className="px-3 py-2 text-amber-600 dark:text-amber-400 font-mono break-all">{c.production}</div>
+                    <div className="px-3 py-2 text-success-strong font-mono break-all">{c.sandbox}</div>
+                    <div className="px-3 py-2 text-warning-strong font-mono break-all">{c.production}</div>
                   </div>
                 ))}
               </div>
@@ -1889,9 +1877,9 @@ console.log(payload);
 
           {/* Critical warning */}
           {(steps[activeStep] as any).critical && (
-            <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg px-4 py-2.5 flex items-center gap-2 mt-2">
-              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+            <div className="bg-warning-soft border border-warning/30 rounded-lg px-4 py-2.5 flex items-center gap-2 mt-2">
+              <AlertTriangle className="w-4 h-4 text-warning-strong flex-shrink-0" />
+              <p className="text-xs font-semibold text-warning-strong">
                 ⚠ Critical: {(steps[activeStep] as any).critical}
               </p>
             </div>
@@ -1903,7 +1891,7 @@ console.log(payload);
               <p className="text-xs font-bold text-foreground mb-2">SSO Button — What can & cannot be changed</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-[10px] font-bold text-green-600 dark:text-green-400 mb-1">✅ Can Customise</p>
+                  <p className="text-2xs font-bold text-success-strong mb-1">✅ Can Customise</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
                     <li>✓ Button colour</li>
                     <li>✓ Button size & shape</li>
@@ -1912,7 +1900,7 @@ console.log(payload);
                   </ul>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-red-600 dark:text-red-400 mb-1">✕ Cannot Change</p>
+                  <p className="text-2xs font-bold text-destructive-strong mb-1">✕ Cannot Change</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
                     <li>✕ Text "Login with 98xxxxxxx34" (fetched dynamically)</li>
                     <li>✕ "Powered by KwikPass" logo (mandatory)</li>
@@ -1947,10 +1935,10 @@ console.log(payload);
 
       {/* Do's & Don'ts */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Do's & Don'ts</h3>
+        <h3 className="heading-card text-foreground mb-4">Do's & Don'ts</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <p className="text-xs font-bold text-green-600 dark:text-green-400">✅ Do's</p>
+            <p className="text-xs font-bold text-success-strong">✅ Do's</p>
             {[
               "Load merchantInfo BEFORE the SDK script on every page",
               "Call handleKPLogout() on every logout event",
@@ -1959,14 +1947,14 @@ console.log(payload);
               "Handle both SSO and OTP flows — SSO may not be available for all users",
               "Check SDK loaded successfully before calling kpSendOTP",
             ].map((d, i) => (
-              <div key={i} className="flex items-start gap-2 p-2 rounded bg-green-50 dark:bg-green-500/10">
-                <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <div key={i} className="flex items-start gap-2 p-2 rounded bg-success-soft">
+                <Check className="w-3.5 h-3.5 text-success-strong flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-foreground">{d}</p>
               </div>
             ))}
           </div>
           <div className="space-y-2">
-            <p className="text-xs font-bold text-red-600 dark:text-red-400">✕ Don'ts</p>
+            <p className="text-xs font-bold text-destructive-strong">✕ Don'ts</p>
             {[
               "Don't expose JWE secret key in client-side / frontend code",
               "Don't skip handleKPLogout() — sendOTP will break on next login",
@@ -1975,8 +1963,8 @@ console.log(payload);
               "Don't hide or modify SSO button visibility (opacity:0, display:none)",
               "Don't hardcode phone numbers — always use user input",
             ].map((d, i) => (
-              <div key={i} className="flex items-start gap-2 p-2 rounded bg-red-50 dark:bg-red-500/10">
-                <X className="w-3.5 h-3.5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <div key={i} className="flex items-start gap-2 p-2 rounded bg-destructive-soft">
+                <X className="w-3.5 h-3.5 text-destructive-strong flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-foreground">{d}</p>
               </div>
             ))}
@@ -1986,18 +1974,18 @@ console.log(payload);
 
       {/* Production vs Sandbox — all changes */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Production vs Sandbox — Full Change Reference</h3>
-        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg px-4 py-2.5 flex items-center gap-2 mb-4">
-          <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-          <p className="text-xs text-amber-700 dark:text-amber-300">
+        <h3 className="heading-card text-foreground mb-4">Production vs Sandbox — Full Change Reference</h3>
+        <div className="bg-warning-soft border border-warning/30 rounded-lg px-4 py-2.5 flex items-center gap-2 mb-4">
+          <AlertTriangle className="w-4 h-4 text-warning-strong flex-shrink-0" />
+          <p className="text-xs text-warning-strong">
             When moving from Sandbox → Production, update <strong>all</strong> values below. Mixing environments will cause authentication failures.
           </p>
         </div>
         <div className="border border-border rounded-lg overflow-hidden text-xs">
           <div className="grid grid-cols-3 bg-muted/40 font-bold">
             <div className="px-3 py-2.5 text-muted-foreground">Configuration</div>
-            <div className="px-3 py-2.5 text-green-600 dark:text-green-400">Sandbox</div>
-            <div className="px-3 py-2.5 text-amber-600 dark:text-amber-400">Production</div>
+            <div className="px-3 py-2.5 text-success-strong">Sandbox</div>
+            <div className="px-3 py-2.5 text-warning-strong">Production</div>
           </div>
           {[
             { field: "merchantInfo.environment", sandbox: '"sandbox"', production: '"production"' },
@@ -2008,8 +1996,8 @@ console.log(payload);
           ].map((row, i) => (
             <div key={i} className="grid grid-cols-3 border-t border-border">
               <div className="px-3 py-2 font-medium text-foreground">{row.field}</div>
-              <div className="px-3 py-2 text-green-600 dark:text-green-400 font-mono break-all">{row.sandbox}</div>
-              <div className="px-3 py-2 text-amber-600 dark:text-amber-400 font-mono break-all">{row.production}</div>
+              <div className="px-3 py-2 text-success-strong font-mono break-all">{row.sandbox}</div>
+              <div className="px-3 py-2 text-warning-strong font-mono break-all">{row.production}</div>
             </div>
           ))}
         </div>
@@ -2017,7 +2005,7 @@ console.log(payload);
 
       {/* Testing Guide */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Testing Guide</h3>
+        <h3 className="heading-card text-foreground mb-4">Testing Guide</h3>
         <div className="space-y-3">
           {[
             { title: "Test OTP Flow", desc: "Go to profile/account section → Enter mobile number → Receive Handover OTP → Verify OTP → You're logged in!", icon: "📱" },
@@ -2044,14 +2032,14 @@ function PaymentSimulatorPage({ link }: { link: string }) {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Payment Simulator</h1>
+        <h1 className="heading-page text-foreground">Payment Simulator</h1>
         <p className="text-sm text-muted-foreground">Run end-to-end test transactions on a sandbox payment flow.</p>
       </div>
 
       <div className="rounded-xl p-6" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
         <div className="flex items-center gap-3 mb-1">
           <Zap className="w-5 h-5 text-white" />
-          <h2 className="text-lg font-bold text-white">Sandbox Payment Simulator</h2>
+          <h2 className="heading-section text-white">Sandbox Payment Simulator</h2>
         </div>
         <p className="text-sm text-white/70">Validate your checkout integration with simulated success, failure and pending scenarios — no real charges are made.</p>
       </div>
@@ -2062,7 +2050,7 @@ function PaymentSimulatorPage({ link }: { link: string }) {
             <Zap className="w-5 h-5" style={{ color: BRAND.primary }} />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-foreground">About the Simulator</h3>
+            <h3 className="heading-card text-foreground">About the Simulator</h3>
             <p className="text-sm text-muted-foreground mt-1">
               The Payment Simulator lets you trigger end-to-end sandbox payment flows tied to your merchant configuration. Use it to verify webhooks, order status updates and the full checkout experience before going live.
             </p>
@@ -2094,7 +2082,7 @@ function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">FAQ & Help</h1>
+        <h1 className="heading-page text-foreground">FAQ & Help</h1>
         <p className="text-sm text-muted-foreground">Answers shared by your project team.</p>
       </div>
       <div className="space-y-2">
@@ -2269,7 +2257,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="heading-page text-foreground flex items-center gap-2">
             <Code className="w-6 h-6" style={{ color: BRAND.primary }} />
             MCP Server Setup
           </h1>
@@ -2289,7 +2277,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* API Key */}
       <Card className="p-5 space-y-3">
-        <h3 className="text-xs font-bold text-foreground tracking-normal">Your API Key</h3>
+        <h3 className="heading-card text-foreground">Your API Key</h3>
         <CredentialField label="X-API-KEY" value={apiKey} masked sensitive={apiKey !== "<USER_API_KEY>"} />
         <p className="text-xs text-muted-foreground">
           Same value as the Validator's <span className="font-semibold">Config ID</span>. If empty, request it from your Handover onboarding manager.
@@ -2298,7 +2286,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* Steps */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Setup Steps</h3>
+        <h3 className="heading-card text-foreground mb-4">Setup Steps</h3>
         <div className="flex gap-2 flex-wrap mb-5">
           {steps.map((s, i) => (
             <button key={i} onClick={() => setActiveStep(i)}
@@ -2322,7 +2310,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
             <p className="text-xs text-muted-foreground italic">{(steps[activeStep] as any).note}</p>
           )}
           <div className="relative">
-            <pre className="bg-muted text-green-400 dark:text-green-300 rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-border">
+            <pre className="bg-muted text-success rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-border">
               {steps[activeStep].code}
             </pre>
             <div className="absolute top-2 right-2">
@@ -2332,18 +2320,18 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-[10px] font-bold text-muted-foreground tracking-normal mb-2">Environment-Specific Configuration</p>
+              <p className="text-2xs font-bold text-muted-foreground tracking-normal mb-2">Environment-Specific Configuration</p>
               <div className="border border-border rounded-lg overflow-hidden text-xs">
                 <div className="grid grid-cols-3 bg-muted/40 font-bold">
                   <div className="px-3 py-2 text-muted-foreground">Field</div>
-                  <div className="px-3 py-2 text-green-600 dark:text-green-400">Sandbox / Code</div>
-                  <div className="px-3 py-2 text-amber-600 dark:text-amber-400">Production / Desktop</div>
+                  <div className="px-3 py-2 text-success-strong">Sandbox / Code</div>
+                  <div className="px-3 py-2 text-warning-strong">Production / Desktop</div>
                 </div>
                 {(steps[activeStep] as any).envChanges.map((c: any, j: number) => (
                   <div key={j} className="grid grid-cols-3 border-t border-border">
                     <div className="px-3 py-2 font-medium text-foreground">{c.field}</div>
-                    <div className="px-3 py-2 text-green-600 dark:text-green-400 font-mono break-all">{c.sandbox}</div>
-                    <div className="px-3 py-2 text-amber-600 dark:text-amber-400 font-mono break-all">{c.production}</div>
+                    <div className="px-3 py-2 text-success-strong font-mono break-all">{c.sandbox}</div>
+                    <div className="px-3 py-2 text-warning-strong font-mono break-all">{c.production}</div>
                   </div>
                 ))}
               </div>
@@ -2351,9 +2339,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
           )}
 
           {(steps[activeStep] as any).critical && (
-            <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg px-4 py-2.5 flex items-center gap-2 mt-2">
-              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+            <div className="bg-warning-soft border border-warning/30 rounded-lg px-4 py-2.5 flex items-center gap-2 mt-2">
+              <AlertTriangle className="w-4 h-4 text-warning-strong flex-shrink-0" />
+              <p className="text-xs font-semibold text-warning-strong">
                 ⚠ Critical: {(steps[activeStep] as any).critical}
               </p>
             </div>
@@ -2376,10 +2364,10 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* Do's & Don'ts */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Do's & Don'ts</h3>
+        <h3 className="heading-card text-foreground mb-4">Do's & Don'ts</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <p className="text-xs font-bold text-green-600 dark:text-green-400">✅ Do's</p>
+            <p className="text-xs font-bold text-success-strong">✅ Do's</p>
             {[
               "Use full path to node binary (>= v18) — never bare npx",
               "Set env.PATH so the correct Node comes first",
@@ -2388,14 +2376,14 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
               "Ensure URL ends with /mcp",
               "Use header format X-API-Key:<value> (no space after colon)",
             ].map((d, i) => (
-              <div key={i} className="flex items-start gap-2 p-2 rounded bg-green-50 dark:bg-green-500/10">
-                <Check className="w-3.5 h-3.5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+              <div key={i} className="flex items-start gap-2 p-2 rounded bg-success-soft">
+                <Check className="w-3.5 h-3.5 text-success-strong mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-foreground">{d}</p>
               </div>
             ))}
           </div>
           <div className="space-y-2">
-            <p className="text-xs font-bold text-red-600 dark:text-red-400">❌ Don'ts</p>
+            <p className="text-xs font-bold text-destructive-strong">❌ Don'ts</p>
             {[
               "Don't use bare npx — it can resolve to the wrong Node",
               "Don't overwrite existing mcpServers entries — merge only",
@@ -2404,8 +2392,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
               "Don't omit the /mcp suffix from the URL (returns 404)",
               "Don't skip restarting Claude after writing the config",
             ].map((d, i) => (
-              <div key={i} className="flex items-start gap-2 p-2 rounded bg-red-50 dark:bg-red-500/10">
-                <X className="w-3.5 h-3.5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+              <div key={i} className="flex items-start gap-2 p-2 rounded bg-destructive-soft">
+                <X className="w-3.5 h-3.5 text-destructive-strong mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-foreground">{d}</p>
               </div>
             ))}
@@ -2415,7 +2403,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
       {/* Troubleshooting */}
       <Card className="p-5">
-        <h3 className="text-xs font-bold text-foreground tracking-normal mb-4">Troubleshooting</h3>
+        <h3 className="heading-card text-foreground mb-4">Troubleshooting</h3>
         <div className="border border-border rounded-lg overflow-hidden text-xs">
           <div className="grid grid-cols-2 bg-muted/40 font-bold">
             <div className="px-3 py-2 text-muted-foreground">Error</div>
@@ -2423,7 +2411,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
           </div>
           {troubleshooting.map((t, i) => (
             <div key={i} className="grid grid-cols-2 border-t border-border">
-              <div className="px-3 py-2 font-mono text-red-600 dark:text-red-400 break-all">{t.error}</div>
+              <div className="px-3 py-2 font-mono text-destructive-strong break-all">{t.error}</div>
               <div className="px-3 py-2 text-foreground">{t.fix}</div>
             </div>
           ))}
@@ -2466,7 +2454,7 @@ function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; o
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Zap className="w-5 h-5 text-white" fill="white" />
-              <h2 className="text-xl font-bold text-white">Welcome to Handover Assist</h2>
+              <h2 className="heading-page text-white">Welcome to Handover Assist</h2>
             </div>
             <p className="text-sm text-white/80">Hi <strong>{merchantName}</strong> — here's how this portal helps you go live faster.</p>
           </div>
@@ -2474,23 +2462,23 @@ function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; o
         </div>
         <div className="px-7 py-6 space-y-5">
           <div>
-            <h3 className="text-sm font-bold text-foreground mb-2">🎯 What problem does this solve?</h3>
+            <h3 className="heading-card text-foreground mb-2">🎯 What problem does this solve?</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Merchant integrations often stall because credentials, documents, status updates, and validations live across emails, Jira, Slack, and spreadsheets. <strong>Handover Assist consolidates everything you need to go live into one secure workspace</strong> — eliminating back-and-forth and accelerating time-to-launch.
             </p>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-foreground mb-2">⚡ How are we solving it?</h3>
+            <h3 className="heading-card text-foreground mb-2">⚡ How are we solving it?</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex gap-2"><span className="text-blue-500">1.</span><span><strong>Single source of truth</strong> — Live integration status, owner, and next steps, always in sync with your Handover CE.</span></li>
-              <li className="flex gap-2"><span className="text-blue-500">2.</span><span><strong>Secure credentials vault</strong> — Sandbox & production keys hidden by default, with copy + reveal controls.</span></li>
-              <li className="flex gap-2"><span className="text-blue-500">3.</span><span><strong>Self-service validation</strong> — Run the Merchant Validator and Payment Simulator without waiting on CE bandwidth.</span></li>
-              <li className="flex gap-2"><span className="text-blue-500">4.</span><span><strong>Documents on demand</strong> — BRD, SOW, mandatory APIs, KwikPass & MCP guides, all linked from one place.</span></li>
-              <li className="flex gap-2"><span className="text-blue-500">5.</span><span><strong>AI assistant</strong> — Ask anything about your integration; trained on your project's context.</span></li>
+              <li className="flex gap-2"><span className="text-info-strong">1.</span><span><strong>Single source of truth</strong> — Live integration status, owner, and next steps, always in sync with your Handover CE.</span></li>
+              <li className="flex gap-2"><span className="text-info-strong">2.</span><span><strong>Secure credentials vault</strong> — Sandbox & production keys hidden by default, with copy + reveal controls.</span></li>
+              <li className="flex gap-2"><span className="text-info-strong">3.</span><span><strong>Self-service validation</strong> — Run the Merchant Validator and Payment Simulator without waiting on CE bandwidth.</span></li>
+              <li className="flex gap-2"><span className="text-info-strong">4.</span><span><strong>Documents on demand</strong> — BRD, SOW, mandatory APIs, KwikPass & MCP guides, all linked from one place.</span></li>
+              <li className="flex gap-2"><span className="text-info-strong">5.</span><span><strong>AI assistant</strong> — Ask anything about your integration; trained on your project's context.</span></li>
             </ul>
           </div>
-          <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
-            <p className="text-xs text-amber-800 dark:text-amber-200">
+          <div className="p-4 rounded-lg bg-warning-soft border border-warning/30">
+            <p className="text-xs text-warning-strong">
               💡 <strong>Tip:</strong> Use the side panel on the right of each page for quick guidance. Ping your CE through the in-app chat if you get stuck.
             </p>
           </div>

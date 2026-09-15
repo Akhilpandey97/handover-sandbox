@@ -34,14 +34,14 @@ interface TaskManagementDialogProps {
 
 const priorityConfig = {
   low: { label: "Low", color: "bg-muted text-muted-foreground" },
-  medium: { label: "Medium", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
-  high: { label: "High", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" },
+  medium: { label: "Medium", color: "bg-warning-soft text-warning-strong" },
+  high: { label: "High", color: "bg-destructive-soft text-destructive-strong" },
 };
 
 const statusConfig = {
   open: { label: "Open", color: "bg-muted text-muted-foreground" },
-  in_progress: { label: "In Progress", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
-  done: { label: "Done", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" },
+  in_progress: { label: "In Progress", color: "bg-info-soft text-info-strong" },
+  done: { label: "Done", color: "bg-success-soft text-success-strong" },
 };
 
 export const TaskManagementDialog = ({
@@ -124,7 +124,7 @@ export const TaskManagementDialog = ({
                 <Badge variant="outline" className="text-xs">{openCount} open</Badge>
               )}
               {doneCount > 0 && (
-                <Badge className="text-xs bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700">
+                <Badge className="text-xs bg-success-soft text-success-strong border-success/30">
                   {doneCount} done
                 </Badge>
               )}
@@ -154,7 +154,7 @@ export const TaskManagementDialog = ({
                   id={`task-${task.id}`}
                   className={`p-3 rounded-lg border transition-all ${
                     task.status === "done"
-                      ? "bg-emerald-500/5 border-emerald-200 dark:border-emerald-800 opacity-70"
+                      ? "bg-success/5 border-success/30 opacity-70"
                       : "bg-card border-border hover:border-primary/30"
                   }`}
                 >
@@ -169,11 +169,11 @@ export const TaskManagementDialog = ({
                         <span className={`font-medium text-sm ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
                           {task.title}
                         </span>
-                        <Badge className={`text-[10px] px-1.5 py-0 ${pc.color} border-0`}>
+                        <Badge className={`text-2xs px-1.5 py-0 ${pc.color} border-0`}>
                           <Flag className="h-2.5 w-2.5 mr-0.5" />
                           {pc.label}
                         </Badge>
-                        <Badge className={`text-[10px] px-1.5 py-0 ${sc.color} border-0`}>{sc.label}</Badge>
+                        <Badge className={`text-2xs px-1.5 py-0 ${sc.color} border-0`}>{sc.label}</Badge>
                       </div>
                       {task.description && (
                         <p className="text-xs text-muted-foreground mt-1">{task.description}</p>

@@ -51,10 +51,10 @@ const STATE_STYLES: Record<string, { text: string; bar: string; bg: string; ring
 
 const STATE_ARR_STYLES: Record<string, { text: string; bg: string; ring: string }> = {
   not_started: { text: "text-slate-700 dark:text-slate-300", bg: "bg-slate-100 dark:bg-slate-800", ring: "ring-slate-300 dark:ring-slate-600" },
-  in_progress: { text: "text-blue-700 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900/40", ring: "ring-blue-300 dark:ring-blue-700" },
-  on_hold: { text: "text-amber-700 dark:text-amber-400", bg: "bg-amber-100 dark:bg-amber-900/40", ring: "ring-amber-300 dark:ring-amber-700" },
-  blocked: { text: "text-red-700 dark:text-red-400", bg: "bg-red-100 dark:bg-red-900/40", ring: "ring-red-300 dark:ring-red-700" },
-  live: { text: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/40", ring: "ring-emerald-300 dark:ring-emerald-700" },
+  in_progress: { text: "text-info-strong", bg: "bg-info-soft", ring: "ring-info/30" },
+  on_hold: { text: "text-warning-strong", bg: "bg-warning-soft", ring: "ring-warning/30" },
+  blocked: { text: "text-destructive-strong", bg: "bg-destructive-soft", ring: "ring-destructive/30" },
+  live: { text: "text-success-strong", bg: "bg-success-soft", ring: "ring-success/30" },
 };
 
 const PHASE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
@@ -519,7 +519,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                         onChange={e => setLiveThisYearOnly(e.target.checked)}
                         className="h-3 w-3"
                       />
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">This year</span>
+                      <span className="text-2xs text-muted-foreground whitespace-nowrap">This year</span>
                     </label>
                   )}
                 </div>
@@ -532,13 +532,13 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                       <span
                         key={st}
                         title={`${labelize(st, "state")} ${labels.getLabel("field_arr")}`}
-                        className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded ring-1 whitespace-nowrap", s.bg, s.text, s.ring)}
+                        className={cn("text-2xs font-semibold px-1.5 py-0.5 rounded ring-1 whitespace-nowrap", s.bg, s.text, s.ring)}
                       >
                         {formatArr(amt)}
                       </span>
                     );
                   })}
-                  <Badge variant="secondary" className="font-bold text-[11px] h-5 ml-1">
+                  <Badge variant="secondary" className="font-bold text-2xs h-5 ml-1">
                     {col.projects.length}
                   </Badge>
                 </div>
@@ -567,7 +567,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
 function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <p className="text-[11px] font-semibold text-muted-foreground tracking-normal">{title}</p>
+      <p className="text-2xs font-semibold text-muted-foreground tracking-normal">{title}</p>
       {children}
     </div>
   );

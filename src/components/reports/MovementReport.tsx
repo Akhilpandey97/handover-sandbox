@@ -585,9 +585,9 @@ export const MovementReport = ({ timeframe }: Props) => {
 
 const bucketBadge = (b: Bucket) => {
   const map: Record<Bucket, { label: string; cls: string }> = {
-    wins: { label: "Win", cls: "bg-emerald-600 hover:bg-emerald-600 text-white" },
-    updates: { label: "Update", cls: "bg-blue-600 hover:bg-blue-600 text-white" },
-    lowlights: { label: "Lowlight", cls: "bg-red-600 hover:bg-red-600 text-white" },
+    wins: { label: "Win", cls: "bg-success hover:bg-success text-success-foreground" },
+    updates: { label: "Update", cls: "bg-info hover:bg-info text-info-foreground" },
+    lowlights: { label: "Lowlight", cls: "bg-destructive hover:bg-destructive text-destructive-foreground" },
   };
   const m = map[b];
   return <Badge className={m.cls}>{m.label}</Badge>;
@@ -614,7 +614,7 @@ const FunnelSection = ({
             <Badge variant="secondary">{projects.length} projects</Badge>
           </div>
           <div className="text-xs">
-            <span className="text-emerald-300 font-semibold">{activeCount} active</span>
+            <span className="text-success font-semibold">{activeCount} active</span>
             <span className="opacity-60"> · {projects.length - activeCount} inactive</span>
           </div>
         </button>
@@ -647,7 +647,7 @@ const FunnelSection = ({
                   {isActive && ai ? bucketBadge(ai.bucket) : (
                     <Badge
                       variant={isActive ? "default" : "secondary"}
-                      className={isActive ? "bg-emerald-600 hover:bg-emerald-600" : ""}
+                      className={isActive ? "bg-success hover:bg-success" : ""}
                     >
                       {isActive ? "Active" : "Inactive"}
                     </Badge>

@@ -53,17 +53,17 @@ const formatRelative = (iso: string | null) => {
 
 const statusClasses = (cat: string | null, status: string | null) => {
   const s = (cat || status || "").toLowerCase();
-  if (s.includes("done") || s === "done") return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30";
-  if (s.includes("indeterminate") || s.includes("progress")) return "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30";
-  if (s.includes("block")) return "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30";
+  if (s.includes("done") || s === "done") return "bg-success/15 text-success-strong border-success/30";
+  if (s.includes("indeterminate") || s.includes("progress")) return "bg-info/15 text-info-strong border-info/30";
+  if (s.includes("block")) return "bg-destructive/15 text-destructive-strong border-destructive/30";
   return "bg-muted text-muted-foreground border-border";
 };
 
 const priorityClasses = (p: string | null) => {
   const s = (p || "").toLowerCase();
-  if (s.includes("highest") || s.includes("blocker")) return "bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30";
-  if (s.includes("high")) return "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30";
-  if (s.includes("medium")) return "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
+  if (s.includes("highest") || s.includes("blocker")) return "bg-destructive/15 text-destructive-strong border-destructive/30";
+  if (s.includes("high")) return "bg-warning/15 text-warning-strong border-warning/30";
+  if (s.includes("medium")) return "bg-warning/15 text-warning-strong border-warning/30";
   if (s.includes("low")) return "bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/30";
   return "bg-muted text-muted-foreground border-border";
 };
@@ -297,7 +297,7 @@ export const JiraTicketsSection = ({ projectId, merchantName }: Props) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TicketIcon className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Jira Tickets</h3>
+          <h3 className="heading-section">Jira Tickets</h3>
           <Badge variant="secondary">{tickets.length}</Badge>
         </div>
         <div className="flex items-center gap-2">

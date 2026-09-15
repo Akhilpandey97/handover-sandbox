@@ -40,9 +40,9 @@ interface CalendarEvent {
 }
 
 const eventTypeConfig = {
-  kickoff: { icon: Rocket, color: "bg-blue-500", text: "text-blue-700 dark:text-blue-300", bg: "bg-blue-100 dark:bg-blue-900/40", label: "Kick-off" },
-  expected_golive: { icon: Target, color: "bg-amber-500", text: "text-amber-700 dark:text-amber-300", bg: "bg-amber-100 dark:bg-amber-900/40", label: "Expected Go-Live" },
-  golive: { icon: Flag, color: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-100 dark:bg-emerald-900/40", label: "Go-Live" },
+  kickoff: { icon: Rocket, color: "bg-info", text: "text-info-strong", bg: "bg-info-soft", label: "Kick-off" },
+  expected_golive: { icon: Target, color: "bg-warning", text: "text-warning-strong", bg: "bg-warning-soft", label: "Expected Go-Live" },
+  golive: { icon: Flag, color: "bg-success", text: "text-success-strong", bg: "bg-success-soft", label: "Go-Live" },
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -92,8 +92,8 @@ export const ProjectCalendar = () => {
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
-              <Rocket className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 rounded-xl bg-info-soft flex items-center justify-center">
+              <Rocket className="h-5 w-5 text-info-strong" />
             </div>
             <div>
               <p className="text-2xl font-bold">{kickoffs}</p>
@@ -103,8 +103,8 @@ export const ProjectCalendar = () => {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-              <Target className="h-5 w-5 text-amber-600" />
+            <div className="h-10 w-10 rounded-xl bg-warning-soft flex items-center justify-center">
+              <Target className="h-5 w-5 text-warning-strong" />
             </div>
             <div>
               <p className="text-2xl font-bold">{expectedGoLives}</p>
@@ -114,8 +114,8 @@ export const ProjectCalendar = () => {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-              <Flag className="h-5 w-5 text-emerald-600" />
+            <div className="h-10 w-10 rounded-xl bg-success-soft flex items-center justify-center">
+              <Flag className="h-5 w-5 text-success-strong" />
             </div>
             <div>
               <p className="text-2xl font-bold">{goLives}</p>
@@ -190,7 +190,7 @@ export const ProjectCalendar = () => {
                           return (
                             <div
                               key={evt.id}
-                              className={cn("flex items-center gap-1 rounded px-1 py-0.5 text-[10px] leading-tight truncate", cfg.bg, cfg.text)}
+                              className={cn("flex items-center gap-1 rounded px-1 py-0.5 text-2xs leading-tight truncate", cfg.bg, cfg.text)}
                             >
                               <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", cfg.color)} />
                               <span className="truncate">{evt.project.merchantName}</span>
@@ -198,7 +198,7 @@ export const ProjectCalendar = () => {
                           );
                         })}
                         {dayEvents.length > 3 && (
-                          <span className="text-[10px] text-muted-foreground px-1">+{dayEvents.length - 3} more</span>
+                          <span className="text-2xs text-muted-foreground px-1">+{dayEvents.length - 3} more</span>
                         )}
                       </div>
                     )}
@@ -247,22 +247,22 @@ export const ProjectCalendar = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm truncate">{evt.project.merchantName}</p>
-                            <p className={cn("text-[10px] font-medium", cfg.text)}>{cfg.label}</p>
+                            <p className={cn("text-2xs font-medium", cfg.text)}>{cfg.label}</p>
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
-                          <Badge variant="outline" className="text-[10px] h-5">
+                          <Badge variant="outline" className="text-2xs h-5">
                             {evt.project.mid}
                           </Badge>
-                          <Badge variant="outline" className="text-[10px] h-5">
+                          <Badge variant="outline" className="text-2xs h-5">
                             {teamLabels[evt.project.currentOwnerTeam] || evt.project.currentOwnerTeam}
                           </Badge>
-                          <Badge className={cn("text-[10px] h-5", projectStateColors[evt.project.projectState])}>
+                          <Badge className={cn("text-2xs h-5", projectStateColors[evt.project.projectState])}>
                             {stateLabels?.[evt.project.projectState] || evt.project.projectState}
                           </Badge>
                         </div>
                         {evt.project.assignedOwnerName && (
-                          <p className="text-[11px] text-muted-foreground">Owner: {evt.project.assignedOwnerName}</p>
+                          <p className="text-2xs text-muted-foreground">Owner: {evt.project.assignedOwnerName}</p>
                         )}
                       </div>
                     );

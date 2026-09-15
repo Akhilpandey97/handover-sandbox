@@ -51,12 +51,12 @@ const computeItemDurationMs = (
 const weekColor = (weeks: number, completed: boolean): string => {
   if (weeks <= 0) return "bg-muted/30 text-muted-foreground";
   if (weeks < 1) return completed
-    ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-    : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+    ? "bg-success/20 text-success-strong"
+    : "bg-success/10 text-success-strong";
   if (weeks < 2) return "bg-lime-500/20 text-lime-800 dark:text-lime-300";
-  if (weeks < 4) return "bg-yellow-500/30 text-yellow-900 dark:text-yellow-200";
-  if (weeks < 8) return "bg-orange-500/40 text-orange-900 dark:text-orange-100";
-  return "bg-red-500/50 text-red-900 dark:text-red-50";
+  if (weeks < 4) return "bg-warning/30 text-warning-strong";
+  if (weeks < 8) return "bg-warning/40 text-warning-strong";
+  return "bg-destructive/50 text-destructive-strong";
 };
 
 export const WeeksPerChecklistReport = ({ projects }: Props) => {
@@ -276,11 +276,11 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
           {/* Legend */}
           <div className="flex items-center gap-3 flex-wrap pt-2 text-xs">
             <span className="text-muted-foreground">Legend:</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-emerald-500/20" />&lt;1w</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-success/20" />&lt;1w</span>
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-lime-500/20" />1–2w</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-yellow-500/30" />2–4w</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-orange-500/40" />4–8w</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-red-500/50" />8w+</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-warning/30" />2–4w</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-warning/40" />4–8w</span>
+            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-destructive/50" />8w+</span>
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-muted/30 border" />no data</span>
           </div>
         </CardHeader>
@@ -312,7 +312,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
                     <tr key={r.id} className="hover:bg-muted/20">
                       <td className="sticky left-0 bg-background border-b border-r p-2 font-medium z-10">
                         <div className="truncate max-w-[200px]" title={r.name}>{r.name}</div>
-                        <div className="text-[10px] text-muted-foreground truncate">{r.mid}</div>
+                        <div className="text-2xs text-muted-foreground truncate">{r.mid}</div>
                       </td>
                       {columns.map((c) => {
                         const cell = r.cells[c];

@@ -1085,7 +1085,7 @@ export const ManagerDashboard = () => {
                 key={key}
                 onClick={() => navigate({ to: pathForTab("reports", { reportSubTab: key, reportType }) })}
                 className={cn(
-                  "w-full flex items-center gap-2 text-left px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
+                  "w-full flex items-center gap-2 text-left px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-150",
                   reportSubTab === key && activeTab === "reports"
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
@@ -1106,7 +1106,7 @@ export const ManagerDashboard = () => {
                 key={key}
                 onClick={() => navigate({ to: pathForTab("settings", { settingsSubTab: key }) })}
                 className={cn(
-                  "w-full flex items-center gap-2 text-left px-2.5 py-1.5 rounded-md text-[13px] font-medium transition-all duration-150",
+                  "w-full flex items-center gap-2 text-left px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-150",
                   settingsSubTab === key && activeTab === "settings"
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
@@ -1141,7 +1141,7 @@ export const ManagerDashboard = () => {
             {!sidebarCollapsed && (
               <>
                 <div className="min-w-0 flex-1">
-                  <h1 className="font-semibold text-[16px] leading-tight text-sidebar-foreground truncate">{appLabels.app_title}</h1>
+                  <h1 className="font-semibold text-base leading-tight text-sidebar-foreground truncate">{appLabels.app_title}</h1>
                 </div>
                 <div className="flex shrink-0 items-center gap-0.5 [&_button]:text-sidebar-foreground/70 [&_button:hover]:text-sidebar-foreground">
                   <button
@@ -1269,7 +1269,7 @@ export const ManagerDashboard = () => {
                 {!sidebarCollapsed && (
                   <span className="min-w-0 flex-1 text-left">
                     <span className="block truncate text-xs font-medium leading-tight text-sidebar-foreground">{currentUser?.name}</span>
-                    <span className="block text-[10px] leading-tight text-sidebar-foreground/60">{teamLabels[currentUser?.team ?? ""] || "Manager"}</span>
+                    <span className="block text-2xs leading-tight text-sidebar-foreground/60">{teamLabels[currentUser?.team ?? ""] || "Manager"}</span>
                   </span>
                 )}
               </button>
@@ -1280,7 +1280,7 @@ export const ManagerDashboard = () => {
               {myAccess.length > 0 && (
                 <>
                   <div className="my-1 h-px bg-border" />
-                  <p className="px-2 pb-1 text-[11px] font-medium text-muted-foreground">Support access</p>
+                  <p className="px-2 pb-1 text-2xs font-medium text-muted-foreground">Support access</p>
                   {myAccess.map((g) => (
                     <button
                       key={g.id}
@@ -1289,12 +1289,12 @@ export const ManagerDashboard = () => {
                       disabled={g.tenant_id === currentUser?.supportTenantId}
                       className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground hover:bg-muted disabled:opacity-50"
                     >
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-amber-600" />
+                      <ShieldCheck className="h-4 w-4 shrink-0 text-warning-strong" />
                       <span className="min-w-0 flex-1 truncate">
                         {g.tenants?.name || "Workspace"}
                       </span>
                       {g.tenant_id === currentUser?.supportTenantId && (
-                        <span className="shrink-0 text-[10px] text-muted-foreground">in</span>
+                        <span className="shrink-0 text-2xs text-muted-foreground">in</span>
                       )}
                     </button>
                   ))}
@@ -1408,10 +1408,10 @@ export const ManagerDashboard = () => {
                 kpi: (() => {
                   const stateBoxes: Array<{ key: string; state: ProjectState; icon: typeof AlertCircle; tone: string }> = [
                     { key: "not_started", state: "not_started", icon: FolderKanban, tone: "bg-muted text-foreground/70" },
-                    { key: "in_progress", state: "in_progress", icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300" },
-                    { key: "on_hold", state: "on_hold", icon: Clock, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
-                    { key: "blocked", state: "blocked", icon: ShieldAlert, tone: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
-                    { key: "live", state: "live", icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+                    { key: "in_progress", state: "in_progress", icon: Rocket, tone: "bg-pending-soft text-pending-strong" },
+                    { key: "on_hold", state: "on_hold", icon: Clock, tone: "bg-warning-soft text-warning-strong" },
+                    { key: "blocked", state: "blocked", icon: ShieldAlert, tone: "bg-destructive-soft text-destructive-strong" },
+                    { key: "live", state: "live", icon: CheckCircle2, tone: "bg-success-soft text-success-strong" },
                   ];
                   const kpiItems: KpiBoxItem[] = [
                     {
@@ -1465,18 +1465,18 @@ export const ManagerDashboard = () => {
                           const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
                           const teamNeedsAttention = teamProjects.filter(p => riskVerdicts[p.id]?.level === "high");
                           const miniCards = [
-                            { label: "active", value: activeCount, tone: "bg-sky-50 text-sky-800 dark:bg-sky-950/40 dark:text-sky-300", list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
-                            { label: "pending", value: pendingCount, tone: "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300", list: teamProjects.filter(p => p.pendingAcceptance) },
-                            { label: "complete", value: completedCount, tone: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300", list: teamProjects.filter(isTeamCompleted) },
+                            { label: "active", value: activeCount, tone: "bg-pending-soft text-pending-strong", list: teamProjects.filter(p => !p.pendingAcceptance && !isTeamCompleted(p)) },
+                            { label: "pending", value: pendingCount, tone: "bg-warning-soft text-warning-strong", list: teamProjects.filter(p => p.pendingAcceptance) },
+                            { label: "complete", value: completedCount, tone: "bg-success-soft text-success-strong", list: teamProjects.filter(isTeamCompleted) },
                           ];
                           return (
                             <div key={team.team} className="grid gap-3 px-4 py-2.5 md:grid-cols-[minmax(150px,0.8fr)_minmax(200px,1.1fr)_84px] md:items-center">
                               <div className="flex items-center gap-2.5">
                                 <div className={cn(
                                   "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-bold",
-                                  team.team === "mint" && "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300",
+                                  team.team === "mint" && "bg-pending-soft text-pending-strong",
                                   team.team === "integration" && "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
-                                  team.team === "ms" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300",
+                                  team.team === "ms" && "bg-success-soft text-success-strong",
                                 )}>
                                   {team.teamLabel.charAt(0)}
                                 </div>
@@ -1491,13 +1491,13 @@ export const ManagerDashboard = () => {
                                           description: `${teamNeedsAttention.length} of ${totalCount} need attention`,
                                           projects: teamNeedsAttention,
                                         })}
-                                        className="rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-700 hover:bg-red-200 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/25"
+                                        className="rounded-full bg-destructive-soft px-1.5 py-0.5 text-2xs font-semibold text-destructive-strong hover:bg-destructive-soft"
                                       >
                                         {teamNeedsAttention.length} needs attention
                                       </button>
                                     )}
                                   </div>
-                                  <p className="text-[11px] text-muted-foreground">{totalCount} owned projects</p>
+                                  <p className="text-2xs text-muted-foreground">{totalCount} owned projects</p>
                                 </div>
                               </div>
                               <div className="grid grid-cols-3 gap-1.5 text-center">
@@ -1510,7 +1510,7 @@ export const ManagerDashboard = () => {
                                     className={cn("cursor-pointer rounded-md px-1.5 py-1.5 transition-opacity hover:opacity-80", mc.tone)}
                                   >
                                     <p className="text-sm font-semibold leading-tight">{mc.value}</p>
-                                    <p className="text-[10px] opacity-80">{mc.label}</p>
+                                    <p className="text-2xs opacity-80">{mc.label}</p>
                                   </div>
                                 ))}
                               </div>
@@ -1521,7 +1521,7 @@ export const ManagerDashboard = () => {
                                 className="cursor-pointer md:text-right"
                               >
                                 <p className="text-base font-semibold leading-tight text-foreground">{completionRate}%</p>
-                                <p className="text-[11px] text-muted-foreground">completion</p>
+                                <p className="text-2xs text-muted-foreground">completion</p>
                               </div>
                             </div>
                           );
@@ -1569,7 +1569,7 @@ export const ManagerDashboard = () => {
                               >
                                 <div className="flex items-center justify-between text-xs">
                                   <span className="max-w-[70%] truncate font-medium text-foreground/80" title={label}>{label}</span>
-                                  <span className="whitespace-nowrap text-[11px] font-semibold text-foreground">{count} · {pct}%</span>
+                                  <span className="whitespace-nowrap text-2xs font-semibold text-foreground">{count} · {pct}%</span>
                                 </div>
                                 <Progress value={pct} className="h-1.5" />
                               </div>
@@ -1602,7 +1602,7 @@ export const ManagerDashboard = () => {
                             >
                               <div className="flex items-center justify-between text-xs">
                                 <span className="font-medium text-foreground/80">{stateLabelsFromCtx[state] || projectStateLabels[state]}</span>
-                                <span className="text-[11px] font-semibold text-foreground">{count} · {pct}%</span>
+                                <span className="text-2xs font-semibold text-foreground">{count} · {pct}%</span>
                               </div>
                               <Progress value={pct} className="h-1.5" />
                             </div>
@@ -1639,7 +1639,7 @@ export const ManagerDashboard = () => {
                 <>
                   <div className="mb-4 flex items-end justify-between gap-4">
                     <div>
-                      <h1 className="text-xl font-semibold tracking-tight text-foreground">{greeting()}, {currentUser?.name} — here are your actions for today</h1>
+                      <h1 className="heading-page text-foreground">{greeting()}, {currentUser?.name} — here are your actions for today</h1>
                     </div>
                     <DashletBuilder
                       items={builderItems}
@@ -1735,7 +1735,7 @@ export const ManagerDashboard = () => {
                         <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
                           <p className="text-xs font-semibold">Filters</p>
                           {lvHasActiveFilters && (
-                            <Button variant="ghost" size="sm" onClick={clearLvFilters} className="h-6 text-[11px] gap-1"><X className="h-3 w-3" /> Reset</Button>
+                            <Button variant="ghost" size="sm" onClick={clearLvFilters} className="h-6 text-2xs gap-1"><X className="h-3 w-3" /> Reset</Button>
                           )}
                         </div>
                         <div className="overflow-y-auto flex-1 min-h-0 p-3 space-y-2.5">
@@ -1879,7 +1879,7 @@ export const ManagerDashboard = () => {
                           <RefreshCw className="h-3.5 w-3.5" />
                           State
                         </Button>
-                        {isManagerOrAdmin && <Button variant="outline" size="icon" className="h-8 w-8 text-amber-600" onClick={() => setBulkArchiveDialogOpen(true)} title="Archive selected projects"><Archive className="h-3.5 w-3.5" /></Button>}
+                        {isManagerOrAdmin && <Button variant="outline" size="icon" className="h-8 w-8 text-warning-strong" onClick={() => setBulkArchiveDialogOpen(true)} title="Archive selected projects"><Archive className="h-3.5 w-3.5" /></Button>}
                         <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" onClick={() => setBulkDeleteDialogOpen(true)} title="Delete selected projects"><Trash2 className="h-3.5 w-3.5" /></Button>
                       </>
                     )}
@@ -1907,7 +1907,7 @@ export const ManagerDashboard = () => {
                           {customFields.length > 0 && (
                             <>
                               <div className="mt-2 pt-2 border-t">
-                                <p className="text-[10px] font-semibold text-muted-foreground tracking-normal mb-1">Custom Fields</p>
+                                <p className="text-2xs font-semibold text-muted-foreground tracking-normal mb-1">Custom Fields</p>
                               </div>
                               {customFields.map(cf => {
                                 const key = `custom_field_${cf.id}`;
@@ -2037,8 +2037,8 @@ export const ManagerDashboard = () => {
                               }
                             }
                           };
-                          const statusColor = project.projectState === "in_progress" ? "text-amber-500" :
-                            project.projectState === "live" ? "text-emerald-500" :
+                          const statusColor = project.projectState === "in_progress" ? "text-warning-strong" :
+                            project.projectState === "live" ? "text-success-strong" :
                             project.projectState === "blocked" ? "text-destructive" : "text-muted-foreground";
                           return (
                             <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id }, search: { from: "list" } })}>
@@ -2092,7 +2092,7 @@ export const ManagerDashboard = () => {
                                     <Pencil className="h-3.5 w-3.5" />
                                   </Button>
                                   {isManagerOrAdmin && (
-                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-amber-600 hover:text-amber-600" title="Archive project" onClick={() => archiveProject(project.id, true)}>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-warning-strong hover:text-warning-strong" title="Archive project" onClick={() => archiveProject(project.id, true)}>
                                       <Archive className="h-3.5 w-3.5" />
                                     </Button>
                                   )}
@@ -2217,7 +2217,7 @@ export const ManagerDashboard = () => {
                                   <div className="text-right text-sm">
                                     <span className="text-primary font-medium">{formatDuration(project.stats.projectTime.gokwik)}</span>
                                     <span className="text-muted-foreground mx-1">/</span>
-                                    <span className="text-amber-500 font-medium">{formatDuration(project.stats.projectTime.merchant)}</span>
+                                    <span className="text-warning-strong font-medium">{formatDuration(project.stats.projectTime.merchant)}</span>
                                   </div>
                                   <div className="w-24">
                                     <Progress value={project.stats.checklistProgress} className="h-2" />
@@ -2260,7 +2260,7 @@ export const ManagerDashboard = () => {
                                           <TableCell>{formatDuration(item.merchantTime)}</TableCell>
                                           <TableCell>
                                             {item.completed ? (
-                                              <Badge className="bg-emerald-500/10 text-emerald-600">Done</Badge>
+                                              <Badge className="bg-success/10 text-success-strong">Done</Badge>
                                             ) : (
                                               <Badge variant="secondary">Pending</Badge>
                                             )}
@@ -2320,7 +2320,7 @@ export const ManagerDashboard = () => {
                                   </div>
                                 </div>
                                 {team.pendingCount > 0 && (
-                                  <Badge className="bg-amber-500 text-white">{team.pendingCount} Pending</Badge>
+                                  <Badge className="bg-warning text-warning-foreground">{team.pendingCount} Pending</Badge>
                                 )}
                               </div>
                               <div className="grid grid-cols-4 gap-4 mb-6">
@@ -2337,7 +2337,7 @@ export const ManagerDashboard = () => {
                                   <p className="text-xs text-muted-foreground">{responsibilityLabels.gokwik}</p>
                                 </div>
                                 <div className="bg-background rounded-lg p-4 text-center">
-                                  <p className="text-2xl font-bold text-amber-500">{formatDuration(team.merchantTime)}</p>
+                                  <p className="text-2xl font-bold text-warning-strong">{formatDuration(team.merchantTime)}</p>
                                   <p className="text-xs text-muted-foreground">{responsibilityLabels.merchant}</p>
                                 </div>
                               </div>
@@ -2445,7 +2445,7 @@ export const ManagerDashboard = () => {
                           <div className="flex items-center gap-2">
                             {TAB_CONFIG[navKey]?.icon}
                             <span className="text-sm font-medium">{TAB_CONFIG[navKey]?.label || navKey}</span>
-                            {isLocked && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Always Visible</Badge>}
+                            {isLocked && <Badge variant="outline" className="text-2xs px-1.5 py-0">Always Visible</Badge>}
                           </div>
                           <Checkbox
                             checked={isLocked ? true : navVisibility[navKey] !== false}
@@ -2487,7 +2487,7 @@ export const ManagerDashboard = () => {
                           <div key={navKey} className={cn("flex items-center justify-between p-3 border rounded-lg", isLocked && "bg-muted/40")}>
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium">{label}</span>
-                              {isLocked && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Always Visible</Badge>}
+                              {isLocked && <Badge variant="outline" className="text-2xs px-1.5 py-0">Always Visible</Badge>}
                             </div>
                             <Checkbox
                               checked={isLocked ? true : navVisibility[navKey] !== false}
@@ -2548,7 +2548,7 @@ export const ManagerDashboard = () => {
                     {archivedProjects.length === 0 ? (
                       <div className="text-center py-20">
                         <Archive className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-                        <h3 className="font-semibold text-lg mb-2">No Archived Projects</h3>
+                        <h3 className="heading-section mb-2">No Archived Projects</h3>
                         <p className="text-muted-foreground text-sm">Projects you archive will appear here.</p>
                       </div>
                     ) : (
@@ -2558,9 +2558,9 @@ export const ManagerDashboard = () => {
                             <div className="flex-1 min-w-0 space-y-0.5">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium text-sm">{project.merchantName}</span>
-                                <Badge variant="outline" className="text-[10px] h-4 px-1.5">{project.mid}</Badge>
-                                {project.platform && <Badge variant="outline" className="text-[10px] h-4 px-1.5">{project.platform}</Badge>}
-                                <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{project.projectState}</Badge>
+                                <Badge variant="outline" className="text-2xs h-4 px-1.5">{project.mid}</Badge>
+                                {project.platform && <Badge variant="outline" className="text-2xs h-4 px-1.5">{project.platform}</Badge>}
+                                <Badge variant="secondary" className="text-2xs h-4 px-1.5">{project.projectState}</Badge>
                               </div>
                               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                 <span>{arrLabel}: {formatArrCr(project.arr)}</span>
@@ -2572,7 +2572,7 @@ export const ManagerDashboard = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="gap-1.5 text-xs h-8 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                                className="gap-1.5 text-xs h-8 text-success-strong border-success/30 hover:bg-success-soft hover:text-success-strong"
                                 onClick={() => archiveProject(project.id, false)}
                               >
                                 <ArchiveRestore className="h-3.5 w-3.5" />
@@ -2635,7 +2635,7 @@ export const ManagerDashboard = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleBulkArchive} className="bg-amber-600 text-white hover:bg-amber-700">
+            <AlertDialogAction onClick={handleBulkArchive} className="bg-warning text-warning-foreground hover:bg-warning">
               Archive
             </AlertDialogAction>
           </AlertDialogFooter>

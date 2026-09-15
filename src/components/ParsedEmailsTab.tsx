@@ -47,9 +47,9 @@ interface ParsedEmail {
 }
 
 const statusColors: Record<string, string> = {
-  new: "bg-blue-500/10 text-blue-600 border-blue-200",
-  reviewed: "bg-amber-500/10 text-amber-600 border-amber-200",
-  project_created: "bg-green-500/10 text-green-600 border-green-200",
+  new: "bg-info/10 text-info-strong border-info/30",
+  reviewed: "bg-warning/10 text-warning-strong border-warning/30",
+  project_created: "bg-success/10 text-success-strong border-success/30",
   dismissed: "bg-muted text-muted-foreground border-muted",
 };
 
@@ -204,7 +204,7 @@ export const ParsedEmailsTab = () => {
                 </TableHeader>
                 <TableBody>
                   {emails.map((email) => (
-                    <TableRow key={email.id} className={email.status === "new" ? "bg-blue-500/5" : ""}>
+                    <TableRow key={email.id} className={email.status === "new" ? "bg-info/5" : ""}>
                       <TableCell>
                         <Badge variant="outline" className={statusColors[email.status] || ""}>
                           {email.status === "project_created" ? "Created" : email.status}
@@ -248,7 +248,7 @@ export const ParsedEmailsTab = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-7 w-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                className="h-7 w-7 text-success-strong hover:text-success-strong hover:bg-success-soft"
                                 onClick={() => handleCreateProject(email)}
                                 title="Create Project"
                               >
@@ -266,7 +266,7 @@ export const ParsedEmailsTab = () => {
                             </>
                           )}
                           {email.status === "project_created" && (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <CheckCircle2 className="h-4 w-4 text-success-strong" />
                           )}
                         </div>
                       </TableCell>

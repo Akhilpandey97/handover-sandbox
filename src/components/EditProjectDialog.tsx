@@ -541,7 +541,7 @@ export const EditProjectDialog = ({
             <TabsContent value="faq" className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-semibold">FAQ & Help</h3>
+                  <h3 className="heading-card">FAQ & Help</h3>
                   <p className="text-xs text-muted-foreground">These FAQs appear in the merchant portal and Help Assistant. Upload accepts a CSV with question and answer columns, or a JSON array.</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -592,7 +592,7 @@ export const EditProjectDialog = ({
 
             {canManageCredentials && <TabsContent value="credentials" className="space-y-6">
               <div>
-                <h3 className="text-sm font-semibold mb-3">Sandbox Credentials</h3>
+                <h3 className="heading-card mb-3">Sandbox Credentials</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>{getLabel("field_sandbox_mid")}</Label>
@@ -632,7 +632,7 @@ export const EditProjectDialog = ({
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold mb-3">Production Credentials</h3>
+                <h3 className="heading-card mb-3">Production Credentials</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>{getLabel("field_prod_mid")}</Label>
@@ -662,7 +662,7 @@ export const EditProjectDialog = ({
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold mb-3">MCP Configuration</h3>
+                <h3 className="heading-card mb-3">MCP Configuration</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label>{getLabel("field_mcp_config_id")}</Label>
@@ -681,7 +681,7 @@ export const EditProjectDialog = ({
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold mb-3">KwikPass (KP) Configuration</h3>
+                <h3 className="heading-card mb-3">KwikPass (KP) Configuration</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2 flex items-end gap-3">
                     <div className="flex items-center gap-2">

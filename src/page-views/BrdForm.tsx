@@ -266,9 +266,9 @@ const BrdForm = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-info-soft to-indigo-50">
         <div className="text-center space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mx-auto" />
+          <Loader2 className="h-10 w-10 animate-spin text-info-strong mx-auto" />
           <p className="text-muted-foreground animate-pulse">Loading your BRD form...</p>
         </div>
       </div>
@@ -277,10 +277,10 @@ const BrdForm = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-red-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-destructive-soft p-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="h-14 w-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <FileText className="h-7 w-7 text-red-500" />
+          <div className="h-14 w-14 rounded-full bg-destructive-soft flex items-center justify-center mx-auto mb-4">
+            <FileText className="h-7 w-7 text-destructive-strong" />
           </div>
           <h2 className="text-xl font-bold mb-2">Unable to Load Form</h2>
           <p className="text-muted-foreground">{error}</p>
@@ -291,12 +291,12 @@ const BrdForm = () => {
 
   if (completed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-success-soft via-success-soft to-teal-50 p-4">
         <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl p-10 text-center">
           <div className="relative mx-auto w-20 h-20 mb-6">
-            <div className="absolute inset-0 bg-green-400/20 rounded-full animate-ping" />
-            <div className="relative h-20 w-20 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
+            <div className="absolute inset-0 bg-success/20 rounded-full animate-ping" />
+            <div className="relative h-20 w-20 rounded-full bg-success-soft flex items-center justify-center">
+              <CheckCircle2 className="h-10 w-10 text-success-strong" />
             </div>
           </div>
           <h2 className="text-2xl font-bold mb-2">🎉 BRD Completed!</h2>
@@ -305,7 +305,7 @@ const BrdForm = () => {
             Your responses have been saved successfully.
           </p>
           {csvUrl && (
-            <Button size="lg" className="bg-green-600 hover:bg-green-700" asChild>
+            <Button size="lg" className="bg-success hover:bg-success" asChild>
               <a href={csvUrl} target="_blank" rel="noopener noreferrer">
                 📥 Download Excel Report
               </a>
@@ -338,8 +338,8 @@ const BrdForm = () => {
               className={cn(
                 "w-full text-left px-4 py-2.5 rounded-xl border-2 transition-all text-sm",
                 responses[field.id] === opt
-                  ? "border-blue-500 bg-blue-50 text-blue-700 font-medium"
-                  : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/50"
+                  ? "border-info bg-info-soft text-info-strong font-medium"
+                  : "border-gray-200 bg-white hover:border-info/30 hover:bg-info/50"
               )}
             >
               {opt}
@@ -368,8 +368,8 @@ const BrdForm = () => {
               className={cn(
                 "flex-1 px-5 py-3 rounded-xl border-2 transition-all text-sm font-medium",
                 responses[field.id] === opt
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
-                  : "border-gray-200 bg-white hover:border-blue-300"
+                  ? "border-info bg-info-soft text-info-strong"
+                  : "border-gray-200 bg-white hover:border-info/30"
               )}
             >
               {opt === "Yes" ? "👍 Yes" : "👎 No"}
@@ -416,16 +416,16 @@ const BrdForm = () => {
   };
 
   return (
-    <div className="h-screen flex bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 overflow-hidden">
+    <div className="h-screen flex bg-gradient-to-br from-slate-50 via-info-soft to-indigo-50 overflow-hidden">
       {/* Sidebar - Broad groups */}
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-100">
-          <h2 className="text-sm font-bold text-foreground">{form?.name || "BRD Form"}</h2>
-          <p className="text-[10px] text-muted-foreground mt-0.5">{session?.merchantName} • MID: {session?.mid}</p>
-          <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-            <div className="flex justify-between text-[10px] font-medium mb-1">
-              <span className="text-blue-700">{answeredCount}/{fields.length}</span>
-              <span className="text-blue-600">{Math.round(progress)}%</span>
+          <h2 className="heading-card text-foreground">{form?.name || "BRD Form"}</h2>
+          <p className="text-2xs text-muted-foreground mt-0.5">{session?.merchantName} • MID: {session?.mid}</p>
+          <div className="mt-3 p-2 bg-info-soft rounded-lg">
+            <div className="flex justify-between text-2xs font-medium mb-1">
+              <span className="text-info-strong">{answeredCount}/{fields.length}</span>
+              <span className="text-info-strong">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-1.5" />
           </div>
@@ -449,26 +449,26 @@ const BrdForm = () => {
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-lg text-xs transition-all flex items-center justify-between",
                     isActive
-                      ? "bg-blue-50 text-blue-700 font-semibold"
+                      ? "bg-info-soft text-info-strong font-semibold"
                       : isDone
-                      ? "text-green-700 hover:bg-green-50"
+                      ? "text-success-strong hover:bg-success-soft"
                       : "text-muted-foreground hover:bg-gray-50"
                   )}
                 >
                   <span className="flex items-center gap-2 truncate">
-                    {isDone && <CheckCircle2 className="h-3 w-3 text-green-500 flex-shrink-0" />}
+                    {isDone && <CheckCircle2 className="h-3 w-3 text-success-strong flex-shrink-0" />}
                     <span className="font-bold">{group.abbr}</span>
                     {group.categories.length === 1 && (
                       <span className="truncate opacity-70">{group.label}</span>
                     )}
                   </span>
                   <span className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-[10px] opacity-60">{answered}/{total}</span>
+                    <span className="text-2xs opacity-60">{answered}/{total}</span>
                     <ChevronRight className={cn("h-3 w-3 transition-transform", isExpanded && group.categories.length > 1 && "rotate-90")} />
                   </span>
                 </button>
                 {isExpanded && group.categories.length > 1 && (
-                  <div className="ml-3 mt-0.5 space-y-0.5 border-l-2 border-blue-100 pl-2">
+                  <div className="ml-3 mt-0.5 space-y-0.5 border-l-2 border-info/30 pl-2">
                     {group.categories.map(cat => {
                       const catAnswered = cat.fields.filter(f => responses[f.id]?.trim()).length;
                       const catActive = currentSection === cat.name;
@@ -484,11 +484,11 @@ const BrdForm = () => {
                             if (idx >= 0) jumpToField(idx);
                           }}
                           className={cn(
-                            "w-full text-left px-2 py-1.5 rounded text-[11px] transition-all truncate",
+                            "w-full text-left px-2 py-1.5 rounded text-2xs transition-all truncate",
                             catActive
-                              ? "bg-blue-100 text-blue-800 font-medium"
+                              ? "bg-info-soft text-info-strong font-medium"
                               : catDone
-                              ? "text-green-600"
+                              ? "text-success-strong"
                               : "text-muted-foreground hover:bg-gray-50"
                           )}
                         >
@@ -505,14 +505,14 @@ const BrdForm = () => {
           })}
         </nav>
 
-        <div className="p-3 border-t border-gray-100 text-[10px] text-center text-muted-foreground">
+        <div className="p-3 border-t border-gray-100 text-2xs text-center text-muted-foreground">
           {saving ? (
             <span className="flex items-center justify-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" /> Saving...
             </span>
           ) : (
             <span className="flex items-center justify-center gap-1">
-              <CheckCircle2 className="h-3 w-3 text-green-500" /> Auto-saved
+              <CheckCircle2 className="h-3 w-3 text-success-strong" /> Auto-saved
             </span>
           )}
         </div>
@@ -525,26 +525,26 @@ const BrdForm = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-sm font-bold">{form?.name || "BRD Form"}</h1>
-              <p className="text-[10px] text-muted-foreground">{session?.merchantName}</p>
+              <p className="text-2xs text-muted-foreground">{session?.merchantName}</p>
             </div>
-            <Badge variant="outline" className="text-[10px]">{answeredCount}/{fields.length}</Badge>
+            <Badge variant="outline" className="text-2xs">{answeredCount}/{fields.length}</Badge>
           </div>
           <Progress value={progress} className="h-1.5 mt-2" />
         </div>
 
         {/* WhatsApp-like chat header */}
         <div className="bg-white border-b border-gray-200 px-4 py-2.5 hidden lg:flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full bg-info flex items-center justify-center">
             <MessageCircle className="h-4 w-4 text-white" />
           </div>
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">BRD Assistant</p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-2xs text-muted-foreground">
               {currentSection} • Q{currentIndex + 1}/{fields.length}
             </p>
           </div>
           {saving && (
-            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <span className="text-2xs text-muted-foreground flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" /> Saving...
             </span>
           )}
@@ -560,7 +560,7 @@ const BrdForm = () => {
               <div key={field.id}>
                 {showSectionDivider && (
                   <div className="flex justify-center my-2">
-                    <span className="bg-white/80 text-[10px] text-muted-foreground px-3 py-1 rounded-full shadow-sm">
+                    <span className="bg-white/80 text-2xs text-muted-foreground px-3 py-1 rounded-full shadow-sm">
                       {getAbbreviation(field.category)} — {field.category}
                     </span>
                   </div>
@@ -574,12 +574,12 @@ const BrdForm = () => {
                 {/* User answer bubble */}
                 <div className="flex justify-end mt-1">
                   <div
-                    className="bg-blue-500 text-white rounded-xl rounded-tr-sm shadow-sm px-3 py-2 text-xs max-w-[70%] cursor-pointer hover:bg-blue-600 transition-colors"
+                    className="bg-info text-info-foreground rounded-xl rounded-tr-sm shadow-sm px-3 py-2 text-xs max-w-[70%] cursor-pointer hover:bg-info transition-colors"
                     onClick={() => jumpToField(fields.indexOf(field))}
                     title="Click to edit"
                   >
                     {responses[field.id]}
-                    <span className="text-[8px] opacity-60 ml-2">✓✓</span>
+                    <span className="text-2xs opacity-60 ml-2">✓✓</span>
                   </div>
                 </div>
               </div>
@@ -593,7 +593,7 @@ const BrdForm = () => {
               const showDivider = !lastHistoryField || lastHistoryField.category !== currentField.category;
               return showDivider ? (
                 <div className="flex justify-center my-2">
-                  <span className="bg-white/80 text-[10px] text-muted-foreground px-3 py-1 rounded-full shadow-sm">
+                  <span className="bg-white/80 text-2xs text-muted-foreground px-3 py-1 rounded-full shadow-sm">
                     {getAbbreviation(currentField.category)} — {currentField.category}
                   </span>
                 </div>
@@ -608,7 +608,7 @@ const BrdForm = () => {
                 <div className="bg-white rounded-xl rounded-tl-sm shadow-md px-4 py-3 text-sm text-foreground">
                   <p className="font-medium leading-relaxed">
                     {currentField.question}
-                    {currentField.is_required && <span className="text-red-500 ml-1">*</span>}
+                    {currentField.is_required && <span className="text-destructive-strong ml-1">*</span>}
                   </p>
                 </div>
               </div>
@@ -622,8 +622,8 @@ const BrdForm = () => {
           {/* Motivational toast */}
           {showMotivation && (
             <div className="flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-full px-4 py-2 shadow-sm">
-                <p className="text-xs font-medium text-amber-800">
+              <div className="bg-gradient-to-r from-warning-soft to-warning-soft border border-warning/30 rounded-full px-4 py-2 shadow-sm">
+                <p className="text-xs font-medium text-warning-strong">
                   {motivation.emoji} {motivation.text} — "{lastSectionCompleted}" done!
                 </p>
               </div>
@@ -649,7 +649,7 @@ const BrdForm = () => {
 
             <div className="flex items-center gap-2">
               {isLastQuestion ? (
-                <Button onClick={handleSubmit} disabled={submitting || !canSubmit} className="bg-green-600 hover:bg-green-700 text-xs px-5 h-8">
+                <Button onClick={handleSubmit} disabled={submitting || !canSubmit} className="bg-success hover:bg-success text-xs px-5 h-8">
                   {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Send className="h-3.5 w-3.5 mr-1" />}
                   Submit BRD
                 </Button>
@@ -660,8 +660,8 @@ const BrdForm = () => {
               )}
             </div>
           </div>
-          <p className="text-[9px] text-center text-muted-foreground mt-1 hidden md:block">
-            Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-[8px] font-mono">Enter</kbd> to continue • Click any answer to edit
+          <p className="text-2xs text-center text-muted-foreground mt-1 hidden md:block">
+            Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-2xs font-mono">Enter</kbd> to continue • Click any answer to edit
           </p>
         </div>
       </main>

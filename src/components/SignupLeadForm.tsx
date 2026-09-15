@@ -56,7 +56,7 @@ export const SignupLeadForm = ({ onBack }: { onBack: () => void }) => {
   if (done) {
     return (
       <div className="space-y-4 text-center">
-        <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
+        <CheckCircle2 className="mx-auto h-10 w-10 text-success-strong" />
         <div>
           <p className="text-sm font-semibold text-foreground">Thanks — we have your details</p>
           <p className="mt-1 text-sm text-muted-foreground">

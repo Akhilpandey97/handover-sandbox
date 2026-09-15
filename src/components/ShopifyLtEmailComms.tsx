@@ -103,9 +103,9 @@ const csvCell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
 const ageingTone = (d: number | null) => {
   if (d === null) return "bg-muted text-muted-foreground";
-  if (d <= 2) return "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300";
-  if (d <= 7) return "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
-  return "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300";
+  if (d <= 2) return "bg-success-soft text-success-strong";
+  if (d <= 7) return "bg-warning-soft text-warning-strong";
+  return "bg-destructive-soft text-destructive-strong";
 };
 
 export const ShopifyLtEmailComms = () => {
@@ -351,7 +351,7 @@ export const ShopifyLtEmailComms = () => {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Shopify LT Integration Email Communication</h2>
+          <h2 className="heading-section">Shopify LT Integration Email Communication</h2>
           <p className="text-sm text-muted-foreground">
             Threads on integration@gokwik.co with "Welcome to GoKwik" or "Let's Begin Your Onboarding Journey"
             {summarizing && (
@@ -517,7 +517,7 @@ export const ShopifyLtEmailComms = () => {
                     </Select>
                     {!infoOf(r)?.status && (
                       <p
-                        className="mt-0.5 text-[10px] text-muted-foreground truncate max-w-[230px]"
+                        className="mt-0.5 text-2xs text-muted-foreground truncate max-w-[230px]"
                         title={infoOf(r)?.ai_evidence || ""}
                       >
                         {infoOf(r)?.ai_status
@@ -540,11 +540,11 @@ export const ShopifyLtEmailComms = () => {
                     <p className="text-sm">{sender.name}</p>
                     <Badge
                       variant="outline"
-                      className={`mt-0.5 text-[10px] ${
+                      className={`mt-0.5 text-2xs ${
                         role === "Onboarding Manager"
-                          ? "border-blue-300 text-blue-700 dark:text-blue-300"
+                          ? "border-info/30 text-info-strong"
                           : role === "Merchant"
-                            ? "border-amber-300 text-amber-700 dark:text-amber-300"
+                            ? "border-warning/30 text-warning-strong"
                             : ""
                       }`}
                     >

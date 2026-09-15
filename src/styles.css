@@ -11,9 +11,13 @@
 */
 
 @theme inline {
+  /* Font stacks live here only; base styles below read these variables. */
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* The one step below text-xs. Nothing in the product goes smaller than this. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
 
   --color-navy: #30658F;
   --color-navy-foreground: #ffffff;
@@ -32,9 +36,6 @@
 
   --color-secondary: hsl(var(--secondary));
   --color-secondary-foreground: hsl(var(--secondary-foreground));
-
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
 
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
@@ -61,17 +62,37 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
+  /*
+    Status colours. Every state in the product renders through these:
+      base        solid fills, dots, bars, icons on neutral ground
+      -foreground text on a solid base fill
+      -soft       tinted chip and banner backgrounds
+      -strong     text and icons on -soft or on a card (≥ 4.5:1 in both themes)
+  */
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-soft: hsl(var(--destructive-soft));
+  --color-destructive-strong: hsl(var(--destructive-strong));
+
   --color-success: hsl(var(--success));
   --color-success-foreground: hsl(var(--success-foreground));
+  --color-success-soft: hsl(var(--success-soft));
+  --color-success-strong: hsl(var(--success-strong));
 
   --color-warning: hsl(var(--warning));
   --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-warning-soft: hsl(var(--warning-soft));
+  --color-warning-strong: hsl(var(--warning-strong));
 
   --color-info: hsl(var(--info));
   --color-info-foreground: hsl(var(--info-foreground));
+  --color-info-soft: hsl(var(--info-soft));
+  --color-info-strong: hsl(var(--info-strong));
 
   --color-pending: hsl(var(--pending));
   --color-pending-foreground: hsl(var(--pending-foreground));
+  --color-pending-soft: hsl(var(--pending-soft));
+  --color-pending-strong: hsl(var(--pending-strong));
 
   --color-sidebar: hsl(var(--sidebar-background));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
@@ -148,7 +169,8 @@
   --secondary-foreground: 206 55% 20%;
 
   --muted: 200 28% 96%;
-  --muted-foreground: 205 16% 45%;
+  /* 40% lightness: 5.2:1 on muted, 5.7:1 on cards (was 45%, which failed on muted). */
+  --muted-foreground: 205 18% 40%;
 
   --accent: 190 45% 93%;
   --accent-foreground: 200 60% 20%;
@@ -159,18 +181,29 @@
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
+  --destructive-soft: 0 85% 96%;
+  --destructive-strong: 0 70% 40%;
 
   --success: 168 62% 34%;
   --success-foreground: 0 0% 100%;
+  --success-soft: 160 48% 93%;
+  --success-strong: 168 72% 24%;
 
+  /* Amber is too light for white text; solid warning fills take dark ink. */
   --warning: 43 89% 44%;
-  --warning-foreground: 0 0% 100%;
+  --warning-foreground: 212 55% 12%;
+  --warning-soft: 45 92% 92%;
+  --warning-strong: 32 92% 28%;
 
   --info: 190 56% 40%;
   --info-foreground: 0 0% 100%;
+  --info-soft: 192 55% 93%;
+  --info-strong: 196 72% 27%;
 
   --pending: 199 70% 45%;
   --pending-foreground: 0 0% 100%;
+  --pending-soft: 200 75% 94%;
+  --pending-strong: 202 78% 32%;
 
   --teal: 177 42% 55%;
   --teal-foreground: 212 55% 15%;
@@ -232,18 +265,28 @@
 
   --destructive: 0 70% 56%;
   --destructive-foreground: 0 0% 100%;
+  --destructive-soft: 0 45% 16%;
+  --destructive-strong: 0 85% 74%;
 
   --success: 168 58% 42%;
   --success-foreground: 212 55% 10%;
+  --success-soft: 168 40% 15%;
+  --success-strong: 165 55% 62%;
 
   --warning: 43 90% 55%;
   --warning-foreground: 212 55% 10%;
+  --warning-soft: 40 45% 15%;
+  --warning-strong: 43 90% 66%;
 
   --info: 190 60% 52%;
   --info-foreground: 212 55% 10%;
+  --info-soft: 195 40% 16%;
+  --info-strong: 190 65% 66%;
 
   --pending: 199 70% 55%;
   --pending-foreground: 212 55% 10%;
+  --pending-soft: 200 45% 16%;
+  --pending-strong: 199 75% 68%;
 
   --teal: 177 42% 58%;
   --teal-foreground: 212 55% 10%;
@@ -278,7 +321,7 @@
   }
 
   html {
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-sans);
   }
 
   body {
@@ -293,14 +336,13 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     letter-spacing: -0.015em;
   }
 
   code,
   kbd,
   pre {
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(--font-mono);
   }
 
   ::selection {
@@ -308,12 +350,32 @@
   }
 }
 
+/*
+  Heading levels. Size and weight only, so a heading keeps whatever colour its
+  surface gives it (foreground on cards, white on the hero).
+*/
+@utility heading-page {
+  @apply text-2xl font-semibold leading-tight tracking-tight;
+}
+
+@utility heading-section {
+  @apply text-lg font-semibold leading-snug tracking-tight;
+}
+
+@utility heading-card {
+  @apply text-sm font-semibold leading-snug tracking-normal;
+}
+
+@utility eyebrow {
+  @apply text-2xs font-semibold uppercase tracking-widest text-muted-foreground;
+}
+
 @utility portal-heading {
   @apply text-xs font-bold tracking-normal text-foreground/80;
 }
 
 @utility portal-label {
-  @apply text-[11px] font-semibold tracking-normal text-muted-foreground;
+  @apply text-2xs font-semibold tracking-normal text-muted-foreground;
 }
 
 @utility portal-card {
@@ -357,15 +419,6 @@
   box-shadow: var(--shadow-soft);
 }
 
-/*
-  Sticky table headers: opaque so scrolling rows cannot show through, tinted
-  the same navy 5% as the Kanban column headers.
-
-  The colour has to come from --color-navy (a hex in @theme); there is no
-  --navy HSL triplet, so hsl(var(--navy)/.05) silently paints nothing. The
-  tint rides as a background-image over the card colour, since background-image
-  and background-color compose rather than one replacing the other.
-*/
 @utility animate-wave {
   animation: wave-hand 3s ease-in-out infinite;
   transform-origin: 70% 75%;
@@ -375,6 +428,15 @@
   .animate-wave { animation: none; }
 }
 
+/*
+  Sticky table headers: opaque so scrolling rows cannot show through, tinted
+  the same navy 5% as the Kanban column headers.
+
+  The colour has to come from --color-navy (a hex in @theme); there is no
+  --navy HSL triplet, so hsl(var(--navy)/.05) silently paints nothing. The
+  tint rides as a background-image over the card colour, since background-image
+  and background-color compose rather than one replacing the other.
+*/
 @utility table-header-tint {
   background-color: hsl(var(--card));
   background-image: linear-gradient(

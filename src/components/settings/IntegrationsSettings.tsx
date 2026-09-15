@@ -248,10 +248,10 @@ export function IntegrationsSettings() {
                   </span>
                 )}
               </div>
-              <p className="mt-2 line-clamp-2 text-[11px] leading-4 text-muted-foreground">
+              <p className="mt-2 line-clamp-2 text-2xs leading-4 text-muted-foreground">
                 {group.description}
               </p>
-              <p className="mt-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="mt-2 text-2xs font-medium uppercase tracking-wide text-muted-foreground">
                 {filled}/{group.fields.length} fields set
               </p>
             </button>
@@ -269,10 +269,10 @@ export function IntegrationsSettings() {
             </span>
             <span className="portal-heading truncate text-sm">API Keys</span>
           </div>
-          <p className="mt-2 line-clamp-2 text-[11px] leading-4 text-muted-foreground">
+          <p className="mt-2 line-clamp-2 text-2xs leading-4 text-muted-foreground">
             Keys your CRM uses to push won deals into Handover.
           </p>
-          <p className="mt-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="mt-2 text-2xs font-medium uppercase tracking-wide text-muted-foreground">
             Manage keys
           </p>
         </button>
@@ -307,7 +307,7 @@ export function IntegrationsSettings() {
                         setValues((prev) => ({ ...prev, [field.key]: e.target.value }))
                       }
                     />
-                    {field.help && <p className="text-[11px] text-muted-foreground">{field.help}</p>}
+                    {field.help && <p className="text-2xs text-muted-foreground">{field.help}</p>}
                   </div>
                 ))}
               </div>

@@ -93,7 +93,7 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
                   <TableCell className="text-sm whitespace-nowrap">
                     <GoLiveDate project={project} />
                     {verdict.daysRemaining < 0 && (
-                      <span className="ml-1.5 text-xs font-medium text-red-600 dark:text-red-400">
+                      <span className="ml-1.5 text-xs font-medium text-destructive-strong">
                         {Math.abs(verdict.daysRemaining)}d late
                       </span>
                     )}

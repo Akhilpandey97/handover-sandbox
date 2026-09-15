@@ -107,26 +107,26 @@ export const TATDashlet = ({ projects }: Props) => {
 
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
         <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-md bg-sky-50 p-2 dark:bg-sky-950/40">
-            <p className="text-[10px] font-semibold tracking-normal text-sky-700 dark:text-sky-300">Merchants</p>
-            <p className="mt-0.5 text-xl font-semibold leading-tight tabular-nums text-sky-900 dark:text-sky-200">{overall.count}</p>
-            <p className="text-[10px] text-sky-700 dark:text-sky-300">live</p>
+          <div className="rounded-md bg-pending-soft p-2">
+            <p className="text-2xs font-semibold tracking-normal text-pending-strong">Merchants</p>
+            <p className="mt-0.5 text-xl font-semibold leading-tight tabular-nums text-pending-strong">{overall.count}</p>
+            <p className="text-2xs text-pending-strong">live</p>
           </div>
           <div className="min-w-0 rounded-md bg-muted p-2">
-            <p className="truncate text-[10px] font-semibold tracking-normal text-muted-foreground">Total {arrLabel}</p>
+            <p className="truncate text-2xs font-semibold tracking-normal text-muted-foreground">Total {arrLabel}</p>
             <p className="mt-0.5 truncate text-xl font-semibold leading-tight tabular-nums text-foreground">{formatCr(overall.totalArr)}</p>
-            <p className="text-[10px] text-muted-foreground">Cr</p>
+            <p className="text-2xs text-muted-foreground">Cr</p>
           </div>
-          <div className="rounded-md bg-emerald-50 p-2 dark:bg-emerald-950/40">
-            <p className="text-[10px] font-semibold tracking-normal text-emerald-700 dark:text-emerald-300">Avg TAT</p>
-            <p className="mt-0.5 text-xl font-semibold leading-tight tabular-nums text-emerald-900 dark:text-emerald-200">{overall.avgTat.toFixed(1)}</p>
-            <p className="text-[10px] text-emerald-700 dark:text-emerald-300">days</p>
+          <div className="rounded-md bg-success-soft p-2">
+            <p className="text-2xs font-semibold tracking-normal text-success-strong">Avg TAT</p>
+            <p className="mt-0.5 text-xl font-semibold leading-tight tabular-nums text-success-strong">{overall.avgTat.toFixed(1)}</p>
+            <p className="text-2xs text-success-strong">days</p>
           </div>
         </div>
 
         {/* Stage averages as one compact line instead of cards. */}
         {stageAverages.length > 0 && (
-          <div className="flex items-center gap-x-3 gap-y-1 overflow-x-auto whitespace-nowrap text-[11px]">
+          <div className="flex items-center gap-x-3 gap-y-1 overflow-x-auto whitespace-nowrap text-2xs">
             {stageAverages.map(stage => (
               <span key={stage.id} className="flex shrink-0 items-baseline gap-1">
                 <span className="font-medium text-muted-foreground" title={stage.label}>{stage.label}</span>
@@ -145,11 +145,11 @@ export const TATDashlet = ({ projects }: Props) => {
             <table className="w-full min-w-[420px] text-left">
               <thead className="sticky top-0 z-10 bg-muted/70 backdrop-blur">
                 <tr>
-                  <th className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground">Merchant</th>
+                  <th className="px-3 py-1.5 text-2xs font-semibold text-muted-foreground">Merchant</th>
                   {orderedStages.map(stage => (
-                    <th key={stage.id} className="px-2 py-1.5 text-right text-[10px] font-semibold text-muted-foreground">{stage.label}</th>
+                    <th key={stage.id} className="px-2 py-1.5 text-right text-2xs font-semibold text-muted-foreground">{stage.label}</th>
                   ))}
-                  <th className="px-3 py-1.5 text-right text-[10px] font-semibold text-muted-foreground">Total</th>
+                  <th className="px-3 py-1.5 text-right text-2xs font-semibold text-muted-foreground">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -157,10 +157,10 @@ export const TATDashlet = ({ projects }: Props) => {
                   <tr key={r.id}>
                     <td className="px-3 py-1.5">
                       <p className="truncate text-xs font-semibold text-foreground">{r.merchant}</p>
-                      <p className="text-[10px] text-muted-foreground">{arrLabel}: {formatCr(r.arr)} Cr</p>
+                      <p className="text-2xs text-muted-foreground">{arrLabel}: {formatCr(r.arr)} Cr</p>
                     </td>
                     {r.stageDays.map((days, index) => (
-                      <td key={orderedStages[index]?.id || index} className="whitespace-nowrap px-2 py-1.5 text-right text-[11px] tabular-nums text-muted-foreground">
+                      <td key={orderedStages[index]?.id || index} className="whitespace-nowrap px-2 py-1.5 text-right text-2xs tabular-nums text-muted-foreground">
                         {days === null ? "–" : `${days}d`}
                       </td>
                     ))}

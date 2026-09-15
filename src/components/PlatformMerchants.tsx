@@ -42,9 +42,9 @@ const STATUS_OPTIONS: { value: Status; label: string }[] = [
 ];
 
 const statusStyles: Record<Status, string> = {
-  live: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-  inprogress: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-  blocked: "bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30",
+  live: "bg-success/15 text-success-strong border-success/30",
+  inprogress: "bg-warning/15 text-warning-strong border-warning/30",
+  blocked: "bg-destructive/15 text-destructive-strong border-destructive/30",
 };
 
 interface PlatformMerchant {
@@ -600,7 +600,7 @@ export const PlatformMerchants = () => {
               <CardContent className="p-4">
                 <p className="text-xs text-muted-foreground tracking-normal">{p}</p>
                 <p className="text-2xl font-bold mt-1">{list.length}</p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{liveList.length} live</p>
+                <p className="text-xs text-success-strong mt-1">{liveList.length} live</p>
                 <p className="text-xs font-medium text-foreground mt-1">Live ARR: ₹{liveArr.toFixed(2)} Cr</p>
               </CardContent>
             </Card>

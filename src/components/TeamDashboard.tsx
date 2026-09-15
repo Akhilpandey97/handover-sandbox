@@ -132,10 +132,10 @@ export const TeamDashboard = () => {
 
   const stateBoxes: Array<{ key: string; state: ProjectState; icon: typeof AlertCircle; tone: string }> = [
     { key: "not_started", state: "not_started", icon: CircleDashed, tone: "bg-muted text-foreground/70" },
-    { key: "in_progress", state: "in_progress", icon: Rocket, tone: "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300" },
-    { key: "on_hold", state: "on_hold", icon: PauseCircle, tone: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300" },
-    { key: "blocked", state: "blocked", icon: AlertCircle, tone: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" },
-    { key: "live", state: "live", icon: CheckCircle2, tone: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
+    { key: "in_progress", state: "in_progress", icon: Rocket, tone: "bg-pending-soft text-pending-strong" },
+    { key: "on_hold", state: "on_hold", icon: PauseCircle, tone: "bg-warning-soft text-warning-strong" },
+    { key: "blocked", state: "blocked", icon: AlertCircle, tone: "bg-destructive-soft text-destructive-strong" },
+    { key: "live", state: "live", icon: CheckCircle2, tone: "bg-success-soft text-success-strong" },
   ];
 
   const kpiItems: KpiBoxItem[] = [
@@ -186,9 +186,9 @@ export const TeamDashboard = () => {
         <div className="min-h-0 flex-1 overflow-y-auto p-3">
           {incomingProjects.length === 0 ? (
             <div className="flex min-h-28 flex-col items-center justify-center text-center">
-              <CheckCircle2 className="mb-2 h-6 w-6 text-emerald-500" />
+              <CheckCircle2 className="mb-2 h-6 w-6 text-success-strong" />
               <p className="text-sm font-medium text-foreground">You’re all caught up</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">No incoming projects need acceptance.</p>
+              <p className="mt-1 text-2xs text-muted-foreground">No incoming projects need acceptance.</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -205,7 +205,7 @@ export const TeamDashboard = () => {
                       >
                         {project.merchantName}
                       </button>
-                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-2xs text-muted-foreground">
                         <span>{arrLabel}: {arrToCrore(project.arr).toFixed(2)} Cr</span>
                         <span>· {getLabel("field_project_state")}: {stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span>
                         <span>· {getLabel("field_project_stage")}: {stageLabel}</span>
@@ -213,7 +213,7 @@ export const TeamDashboard = () => {
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <Button size="sm" className="h-7 gap-1 bg-emerald-500 px-2.5 text-xs text-white hover:bg-emerald-600" onClick={() => acceptProject(project.id)}><CheckCircle2 className="h-3 w-3" />Accept</Button>
+                      <Button size="sm" className="h-7 gap-1 bg-success px-2.5 text-xs text-success-foreground hover:bg-success" onClick={() => acceptProject(project.id)}><CheckCircle2 className="h-3 w-3" />Accept</Button>
                       <Button size="sm" variant="destructive" className="h-7 gap-1 px-2.5 text-xs" onClick={() => setRejectTarget(project)}><XCircle className="h-3 w-3" />Reject</Button>
                     </div>
                   </div>
@@ -236,7 +236,7 @@ export const TeamDashboard = () => {
         <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
           {Object.entries(deliveryStageGroups).sort((a, b) => b[1].length - a[1].length).map(([label, list]) => {
             const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
-            return <button type="button" key={label} onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })} className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-xs"><span className="max-w-[70%] truncate font-medium text-foreground/80">{label}</span><span className="text-[11px] font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
+            return <button type="button" key={label} onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })} className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-xs"><span className="max-w-[70%] truncate font-medium text-foreground/80">{label}</span><span className="text-2xs font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
           })}
         </div>
       </section>
@@ -251,7 +251,7 @@ export const TeamDashboard = () => {
           {(Object.keys(projectStateLabels) as ProjectState[]).map((state) => {
             const list = visibleProjects.filter((project) => project.projectState === state);
             const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
-            return <button type="button" key={state} onClick={() => setDrillDown({ title: stateLabels[state] || projectStateLabels[state], description: "Project state", projects: list })} className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-xs"><span className="font-medium text-foreground/80">{stateLabels[state] || projectStateLabels[state]}</span><span className="text-[11px] font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
+            return <button type="button" key={state} onClick={() => setDrillDown({ title: stateLabels[state] || projectStateLabels[state], description: "Project state", projects: list })} className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-xs"><span className="font-medium text-foreground/80">{stateLabels[state] || projectStateLabels[state]}</span><span className="text-2xs font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
           })}
         </div>
       </section>
@@ -287,7 +287,7 @@ export const TeamDashboard = () => {
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
             {labels.org_logo_url ? <img src={labels.org_logo_url} alt="Logo" className={cn("rounded-xl object-contain shadow-lg ring-2 ring-primary/20", sidebarCollapsed ? "h-8 w-8" : "h-12 w-12")} /> : <span className={cn("flex items-center justify-center rounded-xl gradient-primary shadow-[var(--shadow-soft)]", sidebarCollapsed ? "h-8 w-8" : "h-11 w-11")}><BarChart3 className="h-5 w-5 text-primary-foreground" /></span>}
-            {!sidebarCollapsed && <><h1 className="min-w-0 flex-1 truncate text-[16px] font-semibold">{labels.app_title}</h1><div className="flex shrink-0 items-center gap-0.5 [&_button]:text-sidebar-foreground/70 [&_button:hover]:text-sidebar-foreground"><Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-sidebar-accent/60" onClick={() => setSearchOpen((open) => !open)} title="Search projects"><Search className="h-4 w-4" /></Button><NotificationCenter /><Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-sidebar-accent/60" onClick={() => setSidebarCollapsed(true)} title="Collapse sidebar"><PanelLeftClose className="h-4 w-4" /></Button></div></>}
+            {!sidebarCollapsed && <><h1 className="min-w-0 flex-1 truncate text-base font-semibold">{labels.app_title}</h1><div className="flex shrink-0 items-center gap-0.5 [&_button]:text-sidebar-foreground/70 [&_button:hover]:text-sidebar-foreground"><Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-sidebar-accent/60" onClick={() => setSearchOpen((open) => !open)} title="Search projects"><Search className="h-4 w-4" /></Button><NotificationCenter /><Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-sidebar-accent/60" onClick={() => setSidebarCollapsed(true)} title="Collapse sidebar"><PanelLeftClose className="h-4 w-4" /></Button></div></>}
           </div>
           {sidebarCollapsed && <div className="mt-3 flex flex-col items-center gap-1 [&_button]:text-sidebar-foreground/70"><Button variant="ghost" size="icon" onClick={() => { setSidebarCollapsed(false); setSearchOpen(true); }} title="Search projects"><Search className="h-4 w-4" /></Button><NotificationCenter /><Button variant="ghost" size="icon" onClick={() => setSidebarCollapsed(false)} title="Expand sidebar"><PanelLeftOpen className="h-4 w-4" /></Button></div>}
         </div>
@@ -297,7 +297,7 @@ export const TeamDashboard = () => {
         </nav>
         <div className="p-2">
           <Popover>
-            <PopoverTrigger asChild><Button variant="ghost" className={cn("h-auto w-full justify-start gap-2 p-1 text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground", sidebarCollapsed && "justify-center")}><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{currentUser.name.charAt(0)}</span>{!sidebarCollapsed && <span className="min-w-0 flex-1 text-left"><span className="block truncate text-xs font-medium">{currentUser.name}</span><span className="block text-[10px] text-sidebar-foreground/60">{teamLabels[currentUser.team] || currentUser.team}</span></span>}</Button></PopoverTrigger>
+            <PopoverTrigger asChild><Button variant="ghost" className={cn("h-auto w-full justify-start gap-2 p-1 text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground", sidebarCollapsed && "justify-center")}><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{currentUser.name.charAt(0)}</span>{!sidebarCollapsed && <span className="min-w-0 flex-1 text-left"><span className="block truncate text-xs font-medium">{currentUser.name}</span><span className="block text-2xs text-sidebar-foreground/60">{teamLabels[currentUser.team] || currentUser.team}</span></span>}</Button></PopoverTrigger>
             <PopoverContent side="top" align="start" className="w-44 p-1.5"><div className="flex items-center justify-between rounded-md px-2 py-1 text-sm"><span>Theme</span><ThemeToggle /></div><Button variant="ghost" onClick={logout} className="mt-0.5 w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"><LogOut className="h-4 w-4" />Logout</Button></PopoverContent>
           </Popover>
         </div>
@@ -308,7 +308,7 @@ export const TeamDashboard = () => {
           <div className={cn("p-4 sm:p-6", (resolvedTab === "projects" || resolvedTab === "hi-there") && "flex min-h-0 flex-1 flex-col")}>
             {resolvedTab === "projects" && <div className="mb-3 flex shrink-0 flex-wrap items-center justify-center gap-2"><div className="flex items-center gap-1" role="tablist" aria-label="Project views">{[{ value: "kanban", label: "Kanban", icon: GripVertical }, { value: "golive", label: "Go-Live Tracker", icon: CalendarDays }].map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" size="sm" role="tab" aria-selected={projectView === value} onClick={() => navigate({ to: projectViewPath(value as "kanban" | "golive") })} className={cn("h-8 gap-1.5 text-xs", projectView === value && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground")}><Icon className="h-3.5 w-3.5" />{label}</Button>)}</div><div ref={setProjectToolbarHost} className="flex flex-wrap items-center gap-2" /></div>}
             {resolvedTab === "dashboard" && <div className="mx-auto max-w-[1500px]">
-              <div className="mb-4 flex items-end justify-between gap-4"><div><h1 className="text-xl font-semibold tracking-tight text-foreground">{greeting()}, {currentUser.name} — here are your actions for today</h1></div><DashletBuilder items={builderItems} hidden={hidden} onToggle={toggleHidden} custom={customDashlets} onAddCustom={addCustom} onRemoveCustom={removeCustom} /></div>
+              <div className="mb-4 flex items-end justify-between gap-4"><div><h1 className="heading-page text-foreground">{greeting()}, {currentUser.name} — here are your actions for today</h1></div><DashletBuilder items={builderItems} hidden={hidden} onToggle={toggleHidden} custom={customDashlets} onAddCustom={addCustom} onRemoveCustom={removeCustom} /></div>
               <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">{visibleOrder.map((id) => dashlets[id] ? <DashletSlot key={id} className={id === "kpi" ? "row-span-1 lg:col-span-2" : "lg:col-span-1"} isDragging={dragging === id} onDragStart={() => onDragStart(id)} onDragOver={() => onDragOver(id)} onDragEnd={onDragEnd}>{dashlets[id]}</DashletSlot> : null)}</div>
               <ProjectListDialog title={drillDown?.title || ""} description={drillDown?.description} projects={drillDown?.projects || []} open={!!drillDown} onOpenChange={(open) => { if (!open) setDrillDown(null); }} />
               {rejectTarget && <RejectTransferDialog project={rejectTarget} open={!!rejectTarget} onOpenChange={(open) => { if (!open) setRejectTarget(null); }} onReject={(reason) => { rejectProject(rejectTarget.id, reason); setRejectTarget(null); }} />}
