@@ -44,13 +44,18 @@ export interface BuddyAction {
   result?: ActionResult;
 }
 
-/** A table and chart Buddy built from a question. */
+export type ChartType = "column" | "bar" | "line" | "area" | "pie" | "donut" | "stacked" | "grouped" | "multiline" | "table";
+
+/** Headline numbers, a chart and its table, built by Buddy from a question. */
 export interface BuddyReport {
   title: string;
   subtitle?: string;
+  stats?: { label: string; value: string }[];
   columns: { key: string; label: string; numeric?: boolean }[];
   rows: Record<string, string | number | null>[];
-  chart?: { type: "bar" | "line"; x: string; y: string[] };
+  chart?: { type: ChartType; x: string; series: { key: string; label: string }[]; valueLabel: string };
+  /** Chart forms that fit this data, offered in the switcher. */
+  charts?: ChartType[];
   /** Reports-builder column keys, when it can be saved to Reports. */
   saveColumns?: string[];
   total: number;

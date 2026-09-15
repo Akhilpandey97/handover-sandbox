@@ -62,6 +62,7 @@ Done when:
 
 - [x] Report answers: `build_report` returns a table and chart (bar, or line for go-live months), shown in the chat with CSV download
 - [x] Save to Reports for project lists (column keys match the Reports builder). Saved reports store columns only, so filters from the question aren't kept — the card says so
+- [x] More chart forms: column, horizontal bar, line, area, pie, donut, stacked, grouped and multi-line (with a second dimension), plus headline number tiles; a switcher offers only the forms that fit the data, and the table is always there. Colours are the validated categorical palette (`--series-1…8`, checked against the light and dark card surfaces); pies cap at 6 slices and splits at 8 series, the rest folding into "Other"
 - [x] Usage view (Settings → Buddy): questions (counted without text), people, actions done / cancelled / undone / failed, approval rate, most used actions, brief use, 👎 answers with question and answer
 - [x] Per-workspace settings (admins): switch actions off, bulk limit, instructions for Buddy, daily brief on/off — all enforced on the server
 

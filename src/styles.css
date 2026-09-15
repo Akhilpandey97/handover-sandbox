@@ -228,6 +228,24 @@
   --hero: 212 52% 24%;
   --hero-foreground: 190 45% 96%;
 
+
+  /*
+    Chart palette: the validated categorical order from the dataviz method
+    (fixed order, never cycled). Checked against the app surfaces: light on
+    #ffffff (aqua, yellow and magenta sit below 3:1, so every chart ships a
+    legend and a table view), dark on the card colour (all pass).
+  */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+  --chart-grid: hsl(202 24% 91%);
+  --chart-axis: hsl(202 24% 80%);
+
   --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
   --gradient-hero: linear-gradient(150deg, hsl(212 55% 18%), hsl(200 52% 28%));
   --shadow-soft: 0 1px 2px hsl(var(--foreground) / 0.05), 0 8px 24px -16px hsl(var(--foreground) / 0.25);
@@ -308,6 +326,18 @@
   --surface-2: 210 30% 13%;
   --hero: 212 45% 16%;
   --hero-foreground: 195 30% 95%;
+
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+  --chart-grid: hsl(208 24% 18%);
+  --chart-axis: hsl(208 24% 28%);
 
   --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
   --gradient-hero: linear-gradient(150deg, hsl(212 48% 14%), hsl(200 38% 22%));
