@@ -44,3 +44,7 @@
   admin-only table (`private.cron_config`) or `LOVABLE_CRON_SECRET`.
 - Roles are single-role per user (`user_roles` is read with `.single()` by the
   ported functions) — do not add a second role row for the same user.
+## Website build
+- [ ] Build public Handover marketing website from supplied brief and reference-site cues.
+- [ ] Create original product infographics and supporting images.
+- [ ] Preserve authenticated product routing and sign-in access.
