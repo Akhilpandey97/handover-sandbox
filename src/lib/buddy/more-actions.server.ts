@@ -7,7 +7,6 @@ import {
   loadProject,
   plainTextToHtml,
   projectLink,
-  registerActions,
   sendResendEmail,
 } from "@/lib/buddy/actions.server";
 import type { BuddyCaller } from "@/lib/buddy/scope.server";
@@ -641,7 +640,7 @@ async function loadPeople(c: BuddyCaller, ids: unknown) {
   return people;
 }
 
-registerActions(MORE, [
+const MORE_DEFS: any[] = [
   {
     type: "function",
     function: {
@@ -777,7 +776,7 @@ registerActions(MORE, [
       },
     },
   },
-]);
+];
 
 // ── Tasks, checklist comments and checklist responsibility ─────────────────
 
@@ -944,7 +943,7 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
   },
 };
 
-registerActions(CHECKLIST_MORE, [
+const CHECKLIST_DEFS: any[] = [
   {
     type: "function",
     function: {
@@ -985,6 +984,12 @@ registerActions(CHECKLIST_MORE, [
       },
     },
   },
-]);
+];
 
-export {};
+/**
+ * Exported by name and combined in registry.server.ts. Not registered as an
+ * import side effect: package.json marks modules side-effect free, and the
+ * bundler drops such registrations from production builds.
+ */
+export const MORE_ACTIONS: Record<string, ActionDef> = { ...MORE, ...CHECKLIST_MORE };
+export const MORE_ACTION_TOOL_DEFS: any[] = [...MORE_DEFS, ...CHECKLIST_DEFS];

@@ -87,7 +87,7 @@ export const MessageView = ({ message, isLast, compact, onRetry, onFeedback, onA
         )}
         {message.stopped && <p className="text-xs text-muted-foreground">Stopped.</p>}
 
-        {done && (message.content || message.sources?.length) && (
+        {done && (!!message.content || !!message.sources?.length) && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-dashed border-border pt-2">
             <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-2xs text-muted-foreground">
               {(projectSources.length > 0 || dataSources.length > 0) && <span>Based on</span>}

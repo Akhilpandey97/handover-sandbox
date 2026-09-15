@@ -1,13 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { buddyCaller, corsHeaders, json } from "@/lib/buddy/scope.server";
-import {
-  DEFAULT_BULK_LIMIT,
-  UNDO_WINDOW_MS,
-  getAction,
-  isActionError,
-  undoAction,
-} from "@/lib/buddy/actions.server";
-import "@/lib/buddy/more-actions.server";
+import { DEFAULT_BULK_LIMIT, UNDO_WINDOW_MS, isActionError, undoAction } from "@/lib/buddy/actions.server";
+import { getAnyAction as getAction } from "@/lib/buddy/registry.server";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
 
 /**

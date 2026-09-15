@@ -2,8 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { buddyCaller, corsHeaders, json, PHASE_LABELS, STATE_LABELS, todayIso } from "@/lib/buddy/scope.server";
 import { READ_TOOL_DEFS, READ_TOOL_NAMES, runReadTool, type BuddySource } from "@/lib/buddy/read-tools.server";
 import { REPORT_TOOL_DEF, runReportTool } from "@/lib/buddy/report-tool.server";
-import { ACTION_TOOL_DEFS } from "@/lib/buddy/actions.server";
-import "@/lib/buddy/more-actions.server";
+import { ALL_ACTION_TOOL_DEFS as ACTION_TOOL_DEFS } from "@/lib/buddy/registry.server";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
 
 /**
@@ -114,6 +113,7 @@ async function handler(req: Request): Promise<Response> {
     ? ACTION_TOOL_DEFS.filter((t) => !settings.disabled_actions.includes(t.function.name))
     : [];
   const tools = [...READ_TOOL_DEFS, REPORT_TOOL_DEF, ...allowedActions];
+  const allowedToolNames = new Set<string>(tools.map((t) => t.function.name as string));
 
   const system = [
     `You are Buddy, the assistant inside Handover, a tool for tracking merchant onboarding and integration projects. Today is ${todayIso()}.`,
@@ -237,6 +237,28 @@ ${
               return { id: c.id || `call_${round}_${i}`, name: c.name, args, raw: c.args || "{}" };
             });
           if (parsed.length === 0) break;
+
+          // A tool name the model made up, or one switched off for this workspace: tell the
+          // model what exists and let it try again, rather than showing a card that can't run.
+          if (parsed.some((c) => !allowedToolNames.has(c.name))) {
+            convo.push({
+              role: "assistant",
+              content: text || "",
+              tool_calls: parsed.map((c) => ({ id: c.id, type: "function", function: { name: c.name, arguments: c.raw } })),
+            });
+            for (const c of parsed) {
+              convo.push({
+                role: "tool",
+                tool_call_id: c.id,
+                content: JSON.stringify(
+                  allowedToolNames.has(c.name)
+                    ? { error: "Not run, because another tool in the same step does not exist. Call the tools again." }
+                    : { error: `There is no tool named ${c.name}. Available tools: ${Array.from(allowedToolNames).join(", ")}.` },
+                ),
+              });
+            }
+            continue;
+          }
 
           const actionCalls = parsed.filter((c) => !isReadTool(c.name));
           if (actionCalls.length > 0) {
