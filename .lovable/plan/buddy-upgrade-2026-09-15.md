@@ -80,7 +80,7 @@ Done when:
 
 ## To apply
 
-- [ ] Run `supabase/migrations/20260915100000_buddy_chat_metadata.sql` (adds `chat_messages.metadata` and an update policy)
+- [x] Run `supabase/migrations/20260915100000_buddy_chat_metadata.sql` (adds `chat_messages.metadata` and an update policy) — applied 2026-09-15
 - [ ] Walk through the "Done when" checks above in the app
 
 ## Risks
