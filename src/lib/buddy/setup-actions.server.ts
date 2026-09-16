@@ -62,7 +62,7 @@ const lc = (v: unknown) => String(v ?? "").trim().toLowerCase();
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const asArray = (v: unknown, what: string): P[] => {
   if (!Array.isArray(v) || v.length === 0) fail(`No ${what} were given.`);
-  if ((v as unknown[]).length > 100) fail(`That's more than 100 ${what} at once. Split it up.`);
+  if ((v as unknown[]).length > 150) fail(`That's more than 150 ${what} at once. Split it into several cards.`);
   return v as P[];
 };
 const hex = (v: unknown, fallback?: string) => {
@@ -1236,7 +1236,7 @@ const resolveRole = (roles: Record<string, string>, v: unknown) => {
 
 async function planInvites(c: BuddyCaller, p: P) {
   const people = asArray(p.people, "people");
-  if (people.length > 50) fail("Invite up to 50 people at a time.");
+  if (people.length > 100) fail("Invite up to 100 people at a time; propose the rest in another card.");
   const roles = await roleOptions(c);
   const seen = new Set<string>();
   const list = people.map((person) => {

@@ -61,12 +61,24 @@ export interface BuddyReport {
   total: number;
 }
 
+/** A spreadsheet attached to a message, sent to Buddy as CSV text. */
+export interface BuddyAttachment {
+  name: string;
+  sheet: string;
+  rows: number;
+  columns: string[];
+  csv: string;
+  /** Rows beyond what fit were left out. */
+  rowsIncluded: number;
+}
+
 export interface BuddyMessage {
   id: string;
   dbId?: string;
   role: "user" | "assistant";
   content: string;
   createdAt: string;
+  attachments?: BuddyAttachment[];
   steps?: string[];
   sources?: BuddySource[];
   reports?: BuddyReport[];

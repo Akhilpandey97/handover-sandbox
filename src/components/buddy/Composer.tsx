@@ -1,8 +1,9 @@
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { ArrowUp, Mic, MicOff, Square } from "lucide-react";
+import { ArrowUp, FileSpreadsheet, Loader2, Mic, MicOff, Paperclip, Square, X } from "lucide-react";
+import { SPREADSHEET_ACCEPT, readSpreadsheet, sheetToCsv } from "@/lib/spreadsheet";
 import { cn } from "@/lib/utils";
 import { SLASH_COMMANDS } from "./commands";
-import type { Mention } from "./types";
+import type { BuddyAttachment, Mention } from "./types";
 
 export interface ComposerHandle {
   setText: (text: string, focus?: boolean) => void;
@@ -21,7 +22,7 @@ interface Props {
   listening: boolean;
   transcript: string;
   voiceSupported: boolean;
-  onSend: (text: string, mentions: Mention[]) => void;
+  onSend: (text: string, mentions: Mention[], attachments: BuddyAttachment[]) => void;
   onStop: () => void;
   onVoice: () => void;
   compact?: boolean;
@@ -38,6 +39,10 @@ const tokenAt = (value: string, caret: number, sigil: "@" | "/") => {
   if (/\s/.test(term)) return null;
   return { at, term };
 };
+
+/** Budget for attached sheets sent to Buddy, across all sheets in one message. */
+const ATTACHMENT_CHARS = 60_000;
+const MAX_SHEETS = 5;
 
 const KIND_LABEL: Record<Mention["kind"], string> = { project: "Project", person: "Person", item: "Checklist" };
 
@@ -64,6 +69,32 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
   const [index, setIndex] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const chosen = useRef(new Map<string, Mention>());
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<BuddyAttachment[]>([]);
+  const [reading, setReading] = useState(false);
+  const [fileError, setFileError] = useState("");
+
+  const attach = async (file: File | undefined) => {
+    if (!file) return;
+    setReading(true);
+    setFileError("");
+    try {
+      const sheets = (await readSpreadsheet(file)).slice(0, MAX_SHEETS);
+      const budget = Math.floor(ATTACHMENT_CHARS / sheets.length);
+      setAttachments(
+        sheets.map((sheet) => {
+          const { csv, rowsIncluded } = sheetToCsv(sheet, budget);
+          return { name: file.name, sheet: sheet.name, rows: sheet.rows.length, columns: sheet.headers, csv, rowsIncluded };
+        }),
+      );
+      inputRef.current?.focus();
+    } catch (err) {
+      setFileError((err as Error).message);
+    } finally {
+      setReading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
 
   const resize = () => {
     const el = inputRef.current;
@@ -90,9 +121,11 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
 
   const submit = (text = value) => {
     const t = text.trim();
-    if (!t || isLoading) return;
+    if ((!t && attachments.length === 0) || isLoading || reading) return;
     const mentions = Array.from(chosen.current.values()).filter((m) => t.includes(`@${m.name}`));
-    onSend(t, mentions);
+    onSend(t, mentions, attachments);
+    setAttachments([]);
+    setFileError("");
     setValue("");
     setMenu(null);
     chosen.current.clear();
@@ -214,7 +247,49 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
         </div>
       )}
 
+      {(attachments.length > 0 || fileError) && (
+        <div className="mb-2 flex flex-wrap items-center gap-2 px-1">
+          {attachments.map((a) => (
+            <span key={a.sheet} className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-border bg-muted/60 px-2 py-1 text-xs text-foreground">
+              <FileSpreadsheet className="h-3.5 w-3.5 shrink-0 text-primary" />
+              <span className="truncate">{attachments.length > 1 ? `${a.name} · ${a.sheet}` : a.name}</span>
+              <span className="shrink-0 text-muted-foreground">
+                {a.rows} row{a.rows === 1 ? "" : "s"}{a.rowsIncluded < a.rows ? `, first ${a.rowsIncluded} sent` : ""}
+              </span>
+            </span>
+          ))}
+          {attachments.length > 0 && (
+            <button type="button" onClick={() => setAttachments([])} aria-label="Remove attachment" className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {fileError && <span className="text-xs text-destructive-strong">{fileError}</span>}
+        </div>
+      )}
+
       <div className="flex items-end gap-2 rounded-2xl border border-border bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-ring/40">
+        {canAct && (
+          <>
+            <input
+              ref={fileRef}
+              id={compact ? "buddy-drawer-file" : "buddy-page-file"}
+              type="file"
+              accept={SPREADSHEET_ACCEPT}
+              className="hidden"
+              onChange={(e) => void attach(e.target.files?.[0])}
+            />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={isLoading || reading}
+              title="Attach an Excel or CSV file"
+              aria-label="Attach an Excel or CSV file"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+            >
+              {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+            </button>
+          </>
+        )}
         <textarea
           id={compact ? "buddy-drawer-input" : "buddy-page-input"}
           ref={inputRef}
@@ -222,7 +297,13 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
           rows={1}
           disabled={listening}
           aria-label="Message Buddy"
-          placeholder={projectName ? `Ask about ${projectName}, or type / for commands` : "Ask Buddy, or type / for commands and @ to tag"}
+          placeholder={
+            attachments.length
+              ? "Say what this file is for, or just send it"
+              : projectName
+                ? `Ask about ${projectName}, or type / for commands`
+                : "Ask Buddy, or type / for commands and @ to tag"
+          }
           onChange={(e) => onChange(e.target.value, e.target.selectionStart ?? e.target.value.length)}
           onKeyDown={onKeyDown}
           onBlur={() => window.setTimeout(() => setMenu(null), 120)}
@@ -257,7 +338,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
           <button
             type="button"
             onClick={() => submit()}
-            disabled={!value.trim()}
+            disabled={!value.trim() && attachments.length === 0}
             title="Send"
             aria-label="Send"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
@@ -270,6 +351,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
         <span>/ commands</span>
         <span>@ projects, people and checklist items</span>
         <span>Shift + Enter for a new line</span>
+        {canAct && <span>Attach Excel or CSV to set things up in bulk</span>}
       </p>
     </div>
   );

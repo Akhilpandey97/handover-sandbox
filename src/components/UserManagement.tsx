@@ -23,7 +23,8 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { UserPlus, Users, RefreshCw, Key, Pencil, Trash2, Mail } from "lucide-react";
+import { UserPlus, Users, RefreshCw, Key, Pencil, Trash2, Mail, Upload } from "lucide-react";
+import { ImportUsersDialog } from "@/components/ImportUsersDialog";
 import type { Database } from "@/integrations/supabase/types";
 
 interface UserWithRole {
@@ -58,6 +59,7 @@ export const UserManagement = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [team, setTeam] = useState<string>("mint");
+  const [importOpen, setImportOpen] = useState(false);
 
   // Set password dialog state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
@@ -277,6 +279,17 @@ export const UserManagement = () => {
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+            <ImportUsersDialog
+              open={importOpen}
+              onOpenChange={setImportOpen}
+              roles={Object.fromEntries(assignableRoles.map((role) => [role, teamLabels[role as keyof typeof teamLabels] || role]))}
+              existingEmails={users.map((u) => u.email)}
+              onImported={() => fetchUsers()}
+            />
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
                 <Button size="sm"><UserPlus className="h-4 w-4 mr-2" />Add User</Button>

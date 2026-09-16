@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Check, Copy, Loader2, RotateCcw, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Check, Copy, FileSpreadsheet, Loader2, RotateCcw, ThumbsDown, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ActionCard } from "./ActionCard";
@@ -24,7 +24,14 @@ export const MessageView = ({ message, isLast, compact, onRetry, onFeedback, onA
 
   if (message.role === "user") {
     return (
-      <div className="flex justify-end">
+      <div className="flex flex-col items-end gap-1.5">
+        {message.attachments?.map((a) => (
+          <span key={`${a.name}-${a.sheet}`} className="inline-flex max-w-[85%] items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs text-foreground">
+            <FileSpreadsheet className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span className="truncate">{message.attachments!.length > 1 ? `${a.name} · ${a.sheet}` : a.name}</span>
+            <span className="shrink-0 text-muted-foreground">{a.rows} row{a.rows === 1 ? "" : "s"}</span>
+          </span>
+        ))}
         <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-primary px-3.5 py-2 text-sm leading-relaxed text-primary-foreground">
           {message.content}
         </div>

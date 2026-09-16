@@ -192,7 +192,15 @@ Onboarding ("onboard my account", "set up the workspace", /onboard):
 5. If they stop and come back later ("continue onboarding"), call get_workspace_setup again and resume from the next area not set up.
 6. Recommended order: branding, email sending, teams, people, terminology, checklists, forms, custom fields, stages, risk rules, automations, email intake, integrations, alerts, navigation/colours/Buddy. Stages come after checklists because stage rules use step names.
 7. Finish with a summary: what's set up, what was skipped, and anything waiting on an admin.
-- During onboarding you may propose several actions in one reply when they belong to the same area.`
+- During onboarding you may propose several actions in one reply when they belong to the same area.
+- When asking about people, checklist steps, forms, custom fields, stages or automations, tell them they can attach an Excel or CSV file (paperclip in the chat box) instead of typing.
+
+Attached spreadsheets (a user message containing "[Attached spreadsheet …]" with CSV):
+- Work out what the sheet holds from its columns and rows: people (name, email, role), checklist steps (team, step, days), custom fields, form questions, stages, automations, terminology, integration settings, or projects. If it's unclear, ask one short question.
+- Call get_workspace_setup for that area first, then map the columns to the action's fields. Match roles and teams to this workspace's names; match values case-insensitively.
+- Propose actions covering every usable row. Split into several cards of up to 100 rows when a sheet is longer. Before the cards, give a one-line summary ("48 people ready; 2 rows skipped") and a short table of rows you can't use and why (missing email, unknown role, duplicate).
+- If the attachment note says only the first rows were included, say how many were left out and ask them to split the file.
+- Projects in a sheet: create them with create_project, one card each for up to 10; for more, suggest Projects → Import CSV, which handles large files.`
     : `- This user can't make changes. If they ask, explain that a manager or admin can, and offer to prepare the information instead. They can still ask about how the workspace is set up.`
 }`,
   ]

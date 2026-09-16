@@ -13,6 +13,7 @@ import {
   type Mention,
   type Thread,
   newId,
+  type BuddyAttachment,
 } from "./types";
 
 const RECENT_WINDOW = 400;
@@ -35,6 +36,7 @@ const storableActions = (actions?: BuddyAction[]) =>
   }));
 
 const metaOf = (m: BuddyMessage) => ({
+  attachments: m.attachments?.length ? m.attachments : undefined,
   steps: m.steps?.length ? m.steps : undefined,
   sources: m.sources?.length ? m.sources : undefined,
   reports: m.reports?.length ? m.reports : undefined,
@@ -50,6 +52,7 @@ const fromRow = (r: Row): BuddyMessage => ({
   role: r.role === "user" ? "user" : "assistant",
   content: r.content,
   createdAt: r.created_at,
+  attachments: r.metadata?.attachments,
   steps: r.metadata?.steps,
   sources: r.metadata?.sources,
   reports: r.metadata?.reports,
@@ -64,6 +67,13 @@ const toModelHistory = (messages: BuddyMessage[]) =>
   messages
     .map((m) => {
       let content = m.content || "";
+      if (m.role === "user" && m.attachments?.length) {
+        const sheets = m.attachments.map(
+          (a) =>
+            `[Attached spreadsheet "${a.name}", sheet "${a.sheet}": ${a.rows} rows; columns: ${a.columns.join(", ")}${a.rowsIncluded < a.rows ? `; only the first ${a.rowsIncluded} rows are included` : ""}]\n\`\`\`csv\n${a.csv}\n\`\`\``,
+        );
+        content = `${content}\n\n${sheets.join("\n\n")}`.trim();
+      }
       if (m.role === "assistant" && m.actions?.length) {
         const notes = m.actions.map((a) => {
           const what = a.preview?.title || a.name.replace(/_/g, " ");
@@ -267,11 +277,17 @@ export function useBuddyChat({ page, onAnswer }: { page: BuddyPage; onAnswer?: (
   );
 
   const send = useCallback(
-    async (text: string, mentions: Mention[] = []) => {
-      const content = text.trim();
+    async (text: string, mentions: Mention[] = [], attachments: BuddyAttachment[] = []) => {
+      const content = text.trim() || (attachments.length ? `Here's ${attachments.length === 1 ? `"${attachments[0].name}"` : "a spreadsheet"}. Set up what's in it.` : "");
       if (!content || isLoading || !userId) return;
 
-      const userMsg: BuddyMessage = { id: newId(), role: "user", content, createdAt: new Date().toISOString() };
+      const userMsg: BuddyMessage = {
+        id: newId(),
+        role: "user",
+        content,
+        createdAt: new Date().toISOString(),
+        ...(attachments.length ? { attachments } : {}),
+      };
       const assistant: BuddyMessage = {
         id: newId(),
         role: "assistant",

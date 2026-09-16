@@ -273,7 +273,7 @@ export const BuddyChat = ({ variant, page, onClose }: Props) => {
         listening={voice.listening}
         transcript={voice.transcript}
         voiceSupported={voice.supported}
-        onSend={(text, mentions) => void chat.send(text, mentions)}
+        onSend={(text, mentions, attachments) => void chat.send(text, mentions, attachments)}
         onStop={chat.stop}
         onVoice={voice.listening ? voice.stop : voice.start}
       />
