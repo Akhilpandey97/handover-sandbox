@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { buddyCaller, corsHeaders, json, todayIso, type BuddyCaller } from "@/lib/buddy/scope.server";
+import { STATE_LABELS, buddyCaller, corsHeaders, json, todayIso, type BuddyCaller } from "@/lib/buddy/scope.server";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
 import {
   RISK_SETTINGS_KEY,
@@ -51,6 +51,8 @@ const NEXT_TEAM: Record<string, string> = { mint: "integration", integration: "m
 const DEFAULT_TEAM_NAMES: Record<string, string> = { mint: "Sales", integration: "MINT", ms: "Merchant Success" };
 
 const SEVERITY_RANK: Record<RiskSeverity, number> = { low: 0, medium: 1, high: 2, critical: 3 };
+
+const stateName = (state: string) => (STATE_LABELS[state] || state.replace(/_/g, " ")).toLowerCase();
 
 const shortDate = (d: string) =>
   new Date(d).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
@@ -251,7 +253,10 @@ async function handler(req: Request): Promise<Response> {
     const name = r.p.merchant_name;
     switch (finding.type) {
       case "project_state":
-        return { label: "Ask what's blocking it", prompt: `Why is ${name} ${String(r.p.project_state).replace(/_/g, " ")}, and what would move it forward?` };
+        return {
+          label: r.p.project_state === "blocked" ? "Ask what's blocking it" : "Ask what's holding it up",
+          prompt: `Why is ${name} ${stateName(r.p.project_state)}, and what would move it forward?`,
+        };
       case "checklist_overdue":
         return r.merchantOverdue && caller.canAct && r.p.contact_email
           ? { label: "Draft follow-up", prompt: `Draft a follow-up email to the merchant contact for ${name} about their overdue checklist items.` }
@@ -276,7 +281,7 @@ async function handler(req: Request): Promise<Response> {
   // One candidate per project, ranked the way the dashboard ranks: risk score
   // first, then the soonest go-live. A go-live at risk this week that the risk
   // rules haven't flagged yet ranks alongside a high-severity finding.
-  const candidates: { rank: number; soon: number; item: BriefItem }[] = [];
+  const candidates: { rank: number; soon: number; ready?: boolean; item: BriefItem }[] = [];
   for (const r of rows) {
     const name = r.p.merchant_name;
     const eglNote = r.eglAtRisk && r.egl ? ` Go-live ${shortDate(r.p.expected_go_live_date)} at risk.` : "";
@@ -290,7 +295,9 @@ async function handler(req: Request): Promise<Response> {
           tone: SEVERITY_RANK[lead.severity] >= SEVERITY_RANK.high ? "bad" : "warn",
           project_id: r.p.id,
           merchant: name,
-          title: `${name}: ${lead.label.toLowerCase()}`,
+          // A state rule's name ("Project blocked") can cover several states,
+          // so say the state the project is actually in.
+          title: lead.type === "project_state" ? `${name} is ${stateName(r.p.project_state)}` : `${name}: ${lead.label.toLowerCase()}`,
           detail: `${lead.detail}${others > 0 ? ` (+${others} more)` : ""}.${eglNote}`,
           action: actionFor(r, lead),
         },
@@ -313,6 +320,7 @@ async function handler(req: Request): Promise<Response> {
       candidates.push({
         rank: 0,
         soon: Number.MAX_SAFE_INTEGER,
+        ready: true,
         item: {
           tone: "ok",
           project_id: r.p.id,
@@ -337,7 +345,11 @@ async function handler(req: Request): Promise<Response> {
         attention: needsAttention.length,
         blocked: rows.filter((r) => r.p.project_state === "blocked").length,
         go_lives_at_risk: goLivesAtRisk.length,
-        overdue: rows.reduce((sum, r) => sum + r.overdue, 0),
+        // Live projects are exempt from the risk rules, so their leftover dates aren't counted either.
+        overdue: rows.reduce((sum, r) => (r.p.project_state === "live" ? sum : sum + r.overdue), 0),
+        /** Projects with a problem (attention or go-live at risk), for the greeting. */
+        flagged: candidates.filter((candidate) => !candidate.ready).length,
+        ready_to_hand_over: candidates.filter((candidate) => candidate.ready).length,
       },
       // Managers get the KPI bar's headline; team members already see their own list.
       portfolio: caller.portfolio

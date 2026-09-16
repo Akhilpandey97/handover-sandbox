@@ -15,7 +15,7 @@ interface Brief {
   date?: string;
   first_name?: string;
   scope_label?: string;
-  counts?: { attention: number; blocked: number; go_lives_at_risk: number; overdue: number };
+  counts?: { attention: number; blocked: number; go_lives_at_risk: number; overdue: number; flagged: number; ready_to_hand_over: number };
   /** Managers and admins only: the KPI bar's headline. */
   portfolio?: { projects: number; arr_cr: number; awaiting_acceptance: number } | null;
   items?: { tone: Tone; project_id: string; merchant: string; title: string; detail: string; action: { label: string; prompt: string; draft?: boolean } }[];
@@ -92,10 +92,14 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
     );
   }
 
-  const counts = data.counts || { attention: 0, blocked: 0, go_lives_at_risk: 0, overdue: 0 };
+  const counts = data.counts || { attention: 0, blocked: 0, go_lives_at_risk: 0, overdue: 0, flagged: 0, ready_to_hand_over: 0 };
   const items = data.items || [];
   const more = data.more || 0;
-  const flagged = items.length + more;
+  const { flagged, ready_to_hand_over: ready } = counts;
+  const readyNote = ready ? `${ready} ${ready === 1 ? "is" : "are"} ready to hand over.` : "";
+  const headline = flagged
+    ? `${flagged} project${flagged === 1 ? " needs" : "s need"} you today.${readyNote ? ` ${readyNote}` : ""}`
+    : readyNote || "Nothing urgent today.";
   const dateLabel = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
   const openDashboard = () => navigate({ to: "/dashboard" });
 
@@ -105,7 +109,7 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
         <div className="min-w-0">
           <p className="text-2xs opacity-75">{dateLabel} · {data.scope_label}</p>
           <p className="heading-card mt-0.5">
-            {flagged ? `Good ${greeting()}, ${data.first_name}. ${flagged} project${flagged === 1 ? " needs" : "s need"} you today.` : `Good ${greeting()}, ${data.first_name}. Nothing urgent today.`}
+            {`Good ${greeting()}, ${data.first_name}. ${headline}`}
           </p>
           {data.portfolio && (
             <p className="mt-0.5 text-2xs opacity-75">
