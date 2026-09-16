@@ -77,7 +77,7 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
       >
         <div className="flex items-start gap-2">
           <button
-            className="font-semibold text-sm truncate text-left flex-1 min-w-0 hover:text-primary hover:underline cursor-pointer transition-colors"
+            className="font-semibold text-xs truncate text-left flex-1 min-w-0 hover:text-primary hover:underline cursor-pointer transition-colors"
             onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id }, search: { from: "kanban" } })}
           >
             {project.merchantName}
@@ -103,7 +103,7 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
                 className="focus:outline-none focus:ring-2 focus:ring-ring rounded"
                 title="Change project state"
               >
-                <Badge className={cn("text-2xs px-1.5 py-0 cursor-pointer inline-flex items-center gap-0.5", projectStateColors[project.projectState])}>
+                <Badge className={cn("text-xs px-1.5 py-0 cursor-pointer inline-flex items-center gap-0.5", projectStateColors[project.projectState])}>
                   {stateLabel}
                   <ChevronDown className="h-2.5 w-2.5" />
                 </Badge>

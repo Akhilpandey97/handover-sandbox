@@ -508,7 +508,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
                 className={cn("flex items-center justify-between gap-2 px-3 py-2.5 border-b cursor-grab active:cursor-grabbing", col.bg)}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className={cn("font-semibold text-sm tracking-tight truncate min-w-0", col.text)}>
+                  <span className={cn("font-semibold text-xs tracking-tight truncate min-w-0", col.text)}>
                     {col.label}
                   </span>
                   {col.key === "live" && (

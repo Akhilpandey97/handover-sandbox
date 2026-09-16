@@ -2042,7 +2042,7 @@ export const ManagerDashboard = () => {
                                 <Checkbox checked={selectedProjects.has(project.id)} onCheckedChange={() => toggleProjectSelection(project.id)} aria-label={`Select ${project.merchantName}`} />
                               </TableCell>
                               {listViewColumns.map(colKey => (
-                                <TableCell key={colKey} className={cn("text-sm", colKey === "status" && statusColor, colKey === "recentComments" && "max-w-[200px]")}>
+                                <TableCell key={colKey} className={cn("text-xs", colKey === "status" && statusColor, colKey === "recentComments" && "max-w-[200px]")}>
                                   {colKey === "merchantName" ? (
                                     <span className="inline-flex items-center gap-1.5">
                                       {getColValue(colKey)}
