@@ -44,7 +44,7 @@ Plan page: "Buddy Onboarding Manager Plan" (artifact).
 
 ## To apply
 
-- [ ] Run `supabase/migrations/20260916120000_workflow_triggers_and_schedule.sql` (checklist-completed trigger and the run-workflows schedule). Until then, checklist-completed rules don't fire and time-based / go-live rules run only from "Run now" in Settings → Workflows.
+- [x] Run `supabase/migrations/20260916120000_workflow_triggers_and_schedule.sql` (checklist-completed trigger and the run-workflows schedule) — applied 2026-09-16; trigger and `app-run-workflows` job verified
 - [ ] Walk through onboarding end to end in a test workspace, as an admin and as a manager
 
 ## Risks
