@@ -92,7 +92,8 @@ export const TeamDashboard = () => {
   }, [userProjects, searchQuery]);
 
   useEffect(() => {
-    if (pathname === "/") navigate({ to: "/dashboard", replace: true });
+    // Everyone starts in Buddy.
+    if (pathname === "/") navigate({ to: "/hi-there", replace: true });
     if (pathname === "/projects/list") navigate({ to: "/projects/kanban", replace: true });
   }, [pathname, navigate]);
 
@@ -109,9 +110,9 @@ export const TeamDashboard = () => {
     : "dashboard";
   const projectView = routeState.projectView === "golive" ? "golive" : "kanban";
   const navItems: Array<{ key: UserTab; label: string; icon: React.ReactNode }> = [
+    { key: "hi-there", label: "Buddy", icon: <span className="animate-wave text-base leading-none">👋</span> },
     { key: "dashboard", label: "Workbench", icon: <BarChart3 className="h-4 w-4" /> },
     { key: "projects", label: "Projects", icon: <FolderKanban className="h-4 w-4" /> },
-    { key: "hi-there", label: "Buddy", icon: <span className="animate-wave text-base leading-none">👋</span> },
   ];
 
   const openTab = (tab: UserTab) => {

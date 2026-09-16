@@ -176,7 +176,7 @@ export const ManagerDashboard = () => {
   const routeState = useMemo(() => parseDashboardPath(pathname), [pathname]);
   const { currentUser, logout } = useAuth();
   const perms = usePermissions();
-  const { labels: appLabels, getLabel, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels, isLoading: labelsLoading } = useLabels();
+  const { labels: appLabels, getLabel, teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, updateLabels } = useLabels();
   const arrLabel = getLabel("field_arr");
   const { projects, isLoading, addProject, deleteProject, updateProject, archiveProject } = useProjects();
   const { fields: customFields } = useCustomFields();
@@ -376,22 +376,15 @@ export const ManagerDashboard = () => {
     fetchProfiles();
   }, [currentUser?.tenantId]);
 
-  const TAB_CONFIG_KEYS = ["dashboard", "projects", "risks", "reports", "settings", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails", "tenants", "archived", "hi-there"];
-
-  // A bare "/" names no tab, so redirect to the first visible one. Match the
-  // exact path rather than "no tab resolved": navigating to a page outside the
-  // dashboard (a project workspace, say) also resolves to no tab, and this
+  // A bare "/" names no tab, so send it to Buddy, where everyone starts. Match
+  // the exact path rather than "no tab resolved": navigating to a page outside
+  // the dashboard (a project workspace, say) also resolves to no tab, and this
   // component is still mounted for that render — keying off the tab would
-  // redirect to the dashboard instead of letting the new page take over.
-  // Visibility comes from LabelsContext, which serves placeholder labels while
-  // it loads, so resolving early would pick the wrong tab and redirect twice.
+  // redirect instead of letting the new page take over.
   useEffect(() => {
-    if (pathname !== "/" || labelsLoading) return;
-    const visibleTabs = [...tabOrder, ...(currentUser?.team === "super_admin" && !tabOrder.includes("tenants") ? ["tenants"] : [])]
-      .filter(tab => TAB_CONFIG_KEYS.includes(tab))
-      .filter(tab => navVisibility[tab] !== false || tab === "tenants");
-    navigate({ to: pathForTab(visibleTabs[0] || "dashboard"), replace: true });
-  }, [pathname, labelsLoading, tabOrder, navVisibility, currentUser?.team, navigate]);
+    if (pathname !== "/") return;
+    navigate({ to: pathForTab("hi-there"), replace: true });
+  }, [pathname, navigate]);
 
   // Calculate project time stats helper - FIXED: uses checklist-level time
   const calculateProjectStats = (project: Project) => {
@@ -1011,7 +1004,9 @@ export const ManagerDashboard = () => {
     .filter(tab => tab !== "archived" || isManagerOrAdmin)
     .filter(tab => TAB_CONFIG[tab])
     .filter(tab => navVisibility[tab] !== false || tab === "tenants" || tab === "settings" || tab === "archived")
-    .filter(tab => !isGokwikGeneral || GOKWIK_GENERAL_TABS.includes(tab) || tab === "hi-there");
+    .filter(tab => !isGokwikGeneral || GOKWIK_GENERAL_TABS.includes(tab) || tab === "hi-there")
+    // Buddy is always first, whatever order the other tabs were dragged into.
+    .sort((a, b) => (a === "hi-there" ? -1 : b === "hi-there" ? 1 : 0));
 
   const openProjectView = (view: ProjectView) => {
     navigate({ to: projectViewPath(view) });
