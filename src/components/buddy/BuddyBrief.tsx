@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Sparkles, X } from "lucide-react";
+import { Download, Sparkles, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { apiAuthHeaders } from "@/lib/api-invoke";
 import { logActivity } from "@/hooks/useActivityLogs";
 import { cn } from "@/lib/utils";
+import { ONBOARDING_TEMPLATE_URL } from "@/data/onboardingTemplate";
 
 type Tone = "bad" | "warn" | "info" | "ok";
 
@@ -87,19 +88,30 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
 
   const setupNudge =
     data?.setup && data.setup.set_up < data.setup.total ? (
-      <button
-        type="button"
-        onClick={() => onPick("Onboard my account")}
-        className="flex w-full items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3 text-left hover:border-primary/60"
-      >
-        <span className="min-w-0">
-          <span className="block text-sm font-semibold text-foreground">Set up this workspace</span>
-          <span className="block text-xs text-muted-foreground">
-            {data.setup.set_up} of {data.setup.total} areas set up. Buddy asks for everything else, one area at a time.
-          </span>
-        </span>
-        <span className="shrink-0 text-xs font-medium text-primary">Start</span>
-      </button>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">Set up this workspace</p>
+          <p className="text-xs text-muted-foreground">
+            {data.setup.set_up} of {data.setup.total} areas set up. Answer Buddy's questions, or fill in the onboarding sheet and attach it.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <a
+            href={ONBOARDING_TEMPLATE_URL}
+            download
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+          >
+            <Download className="h-3.5 w-3.5" /> Onboarding sheet
+          </a>
+          <button
+            type="button"
+            onClick={() => onPick("Onboard my account")}
+            className="rounded-lg bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Start
+          </button>
+        </div>
+      </div>
     ) : null;
 
   if (!data?.enabled) return setupNudge;

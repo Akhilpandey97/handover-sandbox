@@ -57,6 +57,7 @@ import { Route as ApiPublicImportUsersRouteImport } from './routes/api/public/im
 import { Route as ApiPublicJiraCreateUrlRouteImport } from './routes/api/public/jira-create-url'
 import { Route as ApiPublicKwikassistAiChatRouteImport } from './routes/api/public/kwikassist-ai-chat'
 import { Route as ApiPublicMerchantPortalDataRouteImport } from './routes/api/public/merchant-portal-data'
+import { Route as ApiPublicOnboardingTemplateRouteImport } from './routes/api/public/onboarding-template'
 import { Route as ApiPublicPollEmailsRouteImport } from './routes/api/public/poll-emails'
 import { Route as ApiPublicPollMeetingTranscriptsRouteImport } from './routes/api/public/poll-meeting-transcripts'
 import { Route as ApiPublicPollPlatformGoliveEmailsRouteImport } from './routes/api/public/poll-platform-golive-emails'
@@ -338,6 +339,12 @@ const ApiPublicMerchantPortalDataRoute =
     path: '/api/public/merchant-portal-data',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicOnboardingTemplateRoute =
+  ApiPublicOnboardingTemplateRouteImport.update({
+    id: '/api/public/onboarding-template',
+    path: '/api/public/onboarding-template',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPollEmailsRoute = ApiPublicPollEmailsRouteImport.update({
   id: '/api/public/poll-emails',
   path: '/api/public/poll-emails',
@@ -543,6 +550,7 @@ export interface FileRoutesByFullPath {
   '/api/public/jira-create-url': typeof ApiPublicJiraCreateUrlRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
+  '/api/public/onboarding-template': typeof ApiPublicOnboardingTemplateRoute
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-meeting-transcripts': typeof ApiPublicPollMeetingTranscriptsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
@@ -620,6 +628,7 @@ export interface FileRoutesByTo {
   '/api/public/jira-create-url': typeof ApiPublicJiraCreateUrlRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
+  '/api/public/onboarding-template': typeof ApiPublicOnboardingTemplateRoute
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-meeting-transcripts': typeof ApiPublicPollMeetingTranscriptsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
@@ -699,6 +708,7 @@ export interface FileRoutesById {
   '/api/public/jira-create-url': typeof ApiPublicJiraCreateUrlRoute
   '/api/public/kwikassist-ai-chat': typeof ApiPublicKwikassistAiChatRoute
   '/api/public/merchant-portal-data': typeof ApiPublicMerchantPortalDataRouteWithChildren
+  '/api/public/onboarding-template': typeof ApiPublicOnboardingTemplateRoute
   '/api/public/poll-emails': typeof ApiPublicPollEmailsRoute
   '/api/public/poll-meeting-transcripts': typeof ApiPublicPollMeetingTranscriptsRoute
   '/api/public/poll-platform-golive-emails': typeof ApiPublicPollPlatformGoliveEmailsRoute
@@ -778,6 +788,7 @@ export interface FileRouteTypes {
     | '/api/public/jira-create-url'
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
+    | '/api/public/onboarding-template'
     | '/api/public/poll-emails'
     | '/api/public/poll-meeting-transcripts'
     | '/api/public/poll-platform-golive-emails'
@@ -855,6 +866,7 @@ export interface FileRouteTypes {
     | '/api/public/jira-create-url'
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
+    | '/api/public/onboarding-template'
     | '/api/public/poll-emails'
     | '/api/public/poll-meeting-transcripts'
     | '/api/public/poll-platform-golive-emails'
@@ -933,6 +945,7 @@ export interface FileRouteTypes {
     | '/api/public/jira-create-url'
     | '/api/public/kwikassist-ai-chat'
     | '/api/public/merchant-portal-data'
+    | '/api/public/onboarding-template'
     | '/api/public/poll-emails'
     | '/api/public/poll-meeting-transcripts'
     | '/api/public/poll-platform-golive-emails'
@@ -995,6 +1008,7 @@ export interface RootRouteChildren {
   ApiPublicJiraCreateUrlRoute: typeof ApiPublicJiraCreateUrlRoute
   ApiPublicKwikassistAiChatRoute: typeof ApiPublicKwikassistAiChatRoute
   ApiPublicMerchantPortalDataRoute: typeof ApiPublicMerchantPortalDataRouteWithChildren
+  ApiPublicOnboardingTemplateRoute: typeof ApiPublicOnboardingTemplateRoute
   ApiPublicPollEmailsRoute: typeof ApiPublicPollEmailsRoute
   ApiPublicPollMeetingTranscriptsRoute: typeof ApiPublicPollMeetingTranscriptsRoute
   ApiPublicPollPlatformGoliveEmailsRoute: typeof ApiPublicPollPlatformGoliveEmailsRoute
@@ -1360,6 +1374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMerchantPortalDataRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/onboarding-template': {
+      id: '/api/public/onboarding-template'
+      path: '/api/public/onboarding-template'
+      fullPath: '/api/public/onboarding-template'
+      preLoaderRoute: typeof ApiPublicOnboardingTemplateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/poll-emails': {
       id: '/api/public/poll-emails'
       path: '/api/public/poll-emails'
@@ -1673,6 +1694,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicKwikassistAiChatRoute: ApiPublicKwikassistAiChatRoute,
   ApiPublicMerchantPortalDataRoute:
     ApiPublicMerchantPortalDataRouteWithChildren,
+  ApiPublicOnboardingTemplateRoute: ApiPublicOnboardingTemplateRoute,
   ApiPublicPollEmailsRoute: ApiPublicPollEmailsRoute,
   ApiPublicPollMeetingTranscriptsRoute: ApiPublicPollMeetingTranscriptsRoute,
   ApiPublicPollPlatformGoliveEmailsRoute:

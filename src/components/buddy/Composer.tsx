@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { ArrowUp, FileSpreadsheet, Loader2, Mic, MicOff, Paperclip, Square, X } from "lucide-react";
 import { SPREADSHEET_ACCEPT, readSpreadsheet, sheetToCsv } from "@/lib/spreadsheet";
+import { README_SHEET, isFilledRow } from "@/data/onboardingTemplate";
 import { cn } from "@/lib/utils";
 import { SLASH_COMMANDS } from "./commands";
 import type { BuddyAttachment, Mention } from "./types";
@@ -42,7 +43,7 @@ const tokenAt = (value: string, caret: number, sigil: "@" | "/") => {
 
 /** Budget for attached sheets sent to Buddy, across all sheets in one message. */
 const ATTACHMENT_CHARS = 60_000;
-const MAX_SHEETS = 5;
+const MAX_SHEETS = 16;
 
 const KIND_LABEL: Record<Mention["kind"], string> = { project: "Project", person: "Person", item: "Checklist" };
 
@@ -79,7 +80,17 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
     setReading(true);
     setFileError("");
     try {
-      const sheets = (await readSpreadsheet(file)).slice(0, MAX_SHEETS);
+      // Onboarding-sheet conventions: skip the instructions tab, example rows,
+      // hint rows and rows left blank after their label, then any tab left empty.
+      const sheets = (await readSpreadsheet(file))
+        .filter((sheet) => sheet.name.trim().toLowerCase() !== README_SHEET.toLowerCase())
+        .map((sheet) => ({
+          ...sheet,
+          rows: sheet.rows.filter((row) => isFilledRow(sheet.name, row)),
+        }))
+        .filter((sheet) => sheet.rows.length > 0)
+        .slice(0, MAX_SHEETS);
+      if (sheets.length === 0) throw new Error("Nothing is filled in yet. Add your values (example rows starting with “e.g.” are ignored) and attach it again.");
       const budget = Math.floor(ATTACHMENT_CHARS / sheets.length);
       setAttachments(
         sheets.map((sheet) => {

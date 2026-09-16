@@ -11,6 +11,7 @@ export interface SlashCommand {
 }
 
 export const SLASH_COMMANDS: SlashCommand[] = [
+  { command: "sheet", label: "Get the onboarding sheet to fill in", template: "Give me the onboarding sheet", acts: true, sendNow: true },
   { command: "onboard", label: "Set up this workspace, step by step", template: "Onboard my account", acts: true, sendNow: true },
   { command: "brief", label: "What needs my attention today", template: "What needs my attention today across my projects?", sendNow: true },
   { command: "summary", label: "Summarise a project", template: "Summarise {project}" },
