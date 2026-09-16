@@ -234,7 +234,7 @@ export const TenantManagement = () => {
       setSelectedTenantForManager("");
       fetchTenants();
     } catch (error: any) {
-      toast.error(error.message || "Failed to create manager");
+      toast.error(error.message || "Failed to create admin");
     } finally {
       setIsCreatingManager(false);
     }
@@ -285,7 +285,7 @@ export const TenantManagement = () => {
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setIsManagerDialogOpen(true)} className="gap-2">
                 <UserPlus className="h-4 w-4" />
-                Add Tenant Manager
+                Add tenant admin
               </Button>
               <Button onClick={openCreateDialog} className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -433,9 +433,9 @@ export const TenantManagement = () => {
       <Dialog open={isManagerDialogOpen} onOpenChange={setIsManagerDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Tenant Manager</DialogTitle>
+            <DialogTitle>Add tenant admin</DialogTitle>
             <DialogDescription>
-              Create a manager account for a tenant. This manager will be able to manage users and projects within their tenant.
+              Create a workspace admin for a tenant. They can manage users, settings, integrations and projects in that workspace.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -455,7 +455,7 @@ export const TenantManagement = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Manager Name</Label>
+              <Label>Admin name</Label>
               <Input value={managerName} onChange={(e) => setManagerName(e.target.value)} placeholder="John Doe" />
             </div>
             <div className="space-y-2">
@@ -470,7 +470,7 @@ export const TenantManagement = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsManagerDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleCreateManager} disabled={isCreatingManager}>
-              {isCreatingManager ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating...</> : "Create Manager"}
+              {isCreatingManager ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating...</> : "Create admin"}
             </Button>
           </DialogFooter>
         </DialogContent>

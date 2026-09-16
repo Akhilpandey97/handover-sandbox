@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { createClient } from "@supabase/supabase-js";
+import { resolveUserScope } from "@/lib/api-auth.server";
 import { createWorkspaceUser } from "@/lib/users.server";
 
 const corsHeaders = {
@@ -59,29 +60,26 @@ async function handler(req: Request): Promise<Response> {
       );
     }
 
-    // Check if requester is a manager
-    const { data: roleData, error: roleError } = await supabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', requester.id)
-      .single();
-
-    if (roleError || (roleData?.role !== 'admin' && roleData?.role !== 'super_admin')) {
+    // The workspace being worked in and the role that applies there: during a
+    // support session that's the customer's workspace, not the requester's own.
+    const scope = await resolveUserScope(supabaseAdmin as any, requester.id);
+    const isSuperAdmin = scope.roles.includes('super_admin');
+    if (!scope.roles.some((r) => r === 'admin' || r === 'super_admin')) {
       return new Response(
         JSON.stringify({ error: 'Only tenant admins can create users' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Non super-admins can only create users inside their own tenant
-    const { data: requesterProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('tenant_id')
-      .eq('id', requester.id)
-      .single();
-    const resolvedTenantId = roleData?.role === 'super_admin'
-      ? (tenant_id || requesterProfile?.tenant_id)
-      : requesterProfile?.tenant_id;
+    // New people join the workspace being worked in. Only a super admin may name
+    // another one (Tenants → Add tenant admin).
+    const resolvedTenantId = isSuperAdmin && tenant_id ? tenant_id : scope.tenantId;
+    if (!resolvedTenantId) {
+      return new Response(
+        JSON.stringify({ error: 'No workspace to add this person to' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Shared with Buddy's invite action, so both write the same rows.
     let newUser: { id: string; email: string };
