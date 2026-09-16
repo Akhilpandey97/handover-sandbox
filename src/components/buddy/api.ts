@@ -80,6 +80,8 @@ export const executeAction = (action: string, params: Record<string, any>) =>
     log_id?: string;
     undoable?: boolean;
     undo_until?: string;
+    /** Secret values to mask in the open conversation. */
+    redact?: string[];
   }>({ mode: "execute", action, params });
 
 export const undoBuddyAction = (logId: string) => postAction<{ message: string }>({ mode: "undo", log_id: logId });

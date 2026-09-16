@@ -450,7 +450,35 @@ export const ChecklistManagement = () => {
     onError: (e) => toast.error(e.message || "Failed to delete team"),
   });
 
-  const { checklistTeamSlugs, teamLabelMap, customTeams } = useTeams();
+  // Rename or recolour a team. Stage teams still on their built-in names have
+  // no row yet, so saving one creates it.
+  const [editTeam, setEditTeam] = useState<{ id: string; slug: string; name: string; color: string; isSystem: boolean; sortOrder: number } | null>(null);
+  const editTeamMutation = useMutation({
+    mutationFn: async (team: NonNullable<typeof editTeam>) => {
+      const name = team.name.trim();
+      if (!name) throw new Error("A team needs a name");
+      const { error } = team.id.startsWith("system-")
+        ? await supabase.from("teams").insert({
+            name, slug: team.slug, color: team.color, is_system: true, sort_order: team.sortOrder,
+            tenant_id: currentUser?.tenantId,
+          })
+        : await supabase.from("teams").update({ name, color: team.color }).eq("id", team.id);
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["teams"] });
+      toast.success("Team updated");
+      setEditTeam(null);
+    },
+    onError: (e) => toast.error(e.message || "Failed to update team"),
+  });
+  const openTeamEditor = (slug: string) => {
+    const t = allTeams.find((x) => x.slug === slug);
+    if (!t) return;
+    setEditTeam({ id: t.id, slug: t.slug, name: t.name, color: t.color, isSystem: t.is_system, sortOrder: t.sort_order });
+  };
+
+  const { checklistTeamSlugs, teamLabelMap, customTeams, allTeams } = useTeams();
   const teams = checklistTeamSlugs.length > 0 ? checklistTeamSlugs : ["mint", "integration", "ms"];
   const getLabel = (slug: string) => teamLabels[slug as keyof typeof teamLabels] || teamLabelMap[slug] || slug;
 
@@ -783,6 +811,9 @@ export const ChecklistManagement = () => {
                   </div>
                   <span className="font-medium flex-1">{teamLabels[team]}</span>
                   <Badge variant="secondary" className="text-xs">System</Badge>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => openTeamEditor(team)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -800,6 +831,9 @@ export const ChecklistManagement = () => {
                     </div>
                     <span className="font-medium flex-1">{team.name}</span>
                     <Badge variant="outline" className="text-xs">{team.slug}</Badge>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => openTeamEditor(team.slug)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button
                       size="icon"
                       variant="ghost"
@@ -844,6 +878,37 @@ export const ChecklistManagement = () => {
             <Button variant="outline" onClick={() => setAddTeamOpen(false)}>Cancel</Button>
             <Button onClick={() => addTeamMutation.mutate({ name: newTeamName.trim(), color: newTeamColor })} disabled={!newTeamName.trim() || addTeamMutation.isPending}>
               {addTeamMutation.isPending ? "Adding..." : "Add Team"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Team Dialog */}
+      <Dialog open={!!editTeam} onOpenChange={(open) => { if (!open) setEditTeam(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit team</DialogTitle>
+            <DialogDescription>The new name shows everywhere: dashboards, checklists, transfers and exports.</DialogDescription>
+          </DialogHeader>
+          {editTeam && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="edit-team-name">Team name</label>
+                <Input id="edit-team-name" value={editTeam.name} onChange={(e) => setEditTeam({ ...editTeam, name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="edit-team-color">Colour</label>
+                <div className="flex items-center gap-3">
+                  <input type="color" value={editTeam.color} onChange={(e) => setEditTeam({ ...editTeam, color: e.target.value })} className="h-10 w-14 rounded border cursor-pointer" />
+                  <Input id="edit-team-color" value={editTeam.color} onChange={(e) => setEditTeam({ ...editTeam, color: e.target.value })} className="flex-1" />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTeam(null)}>Cancel</Button>
+            <Button onClick={() => editTeam && editTeamMutation.mutate(editTeam)} disabled={!editTeam?.name.trim() || editTeamMutation.isPending}>
+              {editTeamMutation.isPending ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>

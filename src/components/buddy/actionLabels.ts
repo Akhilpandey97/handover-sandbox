@@ -21,6 +21,19 @@ export const ACTION_LABELS: Record<string, string> = {
   create_meeting_link: "Create meeting links",
   send_email: "Send emails",
   send_notification: "Send notifications",
+  update_workspace_settings: "Change workspace settings",
+  manage_teams: "Manage teams",
+  manage_checklist_steps: "Manage checklist steps",
+  manage_checklist_forms: "Manage checklist forms",
+  manage_custom_fields: "Manage custom fields",
+  set_project_stages: "Set project stages",
+  set_risk_rules: "Set risk rules",
+  manage_automations: "Pause, edit or delete automations",
+  run_automation: "Run automations on projects",
+  invite_people: "Invite people (admins)",
+  change_user_role: "Change roles (admins)",
+  update_integration_settings: "Change integration settings (admins)",
+  update_buddy_settings: "Change Buddy settings (admins)",
 };
 
 /** The card title for an action: the server's preview title, or a readable fallback. */

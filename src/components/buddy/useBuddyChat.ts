@@ -379,6 +379,13 @@ export function useBuddyChat({ page, onAnswer }: { page: BuddyPage; onAnswer?: (
           status: "done",
           result: { message: res.message, link: res.link, logId: res.log_id, undoable: res.undoable, undoUntil: res.undo_until },
         }));
+        if (res.redact?.length) {
+          // Pasted keys stay out of the open conversation and anything saved from it later.
+          const secrets = res.redact;
+          const mask = (text: string) => secrets.reduce((t, sec) => (sec.length >= 6 ? t.split(sec).join(`•••• ${sec.slice(-4)}`) : t), text);
+          setMessages((prev) => prev.map((msg) => JSON.parse(mask(JSON.stringify(msg))) as BuddyMessage));
+          messagesRef.current = messagesRef.current.map((msg) => JSON.parse(mask(JSON.stringify(msg))) as BuddyMessage);
+        }
         toast.success(res.message);
         refreshData();
       } catch (e) {

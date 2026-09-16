@@ -41,8 +41,26 @@ export interface ActionPreview {
   email?: { to: string[]; cc?: string[]; subject: string; body: string };
 }
 
+export type UndoTable =
+  | "projects"
+  | "checklist_items"
+  | "checklist_tasks"
+  | "project_risks"
+  | "checklist_comments"
+  | "app_settings"
+  | "teams"
+  | "custom_fields"
+  | "checklist_templates"
+  | "checklist_form_templates"
+  | "checklist_form_fields"
+  | "checklist_form_assignments"
+  | "ai_workflows"
+  | "tenant_integrations"
+  | "profiles"
+  | "user_roles";
+
 export interface UndoPlan {
-  table: "projects" | "checklist_items" | "checklist_tasks" | "project_risks" | "checklist_comments";
+  table: UndoTable;
   /**
    * "update" restores before-values; "delete" removes rows the action created;
    * "insert" puts back rows the action deleted (before holds the whole row).
@@ -54,7 +72,10 @@ export interface UndoPlan {
 export interface ActionOutcome {
   message: string;
   link?: { label: string; href: string };
-  undo?: UndoPlan;
+  /** One plan, or several applied in order (a setup change can touch many tables). */
+  undo?: UndoPlan | UndoPlan[];
+  /** Secret values the person pasted, to be masked in their saved chat. */
+  secrets?: string[];
   log: { description: string; category: string; entityType: string; entityId: string };
 }
 
@@ -65,6 +86,10 @@ export interface ActionContext {
 
 interface ActionDef {
   label: string;
+  /** Lowest role that may run it. Defaults to manager. */
+  requires?: "manager" | "admin";
+  /** Params as they may be stored in logs and chat history (secrets masked). */
+  redactParams?: (p: Record<string, any>) => Record<string, any>;
   preview: (c: BuddyCaller, p: Record<string, any>, ctx: ActionContext) => Promise<ActionPreview>;
   execute: (c: BuddyCaller, p: Record<string, any>, ctx: ActionContext) => Promise<ActionOutcome>;
 }
@@ -258,26 +283,6 @@ export const ACTION_TOOL_DEFS: any[] = [
       name: "trigger_brd",
       description: "Email the merchant the BRD form for a project, using the workspace's BRD template and the project's contact email.",
       parameters: { type: "object", properties: { project_id: { type: "string" } }, required: ["project_id"] },
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "create_workflow",
-      description:
-        "Create an automation rule. trigger_type: time_based {delay_hours, condition_field, condition_value} | field_change {field, from_value, to_value} | event {event_name}. action_type: assign_owner {owner_id, owner_name} | update_field {field, value} | send_notification {message} | transfer_project {to_team}.",
-      parameters: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          description: { type: "string" },
-          trigger_type: { type: "string", enum: ["time_based", "field_change", "event"] },
-          trigger_config: { type: "object" },
-          action_type: { type: "string", enum: ["assign_owner", "update_field", "send_notification", "transfer_project"] },
-          action_config: { type: "object" },
-        },
-        required: ["name", "trigger_type", "trigger_config", "action_type", "action_config"],
-      },
     },
   },
   {
@@ -534,48 +539,6 @@ const ACTIONS: Record<string, ActionDef> = {
     },
   },
 
-  create_workflow: {
-    label: "Create automation",
-    async preview(_c, p) {
-      if (!p.name) fail("The automation needs a name.");
-      return {
-        action: "create_workflow",
-        title: "Create automation",
-        rows: [
-          { label: "Name", after: String(p.name) },
-          { label: "When", after: `${String(p.trigger_type || "").replace(/_/g, " ")} ${JSON.stringify(p.trigger_config || {})}` },
-          { label: "Then", after: `${String(p.action_type || "").replace(/_/g, " ")} ${JSON.stringify(p.action_config || {})}` },
-        ],
-        notes: ["Starts active. You can pause or edit it under Settings → Workflows."],
-        undoable: false,
-      };
-    },
-    async execute(c, p) {
-      if (!p.name) fail("The automation needs a name.");
-      const { data, error } = await c.client
-        .from("ai_workflows")
-        .insert({
-          tenant_id: c.tenantId,
-          name: p.name,
-          description: p.description || null,
-          trigger_type: p.trigger_type,
-          trigger_config: p.trigger_config || {},
-          action_type: p.action_type,
-          action_config: p.action_config || {},
-          created_by: c.userId,
-          created_by_name: c.name,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-      return {
-        message: `Automation "${p.name}" is set up.`,
-        link: { label: "Open workflows", href: "/settings/workflows" },
-        log: { description: `Buddy created automation "${p.name}"`, category: "workflow", entityType: "workflow", entityId: (data as { id: string }).id },
-      };
-    },
-  },
-
   create_project: {
     label: "Create project",
     async preview(c, p) {
@@ -626,7 +589,12 @@ export const actionLabel = (name: string) => ACTIONS[name]?.label || name.replac
 
 // ── Undo ───────────────────────────────────────────────────────────────────
 
-const UNDO_TABLES = new Set(["projects", "checklist_items", "checklist_tasks", "project_risks", "checklist_comments"]);
+const UNDO_TABLES = new Set<string>([
+  "projects", "checklist_items", "checklist_tasks", "project_risks", "checklist_comments",
+  "app_settings", "teams", "custom_fields", "checklist_templates", "checklist_form_templates",
+  "checklist_form_fields", "checklist_form_assignments", "ai_workflows", "tenant_integrations",
+  "profiles", "user_roles",
+]);
 
 export async function undoAction(c: BuddyCaller, logId: string) {
   const { data: log } = await c.client
@@ -637,24 +605,29 @@ export async function undoAction(c: BuddyCaller, logId: string) {
   const row = log as any;
   if (!row || row.tenant_id !== c.tenantId || row.user_id !== c.userId) fail("That action wasn't found.");
   const meta = (row.metadata || {}) as Record<string, any>;
-  const plan = meta.undo as UndoPlan | undefined;
-  if (!plan) fail("That action can't be undone.");
+  const raw = meta.undo as UndoPlan | UndoPlan[] | undefined;
+  if (!raw) fail("That action can't be undone.");
+  const plans = Array.isArray(raw) ? raw : [raw!];
+  if (plans.length === 0) fail("That action can't be undone.");
   if (meta.undone_at) fail("That action was already undone.");
   if (Date.now() - new Date(row.created_at).getTime() > UNDO_WINDOW_MS) fail("Undo is only available for 10 minutes after an action.");
-  if (!UNDO_TABLES.has(plan!.table)) fail("That action can't be undone.");
+  if (plans.some((p) => !UNDO_TABLES.has(p.table))) fail("That action can't be undone.");
 
-  for (const r of plan!.rows) {
-    if (plan!.op === "delete") {
-      const { error } = await c.client.from(plan!.table).delete().eq("id", r.id).eq("tenant_id", c.tenantId);
-      if (error) throw error;
-    } else if (plan!.op === "insert") {
-      // Put back a row the action deleted, only into this workspace.
-      if (!r.before || (r.before as { tenant_id?: string }).tenant_id !== c.tenantId) fail("That action can't be undone.");
-      const { error } = await c.client.from(plan!.table).insert(r.before!);
-      if (error) throw error;
-    } else {
-      const { error } = await c.client.from(plan!.table).update(r.before || {}).eq("id", r.id).eq("tenant_id", c.tenantId);
-      if (error) throw error;
+  // Reverse order: the last thing changed is the first put back.
+  for (const plan of [...plans].reverse()) {
+    for (const r of plan.rows) {
+      if (plan.op === "delete") {
+        const { error } = await c.client.from(plan.table).delete().eq("id", r.id).eq("tenant_id", c.tenantId);
+        if (error) throw error;
+      } else if (plan.op === "insert") {
+        // Put back a row the action deleted, only into this workspace.
+        if (!r.before || (r.before as { tenant_id?: string }).tenant_id !== c.tenantId) fail("That action can't be undone.");
+        const { error } = await c.client.from(plan.table).insert(r.before!);
+        if (error) throw error;
+      } else {
+        const { error } = await c.client.from(plan.table).update(r.before || {}).eq("id", r.id).eq("tenant_id", c.tenantId);
+        if (error) throw error;
+      }
     }
   }
 

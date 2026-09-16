@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAiWorkflows, useToggleWorkflow, useDeleteWorkflow, useUpdateWorkflow, AiWorkflow } from "@/hooks/useAiWorkflows";
+import { useAiWorkflows, useToggleWorkflow, useDeleteWorkflow, useUpdateWorkflow, useCreateWorkflow, AiWorkflow } from "@/hooks/useAiWorkflows";
 import { TriggerConfigFields, ActionConfigFields, type ConfigValue } from "./WorkflowConfigFields";
-import { Zap, Play, Trash2, Clock, GitBranch, Activity, MousePointerClick, Pencil, Loader2 } from "lucide-react";
+import { workflowProblem } from "@/data/workflowConfig";
+import { Zap, Play, Trash2, Clock, GitBranch, Activity, MousePointerClick, Pencil, Loader2, Plus } from "lucide-react";
 import { format } from "date-fns";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -43,6 +44,23 @@ const useWorkflowRuns = (workflowId: string) =>
     },
   });
 
+/** A blank workflow for the create dialog; an empty id means "insert". */
+const NEW_WORKFLOW: AiWorkflow = {
+  id: "",
+  name: "",
+  description: null,
+  trigger_type: "event",
+  trigger_config: {},
+  action_type: "send_notification",
+  action_config: {},
+  is_active: true,
+  created_by_name: null,
+  last_triggered_at: null,
+  trigger_count: 0,
+  created_at: "",
+  updated_at: "",
+};
+
 const TRIGGER_ICONS: Record<string, typeof Clock> = {
   time_based: Clock,
   field_change: GitBranch,
@@ -69,6 +87,7 @@ export const WorkflowsManager = () => {
   const toggleMutation = useToggleWorkflow();
   const deleteMutation = useDeleteWorkflow();
   const updateMutation = useUpdateWorkflow();
+  const createMutation = useCreateWorkflow();
   const [editingWorkflow, setEditingWorkflow] = useState<AiWorkflow | null>(null);
   const queryClient = useQueryClient();
 
@@ -81,6 +100,7 @@ export const WorkflowsManager = () => {
       const res = await fetch("/api/public/run-workflows", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ scheduled: true }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Could not run workflows");
@@ -110,12 +130,17 @@ export const WorkflowsManager = () => {
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />AI Workflows & Rules
-          </CardTitle>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />AI Workflows & Rules
+            </CardTitle>
+            <Button size="sm" className="gap-1.5" onClick={() => setEditingWorkflow(NEW_WORKFLOW)}>
+              <Plus className="h-4 w-4" />New workflow
+            </Button>
+          </div>
           <CardDescription>
-            Automated workflows created by AI. Use the chatbot to create new workflows by saying things like
-            "Create a workflow to assign owner when project is blocked for 24 hours".
+            Rules that act on projects automatically. Create one here, or ask Buddy, for example
+            "Notify managers when a project has been blocked for 3 days".
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,7 +149,7 @@ export const WorkflowsManager = () => {
               <Zap className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p className="font-medium mb-1">No workflows yet</p>
               <p className="text-sm">
-                Ask the AI chatbot to create workflows. Try: "Create a rule to auto-assign owners based on project category"
+                Click New workflow, or ask Buddy: "Assign new projects on Shopify to Priya".
               </p>
             </div>
           ) : (
@@ -150,11 +175,15 @@ export const WorkflowsManager = () => {
           open={!!editingWorkflow}
           onOpenChange={(open) => { if (!open) setEditingWorkflow(null); }}
           onSave={(updates) => {
+            if (!editingWorkflow.id) {
+              createMutation.mutate(updates, { onSuccess: () => setEditingWorkflow(null) });
+              return;
+            }
             updateMutation.mutate({ id: editingWorkflow.id, updates }, {
               onSuccess: () => setEditingWorkflow(null),
             });
           }}
-          isSaving={updateMutation.isPending}
+          isSaving={updateMutation.isPending || createMutation.isPending}
         />
       )}
     </>
@@ -205,9 +234,9 @@ const WorkflowRow = ({
           <span className="ml-2">• {format(new Date(workflow.created_at), "dd MMM yyyy")}</span>
         </div>
 
-        {workflow.trigger_type === "time_based" && (
+        {workflow.trigger_type === "manual" && (
           <p className="mt-2 rounded border border-dashed px-2 py-1 text-2xs text-muted-foreground">
-            Time-based rules need the scheduler enabled. Event and field-change rules run without it.
+            Runs only when someone asks. Ask Buddy to run it on the projects you choose.
           </p>
         )}
 
@@ -284,15 +313,8 @@ const EditWorkflowDialog = ({
 
   // The fields can no longer produce malformed JSON, so this checks the thing
   // that actually matters: that the settings the runtime needs are present.
-  const missingSetting = (): string | null => {
-    if (triggerType === "event" && !triggerConfig.event_name) return "Choose the event that starts this workflow.";
-    if (triggerType === "field_change" && !triggerConfig.field) return "Choose the field to watch.";
-    if (actionType === "assign_owner" && !actionConfig.owner_id) return "Choose who to assign.";
-    if (actionType === "transfer_project" && !actionConfig.to_team) return "Choose the team to transfer to.";
-    if (actionType === "update_field" && (!actionConfig.field || actionConfig.value === "")) return "Choose a field and the value to set.";
-    if (actionType === "send_notification" && !actionConfig.message) return "Write the notification message.";
-    return null;
-  };
+  const missingSetting = (): string | null =>
+    workflowProblem({ trigger_type: triggerType, trigger_config: triggerConfig, action_type: actionType, action_config: actionConfig });
 
   const handleSave = () => {
     const problem = missingSetting();
@@ -313,8 +335,8 @@ const EditWorkflowDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Workflow</DialogTitle>
-          <DialogDescription>Modify the workflow settings below.</DialogDescription>
+          <DialogTitle>{workflow.id ? "Edit workflow" : "New workflow"}</DialogTitle>
+          <DialogDescription>{workflow.id ? "Change when this workflow runs and what it does." : "Choose when this workflow runs and what it does."}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
@@ -377,7 +399,7 @@ const EditWorkflowDialog = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={handleSave} disabled={!name.trim() || isSaving}>
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Save Changes
+            {workflow.id ? "Save changes" : "Create workflow"}
           </Button>
         </DialogFooter>
       </DialogContent>

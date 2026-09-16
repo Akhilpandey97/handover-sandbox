@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { buddyCaller, corsHeaders, json, PHASE_LABELS, STATE_LABELS, todayIso } from "@/lib/buddy/scope.server";
 import { READ_TOOL_DEFS, READ_TOOL_NAMES, runReadTool, type BuddySource } from "@/lib/buddy/read-tools.server";
 import { REPORT_TOOL_DEF, runReportTool } from "@/lib/buddy/report-tool.server";
-import { ALL_ACTION_TOOL_DEFS as ACTION_TOOL_DEFS } from "@/lib/buddy/registry.server";
+import { ALL_ACTION_TOOL_DEFS as ACTION_TOOL_DEFS, actionRequires } from "@/lib/buddy/registry.server";
+import { SETUP_TOOL_DEF, runSetupTool, teamNameMap } from "@/lib/buddy/setup-read.server";
+import { hasRole } from "@/lib/buddy/setup-catalog.server";
+import { DEFAULT_LABELS } from "@/data/defaultLabels";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
 
 /**
@@ -24,7 +27,7 @@ import { loadBuddySettings } from "@/lib/buddy/settings.server";
  */
 
 const MODEL = "google/gemini-3-flash-preview";
-const MAX_ROUNDS = 6;
+const MAX_ROUNDS = 8;
 const TOOL_RESULT_LIMIT = 24_000;
 
 interface ClientMessage {
@@ -54,7 +57,29 @@ const PAGE_NAMES: Record<string, string> = {
   archived: "archived projects",
 };
 
-const isReadTool = (name: string) => READ_TOOL_NAMES.has(name) || name === REPORT_TOOL_DEF.function.name;
+const isReadTool = (name: string) =>
+  READ_TOOL_NAMES.has(name) || name === REPORT_TOOL_DEF.function.name || name === SETUP_TOOL_DEF.function.name;
+
+/** Keys whose renamed values Buddy should use when it talks. */
+const TERM_KEYS = [
+  "org_name", "field_merchant_name", "field_mid", "field_arr", "field_platform", "field_category", "field_integration_type",
+  "field_sales_spoc", "field_assigned_owner", "field_expected_go_live_date", "field_go_live_percent",
+  "state_not_started", "state_on_hold", "state_in_progress", "state_live", "state_blocked",
+  "phase_mint", "phase_integration", "phase_ms", "responsibility_internal", "responsibility_external",
+];
+
+/** How this workspace names things, so answers use its words rather than the defaults. */
+async function terminologyLine(caller: NonNullable<Awaited<ReturnType<typeof buddyCaller>>>): Promise<string> {
+  const [{ data }, teams] = await Promise.all([
+    caller.client.from("app_settings").select("key, value").eq("tenant_id", caller.tenantId).in("key", TERM_KEYS),
+    teamNameMap(caller),
+  ]);
+  const renamed = ((data || []) as { key: string; value: string }[])
+    .filter((r) => r.value && r.value !== DEFAULT_LABELS[r.key])
+    .map((r) => `"${DEFAULT_LABELS[r.key] || r.key}" is called "${r.value}"`);
+  const teamLine = `Teams, in handoff order: ${["mint", "integration", "ms"].map((s) => teams[s]).join(" → ")}${Object.keys(teams).length > 3 ? `; other teams: ${Object.entries(teams).filter(([s]) => !["mint", "integration", "ms"].includes(s)).map(([, n]) => n).join(", ")}` : ""}.`;
+  return `This workspace's own words — use them in answers instead of the defaults. ${teamLine}${renamed.length ? ` ${renamed.join("; ")}.` : ""}`;
+}
 
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -109,15 +134,20 @@ async function handler(req: Request): Promise<Response> {
           : `- person "${m.name}" (user_id=${m.id})`,
     );
 
+  const isAdmin = hasRole(caller.roles, "admin");
   const allowedActions = caller.canAct
-    ? ACTION_TOOL_DEFS.filter((t) => !settings.disabled_actions.includes(t.function.name))
+    ? ACTION_TOOL_DEFS.filter(
+        (t) => !settings.disabled_actions.includes(t.function.name) && (actionRequires(t.function.name) !== "admin" || isAdmin),
+      )
     : [];
-  const tools = [...READ_TOOL_DEFS, REPORT_TOOL_DEF, ...allowedActions];
+  const tools = [...READ_TOOL_DEFS, SETUP_TOOL_DEF, REPORT_TOOL_DEF, ...allowedActions];
+  const terms = await terminologyLine(caller).catch(() => "");
   const allowedToolNames = new Set<string>(tools.map((t) => t.function.name as string));
 
   const system = [
     `You are Buddy, the assistant inside Handover, a tool for tracking merchant onboarding and integration projects. Today is ${todayIso()}.`,
     `You're talking to ${caller.name}. Their scope is ${caller.portfolio ? "every project in their workspace" : "only the projects assigned to them"}.`,
+    terms,
     pageLine,
     mentionLines.length ? `They referred to these specifically; act on them unless they say otherwise:\n${mentionLines.join("\n")}` : "",
     settings.instructions ? `Workspace instructions from an admin:\n${settings.instructions}` : "",
@@ -147,8 +177,23 @@ ${
 - For emails, write the full subject and body yourself in a clear, friendly, professional tone, signed with the user's name. Use send_email for merchants or anyone outside Handover, and send_notification for teammates inside Handover.
 - Meeting links: use create_meeting_link. Times are IST (+05:30) unless the user says otherwise; if no time was given, ask for it. Attach the meeting to a checklist item when one clearly fits, so it's saved and invites go out.
 - Tasks, checklist comments and checklist changes need item or task ids: read the project with get_project first, or use a tagged checklist item.
-- "Who holds" a single checklist item is toggle_item_responsibility; who the whole project waits on is toggle_responsibility.`
-    : `- This user can't make changes. If they ask, explain that a manager or admin can, and offer to prepare the information instead.`
+- "Who holds" a single checklist item is toggle_item_responsibility; who the whole project waits on is toggle_responsibility.
+
+Workspace settings (you can change anything under Settings):
+- Before changing a setting, call get_workspace_setup for that area to get keys, ids and current values. Never guess keys or ids.
+- ${isAdmin ? "This user is a workspace admin: they can change every area." : "This user is a manager: branding, email sending, people and roles, integrations and Buddy's own settings need a workspace admin. Say so and offer to note what to ask them, instead of proposing those changes."}
+- When the user pastes an API key, token or secret, put it straight into update_integration_settings. Never repeat a secret's value in your reply; refer to it by name ("the Jira token").
+
+Onboarding ("onboard my account", "set up the workspace", /onboard):
+1. Call get_workspace_setup with no area. Open with one line of progress ("7 of 15 areas set up") and a short table: area, status, what it covers. Then start the first area that isn't set up and that this user can change, unless they name one.
+2. For the area, call get_workspace_setup with that area. In ONE message ask for every field in it: a table or list with what each is for, its current value and the default or a suggestion. Group related fields. Tell them they can answer in their own words, say "keep" for anything, or "skip" the area.
+3. When they answer, propose the changes for that whole area in one reply: one action call per tool needed for the area (for example terminology is a single update_workspace_settings call with every renamed key). Don't ask "shall I?" first; the approval card does that.
+4. After the card is approved (their next message), move to the next area without being asked. Say which area is next and ask its questions.
+5. If they stop and come back later ("continue onboarding"), call get_workspace_setup again and resume from the next area not set up.
+6. Recommended order: branding, email sending, teams, people, terminology, checklists, forms, custom fields, stages, risk rules, automations, email intake, integrations, alerts, navigation/colours/Buddy. Stages come after checklists because stage rules use step names.
+7. Finish with a summary: what's set up, what was skipped, and anything waiting on an admin.
+- During onboarding you may propose several actions in one reply when they belong to the same area.`
+    : `- This user can't make changes. If they ask, explain that a manager or admin can, and offer to prepare the information instead. They can still ask about how the workspace is set up.`
 }`,
   ]
     .filter(Boolean)
@@ -277,7 +322,9 @@ ${
             const result =
               call.name === REPORT_TOOL_DEF.function.name
                 ? await runReportTool(caller, call.args)
-                : await runReadTool(caller, call.name, call.args);
+                : call.name === SETUP_TOOL_DEF.function.name
+                  ? await runSetupTool(caller, call.args)
+                  : await runReadTool(caller, call.name, call.args);
             emit({ type: "step", label: result.step });
             if (result.sources.length) emit({ type: "sources", items: result.sources });
             if ("report" in result && result.report) emit({ type: "report", report: result.report });

@@ -11,6 +11,7 @@ import {
 } from "@/lib/buddy/actions.server";
 import type { BuddyCaller } from "@/lib/buddy/scope.server";
 import { PHASE_LABELS } from "@/lib/buddy/scope.server";
+import { teamNameMap } from "@/lib/buddy/setup-read.server";
 
 /**
  * Buddy's second set of actions: checklist and tasks, transfers, archiving,
@@ -21,7 +22,6 @@ import { PHASE_LABELS } from "@/lib/buddy/scope.server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TEAM_ORDER: Record<string, string> = { mint: "integration", integration: "ms" };
-const TEAM_LABELS: Record<string, string> = { mint: "Sales", integration: "Integration", ms: "Merchant Success" };
 const RISK_CATEGORIES: Record<string, string> = {
   merchant_dependency: "Merchant dependency",
   external_dependency: "External dependency",
@@ -218,6 +218,8 @@ const MORE: Record<string, ActionDef> = {
     label: "Transfer to next team",
     async preview(c, p) {
       const project = await loadProject(c, p.project_id, "id, merchant_name, current_owner_team, assigned_owner");
+      // The workspace's own team names, not the built-in ones.
+      const TEAM_LABELS = await teamNameMap(c);
       const next = TEAM_ORDER[project.current_owner_team];
       if (!next) fail(`${project.merchant_name} is with ${TEAM_LABELS[project.current_owner_team] || project.current_owner_team}, which has no next team.`);
       const assignee = p.assignee_id ? await loadPerson(c, p.assignee_id) : null;
@@ -239,6 +241,7 @@ const MORE: Record<string, ActionDef> = {
     },
     async execute(c, p, ctx) {
       const project = await loadProject(c, p.project_id, "id, merchant_name, current_owner_team");
+      const TEAM_LABELS = await teamNameMap(c);
       const next = TEAM_ORDER[project.current_owner_team];
       if (!next) fail(`${project.merchant_name} has no next team to transfer to.`);
       const assignee = p.assignee_id ? await loadPerson(c, p.assignee_id) : null;

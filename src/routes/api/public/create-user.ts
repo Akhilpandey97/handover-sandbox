@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { createClient } from "@supabase/supabase-js";
+import { createWorkspaceUser } from "@/lib/users.server";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -72,96 +73,36 @@ async function handler(req: Request): Promise<Response> {
       );
     }
 
-    // Create the new user using admin API (doesn't affect current session)
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // Auto-confirm email
-      user_metadata: {
-        name,
-        team,
-        tenant_id: tenant_id || null,
-      },
-    });
-
-    if (createError) {
-      console.error('Error creating user:', createError);
-      return new Response(
-        JSON.stringify({ error: createError.message }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Manually insert into profiles table (in case trigger doesn't fire)
-    // Determine tenant_id: use provided tenant_id, or fall back to requester's tenant
+    // Non super-admins can only create users inside their own tenant
     const { data: requesterProfile } = await supabaseAdmin
       .from('profiles')
       .select('tenant_id')
       .eq('id', requester.id)
       .single();
-    // Non super-admins can only create users inside their own tenant
-    let resolvedTenantId = roleData?.role === 'super_admin'
+    const resolvedTenantId = roleData?.role === 'super_admin'
       ? (tenant_id || requesterProfile?.tenant_id)
       : requesterProfile?.tenant_id;
 
-    const { error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .upsert({
-        id: newUser.user.id,
-        email: email,
-        name: name,
-        team: team,
-        tenant_id: resolvedTenantId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'id' });
-
-    if (profileError) {
-      console.error('Error creating profile:', profileError);
-      // Don't fail the whole operation, but log the error
+    // Shared with Buddy's invite action, so both write the same rows.
+    let newUser: { id: string; email: string };
+    try {
+      newUser = await createWorkspaceUser({ email, password, name, role: team, tenantId: resolvedTenantId ?? null });
+    } catch (createError) {
+      console.error('Error creating user:', createError);
+      return new Response(
+        JSON.stringify({ error: (createError as Error).message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Check if user already has a role entry
-    const { data: existingRole } = await supabaseAdmin
-      .from('user_roles')
-      .select('id')
-      .eq('user_id', newUser.user.id)
-      .single();
-
-    if (existingRole) {
-      // Update existing role
-      const { error: updateRoleError } = await supabaseAdmin
-        .from('user_roles')
-        .update({ role: team, tenant_id: resolvedTenantId })
-        .eq('user_id', newUser.user.id);
-
-      if (updateRoleError) {
-        console.error('Error updating user role:', updateRoleError);
-      }
-    } else {
-      // Insert new role
-      const { error: insertRoleError } = await supabaseAdmin
-        .from('user_roles')
-        .insert({
-          user_id: newUser.user.id,
-          role: team,
-          tenant_id: resolvedTenantId,
-          created_at: new Date().toISOString(),
-        });
-
-      if (insertRoleError) {
-        console.error('Error inserting user role:', insertRoleError);
-      }
-    }
-
-    console.log('User created successfully:', newUser.user.id, email, name, team);
+    console.log('User created successfully:', newUser.id, email, name, team);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         user: {
-          id: newUser.user.id,
-          email: newUser.user.email,
+          id: newUser.id,
+          email: newUser.email,
           name,
           team,
         }

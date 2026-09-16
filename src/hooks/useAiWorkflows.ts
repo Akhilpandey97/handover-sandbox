@@ -55,6 +55,33 @@ export const useToggleWorkflow = () => {
   });
 };
 
+export const useCreateWorkflow = () => {
+  const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
+  return useMutation({
+    mutationFn: async (workflow: Partial<Omit<AiWorkflow, "id" | "created_at" | "updated_at">>) => {
+      const { error } = await supabase.from("ai_workflows").insert({
+        name: workflow.name || "New workflow",
+        description: workflow.description ?? null,
+        trigger_type: workflow.trigger_type || "event",
+        trigger_config: workflow.trigger_config || {},
+        action_type: workflow.action_type || "send_notification",
+        action_config: workflow.action_config || {},
+        is_active: workflow.is_active ?? true,
+        tenant_id: tenantScope(currentUser?.tenantId),
+        created_by: currentUser?.id ?? null,
+        created_by_name: currentUser?.name ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ai_workflows"] });
+      toast.success("Workflow created");
+    },
+    onError: () => toast.error("Failed to create workflow"),
+  });
+};
+
 export const useUpdateWorkflow = () => {
   const queryClient = useQueryClient();
   return useMutation({

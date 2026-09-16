@@ -11,6 +11,7 @@ import {
   type RiskVerdict,
 } from "@/data/riskRules";
 import { sumArrCrore } from "@/lib/arr";
+import { setupOverview } from "@/lib/buddy/setup-read.server";
 import { EGL_SETTINGS_KEY, describeEglRisk, evaluateEglRisk, isInWindow, parseEglRules, type EglRiskVerdict } from "@/data/eglRisk";
 
 /**
@@ -155,7 +156,14 @@ async function handler(req: Request): Promise<Response> {
   }
 
   // ── Daily brief ─────────────────────────────────────────────────────────
-  if (!settings.brief_enabled) return json({ enabled: false }, 200, corsHeaders);
+  // People who can change settings see how far workspace setup has got, so an
+  // unfinished workspace invites them to onboard it.
+  const setup = caller.canAct
+    ? await setupOverview(caller)
+        .then((o) => ({ set_up: o.progress.set_up, total: o.progress.total }))
+        .catch(() => null)
+    : null;
+  if (!settings.brief_enabled) return json({ enabled: false, setup }, 200, corsHeaders);
 
   // Live projects stay in the query: the dashboard counts them in its totals.
   let q = c
@@ -361,6 +369,7 @@ async function handler(req: Request): Promise<Response> {
         : null,
       items,
       more: Math.max(0, candidates.length - items.length),
+      setup,
     },
     200,
     corsHeaders,

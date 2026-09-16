@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { buddyCaller, corsHeaders, json } from "@/lib/buddy/scope.server";
 import { DEFAULT_BULK_LIMIT, UNDO_WINDOW_MS, isActionError, undoAction } from "@/lib/buddy/actions.server";
 import { getAnyAction as getAction } from "@/lib/buddy/registry.server";
+import { hasRole, maskSecret } from "@/lib/buddy/setup-catalog.server";
+import { drainQueue } from "@/lib/workflows.server";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
 
 /**
@@ -12,6 +14,32 @@ import { loadBuddySettings } from "@/lib/buddy/settings.server";
  * and the workspace must not have switched the action off. The browser only
  * ever proposes.
  */
+const redactFor = (name: string, params: Record<string, any>) => {
+  const def = getAction(name);
+  return def?.redactParams ? def.redactParams(params) : params;
+};
+
+/** Replace pasted secrets in the person's saved Buddy chats with a masked form. */
+async function redactChat(caller: NonNullable<Awaited<ReturnType<typeof buddyCaller>>>, secrets: string[]) {
+  const mask = (text: string) => secrets.reduce((t, s) => (s.length >= 6 ? t.split(s).join(maskSecret(s)) : t), text);
+  const { data } = await caller.client
+    .from("chat_messages")
+    .select("id, content, metadata")
+    .eq("user_id", caller.userId)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  for (const row of (data || []) as { id: string; content: string; metadata?: unknown }[]) {
+    const content = mask(row.content || "");
+    const meta = row.metadata === undefined ? undefined : JSON.parse(mask(JSON.stringify(row.metadata)));
+    if (content === row.content && JSON.stringify(meta) === JSON.stringify(row.metadata)) continue;
+    await caller.client
+      .from("chat_messages")
+      .update(meta === undefined ? { content } : { content, metadata: meta })
+      .eq("id", row.id)
+      .eq("user_id", caller.userId);
+  }
+}
+
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Use POST" }, 405, corsHeaders);
@@ -41,6 +69,9 @@ async function handler(req: Request): Promise<Response> {
     const def = getAction(name);
     if (!def) return json({ error: `Buddy doesn't know how to ${name.replace(/_/g, " ") || "do that"}.` }, 400, corsHeaders);
 
+    if (def.requires === "admin" && !hasRole(caller.roles, "admin")) {
+      return json({ error: `${def.label} is for workspace admins.` }, 403, corsHeaders);
+    }
     const settings = await loadBuddySettings(caller);
     if (settings.disabled_actions.includes(name)) {
       return json({ error: `${def.label} is switched off for this workspace.` }, 403, corsHeaders);
@@ -53,6 +84,10 @@ async function handler(req: Request): Promise<Response> {
     }
 
     const outcome = await def.execute(caller, params, ctx);
+    const loggedParams = def.redactParams ? def.redactParams(params) : params;
+    if (outcome.secrets?.length) await redactChat(caller, outcome.secrets);
+    // Workflows react to what Buddy just changed now, not at the next scheduled run.
+    await drainQueue(req, caller.tenantId).catch((err) => console.error("ai-actions workflow drain:", (err as Error).message));
     const { data: log } = await caller.client
       .from("activity_logs")
       .insert({
@@ -64,7 +99,7 @@ async function handler(req: Request): Promise<Response> {
         description: outcome.log.description,
         entity_type: outcome.log.entityType,
         entity_id: outcome.log.entityId,
-        metadata: { action: name, params, result: { message: outcome.message }, undo: outcome.undo, log_category: outcome.log.category, via: "buddy" },
+        metadata: { action: name, params: loggedParams, result: { message: outcome.message }, undo: outcome.undo, log_category: outcome.log.category, via: "buddy" },
         status: "success",
       })
       .select("id")
@@ -78,6 +113,8 @@ async function handler(req: Request): Promise<Response> {
         log_id: (log as { id: string } | null)?.id,
         undoable: !!outcome.undo,
         undo_until: outcome.undo ? new Date(Date.now() + UNDO_WINDOW_MS).toISOString() : undefined,
+        // The browser masks these in the open conversation; the saved copy is already masked.
+        redact: outcome.secrets?.length ? outcome.secrets : undefined,
       },
       200,
       corsHeaders,
@@ -94,7 +131,7 @@ async function handler(req: Request): Promise<Response> {
           action_type: "ai",
           category: "api",
           description: `Buddy couldn't ${String(body.action || "act").replace(/_/g, " ")}: ${message}`,
-          metadata: { action: body.action, params: body.params, error: message, via: "buddy" },
+          metadata: { action: body.action, params: redactFor(String(body.action || ""), body.params || {}), error: message, via: "buddy" },
           status: "failed",
         })
         .then(() => undefined, () => undefined);

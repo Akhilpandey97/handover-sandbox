@@ -21,6 +21,8 @@ interface Brief {
   items?: { tone: Tone; project_id: string; merchant: string; title: string; detail: string; action: { label: string; prompt: string; draft?: boolean } }[];
   /** Flagged projects that didn't fit in the list. */
   more?: number;
+  /** Workspace setup progress, for people who can change settings. */
+  setup?: { set_up: number; total: number } | null;
 }
 
 interface ProjectHints {
@@ -82,13 +84,34 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
   }, [data, currentUser, today]);
 
   if (isLoading) return <div className="h-40 animate-pulse rounded-xl border border-border bg-muted/40" aria-label="Loading today's brief" />;
-  if (!data?.enabled) return null;
+
+  const setupNudge =
+    data?.setup && data.setup.set_up < data.setup.total ? (
+      <button
+        type="button"
+        onClick={() => onPick("Onboard my account")}
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3 text-left hover:border-primary/60"
+      >
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold text-foreground">Set up this workspace</span>
+          <span className="block text-xs text-muted-foreground">
+            {data.setup.set_up} of {data.setup.total} areas set up. Buddy asks for everything else, one area at a time.
+          </span>
+        </span>
+        <span className="shrink-0 text-xs font-medium text-primary">Start</span>
+      </button>
+    ) : null;
+
+  if (!data?.enabled) return setupNudge;
 
   if (dismissed) {
     return (
+      <div className="space-y-3">
+      {setupNudge}
       <button type="button" onClick={() => { storage.set(dismissKey, "0"); setDismissed(false); }} className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline">
         <Sparkles className="h-3.5 w-3.5" /> Show today's brief
       </button>
+      </div>
     );
   }
 
@@ -104,6 +127,8 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
   const openDashboard = () => navigate({ to: "/dashboard" });
 
   return (
+    <div className="space-y-3">
+    {setupNudge}
     <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm" aria-label="Today's brief">
       <div className="flex items-start justify-between gap-3 bg-hero px-4 py-3.5 text-hero-foreground">
         <div className="min-w-0">
@@ -157,6 +182,7 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
         </button>
       )}
     </section>
+    </div>
   );
 };
 

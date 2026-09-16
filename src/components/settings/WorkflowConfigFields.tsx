@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTeams } from "@/hooks/useTeams";
 import { useLabels } from "@/contexts/LabelsContext";
 import { projectStateLabels } from "@/data/projectsData";
+import { WORKFLOW_EVENTS, WORKFLOW_FIELDS, WORKFLOW_FREQUENCIES } from "@/data/workflowConfig";
 
 /**
  * Typed editors for a workflow's trigger and action config.
@@ -20,26 +21,6 @@ import { projectStateLabels } from "@/data/projectsData";
  */
 
 export type ConfigValue = Record<string, unknown>;
-
-/** Events a workflow can hang off. Kept in step with the runtime's emitters. */
-export const WORKFLOW_EVENTS = [
-  { value: "project_created", label: "Project created" },
-  { value: "project_state_changed", label: "Project state changed" },
-  { value: "project_transferred", label: "Project transferred" },
-  { value: "checklist_completed", label: "Checklist completed" },
-  { value: "go_live_date_passed", label: "Go-live date passed" },
-] as const;
-
-/** Project fields a workflow may watch or write. */
-export const WORKFLOW_FIELDS = [
-  { value: "project_state", label: "Project State" },
-  { value: "current_owner_team", label: "Current Team" },
-  { value: "assigned_owner", label: "Assigned Owner" },
-  { value: "expected_go_live_date", label: "Expected Go-Live Date" },
-  { value: "go_live_percent", label: "Go-Live %" },
-  { value: "integration_type", label: "Integration Type" },
-  { value: "pg_onboarding", label: "PG Onboarding" },
-] as const;
 
 const useProfiles = () => {
   const { currentUser } = useAuth();
@@ -70,14 +51,24 @@ export const TriggerConfigFields = ({
 
   if (triggerType === "event") {
     return (
-      <Field label="When this happens">
-        <Select value={str("event_name")} onValueChange={(v) => set("event_name", v)}>
-          <SelectTrigger><SelectValue placeholder="Choose an event" /></SelectTrigger>
-          <SelectContent>
-            {WORKFLOW_EVENTS.map((e) => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </Field>
+      <div className="space-y-3">
+        <Field label="When this happens">
+          <Select value={str("event_name")} onValueChange={(v) => onChange({ event_name: v })}>
+            <SelectTrigger><SelectValue placeholder="Choose an event" /></SelectTrigger>
+            <SelectContent>
+              {WORKFLOW_EVENTS.map((e) => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        {str("event_name") === "checklist_completed" && (
+          <Field label="Only for steps named (optional)">
+            <Input value={str("checklist_title")} onChange={(e) => set("checklist_title", e.target.value)} placeholder="Any step, or part of a name like “Go-live”" />
+          </Field>
+        )}
+        {str("event_name") === "go_live_date_passed" && (
+          <p className="text-xs text-muted-foreground">Checked every 10 minutes. Runs once per project for each expected go-live date that passes before the project is live.</p>
+        )}
+      </div>
     );
   }
 
@@ -115,9 +106,7 @@ export const TriggerConfigFields = ({
           <Select value={str("frequency") || "daily"} onValueChange={(v) => set("frequency", v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="hourly">Hourly</SelectItem>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
+              {WORKFLOW_FREQUENCIES.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
@@ -130,13 +119,25 @@ export const TriggerConfigFields = ({
             placeholder="e.g. 3"
           />
         </Field>
+        <Field label="Only projects in state">
+          <Select value={str("project_state") || "any"} onValueChange={(v) => set("project_state", v === "any" ? undefined : v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Any state except live</SelectItem>
+              {Object.entries(projectStateLabels).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <p className="col-span-2 text-xs text-muted-foreground">
+          Checked every 10 minutes. Runs when a project reaches this many days in its state, then again each check period while it stays there.
+        </p>
       </div>
     );
   }
 
   return (
     <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
-      A manual workflow is run on demand and needs no trigger settings.
+      A manual workflow runs only when someone asks. Ask Buddy, for example “Run this workflow on BrewCraft and Planwise”.
     </p>
   );
 };
