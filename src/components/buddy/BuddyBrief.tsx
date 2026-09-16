@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { Sparkles, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLabels } from "@/contexts/LabelsContext";
 import { apiAuthHeaders } from "@/lib/api-invoke";
 import { logActivity } from "@/hooks/useActivityLogs";
 import { cn } from "@/lib/utils";
@@ -13,8 +15,12 @@ interface Brief {
   date?: string;
   first_name?: string;
   scope_label?: string;
-  counts?: { overdue: number; blocked: number; go_lives: number; stalled: number };
+  counts?: { attention: number; blocked: number; go_lives_at_risk: number; overdue: number };
+  /** Managers and admins only: the KPI bar's headline. */
+  portfolio?: { projects: number; arr_cr: number; awaiting_acceptance: number } | null;
   items?: { tone: Tone; project_id: string; merchant: string; title: string; detail: string; action: { label: string; prompt: string; draft?: boolean } }[];
+  /** Flagged projects that didn't fit in the list. */
+  more?: number;
 }
 
 interface ProjectHints {
@@ -53,6 +59,8 @@ const storage = {
  */
 export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolean) => void }) => {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { getLabel } = useLabels();
   const today = new Date().toISOString().slice(0, 10);
   const dismissKey = `buddy:brief-dismissed:${currentUser?.id}:${today}`;
   const [dismissed, setDismissed] = useState(false);
@@ -84,9 +92,12 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
     );
   }
 
-  const counts = data.counts || { overdue: 0, blocked: 0, go_lives: 0, stalled: 0 };
+  const counts = data.counts || { attention: 0, blocked: 0, go_lives_at_risk: 0, overdue: 0 };
   const items = data.items || [];
+  const more = data.more || 0;
+  const flagged = items.length + more;
   const dateLabel = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
+  const openDashboard = () => navigate({ to: "/dashboard" });
 
   return (
     <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm" aria-label="Today's brief">
@@ -94,18 +105,24 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
         <div className="min-w-0">
           <p className="text-2xs opacity-75">{dateLabel} · {data.scope_label}</p>
           <p className="heading-card mt-0.5">
-            {items.length ? `Good ${greeting()}, ${data.first_name}. ${items.length} thing${items.length === 1 ? " needs" : "s need"} you today.` : `Good ${greeting()}, ${data.first_name}. Nothing urgent today.`}
+            {flagged ? `Good ${greeting()}, ${data.first_name}. ${flagged} project${flagged === 1 ? " needs" : "s need"} you today.` : `Good ${greeting()}, ${data.first_name}. Nothing urgent today.`}
           </p>
+          {data.portfolio && (
+            <p className="mt-0.5 text-2xs opacity-75">
+              Pipeline {getLabel("field_arr")} {data.portfolio.arr_cr.toFixed(2)} Cr
+              {data.portfolio.awaiting_acceptance > 0 && ` · ${data.portfolio.awaiting_acceptance} handover${data.portfolio.awaiting_acceptance === 1 ? "" : "s"} waiting to be accepted`}
+            </p>
+          )}
         </div>
         <button type="button" aria-label="Dismiss today's brief" title="Dismiss until tomorrow" onClick={() => { storage.set(dismissKey, "1"); setDismissed(true); }} className="rounded-md p-1 opacity-70 hover:bg-white/10 hover:opacity-100">
           <X className="h-4 w-4" />
         </button>
       </div>
       <div className="grid grid-cols-2 border-b border-border sm:grid-cols-4">
-        <Count value={counts.overdue} label="Overdue items" tone={counts.overdue ? "text-destructive-strong" : undefined} />
-        <Count value={counts.blocked} label="Blocked" tone={counts.blocked ? "text-warning-strong" : undefined} />
-        <Count value={counts.go_lives} label="Go-lives this week" />
-        <Count value={counts.stalled} label="No activity 7+ days" />
+        <Count value={counts.attention} label="Need attention" tone={counts.attention ? "text-destructive-strong" : undefined} onClick={openDashboard} />
+        <Count value={counts.blocked} label="Blocked" tone={counts.blocked ? "text-warning-strong" : undefined} onClick={openDashboard} />
+        <Count value={counts.go_lives_at_risk} label="Go-lives at risk this week" tone={counts.go_lives_at_risk ? "text-warning-strong" : undefined} onClick={openDashboard} />
+        <Count value={counts.overdue} label="Overdue items" onClick={openDashboard} />
       </div>
       {items.length > 0 && (
         <ul className="divide-y divide-border">
@@ -129,6 +146,11 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
             </li>
           ))}
         </ul>
+      )}
+      {more > 0 && (
+        <button type="button" onClick={openDashboard} className="w-full border-t border-border px-4 py-2 text-left text-xs font-medium text-primary hover:bg-primary-soft">
+          And {more} more on the dashboard
+        </button>
       )}
     </section>
   );
@@ -163,11 +185,11 @@ export const ProjectSuggestions = ({ projectId, onPick }: { projectId: string; o
   );
 };
 
-const Count = ({ value, label, tone }: { value: number; label: string; tone?: string }) => (
-  <div className="border-border px-4 py-2.5 [&:not(:first-child)]:border-l">
+const Count = ({ value, label, tone, onClick }: { value: number; label: string; tone?: string; onClick: () => void }) => (
+  <button type="button" onClick={onClick} title="Open the dashboard" className="border-border px-4 py-2.5 text-left transition-colors hover:bg-muted/40 [&:not(:first-child)]:border-l">
     <p className={cn("text-xl font-semibold tabular-nums text-foreground", tone)}>{value}</p>
     <p className="text-2xs text-muted-foreground">{label}</p>
-  </div>
+  </button>
 );
 
 const greeting = () => {
