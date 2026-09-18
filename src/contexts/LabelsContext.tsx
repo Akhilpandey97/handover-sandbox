@@ -27,6 +27,9 @@ export const useLabels = () => {
   return ctx;
 };
 
+// Safe variant for code that may run outside the provider (e.g. sibling providers).
+export const useLabelsOptional = () => useContext(LabelsContext);
+
 export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
   // Loads tenant project stages into the runtime registry used across the app
