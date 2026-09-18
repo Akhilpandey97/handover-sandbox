@@ -333,6 +333,7 @@ export type Database = {
           conversation_id: string | null
           created_at: string
           id: string
+          metadata: Json
           role: string
           tenant_id: string | null
           user_id: string
@@ -342,6 +343,7 @@ export type Database = {
           conversation_id?: string | null
           created_at?: string
           id?: string
+          metadata?: Json
           role: string
           tenant_id?: string | null
           user_id: string
@@ -351,6 +353,7 @@ export type Database = {
           conversation_id?: string | null
           created_at?: string
           id?: string
+          metadata?: Json
           role?: string
           tenant_id?: string | null
           user_id?: string
