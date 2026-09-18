@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLabels } from "@/contexts/LabelsContext";
+import { useLabelsOptional } from "@/contexts/LabelsContext";
 import { tenantScope } from "@/lib/tenant-scope";
 import { toast } from "sonner";
 import type { Project, ProjectChecklist, ResponsibilityLog, ChecklistResponsibilityLog, TransferRecord, ResponsibilityParty, ProjectPhase, ProjectState } from "@/data/projectsData";
@@ -682,7 +682,7 @@ export const useAcceptProject = () => {
 export const useTransferProject = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
-  const { teamLabels } = useLabels();
+  const teamLabels = useLabelsOptional()?.teamLabels ?? {};
 
   return useMutation({
     mutationFn: async ({ projectId, notes, assigneeId }: { projectId: string; notes?: string; assigneeId?: string }) => {
@@ -774,7 +774,7 @@ export const useTransferProject = () => {
 export const useRejectProject = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
-  const { teamLabels } = useLabels();
+  const teamLabels = useLabelsOptional()?.teamLabels ?? {};
 
   return useMutation({
     mutationFn: async ({ projectId, reason }: { projectId: string; reason: string }) => {
