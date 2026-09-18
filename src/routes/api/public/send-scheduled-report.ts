@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getTenantBranding, type TenantBranding } from "@/lib/tenant-branding.server";
 import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo, type TenantIntegrations } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
@@ -328,6 +329,7 @@ function applyFilterAndSort(projects: any[], filterState: any): any[] {
 
 // ─── Flat report helpers ───────────────────────────────────────────────────────
 
+/** Column headings, overridden per workspace by labelledColumns() below. */
 const columnLabels: Record<string, string> = {
   merchantName: "Merchant Name", mid: "MID", platform: "Platform", category: "Category",
   arr: "ARR", txnsPerDay: "Txns/Day", aov: "AOV",
@@ -404,11 +406,25 @@ async function fetchReportProjects(supabase: any, tenantId: string | null): Prom
 
 // ─── Main send function ────────────────────────────────────────────────────────
 
+/** The workspace's own names for the columns it renamed. */
+function labelledColumns(names: TenantBranding): Record<string, string> {
+  return {
+    ...columnLabels,
+    merchantName: names.merchantLabel,
+    mid: names.label("field_mid"),
+    arr: names.label("field_arr"),
+    assignedOwnerName: names.label("field_assigned_owner"),
+    projectState: names.label("field_project_state"),
+    expectedGoLiveDate: names.label("field_expected_go_live_date"),
+  };
+}
+
 async function sendReportEmail(
   supabase: any,
   report: any,
   creds: TenantIntegrations
 ): Promise<{ sent: number; failed: number; errors: string[]; execution_id?: string }> {
+  const columnLabel = labelledColumns(await getTenantBranding(report.tenant_id));
   const RESEND_API_KEY = requireCred(creds, "resend_api_key", "Resend email");
   const recipients = report.recipients || [];
   if (recipients.length === 0) {
@@ -483,7 +499,7 @@ async function sendReportEmail(
     plainTextBody = `${report.name}\nScheduled Report — ${dateStr}\n\n${buildPivotPlainText(pivot)}\n\n${footerText}`;
   } else {
     const headerRow = columns.map((c: string) =>
-      `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d5e0e6;background:#eef3f6;font-size:12px;color:#3b5466;">${columnLabels[c] || c}</th>`
+      `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d5e0e6;background:#eef3f6;font-size:12px;color:#3b5466;">${columnLabel[c] || c}</th>`
     ).join("");
     const bodyRows = filteredProjects.map((p: any, i: number) => {
       const bgColor = i % 2 === 0 ? "#ffffff" : "#f7fafc";
@@ -497,7 +513,7 @@ async function sendReportEmail(
     // Mobile cards: one card per project (label-value pairs)
     mobileCardsHtml = filteredProjects.map((p: any) => {
       const rows = columns.map((c: string) =>
-        `<div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:13px;"><span style="color:#546978;flex-shrink:0;">${columnLabels[c] || c}</span><span style="color:#11263b;text-align:right;word-break:break-word;">${getFlatCellValue(p, c) || "—"}</span></div>`
+        `<div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:13px;"><span style="color:#546978;flex-shrink:0;">${columnLabel[c] || c}</span><span style="color:#11263b;text-align:right;word-break:break-word;">${getFlatCellValue(p, c) || "—"}</span></div>`
       ).join("");
       return `<div style="background:#ffffff;border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:8px;">${rows}</div>`;
     }).join("");
@@ -508,7 +524,7 @@ async function sendReportEmail(
     footerText = `Total: ${filteredProjects.length} projects${filterSummary} · Generated at ${new Date().toLocaleTimeString()}`;
 
     // Plain text version
-    const ptHeader = columns.map((c: string) => columnLabels[c] || c).join(" | ");
+    const ptHeader = columns.map((c: string) => columnLabel[c] || c).join(" | ");
     const ptRows = filteredProjects.map((p: any) =>
       columns.map((c: string) => getFlatCellValue(p, c) || "—").join(" | ")
     ).join("\n");

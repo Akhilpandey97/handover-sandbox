@@ -32,6 +32,8 @@ export const DEFAULT_LABELS: Record<string, string> = {
 
   // Field labels
   field_merchant_name: "Merchant Name",
+  // Plural of the customer record, for headings like "Weeks per Merchant".
+  field_merchant_name_plural: "Merchants",
   field_mid: "MID",
   field_kick_off_date: "Start Date (Kick Off)",
   field_go_live_date: "Go-Live Date",

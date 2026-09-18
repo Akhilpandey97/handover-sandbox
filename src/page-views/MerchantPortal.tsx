@@ -219,7 +219,7 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
     } catch {
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "I'm having trouble connecting right now. Here are some quick tips:\n\n• Check your API credentials in the Credentials section\n• Use the Merchant Validator to test your integration\n• Review the FAQ section for common questions\n• Contact your SE for specific issues"
+        content: "I'm having trouble connecting right now. Here are some quick tips:\n\n• Check your API credentials in the Credentials section\n• Use the tools in the Documents section to test your integration\n• Review the FAQ section for common questions\n• Contact your SE for specific issues"
       }]);
     } finally {
       setLoading(false);
@@ -2472,7 +2472,7 @@ function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; o
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex gap-2"><span className="text-info-strong">1.</span><span><strong>Single source of truth</strong> — Live integration status, owner, and next steps, always in sync with your Handover CE.</span></li>
               <li className="flex gap-2"><span className="text-info-strong">2.</span><span><strong>Secure credentials vault</strong> — Sandbox & production keys hidden by default, with copy + reveal controls.</span></li>
-              <li className="flex gap-2"><span className="text-info-strong">3.</span><span><strong>Self-service validation</strong> — Run the Merchant Validator and Payment Simulator without waiting on CE bandwidth.</span></li>
+              <li className="flex gap-2"><span className="text-info-strong">3.</span><span><strong>Self-service validation</strong> — Run the Payment Simulator without waiting on your onboarding manager.</span></li>
               <li className="flex gap-2"><span className="text-info-strong">4.</span><span><strong>Documents on demand</strong> — BRD, SOW, mandatory APIs, KwikPass & MCP guides, all linked from one place.</span></li>
               <li className="flex gap-2"><span className="text-info-strong">5.</span><span><strong>AI assistant</strong> — Ask anything about your integration; trained on your project's context.</span></li>
             </ul>

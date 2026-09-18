@@ -1,3 +1,4 @@
+import { buddyLabels } from "@/lib/buddy/labels.server";
 import {
   type BuddyCaller,
   PHASE_LABELS,
@@ -35,7 +36,7 @@ export interface BuddyReport {
 }
 
 const COLUMNS: Record<string, { label: string; field: string; numeric?: boolean }> = {
-  merchantName: { label: "Merchant", field: "merchant_name" },
+  merchantName: { label: "Merchant", field: "merchant_name" }, // relabelled per workspace in runReportTool
   mid: { label: "MID", field: "mid" },
   platform: { label: "Platform", field: "platform" },
   category: { label: "Category", field: "category" },
@@ -77,7 +78,7 @@ const TIME_DIMENSIONS = new Set<Dimension>(["go_live_month", "kick_off_month"]);
 const LONG_LABEL_DIMENSIONS = new Set<Dimension>(["owner", "platform", "category"]);
 const MAX_SERIES = 8; // categorical token ceiling: past it, fold into "Other"
 
-const TEAM_LABELS: Record<string, string> = { mint: "Sales", integration: "Integration", ms: "Merchant Success" };
+
 
 export const REPORT_TOOL_DEF = {
   type: "function",
@@ -117,6 +118,10 @@ const fmtCr = (n: number) => `₹${(Math.round(n * 10) / 10).toLocaleString("en-
 
 export async function runReportTool(caller: BuddyCaller, args: Record<string, any>): Promise<ReadToolResult & { report?: BuddyReport }> {
   try {
+    // Column headings and category names in this workspace's own words.
+    const L = await buddyLabels(caller);
+    const columnLabel = (key: string) =>
+      key === "merchantName" ? L.merchant : key === "mid" ? L.label("field_mid") : COLUMNS[key]!.label;
     const needed = new Set([
       "id", "merchant_name", "project_state", "current_phase", "current_owner_team", "assigned_owner", "platform",
       "category", "expected_go_live_date", "kick_off_date", "current_responsibility", "arr",
@@ -310,10 +315,10 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
     const cell = (p: any, key: string): string | number | null => {
       const v = p[COLUMNS[key]!.field];
       switch (key) {
-        case "projectState": return STATE_LABELS[v] || v || null;
-        case "currentOwnerTeam": return TEAM_LABELS[v] || v || null;
+        case "projectState": return L.state[v] || v || null;
+        case "currentOwnerTeam": return L.team[v] || v || null;
         case "assignedOwnerName": return ownerName.get(v) || "Unassigned";
-        case "currentResponsibility": return RESPONSIBILITY_LABELS[v] || v || null;
+        case "currentResponsibility": return L.responsibility[v] || v || null;
         case "checklistProgress": return progress.get(p.id) || "0/0";
         case "arr":
         case "goLivePercent": return v === null || v === undefined ? null : Number(v);
@@ -330,7 +335,7 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
       title,
       subtitle,
       stats,
-      columns: columns.map((k: string) => ({ key: k, label: COLUMNS[k]!.label, numeric: COLUMNS[k]!.numeric })),
+      columns: columns.map((k: string) => ({ key: k, label: columnLabel(k), numeric: COLUMNS[k]!.numeric })),
       rows,
       charts: ["table"],
       saveColumns: columns,

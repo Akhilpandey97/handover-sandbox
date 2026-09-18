@@ -565,7 +565,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     ["Last update", getLastUpdated(project)],
     [getLabel("field_current_responsibility"), responsibilityLabels[pendingOn] || pendingOn],
     ["Original estimate", formatDuration(timeByParty.gokwik + timeByParty.merchant)],
-    ["Merchant time", formatDuration(timeByParty.merchant)],
+    [`${responsibilityLabels.merchant} time`, formatDuration(timeByParty.merchant)],
     ["Internal time", formatDuration(timeByParty.gokwik)],
     [getLabel("field_arr"), formatArrCr(project.arr)],
     [getLabel("field_platform"), project.platform],
@@ -642,7 +642,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
   const handleSendMagicLink = async () => {
     if (!project.contactEmail) {
-      toast.error("No merchant contact email set", { description: "Add a Merchant Contact Email in Edit Project first." });
+      toast.error(`No ${getLabel("field_contact_email").toLowerCase()} set`, { description: `Add ${getLabel("field_contact_email")} in Edit Project first.` });
       return;
     }
     setSendingMagic(true);
@@ -827,7 +827,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
             {[
               { title: "Ownership", rows: [[getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"], ["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], [getLabel("field_sales_spoc"), project.salesSpoc || "—"]] },
-              { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"], [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)], [getLabel("field_actual_go_live_date"), project.dates.goLiveDate || "—"], ["Internal time", formatDuration(timeByParty.gokwik)], ["Merchant time", formatDuration(timeByParty.merchant)]] },
+              { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"], [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)], [getLabel("field_actual_go_live_date"), project.dates.goLiveDate || "—"], [`${responsibilityLabels.gokwik} time`, formatDuration(timeByParty.gokwik)], [`${responsibilityLabels.merchant} time`, formatDuration(timeByParty.merchant)]] },
               { title: "Business", rows: [[getLabel("field_platform"), project.platform], [getLabel("field_category"), project.category || "—"], [getLabel("field_arr"), formatArrCr(project.arr)], [getLabel("field_txns_per_day"), `${project.txnsPerDay}`], [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`], [getLabel("field_integration_type"), project.integrationType || "—"], [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
               ...(customFieldRows.length ? [{ title: "Custom Fields", rows: customFieldRows }] : []),
@@ -1060,11 +1060,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           <div className="grid grid-cols-2 gap-1.5 pt-1">
                             <div className="rounded-md border border-border/60 bg-card/80 px-2 py-1.5 text-center">
                               <p className="text-xs font-bold text-foreground">{formatDuration(timeByParty.gokwik)}</p>
-                              <p className="text-2xs tracking-normal text-muted-foreground">Internal</p>
+                              <p className="text-2xs tracking-normal text-muted-foreground">{responsibilityLabels.gokwik}</p>
                             </div>
                             <div className="rounded-md border border-border/60 bg-card/80 px-2 py-1.5 text-center">
                               <p className="text-xs font-bold text-foreground">{formatDuration(timeByParty.merchant)}</p>
-                              <p className="text-2xs tracking-normal text-muted-foreground">Merchant</p>
+                              <p className="text-2xs tracking-normal text-muted-foreground">{responsibilityLabels.merchant}</p>
                             </div>
                           </div>
                         </div>

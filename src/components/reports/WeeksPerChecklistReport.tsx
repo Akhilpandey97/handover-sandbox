@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Download, Clock, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLabels } from "@/contexts/LabelsContext";
 import {
   BarChart,
   Bar,
@@ -60,6 +61,9 @@ const weekColor = (weeks: number, completed: boolean): string => {
 };
 
 export const WeeksPerChecklistReport = ({ projects }: Props) => {
+  const { getLabel } = useLabels();
+  const merchantLabel = getLabel("field_merchant_name");
+  const merchantsLabel = getLabel("field_merchant_name_plural");
   const [includeArchived] = useState(false);
 
   const { columns, rows } = useMemo(() => {
@@ -104,7 +108,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
   }, [projects, includeArchived]);
 
   const exportCSV = () => {
-    const header = ["Merchant", "MID", ...columns, "Total Weeks"];
+    const header = [merchantLabel, getLabel("field_mid"), ...columns, "Total Weeks"];
     const lines = [header.join(",")];
     rows.forEach((r) => {
       const cells = columns.map((c) => (r.cells[c]?.weeks ?? 0).toFixed(2));
@@ -185,19 +189,19 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
             className="inline-block w-2.5 h-2.5 rounded-full"
             style={{ background: stageColors[stage] }}
           />
-          {label} — Weeks per Merchant
+          {label} — Weeks per {merchantLabel}
           <span className="text-xs font-normal text-muted-foreground ml-1">
-            ({data.length} merchant{data.length === 1 ? "" : "s"})
+            ({data.length} {(data.length === 1 ? merchantLabel : merchantsLabel).toLowerCase()})
           </span>
         </CardTitle>
         <CardDescription>
-          Y-axis: weeks. X-axis: merchants. Each colored segment is one checklist item.
+          Y-axis: weeks. X-axis: {merchantsLabel.toLowerCase()}. Each colored segment is one checklist item.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
           <div className="text-sm text-muted-foreground py-8 text-center">
-            No merchants in this project stage.
+            No {merchantsLabel.toLowerCase()} in this project stage.
           </div>
         ) : (
           <div style={{ width: "100%", height: Math.max(320, Math.min(600, data.length * 26 + 120)) }}>
@@ -251,7 +255,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <BarChart3 className="h-4 w-4 text-primary" />
-        Weeks per Merchant — split by project stage
+        Weeks per {merchantLabel} — split by project stage
       </div>
       {chartByStage.map((c) => renderChart(c.label, c.stage, c.data))}
 
@@ -261,7 +265,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
             <div>
               <CardTitle className="portal-heading flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
-                Weeks per Checklist Item × Merchant
+                Weeks per Checklist Item × {merchantLabel}
               </CardTitle>
               <CardDescription>
                 Time (in weeks) spent on each checklist item per merchant. Color-coded by duration —
@@ -293,7 +297,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
                 <thead className="sticky top-0 bg-background z-10">
                   <tr>
                     <th className="sticky left-0 bg-background border-b border-r p-2 text-left font-medium min-w-[200px] z-20">
-                      Merchant
+                      {merchantLabel}
                     </th>
                     {columns.map((c) => (
                       <th

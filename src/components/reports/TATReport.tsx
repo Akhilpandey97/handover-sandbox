@@ -209,7 +209,7 @@ export const TATReport = ({ projects }: Props) => {
   const exportCSV = () => {
     const headers = [
       granularity === "monthly" ? "Month" : "Quarter",
-      "#", "Merchant", "ARR (Cr)", "Kickoff Date", "Actual Go-Live Date",
+      "#", getLabel("field_merchant_name"), `${getLabel("field_arr")} (Cr)`, "Kickoff Date", "Actual Go-Live Date",
       "TAT (Go-live - Kickoff)", "TAT (Network days)",
       "Sales (days)", "Pre-Integ (days)", "Under-Integ (days)",
       ...(expandUnder ? UNDER_STAGE_LABELS.map(l => `${l} (days)`) : []),
@@ -268,7 +268,7 @@ export const TATReport = ({ projects }: Props) => {
         <CardContent className="pt-0">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div className="rounded-md border p-3">
-              <div className="text-xs text-muted-foreground">Live Merchants</div>
+              <div className="text-xs text-muted-foreground">Live {getLabel("field_merchant_name_plural")}</div>
               <div className="text-lg font-semibold">{overall.count}</div>
             </div>
             <div className="rounded-md border p-3">
@@ -311,7 +311,7 @@ export const TATReport = ({ projects }: Props) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10">#</TableHead>
-                    <TableHead>Merchant</TableHead>
+                    <TableHead>{getLabel("field_merchant_name")}</TableHead>
                     <TableHead className="text-right">ARR</TableHead>
                     <TableHead>Kickoff Date</TableHead>
                     <TableHead>Actual Go-Live</TableHead>

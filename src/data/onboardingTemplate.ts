@@ -115,7 +115,7 @@ export function onboardingTemplate(): TemplateSheet[] {
       rows: [
         ["Default name", "Your name"],
         ...[
-          "field_merchant_name", "field_mid", "field_arr", "field_platform", "field_category", "field_integration_type",
+          "field_merchant_name", "field_merchant_name_plural", "field_mid", "field_arr", "field_platform", "field_category", "field_integration_type",
           "field_sales_spoc", "field_assigned_owner", "field_contact_email", "field_go_live_percent", "field_pg_onboarding",
           "field_kick_off_date", "field_expected_go_live_date", "field_actual_go_live_date",
         ].map((k) => [label(k), ""]),

@@ -1,3 +1,4 @@
+import { buddyLabels } from "@/lib/buddy/labels.server";
 import {
   type BuddyCaller,
   PHASE_LABELS,
@@ -152,6 +153,7 @@ async function checklistProgress(caller: BuddyCaller, projectIds: string[]) {
 }
 
 async function searchProjects(caller: BuddyCaller, args: Record<string, any>): Promise<ReadToolResult> {
+  const L = await buddyLabels(caller);
   const limit = Math.min(Math.max(Number(args.limit) || 25, 1), 50);
   let q = caller.client
     .from("projects")
@@ -190,10 +192,10 @@ async function searchProjects(caller: BuddyCaller, args: Record<string, any>): P
       merchant: r.merchant_name,
       mid: r.mid,
       state: STATE_LABELS[r.project_state] || r.project_state,
-      phase: PHASE_LABELS[r.current_phase] || r.current_phase,
+      phase: L.phase[r.current_phase] || r.current_phase,
       owner: owners.get(r.assigned_owner) || "Unassigned",
       owner_id: r.assigned_owner,
-      with: RESPONSIBILITY_LABELS[r.current_responsibility] || r.current_responsibility,
+      with: L.responsibility[r.current_responsibility] || r.current_responsibility,
       expected_go_live: r.expected_go_live_date,
       went_live: r.go_live_date,
       arr_cr: r.arr,
@@ -223,6 +225,7 @@ async function searchProjects(caller: BuddyCaller, args: Record<string, any>): P
 }
 
 async function getProject(caller: BuddyCaller, args: Record<string, any>): Promise<ReadToolResult> {
+  const L = await buddyLabels(caller);
   const id = String(args.project_id || "");
   const { data: project, error } = await caller.client
     .from("projects")
@@ -278,7 +281,7 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
     done: !!c.completed,
     due: c.due_date,
     overdue: !c.completed && !!c.due_date && c.due_date < today,
-    with: RESPONSIBILITY_LABELS[c.current_responsibility] || null,
+    with: L.responsibility[c.current_responsibility] || null,
   }));
 
   return {
@@ -290,9 +293,9 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
         merchant: p.merchant_name,
         mid: p.mid,
         state: STATE_LABELS[p.project_state] || p.project_state,
-        phase: PHASE_LABELS[p.current_phase] || p.current_phase,
+        phase: L.phase[p.current_phase] || p.current_phase,
         owner: owners.get(p.assigned_owner) || "Unassigned",
-        with: RESPONSIBILITY_LABELS[p.current_responsibility] || p.current_responsibility,
+        with: L.responsibility[p.current_responsibility] || p.current_responsibility,
         kick_off: p.kick_off_date,
         expected_go_live: p.expected_go_live_date,
         went_live: p.go_live_date,
@@ -351,6 +354,7 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
 }
 
 async function portfolioStats(caller: BuddyCaller, args: Record<string, any>): Promise<ReadToolResult> {
+  const L = await buddyLabels(caller);
   let q = caller.client
     .from("projects")
     .select("project_state, current_phase, assigned_owner, platform, expected_go_live_date, current_responsibility, arr")
@@ -367,11 +371,11 @@ async function portfolioStats(caller: BuddyCaller, args: Record<string, any>): P
   const owners = groupBy === "owner" ? await ownerNames(caller, rows.map((r) => r.assigned_owner)) : new Map<string, string>();
   const keyOf = (r: any): string => {
     switch (groupBy) {
-      case "phase": return PHASE_LABELS[r.current_phase] || r.current_phase || "None";
+      case "phase": return L.phase[r.current_phase] || r.current_phase || "None";
       case "owner": return owners.get(r.assigned_owner) || "Unassigned";
       case "platform": return r.platform || "Unknown";
       case "go_live_month": return r.expected_go_live_date ? String(r.expected_go_live_date).slice(0, 7) : "No date";
-      case "responsibility": return RESPONSIBILITY_LABELS[r.current_responsibility] || "Unknown";
+      case "responsibility": return L.responsibility[r.current_responsibility] || "Unknown";
       default: return STATE_LABELS[r.project_state] || r.project_state || "None";
     }
   };

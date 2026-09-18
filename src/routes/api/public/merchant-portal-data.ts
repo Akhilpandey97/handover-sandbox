@@ -292,7 +292,7 @@ async function handler(req: Request): Promise<Response> {
       if (!project) return json({ error: "Project not found" }, 404);
 
       const text = String(note).trim().slice(0, 4000);
-      const authorName = email ? String(email).trim().toLowerCase() : "Merchant";
+      const authorName = email ? String(email).trim().toLowerCase() : (await getTenantBranding(project.tenant_id)).externalLabel;
 
       await supabase.from("activity_logs").insert({
         tenant_id: project.tenant_id,

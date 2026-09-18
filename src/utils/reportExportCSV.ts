@@ -29,14 +29,16 @@ interface Labels {
 }
 
 export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) => {
-  const { teamLabels, responsibilityLabels, phaseLabels, stateLabels } = labels;
+  const { teamLabels, responsibilityLabels, phaseLabels, stateLabels, getLabel } = labels;
+  const internal = responsibilityLabels.gokwik || "Internal";
+  const external = responsibilityLabels.merchant || "Merchant";
 
   const headers = [
-    "Merchant Name", "MID", "Current Team", "Current Phase", "State",
-    "Assigned Owner", "Tasks Completed", "Total Tasks", "Progress %",
-    "GoKwik Time", "Merchant Time",
+    getLabel("field_merchant_name"), getLabel("field_mid"), "Current Team", "Current Phase", getLabel("field_project_state"),
+    getLabel("field_assigned_owner"), "Tasks Completed", "Total Tasks", "Progress %",
+    `${internal} Time`, `${external} Time`,
     "Checklist Item", "Item Phase", "Item Team", "Item Responsibility",
-    "Item GoKwik Time", "Item Merchant Time", "Item Status",
+    `Item ${internal} Time`, `Item ${external} Time`, "Item Status",
   ];
 
   const rows: string[][] = [];
@@ -85,6 +87,7 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
 };
 
 export const exportTeamOwnerCSV = (
+  labels: Pick<Labels, "responsibilityLabels">,
   teamOwnerReport: Array<{
     team: string; teamLabel: string; projectCount: number; pendingCount: number;
     completedTasks: number; totalTasks: number; gokwikTime: number; merchantTime: number;
@@ -97,7 +100,9 @@ export const exportTeamOwnerCSV = (
 ) => {
   const headers = [
     "Team", "Owner", "Projects", "Tasks Completed", "Total Tasks",
-    "GoKwik Time", "Merchant Time", "Project Names",
+    `${labels.responsibilityLabels.gokwik || "Internal"} Time`,
+    `${labels.responsibilityLabels.merchant || "Merchant"} Time`,
+    "Project Names",
   ];
 
   const rows: string[][] = [];

@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeApi } from "@/lib/api-invoke";
+import { useLabels } from "@/contexts/LabelsContext";
 
 declare const XLSX: any;
 
@@ -52,10 +53,10 @@ interface ChecklistRow {
 // ─── Onboarding steps (no API key needed — uses Lovable AI) ──────────────────
 
 const STEPS = [
-  { key: "websiteUrl",        question: "What is the **website/staging URL** you'd like to test GoKwik checkout on?", icon: <Globe className="h-4 w-4" />, placeholder: "https://staging.yourstore.com" },
-  { key: "otpIdentifier",     question: "What **phone number or email** should be used for OTP login inside the GoKwik widget?", icon: <Smartphone className="h-4 w-4" />, placeholder: "+91 9999999999" },
+  { key: "websiteUrl",        question: "What is the **website/staging URL** you'd like to test checkout on?", icon: <Globe className="h-4 w-4" />, placeholder: "https://staging.yourstore.com" },
+  { key: "otpIdentifier",     question: "What **phone number or email** should be used for OTP login inside the checkout widget?", icon: <Smartphone className="h-4 w-4" />, placeholder: "+91 9999999999" },
   { key: "otpMethod",         question: "How is the OTP delivered? (SMS / Email / WhatsApp / Authenticator)", icon: <Smartphone className="h-4 w-4" />, placeholder: "SMS", options: ["SMS", "Email", "WhatsApp", "Authenticator"] },
-  { key: "merchantId",        question: "Enter your **GoKwik Merchant ID or API Key** (leave blank if not accessible).", icon: <Key className="h-4 w-4" />, placeholder: "gk_mid_xxxxx or leave blank" },
+  { key: "merchantId",        question: "Enter your **Merchant ID or API Key** (leave blank if not accessible).", icon: <Key className="h-4 w-4" />, placeholder: "gk_mid_xxxxx or leave blank" },
   { key: "environment",       question: "Which environment are you testing? (staging / sandbox / UAT)", icon: <Layers className="h-4 w-4" />, placeholder: "sandbox", options: ["staging", "sandbox", "UAT"] },
   { key: "checklist",         question: "Upload your test checklist (.xlsx / .xls). Each row should have columns: **Test Case**, **Category**, **Steps**, **Expected Result**.", icon: <FileSpreadsheet className="h-4 w-4" />, isFile: true },
   { key: "additionalContext", question: "Any **additional context** to share with the testing agent? (optional — press Enter to skip)", icon: <Bot className="h-4 w-4" />, placeholder: "e.g. COD is disabled, only Razorpay active…" },
@@ -64,8 +65,8 @@ const STEPS = [
 // ─── Default test suite ─────────────────────────────────────────────────────
 
 const DEFAULT_TESTS: Omit<ChecklistRow, "status" | "notes">[] = [
-  { id: 1, testCase: "Page Load & SDK Init", category: "Core", steps: "Navigate to checkout URL", expectedResult: "GoKwik widget loads within 3s, no console errors", raw: {} },
-  { id: 2, testCase: "OTP Login", category: "Auth", steps: "Enter phone/email, receive OTP, submit", expectedResult: "User logged into GoKwik widget, address pre-filled", raw: {} },
+  { id: 1, testCase: "Page Load & SDK Init", category: "Core", steps: "Navigate to checkout URL", expectedResult: "Checkout widget loads within 3s, no console errors", raw: {} },
+  { id: 2, testCase: "OTP Login", category: "Auth", steps: "Enter phone/email, receive OTP, submit", expectedResult: "User logged into the checkout widget, address pre-filled", raw: {} },
   { id: 3, testCase: "Saved Address Auto-fill", category: "Address", steps: "Login as returning user", expectedResult: "Saved address appears, correct pincode & city", raw: {} },
   { id: 4, testCase: "COD Payment Option", category: "Payments", steps: "Proceed to payment step", expectedResult: "COD option visible and selectable", raw: {} },
   { id: 5, testCase: "Prepaid Payment Option", category: "Payments", steps: "Select prepaid, choose gateway", expectedResult: "Razorpay/CCAvenue/PayU redirect works", raw: {} },
@@ -171,6 +172,8 @@ const STATUS_ICON: Record<string, React.ReactNode> = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const SandboxTesting = () => {
+  const { getLabel } = useLabels();
+  const orgName = getLabel("org_name");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [step, setStep] = useState(0);
   const [input, setInput] = useState("");
@@ -191,7 +194,7 @@ export const SandboxTesting = () => {
   // Greet on mount
   useEffect(() => {
     setTimeout(() => {
-      addMessage("assistant", "Hi! I'm your **GoKwik QA Agent**. I'll guide you through setting up and running a full sandbox test of the GoKwik checkout flow.\n\nLet's collect a few details first.");
+      addMessage("assistant", `Hi! I'm your **${orgName} QA Agent**. I'll guide you through setting up and running a full sandbox test of the checkout flow.\n\nLet's collect a few details first.`);
       setTimeout(() => addMessage("assistant", STEPS[0].question), 600);
     }, 300);
   }, []);
@@ -221,7 +224,7 @@ export const SandboxTesting = () => {
       setTimeout(() => addMessage("assistant", STEPS[next].question), 400);
     } else {
       setTimeout(() => {
-        addMessage("assistant", "Everything's set! I'll now run the GoKwik checkout tests using AI analysis.\n\nClick **Run Tests** to begin.");
+        addMessage("assistant", "Everything's set! I'll now run the checkout tests using AI analysis.\n\nClick **Run Tests** to begin.");
       }, 400);
     }
   };
@@ -292,7 +295,7 @@ export const SandboxTesting = () => {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <CardTitle className="portal-heading flex items-center gap-2">
               <FlaskConical className="h-5 w-5 text-primary" />
-              GoKwik Sandbox Testing Agent
+              {orgName} Sandbox Testing Agent
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button variant={view === "chat" ? "default" : "outline"} size="sm" className="text-xs h-7" onClick={() => setView("chat")}>
@@ -360,7 +363,7 @@ export const SandboxTesting = () => {
                     Upload Checklist (.xlsx / .xls)
                   </Button>
                   <Button variant="ghost" className="w-full text-xs text-muted-foreground h-7" onClick={() => advanceStep({})}>
-                    Skip — use default GoKwik test suite
+                    Skip — use the default test suite
                   </Button>
                 </div>
               ) : currentStep.options ? (

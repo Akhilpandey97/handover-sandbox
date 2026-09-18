@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLabels } from "@/contexts/LabelsContext";
 import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,11 +27,13 @@ const PAGE_LABEL: Record<string, string> = {
   documents: "Documents",
   kwikpass: "KwikPass",
   faq: "FAQ & Help",
-  validator: "Merchant Validator",
+  validator: "Validator",
 };
 
 export function PortalVisitsReport() {
   const { currentUser } = useAuth();
+  const { getLabel } = useLabels();
+  const merchantLabel = getLabel("field_merchant_name");
   const tenantId = tenantScope(currentUser?.tenantId);
   const [visits, setVisits] = useState<VisitRow[]>([]);
   const [projects, setProjects] = useState<Record<string, ProjectMini>>({});
@@ -79,7 +82,7 @@ export function PortalVisitsReport() {
   }, [visits, projects]);
 
   const exportCsv = () => {
-    const header = ["Visited At", "Email", "Merchant", "MID", "Page"];
+    const header = ["Visited At", "Email", merchantLabel, getLabel("field_mid"), "Page"];
     const rows = filtered.map(v => [
       new Date(v.visited_at).toISOString(),
       v.email,
@@ -99,7 +102,7 @@ export function PortalVisitsReport() {
     <div className="space-y-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="portal-heading flex items-center gap-2"><Eye className="w-4 h-4" /> Merchant Portal Visits</CardTitle>
+          <CardTitle className="portal-heading flex items-center gap-2"><Eye className="w-4 h-4" /> {merchantLabel} Portal Visits</CardTitle>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -124,7 +127,7 @@ export function PortalVisitsReport() {
                   <tr className="text-left">
                     <th className="px-3 py-2 font-medium">Visited At</th>
                     <th className="px-3 py-2 font-medium">Email</th>
-                    <th className="px-3 py-2 font-medium">Merchant</th>
+                    <th className="px-3 py-2 font-medium">{merchantLabel}</th>
                     <th className="px-3 py-2 font-medium">Page</th>
                   </tr>
                 </thead>

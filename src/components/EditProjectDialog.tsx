@@ -171,7 +171,7 @@ export const EditProjectDialog = ({
   const handleSave = async () => {
     if (editedProject) {
       if (!emailsValid(editedProject.contactEmail || "")) {
-        toast({ title: "Merchant Contact Email required", description: "Provide one or more valid emails (comma-separated).", variant: "destructive" });
+        toast({ title: `${getLabel("field_contact_email")} required`, description: "Provide one or more valid emails (comma-separated).", variant: "destructive" });
         return;
       }
       const merged = { ...customValues, ...customDraft };

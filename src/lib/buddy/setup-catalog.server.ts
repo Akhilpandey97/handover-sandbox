@@ -206,6 +206,7 @@ export const NAV_TABS: { key: string; label: string }[] = [
 
 const CORE_FIELD_LABELS: [string, string][] = [
   ["field_merchant_name", "Merchant name"],
+  ["field_merchant_name_plural", "Merchant name, plural"],
   ["field_mid", "Merchant ID (MID)"],
   ["field_arr", "Revenue metric (ARR)"],
   ["field_platform", "Platform"],

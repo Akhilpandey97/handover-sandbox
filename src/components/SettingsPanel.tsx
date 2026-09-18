@@ -73,6 +73,7 @@ const FIELD_GROUPS: LabelGroup[] = [
     description: "Labels for project data fields shown across the app",
     keys: [
       { key: "field_merchant_name", label: "Client/Merchant Name" },
+      { key: "field_merchant_name_plural", label: "Client/Merchant Name (plural)" },
       { key: "field_mid", label: "Client ID Field" },
       { key: "field_arr", label: "Revenue Metric" },
       { key: "field_platform", label: "Platform Label" },

@@ -12,6 +12,7 @@ import {
 import type { BuddyCaller } from "@/lib/buddy/scope.server";
 import { PHASE_LABELS } from "@/lib/buddy/scope.server";
 import { teamNameMap } from "@/lib/buddy/setup-read.server";
+import { buddyLabels } from "@/lib/buddy/labels.server";
 
 /**
  * Buddy's second set of actions: checklist and tasks, transfers, archiving,
@@ -683,7 +684,7 @@ const MORE_DEFS: any[] = [
     type: "function",
     function: {
       name: "transfer_project",
-      description: "Transfer a project to the next team (Sales → Integration → Merchant Success). The receiving team must accept it. Optionally name the new owner.",
+      description: "Transfer a project to the next team in the handoff order (stage 1 → stage 2 → stage 3; get their names from get_workspace_setup). The receiving team must accept it. Optionally name the new owner.",
       parameters: {
         type: "object",
         properties: { project_id: { type: "string" }, assignee_id: { type: "string" }, notes: { type: "string", description: "Handover notes for the receiving team" } },
@@ -898,7 +899,7 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
     label: "Change who holds a checklist item",
     async preview(c, p) {
       const { item, project } = await loadItem(c, p.item_id);
-      const labels: Record<string, string> = { gokwik: "Internal team", merchant: "Merchant", neutral: "Neutral" };
+      const labels = (await buddyLabels(c)).responsibility;
       if (!labels[p.party]) fail("Who holds it must be internal team, merchant or neutral.");
       const { data: row } = await c.client.from("checklist_items").select("current_responsibility").eq("id", item.id).maybeSingle();
       const before = (row as { current_responsibility?: string } | null)?.current_responsibility || "neutral";

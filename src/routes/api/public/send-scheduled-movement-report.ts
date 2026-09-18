@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import { getTenantBranding } from "@/lib/tenant-branding.server";
 
 // Dispatches scheduled movement reports.
 // Triggered by pg_cron every minute, or manually with { schedule_id } to send immediately.
@@ -142,6 +143,8 @@ function buildSummary(entries: any[], max = 2): string {
 }
 
 async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily" | "weekly", title: string): Promise<string> {
+  // The workspace's own words for the two sides of the work.
+  const names = await getTenantBranding(tenantId);
   const nowUtc = Date.now();
   const nowIst = new Date(nowUtc + IST_OFFSET_MS);
   const y = nowIst.getUTCFullYear(), m = nowIst.getUTCMonth(), d = nowIst.getUTCDate();
@@ -369,8 +372,8 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
       // "Blocked on whom" — current responsibility + assigned owner name
       const responsibilityLabel = (r: any): string => {
         const v = String(r || "").toLowerCase();
-        if (v === "gokwik") return "GoKwik";
-        if (v === "merchant") return "Merchant";
+        if (v === "gokwik") return names.internalLabel;
+        if (v === "merchant") return names.externalLabel;
         if (v === "neutral") return "Neutral";
         return "—";
       };

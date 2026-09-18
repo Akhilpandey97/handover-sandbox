@@ -102,7 +102,7 @@ export const ProjectDetailsDialog = ({
   const handleSendMagicLink = async () => {
     if (!project) return;
     if (!project.contactEmail) {
-      toast.error("No merchant contact email set", { description: "Add a Merchant Contact Email in Edit Project first." });
+      toast.error(`No ${getLabel("field_contact_email").toLowerCase()} set`, { description: `Add ${getLabel("field_contact_email")} in Edit Project first.` });
       return;
     }
     setSendingMagic(true);
@@ -492,6 +492,10 @@ export const ProjectDetailsDialog = ({
                             ? "bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-300 border-slate-200 dark:border-slate-800"
                             : "bg-warning-soft text-warning-strong border-warning/30";
                         const owner = item.owner || "Unknown";
+                        // The email classifier returns the stored party names, so
+                        // compare against those and show the workspace's labels.
+                        const ownerLabel =
+                          owner === "GoKwik" ? responsibilityLabels.gokwik : owner === "Merchant" ? responsibilityLabels.merchant : owner;
                         const ownerColor =
                           owner === "GoKwik"
                             ? "bg-primary/10 text-primary border-primary/20"
@@ -507,7 +511,7 @@ export const ProjectDetailsDialog = ({
                                   {priority}
                                 </span>
                                 <span className={`text-2xs px-1.5 py-0.5 rounded border ${ownerColor} font-medium`}>
-                                  {owner === "GoKwik" ? responsibilityLabels.gokwik : owner}
+                                  {ownerLabel}
                                 </span>
                               </div>
                             </div>

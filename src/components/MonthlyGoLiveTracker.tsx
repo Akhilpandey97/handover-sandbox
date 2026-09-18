@@ -536,7 +536,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
             <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
               <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
                 <TableRow className="hover:bg-navy/5 border-b">
-                  <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">Opportunity</TableHead>
+                  <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">{getLabel("field_merchant_name")}</TableHead>
                   {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy">{arrLabel} Cr.</TableHead>}
                   {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stageLabel}</TableHead>}
                   {isVisible("status") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stateLabel}</TableHead>}

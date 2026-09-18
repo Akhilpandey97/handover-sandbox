@@ -41,7 +41,10 @@ async function handler(req: Request): Promise<Response> {
     // Where merchants should reply: the tenant's configured Reply-To, then its
     // From Address, rather than a support inbox belonging to one company.
     const supportEmail = creds.reply_to || creds.from_email || "";
-    const { orgName } = await getTenantBranding(await tenantIdFromRequest(req));
+    const branding = await getTenantBranding(await tenantIdFromRequest(req));
+    const { orgName } = branding;
+    // The team that answers merchants is the third-stage team, named by the workspace.
+    const teamName = branding.teamLabel("ms");
     const to = (brandPocEmails as string[]).filter(Boolean);
     const ccSet = new Set<string>((platformPocEmails as string[]).filter(Boolean));
     if (csmEmail && typeof csmEmail === "string" && csmEmail.trim()) ccSet.add(csmEmail.trim());
@@ -119,7 +122,7 @@ ${senderMobile || ""}`;
         <p>These videos will cover every section of the Dashboard and show you how to read your metrics.</p>
 
         <h3 style="margin-top:24px;">SUPPORT</h3>
-        <p>For any queries, write to <a href="mailto:${supportEmail}">${supportEmail}</a> and our Merchant Success team will connect with you directly.</p>
+        <p>For any queries, write to <a href="mailto:${supportEmail}">${supportEmail}</a> and our ${teamName} team will connect with you directly.</p>
 
         <p>We look forward to partnering with you.</p>
 

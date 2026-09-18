@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLabels } from "@/contexts/LabelsContext";
 import { tenantScope } from "@/lib/tenant-scope";
 import { toast } from "@/hooks/use-toast";
 import { ShopifyLtSheetMatch } from "@/components/ShopifyLtSheetMatch";
@@ -109,6 +110,12 @@ const ageingTone = (d: number | null) => {
 };
 
 export const ShopifyLtEmailComms = () => {
+  const { getLabel, responsibilityLabels } = useLabels();
+  const merchantLabel = getLabel("field_merchant_name");
+  const internalLabel = responsibilityLabels.gokwik;
+  /** Stored roles keep their original values; only what's shown follows the workspace's names. */
+  const roleLabel = (role: string) =>
+    role === "Merchant" ? responsibilityLabels.merchant : role === "GoKwik (Other)" ? `Someone else (${internalLabel})` : role;
   const [days, setDays] = useState("7");
   const [search, setSearch] = useState("");
   const [omFilter, setOmFilter] = useState("all");
@@ -423,12 +430,12 @@ export const ShopifyLtEmailComms = () => {
           <SelectContent>
             <SelectItem value="all">Last reply: anyone</SelectItem>
             <SelectItem value="Onboarding Manager">Onboarding Manager</SelectItem>
-            <SelectItem value="Merchant">Merchant</SelectItem>
-            <SelectItem value="GoKwik (Other)">Someone else (GoKwik)</SelectItem>
+            <SelectItem value="Merchant">{merchantLabel}</SelectItem>
+            <SelectItem value="GoKwik (Other)">Someone else ({internalLabel})</SelectItem>
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[240px]"><SelectValue placeholder="Merchant status" /></SelectTrigger>
+          <SelectTrigger className="w-[240px]"><SelectValue placeholder={`${merchantLabel} status`} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All merchant statuses</SelectItem>
             {MERCHANT_STATUSES.map((s) => (
@@ -457,10 +464,10 @@ export const ShopifyLtEmailComms = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Merchant</TableHead>
+              <TableHead>{merchantLabel}</TableHead>
               <TableHead>Subject</TableHead>
               <TableHead>Latest Summary</TableHead>
-              <TableHead>Merchant Status</TableHead>
+              <TableHead>{merchantLabel} Status</TableHead>
               <TableHead>Msgs</TableHead>
               <TableHead>Onboarding Manager</TableHead>
               <TableHead>Last reply by</TableHead>
@@ -548,7 +555,7 @@ export const ShopifyLtEmailComms = () => {
                             : ""
                       }`}
                     >
-                      {role}
+                      {roleLabel(role)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm whitespace-nowrap">

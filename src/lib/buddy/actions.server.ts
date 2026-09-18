@@ -7,6 +7,7 @@ import {
 import { getTenantIntegrations, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
 import { brdUrl } from "@/lib/app-links.server";
 import { notifyAssignment } from "@/lib/notify.server";
+import { buddyLabels } from "@/lib/buddy/labels.server";
 
 /**
  * Everything Buddy can change, in one registry.
@@ -544,16 +545,17 @@ const ACTIONS: Record<string, ActionDef> = {
     async preview(c, p) {
       if (!p.merchant_name || !p.mid) fail("A project needs a merchant name and MID.");
       const { data: existing } = await c.client.from("projects").select("id").eq("tenant_id", c.tenantId).eq("mid", p.mid).maybeSingle();
+      const L = await buddyLabels(c);
       return {
         action: "create_project",
         title: "Create project",
         rows: [
-          { label: "Merchant", after: String(p.merchant_name) },
-          { label: "MID", after: String(p.mid) },
+          { label: L.merchant, after: String(p.merchant_name) },
+          { label: L.label("field_mid"), after: String(p.mid) },
           { label: "Kick-off", after: fmtDate(p.kick_off_date) },
           ...(p.platform ? [{ label: "Platform", after: String(p.platform) }] : []),
           ...(p.expected_go_live_date ? [{ label: "Expected go-live", after: fmtDate(p.expected_go_live_date) }] : []),
-          ...(p.contact_email ? [{ label: "Merchant contact", after: String(p.contact_email) }] : []),
+          ...(p.contact_email ? [{ label: L.label("field_contact_email"), after: String(p.contact_email) }] : []),
         ],
         notes: ["The standard checklist is added automatically."],
         warnings: existing ? [`A project with MID ${p.mid} already exists.`] : undefined,

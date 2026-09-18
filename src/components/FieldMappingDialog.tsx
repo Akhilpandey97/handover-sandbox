@@ -14,28 +14,30 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Wand2, ArrowRight, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useCustomFields, CustomField } from "@/hooks/useCustomFields";
+import { useLabels } from "@/contexts/LabelsContext";
 import { apiAuthHeaders } from "@/lib/api-invoke";
 
-const BASE_PROJECT_FIELDS = [
-  { key: "merchant_name", label: "Merchant/Brand Name", required: true },
-  { key: "mid", label: "Merchant ID (MID)" },
-  { key: "platform", label: "Platform" },
-  { key: "category", label: "Category" },
-  { key: "brand_url", label: "Brand URL" },
-  { key: "arr", label: "ARR (Revenue)" },
-  { key: "txns_per_day", label: "Txns/Day" },
-  { key: "aov", label: "AOV" },
-  { key: "sales_spoc", label: "Sales SPOC" },
-  { key: "mint_notes", label: "MINT Notes" },
-  { key: "project_notes", label: "Project Notes" },
-  { key: "current_phase_comment", label: "Phase Comment" },
-  { key: "integration_type", label: "Integration Type" },
-  { key: "pg_onboarding", label: "PG Onboarding" },
-  { key: "jira_link", label: "JIRA Link" },
-  { key: "brd_link", label: "BRD Link" },
-  { key: "kick_off_date", label: "Kick Off Date" },
-  { key: "expected_go_live_date", label: "Expected Go Live Date" },
-  { key: "go_live_percent", label: "Go Live %" },
+/** Project fields a file can be mapped to, named the way this workspace names them. */
+const BASE_PROJECT_FIELDS: { key: string; labelKey: string; required?: boolean }[] = [
+  { key: "merchant_name", labelKey: "field_merchant_name", required: true },
+  { key: "mid", labelKey: "field_mid" },
+  { key: "platform", labelKey: "field_platform" },
+  { key: "category", labelKey: "field_category" },
+  { key: "brand_url", labelKey: "field_brand_url" },
+  { key: "arr", labelKey: "field_arr" },
+  { key: "txns_per_day", labelKey: "field_txns_per_day" },
+  { key: "aov", labelKey: "field_aov" },
+  { key: "sales_spoc", labelKey: "field_sales_spoc" },
+  { key: "mint_notes", labelKey: "field_mint_notes" },
+  { key: "project_notes", labelKey: "field_project_notes" },
+  { key: "current_phase_comment", labelKey: "field_current_phase_comment" },
+  { key: "integration_type", labelKey: "field_integration_type" },
+  { key: "pg_onboarding", labelKey: "field_pg_onboarding" },
+  { key: "jira_link", labelKey: "field_jira_link" },
+  { key: "brd_link", labelKey: "field_brd_link" },
+  { key: "kick_off_date", labelKey: "field_kick_off_date" },
+  { key: "expected_go_live_date", labelKey: "field_expected_go_live_date" },
+  { key: "go_live_percent", labelKey: "field_go_live_percent" },
 ];
 
 const normalizeHeader = (value: string) =>
@@ -131,8 +133,10 @@ export const FieldMappingDialog = ({
   onConfirm,
 }: FieldMappingDialogProps) => {
   const { fields: customFieldsDefs, isLoading: customFieldsLoading } = useCustomFields();
+  const { getLabel } = useLabels();
+  const merchantLabel = getLabel("field_merchant_name");
   const PROJECT_FIELDS: { key: string; label: string; required?: boolean; isCustom?: boolean }[] = [
-    ...BASE_PROJECT_FIELDS,
+    ...BASE_PROJECT_FIELDS.map(({ key, labelKey, required }) => ({ key, label: getLabel(labelKey), required })),
     ...customFieldsDefs.map(f => ({ key: `custom_${f.id}`, label: f.field_label, isCustom: true })),
   ];
 
@@ -218,7 +222,7 @@ export const FieldMappingDialog = ({
     );
 
     if (!Object.values(activeMappings).includes("merchant_name")) {
-      toast.error("Please map at least the Merchant Name field");
+      toast.error(`Please map at least the ${merchantLabel} field`);
       return;
     }
 
@@ -350,7 +354,7 @@ export const FieldMappingDialog = ({
             {!Object.values(mapping).includes("merchant_name") && !aiLoading && (
               <span className="flex items-center gap-1 text-warning-strong">
                 <AlertCircle className="h-4 w-4" />
-                Merchant Name mapping required
+                {merchantLabel} mapping required
               </span>
             )}
           </div>

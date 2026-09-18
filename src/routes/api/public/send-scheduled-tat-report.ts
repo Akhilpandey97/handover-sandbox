@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo, type TenantIntegrations } from "@/lib/tenant-integrations.server";
+import { getTenantBranding, type TenantBranding } from "@/lib/tenant-branding.server";
 
 // Dispatches scheduled TAT (Turn-around Time) reports.
 // Triggered by pg_cron every minute, or manually with { schedule_id } to send immediately.
@@ -114,14 +115,14 @@ function buildReport(projects: any[], granularity: "monthly" | "quarterly") {
   return { groups, overall };
 }
 
-function renderHtml(title: string, granularity: "monthly" | "quarterly", data: ReturnType<typeof buildReport>) {
+function renderHtml(title: string, granularity: "monthly" | "quarterly", data: ReturnType<typeof buildReport>, names: TenantBranding) {
   const th = `background:#eef3f6;padding:8px 10px;text-align:left;font-size:12px;color:#3b5466;border-bottom:1px solid #c3d1d9;`;
   const td = `padding:8px 10px;font-size:13px;color:#11263b;border-bottom:1px solid #d5e0e6;`;
   let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:900px;margin:0 auto;padding:20px;color:#11263b;">`;
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
   html += `<p style="margin:0 0 14px;color:#546978;font-size:12px;">Grouped by ${granularity} · Generated ${new Date().toLocaleString("en-GB", { timeZone: "Asia/Kolkata" })} IST</p>`;
   html += `<div style="background:#eef3f6;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap;">
-    <div><strong>${data.overall.count}</strong> Live merchants</div>
+    <div><strong>${data.overall.count}</strong> Live ${escapeHtml(names.merchantPluralLabel.toLowerCase())}</div>
     <div>Total ARR: <strong>${data.overall.totalArr.toFixed(3)} Cr</strong></div>
     <div>Avg TAT: <strong>${data.overall.avgTat.toFixed(2)} days</strong></div>
     <div>Avg Network TAT: <strong>${data.overall.avgNet.toFixed(2)} days</strong></div>
@@ -134,14 +135,14 @@ function renderHtml(title: string, granularity: "monthly" | "quarterly", data: R
   for (const g of data.groups) {
     html += `<h2 style="font-size:15px;margin:18px 0 6px;">${escapeHtml(g.label)}
       <span style="font-weight:normal;color:#546978;font-size:12px;">
-        · ${g.rows.length} merchants · Avg TAT ${g.avgTat.toFixed(2)}d · Avg Network ${g.avgNet.toFixed(2)}d
+        · ${g.rows.length} ${escapeHtml(names.merchantPluralLabel.toLowerCase())} · Avg TAT ${g.avgTat.toFixed(2)}d · Avg Network ${g.avgNet.toFixed(2)}d
       </span></h2>`;
     html += `<table style="width:100%;border-collapse:collapse;margin-bottom:8px;">
       <thead><tr>
         <th style="${th}">#</th>
-        <th style="${th}">Merchant</th>
+        <th style="${th}">${escapeHtml(names.merchantLabel)}</th>
         <th style="${th}">Platform</th>
-        <th style="${th};text-align:right;">ARR</th>
+        <th style="${th};text-align:right;">${escapeHtml(names.label("field_arr"))}</th>
         <th style="${th}">Kickoff</th>
         <th style="${th}">Actual Go-Live</th>
         <th style="${th};text-align:right;">TAT (days)</th>
@@ -205,7 +206,7 @@ async function runSchedule(supa: any, schedule: any) {
   );
   const data = buildReport(projects, schedule.granularity);
   const title = schedule.name || "TAT Report";
-  const html = renderHtml(title, schedule.granularity, data);
+  const html = renderHtml(title, schedule.granularity, data, await getTenantBranding(schedule.tenant_id));
   const subject = `${schedule.subject_prefix ? schedule.subject_prefix + " " : ""}${title} — ${new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })}`;
   const creds = await getTenantIntegrations(schedule.tenant_id);
   const resendKey = requireCred(creds, "resend_api_key", "Resend email");

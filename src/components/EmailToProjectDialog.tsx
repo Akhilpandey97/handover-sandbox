@@ -10,6 +10,7 @@ import { ArrowRight, Mail, Sparkles, Loader2 } from "lucide-react";
 import { Project, createDefaultChecklist } from "@/data/projectsData";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { apiAuthHeaders } from "@/lib/api-invoke";
@@ -105,6 +106,7 @@ interface EmailToProjectDialogProps {
 export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreated }: EmailToProjectDialogProps) => {
   const { addProject } = useProjects();
   const { currentUser } = useAuth();
+  const { getLabel } = useLabels();
 
   const emailFields = getAllEmailFields(email);
 
@@ -218,7 +220,7 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
   const handleCreate = async () => {
     const merchantName = getFinalValue("merchantName");
     if (!merchantName) {
-      toast.error("Merchant Name is required");
+      toast.error(`${getLabel("field_merchant_name")} is required`);
       return;
     }
 

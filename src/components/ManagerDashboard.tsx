@@ -284,7 +284,7 @@ export const ManagerDashboard = () => {
     { key: "mid", label: getLabel("field_mid") },
     { key: "platform", label: getLabel("field_platform") },
     { key: "category", label: getLabel("field_category") },
-    { key: "merchantState", label: "Merchant State" },
+    { key: "merchantState", label: `${getLabel("field_merchant_name")} State` },
     { key: "mintComment", label: getLabel("field_current_phase_comment") },
     { key: "liveDate", label: getLabel("field_actual_go_live_date") },
     { key: "recentComments", label: "Recent Comments" },
@@ -2178,7 +2178,7 @@ export const ManagerDashboard = () => {
                                 AI Project & Checklist Insights
                               </CardTitle>
                               <div className="flex gap-2">
-                                <Button size="sm" variant="outline" onClick={() => exportProjectChecklistCSV(displayProjects, { teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, getLabel: (k: string) => k })} className="gap-2">
+                                <Button size="sm" variant="outline" onClick={() => exportProjectChecklistCSV(displayProjects, { teamLabels, responsibilityLabels, phaseLabels, stateLabels: stateLabelsFromCtx, getLabel })} className="gap-2">
                                   <Download className="h-3 w-3" />
                                   Export CSV
                                 </Button>
@@ -2285,7 +2285,7 @@ export const ManagerDashboard = () => {
                                 AI Team & Owner Insights
                               </CardTitle>
                               <div className="flex gap-2">
-                                <Button size="sm" variant="outline" onClick={() => exportTeamOwnerCSV(teamOwnerReport)} className="gap-2">
+                                <Button size="sm" variant="outline" onClick={() => exportTeamOwnerCSV({ responsibilityLabels }, teamOwnerReport)} className="gap-2">
                                   <Download className="h-3 w-3" />
                                   Export CSV
                                 </Button>

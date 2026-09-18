@@ -49,6 +49,8 @@ export const TATDashlet = ({ projects }: Props) => {
   const { getLabel } = useLabels();
   const { stages } = useFunnelConfig();
   const arrLabel = getLabel("field_arr");
+  const merchantLabel = getLabel("field_merchant_name");
+  const merchantsLabel = getLabel("field_merchant_name_plural");
 
   // Config lists stages latest-first; the timeline reads earliest-first.
   const orderedStages = useMemo(() => [...stages].reverse(), [stages]);
@@ -108,7 +110,7 @@ export const TATDashlet = ({ projects }: Props) => {
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
         <div className="grid grid-cols-3 gap-2">
           <div className="rounded-md bg-pending-soft p-2">
-            <p className="text-2xs font-semibold tracking-normal text-pending-strong">Merchants</p>
+            <p className="text-2xs font-semibold tracking-normal text-pending-strong">{merchantsLabel}</p>
             <p className="mt-0.5 text-xl font-semibold leading-tight tabular-nums text-pending-strong">{overall.count}</p>
             <p className="text-2xs text-pending-strong">live</p>
           </div>
@@ -145,7 +147,7 @@ export const TATDashlet = ({ projects }: Props) => {
             <table className="w-full min-w-[420px] text-left">
               <thead className="sticky top-0 z-10 bg-muted/70 backdrop-blur">
                 <tr>
-                  <th className="px-3 py-1.5 text-2xs font-semibold text-muted-foreground">Merchant</th>
+                  <th className="px-3 py-1.5 text-2xs font-semibold text-muted-foreground">{merchantLabel}</th>
                   {orderedStages.map(stage => (
                     <th key={stage.id} className="px-2 py-1.5 text-right text-2xs font-semibold text-muted-foreground">{stage.label}</th>
                   ))}
