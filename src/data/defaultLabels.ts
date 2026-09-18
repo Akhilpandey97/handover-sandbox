@@ -4,6 +4,37 @@
  * tools both read it, so the defaults Buddy shows are the ones the app uses.
  */
 
+/**
+ * A plural for a renamed label, so renaming "Merchant Name" to "Customer" also
+ * fixes headings like "7 Customers" without a second setting to fill in.
+ * English-ish and deliberately simple: the plural label is there to override it.
+ */
+export const pluralise = (word: string): string => {
+  const w = word.trim();
+  if (!w) return w;
+  if (/(s|x|z|ch|sh)$/i.test(w)) return `${w}es`;
+  if (/[^aeiou]y$/i.test(w)) return `${w.slice(0, -1)}ies`;
+  return `${w}s`;
+};
+
+/** Labels whose plural is derived from another label when it hasn't been set. */
+export const DERIVED_PLURALS: Record<string, string> = {
+  field_merchant_name_plural: "field_merchant_name",
+};
+
+/** Apply the derivations to saved labels: only fills a plural nobody has set. */
+export const withDerivedLabels = (saved: Record<string, string>): Record<string, string> => {
+  const out = { ...saved };
+  for (const [pluralKey, singularKey] of Object.entries(DERIVED_PLURALS)) {
+    const singular = saved[singularKey];
+    if (!singular || singular === DEFAULT_LABELS[singularKey]) continue;
+    if (saved[pluralKey] && saved[pluralKey] !== DEFAULT_LABELS[pluralKey]) continue;
+    // "Customer Name" is a field label; the thing being counted is a Customer.
+    out[pluralKey] = pluralise(singular.replace(/\s+name$/i, ""));
+  }
+  return out;
+};
+
 export const DEFAULT_LABELS: Record<string, string> = {
   // General
   app_title: "Manager Dashboard",

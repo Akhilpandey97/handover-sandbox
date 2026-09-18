@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFunnelConfig } from "@/hooks/useFunnelConfig";
 import { useTeams } from "@/hooks/useTeams";
-import { DEFAULT_LABELS } from "@/data/defaultLabels";
+import { DEFAULT_LABELS, withDerivedLabels } from "@/data/defaultLabels";
 
 interface LabelsContextType {
   labels: Record<string, string>;
@@ -55,7 +55,7 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
       (data || []).forEach((row: { key: string; value: string }) => {
         merged[row.key] = row.value;
       });
-      return merged;
+      return withDerivedLabels(merged);
     },
   });
   const isLoading = !!currentUser && labelsLoading;

@@ -1,5 +1,5 @@
 import { adminClient } from "./tenant-integrations.server";
-import { DEFAULT_LABELS } from "@/data/defaultLabels";
+import { DEFAULT_LABELS, withDerivedLabels } from "@/data/defaultLabels";
 
 /**
  * Tenant naming for AI prompts.
@@ -86,7 +86,9 @@ export async function getTenantBranding(
       ((teamRows || []) as Array<{ slug: string; name: string }>).map((t) => [t.slug, t.name]),
     );
 
-    const label = (key: string) => (byKey.get(key) || "").trim() || DEFAULT_LABELS[key] || key;
+    const saved = Object.fromEntries([...byKey].map(([k, v]) => [k, (v || "").trim()]).filter(([, v]) => v));
+    const derived = withDerivedLabels({ ...DEFAULT_LABELS, ...saved });
+    const label = (key: string) => derived[key] || DEFAULT_LABELS[key] || key;
     const value: TenantBranding = {
       orgName: (byKey.get("org_name") || "").trim() || NEUTRAL_ORG,
       teamLabel: (slug) => (slug && (labels.get(slug) || slug.replace(/_/g, " "))) || "unassigned",
