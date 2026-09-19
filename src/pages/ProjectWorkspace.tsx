@@ -736,7 +736,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             {/* Customer access — two ways of giving the customer a way in, in one place. */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 gap-1.5 px-3 text-sm font-medium text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="sm" className="h-9 gap-1.5 px-3 text-sm font-medium text-primary hover:bg-primary-soft hover:text-primary">
                   <Share2 className="h-3.5 w-3.5" />
                   Customer access
                 </Button>
@@ -769,7 +769,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 Assign owner
               </Button>
             ) : null}
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-md px-3 text-sm font-medium" onClick={() => setEditOpen(true)}>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-md border-primary/40 px-3 text-sm font-medium text-primary hover:bg-primary-soft hover:text-primary" onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" />
               Edit project
             </Button>
@@ -793,7 +793,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
       {/* Body: the record on the left, the work on the right. Stacks below lg. */}
       <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 flex-col bg-white dark:bg-card lg:flex-row">
-        <ScrollArea className="order-1 max-h-[45vh] shrink-0 border-b border-slate-200 bg-white dark:border-border dark:bg-card lg:max-h-none lg:w-1/4 lg:min-w-[300px] lg:max-w-[420px] lg:border-b-0 lg:border-r">
+        <ScrollArea className="order-1 max-h-[45vh] shrink-0 border-b border-slate-200 bg-white dark:border-border dark:bg-card lg:max-h-none lg:w-[268px] lg:border-b-0 lg:border-r">
           <div className="p-4">
             {/* Where the project is, before any label is read. */}
             <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -813,7 +813,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   ))}
                 </SelectContent>
               </Select>
-              <span className="inline-flex h-7 items-center rounded-full bg-muted px-3 text-xs font-medium text-muted-foreground">
+              <span className="inline-flex h-7 items-center rounded-full bg-primary-soft px-3 text-xs font-medium text-primary">
                 Waiting on {waitingOnLabel}
               </span>
               {isAtRisk && (
@@ -865,7 +865,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   ...(customFieldRows.length ? [{ title: "Custom fields", rows: customFieldRows }] : []),
                 ].map((section) => (
                   <section key={section.title} className="mt-3">
-                    <p className="mb-1 text-2xs font-medium uppercase tracking-wider text-muted-foreground/80">{section.title}</p>
+                    <p className="mb-1 text-xs font-semibold text-foreground">{section.title}</p>
                     <dl className="text-sm">
                       {section.rows
                         .filter(([, value]) => value && value !== "—")
@@ -873,48 +873,48 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     </dl>
                   </section>
                 ))}
+                {/* Notes and links sit with the rest of the detail. */}
+                <section className="mt-3">
+                  <p className="mb-1 text-xs font-semibold text-foreground">Notes</p>
+                  <div className="space-y-2">
+                    {noteSections
+                      .filter(([, value]) => value && !value.startsWith("No "))
+                      .map(([label, value]) => (
+                        <div key={label}>
+                          <p className="text-xs text-muted-foreground">{label}</p>
+                          <p className="whitespace-pre-line text-sm text-foreground">{value}</p>
+                        </div>
+                      ))}
+                    {noteSections.every(([, value]) => !value || value.startsWith("No ")) && (
+                      <p className="text-sm text-muted-foreground">No notes yet.</p>
+                    )}
+                  </div>
+                </section>
+
+                <section className="mt-3">
+                  <p className="mb-1 text-xs font-semibold text-foreground">Links</p>
+                  {quickLinks.length ? (
+                    <div className="space-y-1">
+                      {quickLinks.map((link) => (
+                        <a
+                          key={link.label}
+                          href={link.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between py-0.5 text-sm text-primary hover:underline"
+                        >
+                          <span>{link.label}</span>
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No links attached.</p>
+                  )}
+                </section>
               </div>
             )}
 
-            {/* Notes and links are content, not fields, so they keep their own sections. */}
-            <section className="mt-4 border-t border-border pt-3">
-              <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-muted-foreground/80">Notes</p>
-              <div className="space-y-2">
-                {noteSections
-                  .filter(([, value]) => value && !value.startsWith("No "))
-                  .map(([label, value]) => (
-                    <div key={label}>
-                      <p className="text-xs text-muted-foreground">{label}</p>
-                      <p className="whitespace-pre-line text-sm text-foreground">{value}</p>
-                    </div>
-                  ))}
-                {noteSections.every(([, value]) => !value || value.startsWith("No ")) && (
-                  <p className="text-sm text-muted-foreground">No notes yet.</p>
-                )}
-              </div>
-            </section>
-
-            <section className="mt-4 border-t border-border pt-3">
-              <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-muted-foreground/80">Links</p>
-              {quickLinks.length ? (
-                <div className="space-y-1">
-                  {quickLinks.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between py-0.5 text-sm text-primary hover:underline"
-                    >
-                      <span>{link.label}</span>
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No links attached.</p>
-              )}
-            </section>
           </div>
 
         </ScrollArea>
