@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { Check, Copy, Link2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,18 @@ import { toast } from "sonner";
 /**
  * Generates (or reuses) a shareable read-only customer portal link for a project.
  */
-export const PortalLinkButton = ({ projectId, label = "Portal link", className }: { projectId: string; label?: string; className?: string }) => {
+export const PortalLinkButton = ({
+  projectId,
+  label = "Portal link",
+  className,
+  renderTrigger,
+}: {
+  projectId: string;
+  label?: string;
+  className?: string;
+  /** Render the trigger yourself — a menu item, say — instead of the default button. */
+  renderTrigger?: (open: () => void, isWorking: boolean) => ReactNode;
+}) => {
   const { currentUser } = useAuth();
   const [open, setOpen] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
@@ -87,15 +99,19 @@ export const PortalLinkButton = ({ projectId, label = "Portal link", className }
 
   return (
     <>
-      <Button
-        size="sm"
-        className={`h-9 gap-1.5 rounded-md px-3 text-sm font-semibold ${className || ""}`}
-        onClick={generate}
-        disabled={isWorking}
-      >
-        {isWorking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2 className="h-3.5 w-3.5" />}
-        {label}
-      </Button>
+      {renderTrigger ? (
+        renderTrigger(generate, isWorking)
+      ) : (
+        <Button
+          size="sm"
+          className={`h-9 gap-1.5 rounded-md px-3 text-sm font-semibold ${className || ""}`}
+          onClick={generate}
+          disabled={isWorking}
+        >
+          {isWorking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2 className="h-3.5 w-3.5" />}
+          {label}
+        </Button>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

@@ -22,6 +22,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+
+/** One date format across the checklist: "9 Sep 2026", not the browser's locale guess. */
+const shortDate = (value: string | Date) =>
+  new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -116,6 +120,7 @@ export const ChecklistDialog = ({
 
   // Inline sub-task add form state: which checklist item has the form open
   const [inlineAddFormId, setInlineAddFormId] = useState<string | null>(null);
+  const [openResponsibilityFor, setOpenResponsibilityFor] = useState<string | null>(null);
   const [newSubTaskTitle, setNewSubTaskTitle] = useState("");
   const [newSubTaskPriority, setNewSubTaskPriority] = useState("medium");
   const [newSubTaskAssignee, setNewSubTaskAssignee] = useState("");
@@ -310,31 +315,17 @@ export const ChecklistDialog = ({
         )}
 
 
-        {/* Compact Progress Section */}
-        <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground">Progress</span>
-              <span className="font-bold text-sm">{completedCount}/{totalCount}</span>
-            </div>
-            <div className="flex gap-1.5 flex-wrap">
-              {orderedTeams.map((team) => {
-                const count = teamCounts[team];
-                const isComplete = count?.completed === count?.total;
-                return (
-                  <Badge 
-                    key={team}
-                    variant={team === userTeam ? "default" : "outline"}
-                    className={`px-2 py-0.5 text-xs ${team === userTeam ? "" : "opacity-70"} ${isComplete ? "bg-success text-success-foreground border-success" : ""}`}
-                  >
-                    {getTeamLabel(team)}: {count?.completed || 0}/{count?.total || 0}
-                    {isComplete && <CheckCircle2 className="h-3 w-3 ml-1" />}
-                  </Badge>
-                );
-              })}
-            </div>
+        {/* Progress, once: the sections below carry their own counts. */}
+        <div className="space-y-2 py-1">
+          <div className="flex items-baseline justify-between">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{completedCount} of {totalCount}</span> done
+            </p>
+            {completedCount < totalCount && (
+              <p className="text-xs text-muted-foreground">{totalCount - completedCount} left</p>
+            )}
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-1.5" />
         </div>
 
         <ScrollArea className="flex-1 min-h-0 pr-4">
@@ -364,14 +355,7 @@ export const ChecklistDialog = ({
                         <p className="text-xs text-muted-foreground">{teamCount?.completed}/{teamCount?.total} items</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {isUserTeam && (
-                        <Badge variant="default" className="text-xs">Your Tasks</Badge>
-                      )}
-                      <div className="w-24">
-                        <Progress value={teamProgress} className="h-2" />
-                      </div>
-                    </div>
+                    {isUserTeam && <span className="text-xs text-muted-foreground">Your team</span>}
                   </div>
 
                   {/* Checklist Items */}
@@ -385,18 +369,11 @@ export const ChecklistDialog = ({
                         <div
                           key={item.id}
                           id={`checklist-item-${item.id}`}
-                           className={`p-4 rounded-xl border transition-all scroll-mt-24 ${
-                            item.completed 
-                              ? "bg-success/5 border-success/30" 
-                              : "bg-card border-border hover:border-primary/30 hover:shadow-md"
-                          }`}
+                           className={`scroll-mt-24 border-b border-border/70 px-1 py-3 transition-colors last:border-b-0 hover:bg-muted/30 ${item.completed ? "bg-success/[0.04]" : ""}`}
                         >
                           <div className="flex items-start gap-4">
-                            {/* Step Number & Checkbox */}
-                            <div className="flex flex-col items-center gap-1">
-                              <Badge variant="outline" className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-mono p-0">
-                                {index + 1}
-                              </Badge>
+                            {/* The checkbox is the control; completion is not spelled out three more ways. */}
+                            <div className="flex flex-col items-center gap-1 pt-0.5">
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -427,7 +404,7 @@ export const ChecklistDialog = ({
                             {/* Content */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                 <span className={`font-medium ${item.completed ? "line-through text-muted-foreground" : ""}`}>
+                                 <span className={`font-medium ${item.completed ? "text-muted-foreground" : ""}`}>
                                   {item.title}
                                 </span>
                                 {item.completed && (
@@ -510,54 +487,55 @@ export const ChecklistDialog = ({
                                 })()}
                               </div>
 
-                              {/* Due Date */}
-                              {(item.dueDate || (canEdit && !item.completed)) && (
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Calendar className="h-3 w-3 text-muted-foreground" />
-                                  {item.dueDate ? (
-                                    <span className={`text-xs ${!item.completed && new Date(item.dueDate) < new Date() ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                                      Due: {new Date(item.dueDate).toLocaleDateString()}
-                                      {!item.completed && new Date(item.dueDate) < new Date() && " (Overdue)"}
-                                    </span>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground">No due date</span>
-                                  )}
-                                  {canEdit && !item.completed && (
-                                    <Input
-                                      type="date"
-                                      defaultValue={item.dueDate || ""}
-                                      className="h-6 w-32 text-xs px-1"
-                                      onChange={async (e) => {
-                                        const newDate = e.target.value || null;
-                                        await supabase.from("checklist_items").update({ due_date: newDate }).eq("id", item.id);
-                                        queryClient.invalidateQueries({ queryKey: ["projects"] });
-                                      }}
-                                    />
-                                  )}
-                                </div>
-                              )}
+                                                            {/* One meta line: due, who finished it, and the time split only when there is some. */}
+                              {(() => {
+                                const overdue = item.dueDate && !item.completed && new Date(item.dueDate) < new Date();
+                                const parts: React.ReactNode[] = [];
+                                if (item.dueDate) {
+                                  parts.push(
+                                    <span key="due" className={overdue ? "font-medium text-destructive" : undefined}>
+                                      Due {shortDate(item.dueDate)}{overdue ? " · overdue" : ""}
+                                    </span>,
+                                  );
+                                }
+                                if (item.completedBy) {
+                                  parts.push(
+                                    <span key="by">Done{item.completedAt ? ` ${shortDate(item.completedAt)}` : ""} by {item.completedBy}</span>,
+                                  );
+                                }
+                                if (timeStats.gokwik > 0 || timeStats.merchant > 0) {
+                                  parts.push(
+                                    <span key="time">
+                                      {responsibilityLabels.gokwik} {formatDuration(timeStats.gokwik)} · {responsibilityLabels.merchant} {formatDuration(timeStats.merchant)}
+                                    </span>,
+                                  );
+                                }
+                                return (
+                                  <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                    {parts.map((part, i) => (
+                                      <span key={i} className="flex items-center gap-2">
+                                        {i > 0 && <span aria-hidden="true">·</span>}
+                                        {part}
+                                      </span>
+                                    ))}
+                                    {canEdit && !item.completed && (
+                                      <Input
+                                        type="date"
+                                        defaultValue={item.dueDate || ""}
+                                        aria-label="Due date"
+                                        className="h-6 w-32 px-1 text-xs"
+                                        onChange={async (e) => {
+                                          const newDate = e.target.value || null;
+                                          await supabase.from("checklist_items").update({ due_date: newDate }).eq("id", item.id);
+                                          queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                        }}
+                                      />
+                                    )}
+                                  </div>
+                                );
+                              })()}
 
-                              
-                              {item.completedBy && (
-                                <p className="text-xs text-muted-foreground mb-2">
-                                  ✓ Completed by {item.completedBy}
-                                  {item.completedAt && ` on ${new Date(item.completedAt).toLocaleDateString()}`}
-                                </p>
-                              )}
-                              
-                              {/* Time Stats */}
-                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <div className="flex items-center gap-1">
-                                  <Building2 className="h-3 w-3 text-primary" />
-                                  <span>{responsibilityLabels.gokwik}: {formatDuration(timeStats.gokwik)}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-3 w-3 text-warning-strong" />
-                                  <span>{responsibilityLabels.merchant}: {formatDuration(timeStats.merchant)}</span>
-                                </div>
-                              </div>
-
-                              {/* Comment Thread */}
+{/* Comment Thread */}
                               <ChecklistCommentThread
                                 checklistItemId={item.id}
                                 checklistItemTitle={item.title}
@@ -566,40 +544,53 @@ export const ChecklistDialog = ({
                               />
                             </div>
 
-                            {/* Responsibility Toggle */}
-                            <div className="flex flex-col items-end gap-2 shrink-0">
-                              <span className="text-xs text-muted-foreground">Pending with</span>
-                              <ToggleGroup 
-                                type="single" 
-                                value={item.currentResponsibility}
-                                onValueChange={(value) => handleResponsibilityChange(item.id, value)}
-                                disabled={item.completed}
-                                className="gap-0 border rounded-lg overflow-hidden"
-                              >
-                                <ToggleGroupItem 
-                                  value="gokwik" 
-                                  aria-label={responsibilityLabels.gokwik}
-                                  className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white"
+                            {/* Who it is waiting on: the value, until you click it. Completed rows show nothing. */}
+                            <div className="flex shrink-0 flex-col items-end gap-1">
+                              {item.completed ? null : openResponsibilityFor === item.id ? (
+                                <ToggleGroup
+                                  type="single"
+                                  value={item.currentResponsibility}
+                                  onValueChange={(value) => {
+                                    handleResponsibilityChange(item.id, value);
+                                    setOpenResponsibilityFor(null);
+                                  }}
+                                  className="gap-0 overflow-hidden rounded-lg border"
                                 >
-                                  <Building2 className="h-3 w-3 mr-1" />
-                                  {responsibilityLabels.gokwik}
-                                </ToggleGroupItem>
-                                <ToggleGroupItem 
-                                  value="neutral" 
-                                  aria-label={responsibilityLabels.neutral}
-                                  className="text-xs px-3 py-1.5 h-8 rounded-none border-x data-[state=on]:bg-muted"
+                                  <ToggleGroupItem
+                                    value="gokwik"
+                                    aria-label={responsibilityLabels.gokwik}
+                                    className="h-7 rounded-none px-2.5 text-xs data-[state=on]:bg-primary data-[state=on]:text-white"
+                                  >
+                                    {responsibilityLabels.gokwik}
+                                  </ToggleGroupItem>
+                                  <ToggleGroupItem
+                                    value="neutral"
+                                    aria-label={responsibilityLabels.neutral}
+                                    className="h-7 rounded-none border-x px-2.5 text-xs data-[state=on]:bg-muted"
+                                  >
+                                    <Minus className="h-3 w-3" />
+                                  </ToggleGroupItem>
+                                  <ToggleGroupItem
+                                    value="merchant"
+                                    aria-label={responsibilityLabels.merchant}
+                                    className="h-7 rounded-none px-2.5 text-xs data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
+                                  >
+                                    {responsibilityLabels.merchant}
+                                  </ToggleGroupItem>
+                                </ToggleGroup>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={!canEdit}
+                                  onClick={() => setOpenResponsibilityFor(item.id)}
+                                  title="Change who this is waiting on"
+                                  className="rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none"
                                 >
-                                  <Minus className="h-3 w-3" />
-                                </ToggleGroupItem>
-                                <ToggleGroupItem 
-                                  value="merchant" 
-                                  aria-label={responsibilityLabels.merchant}
-                                  className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
-                                >
-                                  <Users className="h-3 w-3 mr-1" />
-                                  {responsibilityLabels.merchant}
-                                </ToggleGroupItem>
-                              </ToggleGroup>
+                                  {item.currentResponsibility === "neutral"
+                                    ? "Waiting on no one"
+                                    : `Waiting on ${responsibilityLabels[item.currentResponsibility] || item.currentResponsibility}`}
+                                </button>
+                              )}
                             </div>
                           </div>
 
@@ -668,7 +659,7 @@ export const ChecklistDialog = ({
                                           {task.due_date && (
                                             <span className="text-2xs text-muted-foreground flex items-center gap-0.5">
                                               <Calendar className="h-2.5 w-2.5" />
-                                              {new Date(task.due_date).toLocaleDateString()}
+                                              {shortDate(task.due_date)}
                                             </span>
                                           )}
                                           <Button

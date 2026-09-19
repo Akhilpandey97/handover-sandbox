@@ -10,6 +10,12 @@ import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { TransferDialog } from "@/components/TransferDialog";
 import { PortalLinkButton } from "@/components/PortalLinkButton";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,11 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,7 +44,6 @@ import {
   funnelStageLabels,
   projectStateLabels,
 } from "@/data/projectsData";
-import { fetchAiInsights } from "@/utils/aiInsights";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import type { RiskVerdict } from "@/data/riskRules";
 import { RiskBadge } from "@/components/RiskBadge";
@@ -67,10 +69,11 @@ import {
   Globe,
   Loader2,
   ListTodo,
+  Link2,
   Mail,
   MessageSquareText,
   Pencil,
-  ShieldAlert,
+  Share2,
   UserRound,
   Users,
   X,
@@ -376,52 +379,6 @@ const parseAiBullets = (content: string) =>
     .filter(Boolean)
     .slice(0, 4);
 
-const buildActionDrivenSummary = (
-  project: Project,
-  aiBullets: string[],
-  risk: RiskAssessment,
-  openTasksCount: number,
-  completedChecklist: number,
-  isTransferReady: boolean,
-): Array<{ title: string; body: string; tone: string }> => {
-  const nextPending = project.checklist.find((item) => !item.completed);
-  const aiSignal = aiBullets[0];
-
-  const cards = [
-    {
-      title: "Next best action",
-      body: isTransferReady
-        ? "All current-team checklist items are complete. Review delivery context and transition ownership to the next team."
-        : nextPending
-          ? `Prioritize "${nextPending.title}" with the ${project.currentOwnerTeam} team to maintain delivery momentum.`
-          : "No immediate execution blocker is visible in the current delivery data.",
-      tone: "border-primary/20 bg-primary-soft",
-    },
-    {
-      title: "Delivery status",
-      body: `${project.merchantName} is in ${project.currentPhase} and currently marked ${project.projectState.replace(/_/g, " ")} with ${completedChecklist}/${project.checklist.length} checklist items complete.`,
-      tone: "border-border bg-card",
-    },
-    {
-      title: "Risk watch",
-      body:
-        risk.label === "High risk"
-          ? `High risk. ${risk.drivers.map((d) => d.label).join("; ")}.`
-          : "No risk rules are currently firing for this project.",
-      tone: "border-border bg-card",
-    },
-    {
-      title: "Operational insight",
-      body:
-        aiSignal ||
-        `${openTasksCount} checklist item${openTasksCount === 1 ? "" : "s"} remain open. Review notes, handoff readiness, and linked documentation before the next status update.`,
-      tone: "border-border bg-card",
-    },
-  ];
-
-  return cards;
-};
-
 export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false, onClose, projectIds, onNavigate }: ProjectWorkspaceProps) => {
   const { projectId: routeProjectId } = useParams<{ projectId?: string }>();
   const projectId = projectIdProp || routeProjectId;
@@ -438,12 +395,24 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("checklists");
 
+  /** Keep the open tab in the URL, so it can be linked to and the back button works. */
+  const openTab = (tab: WorkspaceTab) => {
+    setActiveTab(tab);
+    if (inModal || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tab);
+    window.history.replaceState({}, "", url);
+  };
+
   // Deep-link support: /projects/:id?tab=&item=&task=&comment=
   const deepLink = useProjectDeepLink();
 
   useEffect(() => {
     // An item/task/comment target only exists on the checklist tab.
-    if (deepLink.tab) setActiveTab(deepLink.tab as WorkspaceTab);
+    // Only tabs that exist: an unknown ?tab= used to render a hidden panel
+    // with nothing marked active.
+    const known = tabOptions.some((t) => t.value === deepLink.tab);
+    if (known) setActiveTab(deepLink.tab as WorkspaceTab);
     else if (deepLink.item || deepLink.task || deepLink.comment) setActiveTab("checklists");
   }, [deepLink.tab, deepLink.item, deepLink.task, deepLink.comment]);
 
@@ -457,15 +426,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const [assignOpen, setAssignOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [aiSummary, setAiSummary] = useState<string[]>([]);
-  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
-  const [aiSummaryError, setAiSummaryError] = useState<string | null>(null);
   const [sendingMagic, setSendingMagic] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    ownership: true,
-    execution: true,
-  });
-
   const project = projects.find((entry) => entry.id === projectId) ?? null;
 
   // Same engine as the Risks tab and the at-risk lists, so a project cannot read
@@ -533,45 +494,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const waitingOnLabel = pendingOn === "merchant" ? responsibilityLabels.merchant : teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam;
   const waitingOnSub = pendingOn === "merchant" ? "External work outstanding" : `${openTasksCount} checklist item${openTasksCount === 1 ? "" : "s"} remaining`;
   const nextStepLabel = nextPendingItem?.title || "Ready to transfer";
-  const summaryCards = buildActionDrivenSummary(
-    project,
-    aiSummary,
-    risk,
-    openTasksCount,
-    completedChecklist,
-    isTransferReady,
-  );
-
-  const projectDetails = [
-    [getLabel("field_mid"), project.mid],
-    [getLabel("field_platform"), project.platform],
-    [getLabel("field_category"), project.category || "—"],
-    [getLabel("field_arr"), formatArrCr(project.arr)],
-    [getLabel("field_txns_per_day"), `${project.txnsPerDay}`],
-    [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`],
-    [getLabel("field_sales_spoc"), project.salesSpoc || "—"],
-    [getLabel("field_integration_type"), project.integrationType || "—"],
-    [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"],
-    [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"],
-    [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)],
-    [getLabel("field_current_responsibility"), responsibilityLabels[pendingOn] || pendingOn],
-  ];
-
-  const detailRows = [
-    [getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"],
-    ["Reporter", project.salesSpoc || currentUser?.name || "—"],
-    ["Current team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam],
-    ["Needs Attention", riskReasons || "—"],
-    ["Last update", getLastUpdated(project)],
-    [getLabel("field_current_responsibility"), responsibilityLabels[pendingOn] || pendingOn],
-    ["Original estimate", formatDuration(timeByParty.gokwik + timeByParty.merchant)],
-    [`${responsibilityLabels.merchant} time`, formatDuration(timeByParty.merchant)],
-    ["Internal time", formatDuration(timeByParty.gokwik)],
-    [getLabel("field_arr"), formatArrCr(project.arr)],
-    [getLabel("field_platform"), project.platform],
-    [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)],
-  ];
-
   // Workspace-defined extra fields (Settings → Custom Fields)
   const customFieldRows: string[][] = customFields
     .filter((f) => (customFieldValues[f.id] ?? "").length > 0)
@@ -625,20 +547,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     | { label: string; sublabel: string; onClick: () => void; href?: undefined }
     | { label: string; sublabel: string; href: string; onClick?: undefined }
   >;
-
-  const handleGenerateAiSummary = async () => {
-    setAiSummaryLoading(true);
-    setAiSummaryError(null);
-    try {
-      const result = await fetchAiInsights({ project, type: "summary" });
-      setAiSummary(parseAiBullets(result));
-    } catch (error) {
-      setAiSummaryError(error instanceof Error ? error.message : "Unable to generate AI summary.");
-      setAiSummary([]);
-    } finally {
-      setAiSummaryLoading(false);
-    }
-  };
 
   const handleSendMagicLink = async () => {
     if (!project.contactEmail) {
@@ -725,6 +633,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             <div className="flex items-center gap-2 min-w-0">
               <h1 className="max-w-[34vw] truncate heading-page text-foreground">{project.merchantName}</h1>
               <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} className="ml-2" />
+              {riskReasons ? (
+                <span className="hidden max-w-[28vw] truncate text-xs text-destructive-strong md:inline" title={riskReasons}>
+                  {riskReasons}
+                </span>
+              ) : null}
               {/* Prev/Next navigation inline */}
               {inModal && projectIds && projectIds.length > 1 && onNavigate && (() => {
                 const currentIndex = projectIds.indexOf(project.id);
@@ -763,22 +676,54 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 <X className="h-4 w-4" />
               </Button>
             ) : null}
+            {/* Customer access — two ways of giving the customer a way in, in one place. */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-9 gap-1.5 px-3 text-sm font-medium text-muted-foreground hover:text-foreground">
+                  <Share2 className="h-3.5 w-3.5" />
+                  Customer access
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onSelect={() => void handleSendMagicLink()} disabled={sendingMagic}>
+                  <Mail className="mr-2 h-3.5 w-3.5" />
+                  {sendingMagic ? "Sending…" : "Email a sign-in link"}
+                </DropdownMenuItem>
+                <PortalLinkButton
+                  projectId={project.id}
+                  renderTrigger={(open, isWorking) => (
+                    <DropdownMenuItem
+                      disabled={isWorking}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        open();
+                      }}
+                    >
+                      <Link2 className="mr-2 h-3.5 w-3.5" />
+                      Copy portal link
+                    </DropdownMenuItem>
+                  )}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
             {currentUser?.team === "manager" ? (
-              <Button variant="outline" size="sm" className="h-9 rounded-lg border-border/70 bg-background px-3 text-sm font-semibold" onClick={() => setAssignOpen(true)}>
-                <UserRound className="h-3 w-3 mr-1" />
+              <Button variant="ghost" size="sm" className="h-9 px-3 text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setAssignOpen(true)}>
+                <UserRound className="mr-1 h-3.5 w-3.5" />
                 Assign owner
               </Button>
             ) : null}
-            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90" onClick={handleSendMagicLink} disabled={sendingMagic}>
-              <Mail className="h-3.5 w-3.5" />
-              {sendingMagic ? "Sending..." : "Send Magic Link"}
-            </Button>
-            <PortalLinkButton projectId={project.id} label="Share Portal Link" className="border-transparent bg-navy text-navy-foreground hover:bg-navy/90 hover:text-navy-foreground" />
-            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90" onClick={() => setEditOpen(true)}>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-md px-3 text-sm font-medium" onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" />
               Edit project
             </Button>
-            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90" onClick={() => isTransferReady && setTransferOpen(true)} disabled={!isTransferReady}>
+            {/* The one action that moves the project on. */}
+            <Button
+              size="sm"
+              className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90"
+              onClick={() => isTransferReady && setTransferOpen(true)}
+              disabled={!isTransferReady}
+              title={isTransferReady ? undefined : "Finish this team's checklist items first"}
+            >
               <ArrowRight className="h-3.5 w-3.5" />
               Transfer
             </Button>
@@ -789,11 +734,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
 
 
-      {/* 3-panel body */}
-      <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 bg-white dark:bg-card">
-        {/* RIGHT PANEL — Status & Context */}
-
-        <ScrollArea className="order-1 hidden w-1/4 min-w-[300px] max-w-[420px] shrink-0 border-r border-slate-200 bg-white dark:border-border dark:bg-card lg:block">
+      {/* Body: the record on the left, the work on the right. Stacks below lg. */}
+      <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 flex-col bg-white dark:bg-card lg:flex-row">
+        <ScrollArea className="order-1 max-h-[45vh] shrink-0 border-b border-slate-200 bg-white dark:border-border dark:bg-card lg:max-h-none lg:w-1/4 lg:min-w-[300px] lg:max-w-[420px] lg:border-b-0 lg:border-r">
           <div className="space-y-3 p-4">
             <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
               <div className="border-b border-navy/40 bg-navy px-4 py-3">
@@ -812,6 +755,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   </Select>
                 </div>
                 {[
+                  ["Waiting on", waitingOnLabel],
+                  ["Next step", nextStepLabel],
                   [getLabel("field_project_stage"), funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)],
                   [getLabel("field_expected_go_live_date"), formatGoLiveDate(project, undefined, "Not set")],
                   [getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"],
@@ -826,9 +771,10 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             </section>
 
             {[
-              { title: "Ownership", rows: [[getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"], ["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], [getLabel("field_sales_spoc"), project.salesSpoc || "—"]] },
-              { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"], [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)], [getLabel("field_actual_go_live_date"), project.dates.goLiveDate || "—"], [`${responsibilityLabels.gokwik} time`, formatDuration(timeByParty.gokwik)], [`${responsibilityLabels.merchant} time`, formatDuration(timeByParty.merchant)]] },
-              { title: "Business", rows: [[getLabel("field_platform"), project.platform], [getLabel("field_category"), project.category || "—"], [getLabel("field_arr"), formatArrCr(project.arr)], [getLabel("field_txns_per_day"), `${project.txnsPerDay}`], [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`], [getLabel("field_integration_type"), project.integrationType || "—"], [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"]] },
+              // The owner, go-live and ARR are in the card above; they are not repeated here.
+              { title: "Ownership", rows: [["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], [getLabel("field_sales_spoc"), project.salesSpoc || "—"]] },
+              { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"], [getLabel("field_actual_go_live_date"), project.dates.goLiveDate || "—"], ["Last update", getLastUpdated(project)], [`${responsibilityLabels.gokwik} time`, formatDuration(timeByParty.gokwik)], [`${responsibilityLabels.merchant} time`, formatDuration(timeByParty.merchant)]] },
+              { title: "Business", rows: [[getLabel("field_platform"), project.platform], [getLabel("field_category"), project.category || "—"], [getLabel("field_txns_per_day"), `${project.txnsPerDay}`], [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`], [getLabel("field_integration_type"), project.integrationType || "—"], [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"]] },
               { title: "Notes", rows: noteSections },
               ...(customFieldRows.length ? [{ title: "Custom Fields", rows: customFieldRows }] : []),
             ].map((section) => (
@@ -852,26 +798,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
         </ScrollArea>
 
-        {/* CENTER PANEL — Tabs */}
+        {/* The work: checklist, activity, Jira */}
         <main className="order-2 flex min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-card">
-          {/* Compact status grid for screens below lg (context panel hidden) */}
-          <div className="grid shrink-0 grid-cols-2 gap-2 border-b border-slate-200 bg-slate-50 p-3 dark:border-border dark:bg-muted/30 lg:hidden">
-            {[
-              { label: "Waiting on", value: waitingOnLabel },
-              { label: "Next step", value: nextStepLabel },
-              { label: "Go-live", value: formatGoLiveDate(project, undefined, "Not set") },
-              { label: "Needs Attention", value: isAtRisk ? "Yes" : "—" },
-            ].map((item) => (
-              <div key={item.label} className="min-w-0 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-border dark:bg-card">
-                <p className="text-2xs font-bold tracking-widest text-slate-500 dark:text-muted-foreground">{item.label}</p>
-                <p className="truncate text-sm font-semibold text-slate-900 dark:text-foreground" title={item.value}>{item.value}</p>
-              </div>
-            ))}
-          </div>
-
-
-
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as WorkspaceTab)} className="flex flex-1 flex-col overflow-hidden">
+          <Tabs value={activeTab} onValueChange={(value) => openTab(value as WorkspaceTab)} className="flex flex-1 flex-col overflow-hidden">
             <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-0 dark:border-border dark:bg-card">
               <TabsList className="h-auto gap-1 rounded-none bg-transparent p-0">
                 {tabOptions.map((tab) => (
@@ -886,81 +815,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-background px-4 py-4">
-              {/* OVERVIEW TAB — Rich dashboard */}
-              <TabsContent value="overview" className="m-0">
-                <div className="space-y-3">
-                  {/* Key Metrics Row */}
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { label: "Checklist Progress", value: `${completedChecklist}/${project.checklist.length}`, sub: `${project.checklist.length ? Math.round((completedChecklist / project.checklist.length) * 100) : 0}% complete` },
-                      { label: "Go-Live %", value: `${project.goLivePercent}%`, sub: project.projectState === "live" ? "Live" : "In progress" },
-                      { label: "Needs Attention", value: isAtRisk ? "Yes" : "No", sub: riskReasons || "No rules firing" },
-                      { label: "Handoffs", value: `${project.transferHistory.length}`, sub: `${activityFeed.length} total events` },
-                    ].map((metric) => (
-                      <div key={metric.label} className="rounded-lg border border-border/60 bg-card/80 p-3">
-                        <p className="text-2xs font-semibold tracking-widest text-muted-foreground">{metric.label}</p>
-                        <p className="mt-1 text-xl font-bold tracking-tight text-foreground">{metric.value}</p>
-                        <p className="mt-0.5 text-2xs text-muted-foreground">{metric.sub}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Checklist by team + Timeline snapshot */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Checklist breakdown */}
-                    <div className="rounded-lg border border-border/60 bg-card/80 p-3">
-                      <p className="text-2xs font-semibold tracking-widest text-muted-foreground">Checklist by team</p>
-                      <div className="mt-2 space-y-1.5">
-                        {Object.entries(
-                          project.checklist.reduce(
-                            (acc, item) => {
-                              const bucket = acc[item.ownerTeam] || { done: 0, total: 0 };
-                              bucket.total += 1;
-                              if (item.completed) bucket.done += 1;
-                              acc[item.ownerTeam] = bucket;
-                              return acc;
-                            },
-                            {} as Record<string, { done: number; total: number }>,
-                          ),
-                        ).map(([team, summary]) => (
-                          <div key={team}>
-                            <div className="flex items-center justify-between mb-0.5">
-                              <p className="text-xs font-semibold text-foreground">{teamLabels[team] || team}</p>
-                              <span className="text-2xs font-semibold text-muted-foreground">{summary.done}/{summary.total}</span>
-                            </div>
-                            <Progress value={summary.total ? (summary.done / summary.total) * 100 : 0} className="h-1 bg-secondary" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Recent activity snapshot */}
-                    <div className="rounded-lg border border-border/60 bg-card/80 p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-2xs font-semibold tracking-widest text-muted-foreground">Recent activity</p>
-                        <button type="button" onClick={() => setActiveTab("activity")} className="text-2xs font-semibold text-primary hover:underline">View all</button>
-                      </div>
-                      <div className="space-y-1.5">
-                        {activityFeed.slice(0, 4).map((item) => (
-                          <div key={item.id} className="flex items-start gap-2">
-                            <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", activityToneMap[item.kind])} />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs font-semibold text-foreground truncate">{item.title}</p>
-                              <p className="text-2xs text-muted-foreground">{item.actor} · {item.timestampLabel}</p>
-                            </div>
-                          </div>
-                        ))}
-                        {activityFeed.length === 0 ? (
-                          <p className="text-xs text-muted-foreground">No activity recorded.</p>
-                        ) : null}
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </TabsContent>
-
+            <div className="flex-1 overflow-y-auto bg-background px-4 pb-20 pt-4">
               <TabsContent value="activity" className="m-0">
                 <ProjectActivityHistoryPanel projectId={project.id} />
               </TabsContent>
@@ -973,196 +828,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
 
               <TabsContent value="checklists" className="m-0 h-full">
-                <div className="h-full min-h-[500px]">
+                <div className="h-full">
                   <ChecklistDialog project={project} open={true} onOpenChange={() => undefined} variant="inline" />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="notes" className="m-0">
-                <div className="space-y-2">
-                  {noteSections.map(([label, value]) => (
-                    <div key={label} className="rounded-lg border border-border/60 bg-card/80 p-3">
-                      <p className="text-2xs font-semibold tracking-widest text-muted-foreground">{label}</p>
-                      <p className="mt-1.5 text-sm leading-relaxed text-foreground">{value}</p>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="details" className="m-0">
-                <div className="max-w-3xl space-y-2">
-                  <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 dark:border-border dark:bg-muted/30">
-                    <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-muted-foreground">Project overview</p>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Project ID</span><Badge variant="outline" className="max-w-[175px] truncate px-1.5 py-0.5 text-2xs font-semibold">MID {project.mid}</Badge></div>
-                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">State</span><span className="font-semibold text-pending-strong">{stateLabels[project.projectState] || projectStateLabels[project.projectState]}</span></div>
-                      {isAtRisk && <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500">Needs Attention</span><span className="font-semibold text-destructive-strong">Yes</span></div>}
-                      <div className="flex items-center justify-between gap-2 text-xs"><span className="text-slate-500 dark:text-muted-foreground">Go-live</span><span className="font-semibold text-slate-700 dark:text-foreground">{formatGoLiveDate(project)}</span></div>
-                    </div>
-                  </div>
-
-                  <div className="px-4 py-3">
-
-                    <p className="mb-2 text-xs font-bold tracking-widest text-slate-500">Update state</p>
-                    <Select value={project.projectState} onValueChange={(v) => handleStateChange(v as ProjectState)}>
-                      <SelectTrigger className={cn("h-9 rounded-md text-sm font-semibold border", stateSelectToneMap[project.projectState])}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className={cn(inModal && "z-[90]")}>
-                        {PROJECT_STATES.map((state) => (
-                          <SelectItem key={state} value={state} className={cn("rounded-2xl my-1 text-base font-medium", stateSelectToneMap[state])}>
-                            {stateLabels[state] || projectStateLabels[state]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="h-px bg-slate-200 dark:bg-border" />
-
-                  {/* Collapsible sections */}
-                  {[
-                    {
-                      key: "ownership",
-                      title: "Ownership",
-                      content: (
-                        <div className="space-y-2">
-                          {[
-                            ["Owner", project.assignedOwnerName || "Unassigned"],
-                            ["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam],
-                            [getLabel("field_sales_spoc"), project.salesSpoc || "—"],
-                          ].map(([label, value]) => (
-                            <div key={label} className="flex items-baseline justify-between gap-2">
-                              <p className="text-xs font-medium tracking-normal text-muted-foreground">{label}</p>
-                              <p className="text-sm font-semibold text-foreground text-right truncate max-w-[120px]">{value}</p>
-                            </div>
-                          ))}
-                        </div>
-                      ),
-                    },
-                    {
-                      key: "execution",
-                      title: "Execution",
-                      content: (
-                        <div className="space-y-2">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <p className="text-xs font-medium tracking-normal text-muted-foreground">Responsibility</p>
-                            <p className="text-sm font-semibold text-foreground">{responsibilityLabels[pendingOn] || pendingOn}</p>
-                          </div>
-                          <div className="flex items-baseline justify-between gap-2">
-                            <p className="text-xs font-medium tracking-normal text-muted-foreground">Checklist</p>
-                            <p className="text-sm font-semibold text-foreground">{completedChecklist}/{project.checklist.length}</p>
-                          </div>
-                          <Progress
-                            value={project.checklist.length ? (completedChecklist / project.checklist.length) * 100 : 0}
-                            className="h-1.5 rounded-full bg-secondary"
-                          />
-                          <div className="grid grid-cols-2 gap-1.5 pt-1">
-                            <div className="rounded-md border border-border/60 bg-card/80 px-2 py-1.5 text-center">
-                              <p className="text-xs font-bold text-foreground">{formatDuration(timeByParty.gokwik)}</p>
-                              <p className="text-2xs tracking-normal text-muted-foreground">{responsibilityLabels.gokwik}</p>
-                            </div>
-                            <div className="rounded-md border border-border/60 bg-card/80 px-2 py-1.5 text-center">
-                              <p className="text-xs font-bold text-foreground">{formatDuration(timeByParty.merchant)}</p>
-                              <p className="text-2xs tracking-normal text-muted-foreground">{responsibilityLabels.merchant}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ),
-                    },
-                    {
-                      key: "dates",
-                      title: "Key dates",
-                      content: (
-                        <div className="space-y-1.5">
-                          {[
-                            [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"],
-                            [getLabel("field_expected_go_live_date"), formatGoLiveDate(project)],
-                            ["Go-live", project.dates.goLiveDate || "—"],
-                            ["Last update", getLastUpdated(project)],
-                          ].map(([label, value]) => (
-                            <div key={label} className="flex items-baseline justify-between gap-2">
-                              <p className="text-xs font-medium tracking-normal text-muted-foreground">{label}</p>
-                              <p className="text-sm font-semibold text-foreground text-right truncate max-w-[110px]">{value}</p>
-                            </div>
-                          ))}
-                        </div>
-                      ),
-                    },
-                    {
-                      key: "business",
-                      title: "Business",
-                      content: (
-                        <div className="space-y-1.5">
-                          {[
-                            [getLabel("field_platform"), project.platform],
-                            [getLabel("field_category"), project.category || "—"],
-                            [getLabel("field_arr"), formatArrCr(project.arr)],
-                            [getLabel("field_txns_per_day"), `${project.txnsPerDay}`],
-                            [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`],
-                            [getLabel("field_integration_type"), project.integrationType || "—"],
-                            [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"],
-                          ].map(([label, value]) => (
-                            <div key={label} className="flex items-baseline justify-between gap-2">
-                              <p className="text-xs font-medium tracking-normal text-muted-foreground">{label}</p>
-                              <p className="text-sm font-semibold text-foreground text-right truncate max-w-[110px]">{value}</p>
-                            </div>
-                          ))}
-                        </div>
-                      ),
-                    },
-                    {
-                      key: "links",
-                      title: "Links",
-                      content: (
-                        <div className="space-y-1">
-                          {quickLinks.length > 0 ? (
-                            quickLinks.map((link) => (
-                              <a
-                                key={link.label}
-                                href={link.href}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center justify-between rounded-md border border-border/60 bg-card/80 px-2.5 py-2 text-xs font-semibold text-foreground transition hover:bg-accent/60"
-                              >
-                                <div className="flex items-center gap-1.5">
-                                  <link.icon className="h-3 w-3" />
-                                  <span>{link.label}</span>
-                                </div>
-                                <ExternalLink className="h-2.5 w-2.5 text-muted-foreground" />
-                              </a>
-                            ))
-                          ) : (
-                            <p className="text-xs text-muted-foreground">No links attached.</p>
-                          )}
-                        </div>
-                      ),
-                    },
-                  ].map((section) => (
-                    <div key={section.key} className="px-4">
-                      <div className="py-3">
-                        <button
-                          type="button"
-                          onClick={() => setExpandedSections(prev => ({ ...prev, [section.key]: !prev[section.key] }))}
-                          className="flex w-full items-center justify-between group"
-                        >
-                          <p className="text-xs font-bold tracking-widest text-slate-500 dark:text-muted-foreground">{section.title}</p>
-                          <ChevronDown className={cn("h-3 w-3 text-slate-400 transition-transform dark:text-muted-foreground", expandedSections[section.key] ? "rotate-0" : "-rotate-90")} />
-                        </button>
-                        {expandedSections[section.key] && (
-                          <div className="mt-2">{section.content}</div>
-                        )}
-                      </div>
-                      <div className="h-px bg-slate-200 dark:bg-border" />
-                    </div>
-                  ))}
-
-                  {detailRows.map(([label, value]) => (
-                    <div key={label} className="flex items-center gap-4 border-b border-border/60 px-3 py-3 last:border-b-0">
-                      <span className="w-40 shrink-0 text-xs text-muted-foreground">{label}</span>
-                      <span className="text-sm font-medium text-foreground">{value}</span>
-                    </div>
-                  ))}
                 </div>
               </TabsContent>
 
