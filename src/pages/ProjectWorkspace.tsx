@@ -56,26 +56,17 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
-  Bot,
-  CalendarDays,
   CheckCheck,
-  CheckCircle2,
   ChevronDown,
   ChevronRight,
-  Clock3,
-  Eye,
   ExternalLink,
   FileStack,
   Globe,
-  Loader2,
-  ListTodo,
   Link2,
   Mail,
-  MessageSquareText,
   Pencil,
   Share2,
   UserRound,
-  Users,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -379,6 +370,71 @@ const parseAiBullets = (content: string) =>
     .filter(Boolean)
     .slice(0, 4);
 
+/** "11 Sep 2026" — the format the checklist uses, never a raw ISO date. */
+const friendlyDate = (value?: string | null) =>
+  value ? new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
+
+/** "in 22 days", "today", "7 days late" — the part people actually work from. */
+const relativeDay = (value?: string | null): string | undefined => {
+  if (!value) return undefined;
+  const then = new Date(value);
+  if (Number.isNaN(then.getTime())) return undefined;
+  const startOfDay = (d: Date) => Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  const days = Math.round((startOfDay(then) - startOfDay(new Date())) / 86_400_000);
+  if (days === 0) return "today";
+  if (days === 1) return "tomorrow";
+  if (days === -1) return "yesterday";
+  return days > 0 ? `in ${days} days` : `${Math.abs(days)} days late`;
+};
+
+/**
+ * One fact: muted label, value alongside, and — where the value can be changed —
+ * a click that opens the right editor rather than a separate dialog for everything.
+ */
+const PanelRow = ({
+  label,
+  value,
+  hint,
+  avatar,
+  onEdit,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  avatar?: string;
+  onEdit?: () => void;
+}) => {
+  const body = (
+    <>
+      {avatar && (
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
+          {avatar.charAt(0).toUpperCase()}
+        </span>
+      )}
+      <span className="truncate" title={value}>{value}</span>
+      {hint && <span className="shrink-0 text-xs text-muted-foreground">· {hint}</span>}
+    </>
+  );
+  return (
+    <div className="grid grid-cols-[minmax(84px,38%)_minmax(0,1fr)] items-center gap-3 border-b border-border/50 py-1.5 last:border-b-0">
+      <dt className="truncate text-xs text-muted-foreground">{label}</dt>
+      <dd className="min-w-0">
+        {onEdit ? (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="-mx-1.5 flex w-full items-center gap-1.5 rounded-md px-1.5 py-0.5 text-left font-medium text-foreground hover:bg-muted"
+          >
+            {body}
+          </button>
+        ) : (
+          <span className="flex items-center gap-1.5 px-0 font-medium text-foreground">{body}</span>
+        )}
+      </dd>
+    </div>
+  );
+};
+
 export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false, onClose, projectIds, onNavigate }: ProjectWorkspaceProps) => {
   const { projectId: routeProjectId } = useParams<{ projectId?: string }>();
   const projectId = projectIdProp || routeProjectId;
@@ -423,6 +479,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     !deepLink.comment && !deepLink.task,
   );
   const [editOpen, setEditOpen] = useState(false);
+  const [showAllFields, setShowAllFields] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -737,63 +794,127 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
       {/* Body: the record on the left, the work on the right. Stacks below lg. */}
       <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 flex-col bg-white dark:bg-card lg:flex-row">
         <ScrollArea className="order-1 max-h-[45vh] shrink-0 border-b border-slate-200 bg-white dark:border-border dark:bg-card lg:max-h-none lg:w-1/4 lg:min-w-[300px] lg:max-w-[420px] lg:border-b-0 lg:border-r">
-          <div className="space-y-3 p-4">
-            <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-              <div className="border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold text-foreground">Project details</p>
-              </div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-4 p-4">
-                <div className="col-span-2 min-w-0">
-                  <p className="text-xs text-muted-foreground">{getLabel("field_project_state")}</p>
-                  <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
-                    <SelectTrigger className={cn("mt-1 h-9 w-full text-sm font-semibold", stateSelectToneMap[project.projectState])}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROJECT_STATES.map((state) => <SelectItem key={state} value={state}>{stateLabels[state] || projectStateLabels[state]}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div className="p-4">
+            {/* Where the project is, before any label is read. */}
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
+                <SelectTrigger
+                  aria-label={getLabel("field_project_state")}
+                  className={cn(
+                    "h-7 w-auto gap-1.5 rounded-full border-0 px-3 text-xs font-medium shadow-none focus:ring-1",
+                    stateSelectToneMap[project.projectState],
+                  )}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROJECT_STATES.map((state) => (
+                    <SelectItem key={state} value={state}>{stateLabels[state] || projectStateLabels[state]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="inline-flex h-7 items-center rounded-full bg-muted px-3 text-xs font-medium text-muted-foreground">
+                Waiting on {waitingOnLabel}
+              </span>
+              {isAtRisk && (
+                <span className="inline-flex h-7 items-center rounded-full bg-destructive-soft px-3 text-xs font-medium text-destructive-strong" title={riskReasons || undefined}>
+                  Needs attention
+                </span>
+              )}
+            </div>
+
+            {/* The five facts people ask for, editable where they are read. */}
+            <dl className="text-sm">
+              <PanelRow label="Next step" value={nextStepLabel} />
+              <PanelRow
+                label={getLabel("field_project_stage")}
+                value={funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)}
+              />
+              <PanelRow
+                label={getLabel("field_expected_go_live_date")}
+                value={formatGoLiveDate(project, friendlyDate, "Not set")}
+                hint={relativeDay(project.dates.expectedGoLiveDate)}
+                onEdit={() => setEditOpen(true)}
+              />
+              <PanelRow
+                label={getLabel("field_assigned_owner")}
+                value={project.assignedOwnerName || "Unassigned"}
+                avatar={project.assignedOwnerName || undefined}
+                onEdit={currentUser?.team === "manager" ? () => setAssignOpen(true) : undefined}
+              />
+              <PanelRow label={getLabel("field_arr")} value={`₹${formatArrCr(project.arr)}`} onEdit={() => setEditOpen(true)} />
+            </dl>
+
+            {/* Everything else, one click away — rows, not another stack of cards. */}
+            <button
+              type="button"
+              onClick={() => setShowAllFields((open) => !open)}
+              className="mt-3 flex w-full items-center justify-between rounded-md py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              <span>{showAllFields ? "Fewer details" : "More details"}</span>
+              <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showAllFields && "rotate-180")} />
+            </button>
+
+            {showAllFields && (
+              <div className="pb-1">
                 {[
-                  ["Waiting on", waitingOnLabel],
-                  ["Next step", nextStepLabel],
-                  [getLabel("field_project_stage"), funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)],
-                  [getLabel("field_expected_go_live_date"), formatGoLiveDate(project, undefined, "Not set")],
-                  [getLabel("field_assigned_owner"), project.assignedOwnerName || "Unassigned"],
-                  [getLabel("field_arr"), formatArrCr(project.arr)],
-                ].map(([label, value]) => (
-                  <div key={label} className="min-w-0">
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                    <p className="mt-1 truncate text-sm font-semibold text-foreground" title={value}>{value}</p>
-                  </div>
+                  // The chips and rows above already carry state, owner, go-live and MRR.
+                  { title: "Ownership", rows: [["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], [getLabel("field_sales_spoc"), project.salesSpoc || "—"]] },
+                  { title: "Delivery", rows: [["Checklist", `${completedChecklist} of ${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), friendlyDate(project.dates.kickOffDate)], [getLabel("field_actual_go_live_date"), friendlyDate(project.dates.goLiveDate)], ["Last update", getLastUpdated(project)], [`${responsibilityLabels.gokwik} time`, formatDuration(timeByParty.gokwik)], [`${responsibilityLabels.merchant} time`, formatDuration(timeByParty.merchant)]] },
+                  { title: "Business", rows: [[getLabel("field_platform"), project.platform], [getLabel("field_category"), project.category || "—"], [getLabel("field_txns_per_day"), `${project.txnsPerDay}`], [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`], [getLabel("field_integration_type"), project.integrationType || "—"], [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"]] },
+                  ...(customFieldRows.length ? [{ title: "Custom fields", rows: customFieldRows }] : []),
+                ].map((section) => (
+                  <section key={section.title} className="mt-3">
+                    <p className="mb-1 text-2xs font-medium uppercase tracking-wider text-muted-foreground/80">{section.title}</p>
+                    <dl className="text-sm">
+                      {section.rows
+                        .filter(([, value]) => value && value !== "—")
+                        .map(([label, value]) => <PanelRow key={label} label={label} value={value} />)}
+                    </dl>
+                  </section>
                 ))}
+              </div>
+            )}
+
+            {/* Notes and links are content, not fields, so they keep their own sections. */}
+            <section className="mt-4 border-t border-border pt-3">
+              <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-muted-foreground/80">Notes</p>
+              <div className="space-y-2">
+                {noteSections
+                  .filter(([, value]) => value && !value.startsWith("No "))
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <p className="text-xs text-muted-foreground">{label}</p>
+                      <p className="whitespace-pre-line text-sm text-foreground">{value}</p>
+                    </div>
+                  ))}
+                {noteSections.every(([, value]) => !value || value.startsWith("No ")) && (
+                  <p className="text-sm text-muted-foreground">No notes yet.</p>
+                )}
               </div>
             </section>
 
-            {[
-              // The owner, go-live and ARR are in the card above; they are not repeated here.
-              { title: "Ownership", rows: [["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], [getLabel("field_sales_spoc"), project.salesSpoc || "—"]] },
-              { title: "Delivery", rows: [["Checklist", `${completedChecklist}/${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), project.dates.kickOffDate || "—"], [getLabel("field_actual_go_live_date"), project.dates.goLiveDate || "—"], ["Last update", getLastUpdated(project)], [`${responsibilityLabels.gokwik} time`, formatDuration(timeByParty.gokwik)], [`${responsibilityLabels.merchant} time`, formatDuration(timeByParty.merchant)]] },
-              { title: "Business", rows: [[getLabel("field_platform"), project.platform], [getLabel("field_category"), project.category || "—"], [getLabel("field_txns_per_day"), `${project.txnsPerDay}`], [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`], [getLabel("field_integration_type"), project.integrationType || "—"], [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"]] },
-              { title: "Notes", rows: noteSections },
-              ...(customFieldRows.length ? [{ title: "Custom Fields", rows: customFieldRows }] : []),
-            ].map((section) => (
-              <details key={section.title} className="group rounded-lg border border-border bg-card">
-                <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-foreground">
-                  {section.title}<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
-                </summary>
-                <div className="border-t border-border px-4 py-3 space-y-2">
-                  {section.rows.map(([label, value]) => <div key={label} className="flex items-start justify-between gap-4 text-sm"><span className="text-muted-foreground">{label}</span><span className="max-w-[62%] text-right font-medium text-foreground">{value}</span></div>)}
+            <section className="mt-4 border-t border-border pt-3">
+              <p className="mb-1.5 text-2xs font-medium uppercase tracking-wider text-muted-foreground/80">Links</p>
+              {quickLinks.length ? (
+                <div className="space-y-1">
+                  {quickLinks.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between py-0.5 text-sm text-primary hover:underline"
+                    >
+                      <span>{link.label}</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  ))}
                 </div>
-              </details>
-            ))}
-
-            <details className="group rounded-lg border border-border bg-card">
-              <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold text-foreground">Links<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" /></summary>
-              <div className="border-t border-border px-4 py-3 space-y-2">
-                {quickLinks.length ? quickLinks.map((link) => <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex items-center justify-between text-sm font-medium text-primary hover:underline"><span>{link.label}</span><ExternalLink className="h-3.5 w-3.5" /></a>) : <p className="text-sm text-muted-foreground">No links attached.</p>}
-              </div>
-            </details>
+              ) : (
+                <p className="text-sm text-muted-foreground">No links attached.</p>
+              )}
+            </section>
           </div>
 
         </ScrollArea>
