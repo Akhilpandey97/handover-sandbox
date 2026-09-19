@@ -191,7 +191,7 @@ export const ChecklistCommentThread = ({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Add a comment... Use @ to tag a teammate (Ctrl+Enter to send)"
-            className="min-h-[40px] text-xs resize-none"
+            className="min-h-[38px] resize-none text-sm"
             rows={1}
           />
 

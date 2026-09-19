@@ -60,7 +60,7 @@ const Shell = ({
   children: React.ReactNode;
 }) =>
   variant === "inline" ? (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card p-5">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border/50 bg-card p-4">
       {children}
     </div>
   ) : (
@@ -357,7 +357,7 @@ export const ChecklistDialog = ({
                             {/* Content */}
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                <span className={`font-medium ${item.completed ? "text-muted-foreground" : ""}`}>
+                                <span className={`text-sm font-medium ${item.completed ? "text-muted-foreground" : ""}`}>
                                   {item.title}
                                 </span>
                                 {item.completed && (
@@ -571,7 +571,7 @@ export const ChecklistDialog = ({
                                             }}
                                             className="h-4 w-4"
                                           />
-                                          <span className={`flex-1 text-sm ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
+                                          <span className={`flex-1 text-sm ${task.status === "done" ? "text-muted-foreground line-through" : ""}`}>
                                             {task.title}
                                           </span>
                                           <Badge variant="outline" className={`text-2xs px-1.5 py-0 ${priorityColors[task.priority] || ""}`}>
