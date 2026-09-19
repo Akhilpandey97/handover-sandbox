@@ -39,8 +39,6 @@ export const ChecklistCommentThread = ({
   const { profiles } = useProfilesLookup();
   const addComment = useAddChecklistComment();
   const [isExpanded, setIsExpanded] = useState(false);
-  // An input on every checklist row cost more height than the comments did.
-  const [isComposerOpen, setComposerOpen] = useState(false);
 
   // A ?comment= link targets a thread that is collapsed by default, so open it
   // before trying to scroll — the comment is not in the DOM until then.
@@ -170,16 +168,6 @@ export const ChecklistCommentThread = ({
         </p>
       )}
 
-      {!isComposerOpen && (
-        <button
-          type="button"
-          onClick={() => setComposerOpen(true)}
-          className="text-xs font-medium text-primary hover:underline"
-        >
-          Comment
-        </button>
-      )}
-
       {/* Expanded comment list */}
       {isExpanded && commentCount > 0 && (
         <ScrollArea className="mb-3 max-h-[240px] overflow-y-auto">
@@ -191,8 +179,7 @@ export const ChecklistCommentThread = ({
         </ScrollArea>
       )}
 
-      {/* Add comment form, once asked for */}
-      {isComposerOpen && (
+      {/* Add comment form */}
       <div className="mt-2 flex gap-2">
         <div className="relative flex-1 space-y-2">
           <Textarea
@@ -270,7 +257,6 @@ export const ChecklistCommentThread = ({
           />
         </div>
       </div>
-      )}
     </div>
   );
 };
