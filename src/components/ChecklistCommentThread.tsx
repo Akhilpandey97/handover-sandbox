@@ -146,7 +146,7 @@ export const ChecklistCommentThread = ({
   const commentCount = comments.length;
 
   return (
-    <div className="mt-3 pt-3 border-t border-border/50">
+    <div className="mt-1.5">
       {/* Comment count & toggle */}
       {commentCount > 0 && (
         <button
@@ -193,7 +193,7 @@ export const ChecklistCommentThread = ({
 
       {/* Add comment form, once asked for */}
       {isComposerOpen && (
-      <div className="flex gap-2">
+      <div className="mt-2 flex gap-2">
         <div className="relative flex-1 space-y-2">
           <Textarea
             ref={textareaRef}

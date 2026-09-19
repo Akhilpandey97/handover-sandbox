@@ -28,15 +28,13 @@ const shortDate = (value: string | Date) =>
   new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChecklistCommentThread } from "@/components/ChecklistCommentThread";
 import { ChecklistFormDialog } from "@/components/ChecklistFormDialog";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { useChecklistTasks, useAddChecklistTask, useUpdateChecklistTask, useDeleteChecklistTask } from "@/hooks/useChecklistTasks";
 import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
-import { CheckCircle2, ClipboardList, Building2, Users, Minus, FileText, ListTodo, Plus, ChevronDown, ChevronRight, Trash2, Calendar, Flag, Video } from "lucide-react";
+import { CheckCircle2, ClipboardList, Minus, FileText, ListTodo, Trash2, Calendar, Flag, Video } from "lucide-react";
 
 interface ChecklistDialogProps {
   project: Project | null;
@@ -119,14 +117,8 @@ export const ChecklistDialog = ({
   }, [deepLink.task, deepLink.item, project]);
 
   // Inline sub-task add form state: which checklist item has the form open
-  const [inlineAddFormId, setInlineAddFormId] = useState<string | null>(null);
   const [openResponsibilityFor, setOpenResponsibilityFor] = useState<string | null>(null);
-  const [newSubTaskTitle, setNewSubTaskTitle] = useState("");
-  const [newSubTaskPriority, setNewSubTaskPriority] = useState("medium");
-  const [newSubTaskAssignee, setNewSubTaskAssignee] = useState("");
-  const [newSubTaskDueDate, setNewSubTaskDueDate] = useState("");
   // Track which checklist items have expanded sub-tasks
-  const [expandedSubTasks, setExpandedSubTasks] = useState<Set<string>>(new Set());
 
   // Profiles for task assignment (cached lookup)
   const { profiles } = useProfilesLookup();
@@ -255,40 +247,6 @@ export const ChecklistDialog = ({
     }
   };
 
-  const toggleExpandSubTasks = (itemId: string) => {
-    setExpandedSubTasks(prev => {
-      const next = new Set(prev);
-      if (next.has(itemId)) next.delete(itemId);
-      else next.add(itemId);
-      return next;
-    });
-  };
-
-  const handleAddSubTask = (checklistItemId: string) => {
-    if (!newSubTaskTitle.trim() || !project) return;
-    const checklistItem = project.checklist.find((item) => item.id === checklistItemId);
-    addTaskMutation.mutate({
-      checklist_item_id: checklistItemId,
-      project_id: project.id,
-      project_name: project.merchantName,
-      checklist_item_title: checklistItem?.title,
-      title: newSubTaskTitle.trim(),
-      priority: newSubTaskPriority,
-      assigned_to: newSubTaskAssignee || undefined,
-      due_date: newSubTaskDueDate || undefined,
-    }, {
-      onSuccess: () => {
-        setNewSubTaskTitle("");
-        setNewSubTaskPriority("medium");
-        setNewSubTaskAssignee("");
-        setNewSubTaskDueDate("");
-        setInlineAddFormId(null);
-        // Auto-expand
-        setExpandedSubTasks(prev => new Set(prev).add(checklistItemId));
-      }
-    });
-  };
-
   const priorityColors: Record<string, string> = {
     low: "text-success-strong bg-success/10",
     medium: "text-warning-strong bg-warning/10",
@@ -329,7 +287,7 @@ export const ChecklistDialog = ({
         </div>
 
         <ScrollArea className="flex-1 min-h-0 pr-4">
-          <div className="space-y-8">
+          <div className="space-y-6">
             {orderedTeams.map((team) => {
               const items = groupedByTeam[team];
               const isUserTeam = team === userTeam || userTeam === "manager";
@@ -342,7 +300,7 @@ export const ChecklistDialog = ({
               return (
                 <div key={team} className={!isUserTeam ? "opacity-60" : ""}>
                   {/* Team Header */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: getTeamColor(team) }} aria-hidden="true" />
                       <div>
@@ -354,7 +312,7 @@ export const ChecklistDialog = ({
                   </div>
 
                   {/* Checklist Items */}
-                  <div className="space-y-3 pl-2 ml-4">
+                  <div className="pl-1">
                     {checklistItems.map((item, index) => {
                       const timeStats = calculateTimeByParty(item.responsibilityLog);
                       const itemTeam = (item.ownerTeam || "").toLowerCase();
@@ -364,9 +322,9 @@ export const ChecklistDialog = ({
                         <div
                           key={item.id}
                           id={`checklist-item-${item.id}`}
-                           className="scroll-mt-24 border-b border-border/70 px-1 py-3 transition-colors last:border-b-0 hover:bg-muted/30"
+                           className="scroll-mt-24 border-b border-border/70 px-1 py-2 transition-colors last:border-b-0 hover:bg-muted/30"
                         >
-                          <div className="flex items-start gap-4">
+                          <div className="flex items-start gap-3">
                             {/* The checkbox is the control; completion is not spelled out three more ways. */}
                             <div className="flex flex-col items-center gap-1 pt-0.5">
                               <TooltipProvider>
@@ -506,7 +464,7 @@ export const ChecklistDialog = ({
                                   );
                                 }
                                 return (
-                                  <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                                     {parts.map((part, i) => (
                                       <span key={i} className="flex items-center gap-2">
                                         {i > 0 && <span aria-hidden="true">·</span>}
@@ -593,42 +551,15 @@ export const ChecklistDialog = ({
                           {(() => {
                             const itemTasks = allTasks.filter(t => t.checklist_item_id === item.id);
                             const hasSubTasks = itemTasks.length > 0;
-                            const isExpanded = expandedSubTasks.has(item.id) || hasSubTasks;
-                            const isAddFormOpen = inlineAddFormId === item.id;
 
                             return (
-                              <div className="mt-3 border-t border-border/50 pt-3">
-                                <Collapsible open={isExpanded} onOpenChange={() => toggleExpandSubTasks(item.id)}>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <CollapsibleTrigger asChild>
-                                      <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                                        {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                                        Sub-tasks {hasSubTasks && `(${itemTasks.filter(t => t.status === "done").length}/${itemTasks.length})`}
-                                      </Button>
-                                    </CollapsibleTrigger>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 px-2 text-xs gap-1 text-primary hover:text-primary"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setInlineAddFormId(isAddFormOpen ? null : item.id);
-                                        setNewSubTaskTitle("");
-                                        setNewSubTaskPriority("medium");
-                                        setNewSubTaskAssignee("");
-                                        setNewSubTaskDueDate("");
-                                        if (!isExpanded) setExpandedSubTasks(prev => new Set(prev).add(item.id));
-                                      }}
-                                    >
-                                      <Plus className="h-3 w-3" />
-                                      Sub-task
-                                    </Button>
-                                  </div>
-
-                                  <CollapsibleContent>
-                                    <div className="space-y-1.5 ml-2">
+                              // Sub-tasks show only when there are some, or while one is being added.
+                              // Everything else is reachable from Tasks on the row above.
+                              !hasSubTasks ? null : (
+                              <div className="mt-1.5">
+                                    <div className="ml-1 space-y-1">
                                       {itemTasks.map(task => (
-                                        <div key={task.id} className="flex items-center gap-2 py-1.5 px-2 rounded-md bg-muted/30 hover:bg-muted/50 group transition-colors">
+                                        <div key={task.id} className="group flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-muted/40">
                                           <Checkbox
                                             checked={task.status === "done"}
                                             onCheckedChange={(checked) => {
@@ -668,68 +599,9 @@ export const ChecklistDialog = ({
                                         </div>
                                       ))}
 
-                                      {/* Inline Add Form */}
-                                      {isAddFormOpen && (
-                                        <div className="flex flex-wrap items-center gap-2 py-2 px-2 rounded-md border border-dashed border-primary/30 bg-primary/5">
-                                          <Input
-                                            placeholder="Sub-task title..."
-                                            value={newSubTaskTitle}
-                                            onChange={(e) => setNewSubTaskTitle(e.target.value)}
-                                            className="h-7 text-sm flex-1 min-w-[150px]"
-                                            onKeyDown={(e) => {
-                                              if (e.key === "Enter") handleAddSubTask(item.id);
-                                              if (e.key === "Escape") setInlineAddFormId(null);
-                                            }}
-                                            autoFocus
-                                          />
-                                          <Select value={newSubTaskPriority} onValueChange={setNewSubTaskPriority}>
-                                            <SelectTrigger className="h-7 w-24 text-xs">
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="low">Low</SelectItem>
-                                              <SelectItem value="medium">Medium</SelectItem>
-                                              <SelectItem value="high">High</SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                          <Select value={newSubTaskAssignee} onValueChange={setNewSubTaskAssignee}>
-                                            <SelectTrigger className="h-7 w-28 text-xs">
-                                              <SelectValue placeholder="Assign..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {profiles.map(p => (
-                                                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                              ))}
-                                            </SelectContent>
-                                          </Select>
-                                          <Input
-                                            type="date"
-                                            value={newSubTaskDueDate}
-                                            onChange={(e) => setNewSubTaskDueDate(e.target.value)}
-                                            className="h-7 w-32 text-xs"
-                                          />
-                                          <Button
-                                            size="sm"
-                                            className="h-7 px-3 text-xs"
-                                            onClick={() => handleAddSubTask(item.id)}
-                                            disabled={!newSubTaskTitle.trim() || addTaskMutation.isPending}
-                                          >
-                                            Save
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-7 px-2 text-xs"
-                                            onClick={() => setInlineAddFormId(null)}
-                                          >
-                                            Cancel
-                                          </Button>
-                                        </div>
-                                      )}
                                     </div>
-                                  </CollapsibleContent>
-                                </Collapsible>
                               </div>
+                              )
                             );
                           })()}
                         </div>
