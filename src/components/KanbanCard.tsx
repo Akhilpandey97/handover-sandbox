@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
+import { ProjectDialog } from "./ProjectDialog";
 import { RiskBadge } from "./RiskBadge";
 import { GoLiveDate } from "./GoLiveDate";
 import type { RiskVerdict } from "@/data/riskRules";
@@ -179,7 +179,7 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
         )}
       </div>
 
-      <ProjectDetailsDialog
+      <ProjectDialog
         project={project}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}

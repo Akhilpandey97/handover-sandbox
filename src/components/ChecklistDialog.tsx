@@ -344,15 +344,10 @@ export const ChecklistDialog = ({
                   {/* Team Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                        style={{ backgroundColor: getTeamColor(team) }}
-                      >
-                        {getTeamLabel(team).charAt(0)}
-                      </div>
+                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: getTeamColor(team) }} aria-hidden="true" />
                       <div>
-                        <h3 className="heading-card">{getTeamLabel(team)}</h3>
-                        <p className="text-xs text-muted-foreground">{teamCount?.completed}/{teamCount?.total} items</p>
+                        <h3 className="text-sm font-semibold text-foreground">{getTeamLabel(team)}</h3>
+                        <p className="text-xs text-muted-foreground">{teamCount?.completed} of {teamCount?.total} done</p>
                       </div>
                     </div>
                     {isUserTeam && <span className="text-xs text-muted-foreground">Your team</span>}
@@ -369,7 +364,7 @@ export const ChecklistDialog = ({
                         <div
                           key={item.id}
                           id={`checklist-item-${item.id}`}
-                           className={`scroll-mt-24 border-b border-border/70 px-1 py-3 transition-colors last:border-b-0 hover:bg-muted/30 ${item.completed ? "bg-success/[0.04]" : ""}`}
+                           className="scroll-mt-24 border-b border-border/70 px-1 py-3 transition-colors last:border-b-0 hover:bg-muted/30"
                         >
                           <div className="flex items-start gap-4">
                             {/* The checkbox is the control; completion is not spelled out three more ways. */}
@@ -417,9 +412,9 @@ export const ChecklistDialog = ({
                                   if (!formInfo) return null;
                                   return (
                                     <Button
-                                      variant="outline"
+                                      variant="ghost"
                                       size="sm"
-                                      className="h-6 px-2 text-xs gap-1"
+                                      className="h-6 gap-1 px-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setFormDialogState({
@@ -442,9 +437,9 @@ export const ChecklistDialog = ({
                                   const openTaskCount = allTasks.filter(t => t.checklist_item_id === item.id && t.status !== "done").length;
                                   return (
                                     <Button
-                                      variant="outline"
+                                      variant="ghost"
                                       size="sm"
-                                      className="h-6 px-2 text-xs gap-1"
+                                      className="h-6 gap-1 px-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setTaskDialogState({
@@ -455,7 +450,7 @@ export const ChecklistDialog = ({
                                       }}
                                     >
                                       <ListTodo className="h-3 w-3" />
-                                      Tasks{taskCount > 0 && ` (${openTaskCount}/${taskCount})`}
+                                      {taskCount > 0 ? `${openTaskCount} of ${taskCount} tasks` : "Tasks"}
                                     </Button>
                                   );
                                 })()}
@@ -467,9 +462,9 @@ export const ChecklistDialog = ({
                                   ).length;
                                   return (
                                     <Button
-                                      variant="outline"
+                                      variant="ghost"
                                       size="sm"
-                                      className="h-6 px-2 text-xs gap-1"
+                                      className="h-6 gap-1 px-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setMeetingDialogState({

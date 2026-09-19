@@ -34,7 +34,7 @@ import { Project, calculateTimeByParty, calculateTimeFromChecklist, formatDurati
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectCardNew } from "./ProjectCardNew";
 import { ProjectListDialog } from "@/components/ProjectListDialog";
-import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
+import { ProjectDialog } from "./ProjectDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // kept for sub-tabs in reports
@@ -1523,7 +1523,7 @@ export const ManagerDashboard = () => {
                           );
                         })}
                     </div>
-                    <ProjectDetailsDialog
+                    <ProjectDialog
                       project={updatesSelectedProject}
                       open={!!updatesSelectedProject}
                       onOpenChange={open => { if (!open) setUpdatesSelectedProject(null); }}

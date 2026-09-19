@@ -9,7 +9,7 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ProjectDetailsDialog } from "./ProjectDetailsDialog";
+import { ProjectDialog } from "./ProjectDialog";
 import { useNavigate } from "@tanstack/react-router";
 import { ChecklistDialog } from "./ChecklistDialog";
 import { EditProjectDialog } from "./EditProjectDialog";
@@ -473,7 +473,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
         </DialogContent>
       </Dialog>
 
-      <ProjectDetailsDialog
+      <ProjectDialog
         project={project}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}

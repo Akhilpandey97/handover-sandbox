@@ -21,7 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, RefreshCw, Filter, Mail, ExternalLink, Loader2, Sparkles, CalendarClock } from "lucide-react";
 import { format } from "date-fns";
-import { ProjectDetailsDialog } from "@/components/ProjectDetailsDialog";
+import { ProjectDialog } from "@/components/ProjectDialog";
 import { EmailReportDialog } from "./EmailReportDialog";
 import { ScheduleMovementReportDialog } from "./ScheduleMovementReportDialog";
 import { toast } from "sonner";
@@ -562,7 +562,7 @@ export const MovementReport = ({ timeframe }: Props) => {
       </CardContent>
 
       {selectedProject && (
-        <ProjectDetailsDialog
+        <ProjectDialog
           project={selectedProject}
           open={!!selectedProject}
           onOpenChange={(o) => !o && setSelectedProject(null)}
