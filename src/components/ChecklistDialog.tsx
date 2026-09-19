@@ -356,13 +356,61 @@ export const ChecklistDialog = ({
                             
                             {/* Content */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2">
-                                 <span className={`font-medium ${item.completed ? "text-muted-foreground" : ""}`}>
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                <span className={`font-medium ${item.completed ? "text-muted-foreground" : ""}`}>
                                   {item.title}
                                 </span>
                                 {item.completed && (
-                                  <CheckCircle2 className="h-4 w-4 text-success-strong shrink-0" />
+                                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success-strong" />
                                 )}
+                                {/* One meta line: due, who finished it, and the time split only when there is some. */}
+                                {(() => {
+                                  const overdue = item.dueDate && !item.completed && new Date(item.dueDate) < new Date();
+                                  const parts: React.ReactNode[] = [];
+                                  if (item.dueDate) {
+                                    parts.push(
+                                      <span key="due" className={overdue ? "font-medium text-destructive" : undefined}>
+                                        Due {shortDate(item.dueDate)}{overdue ? " · overdue" : ""}
+                                      </span>,
+                                    );
+                                  }
+                                  if (item.completedBy) {
+                                    parts.push(
+                                      <span key="by">Done{item.completedAt ? ` ${shortDate(item.completedAt)}` : ""} by {item.completedBy}</span>,
+                                    );
+                                  }
+                                  if (timeStats.gokwik > 0 || timeStats.merchant > 0) {
+                                    parts.push(
+                                      <span key="time">
+                                        {responsibilityLabels.gokwik} {formatDuration(timeStats.gokwik)} · {responsibilityLabels.merchant} {formatDuration(timeStats.merchant)}
+                                      </span>,
+                                    );
+                                  }
+                                  return (
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                      {parts.map((part, i) => (
+                                        <span key={i} className="flex items-center gap-2">
+                                          {i > 0 && <span aria-hidden="true">·</span>}
+                                          {part}
+                                        </span>
+                                      ))}
+                                      {canEdit && !item.completed && (
+                                        <Input
+                                          type="date"
+                                          defaultValue={item.dueDate || ""}
+                                          aria-label="Due date"
+                                          className="h-6 w-32 px-1 text-xs"
+                                          onChange={async (e) => {
+                                            const newDate = e.target.value || null;
+                                            await supabase.from("checklist_items").update({ due_date: newDate }).eq("id", item.id);
+                                            queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                          }}
+                                        />
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                                <div className="ml-auto flex shrink-0 items-center gap-0.5">
                                 {/* Form button */}
                                 {(() => {
                                   const templateId = checklistTemplatesByTitle[item.title];
@@ -438,57 +486,10 @@ export const ChecklistDialog = ({
                                     </Button>
                                   );
                                 })()}
+                                </div>
                               </div>
 
-                                                            {/* One meta line: due, who finished it, and the time split only when there is some. */}
-                              {(() => {
-                                const overdue = item.dueDate && !item.completed && new Date(item.dueDate) < new Date();
-                                const parts: React.ReactNode[] = [];
-                                if (item.dueDate) {
-                                  parts.push(
-                                    <span key="due" className={overdue ? "font-medium text-destructive" : undefined}>
-                                      Due {shortDate(item.dueDate)}{overdue ? " · overdue" : ""}
-                                    </span>,
-                                  );
-                                }
-                                if (item.completedBy) {
-                                  parts.push(
-                                    <span key="by">Done{item.completedAt ? ` ${shortDate(item.completedAt)}` : ""} by {item.completedBy}</span>,
-                                  );
-                                }
-                                if (timeStats.gokwik > 0 || timeStats.merchant > 0) {
-                                  parts.push(
-                                    <span key="time">
-                                      {responsibilityLabels.gokwik} {formatDuration(timeStats.gokwik)} · {responsibilityLabels.merchant} {formatDuration(timeStats.merchant)}
-                                    </span>,
-                                  );
-                                }
-                                return (
-                                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                                    {parts.map((part, i) => (
-                                      <span key={i} className="flex items-center gap-2">
-                                        {i > 0 && <span aria-hidden="true">·</span>}
-                                        {part}
-                                      </span>
-                                    ))}
-                                    {canEdit && !item.completed && (
-                                      <Input
-                                        type="date"
-                                        defaultValue={item.dueDate || ""}
-                                        aria-label="Due date"
-                                        className="h-6 w-32 px-1 text-xs"
-                                        onChange={async (e) => {
-                                          const newDate = e.target.value || null;
-                                          await supabase.from("checklist_items").update({ due_date: newDate }).eq("id", item.id);
-                                          queryClient.invalidateQueries({ queryKey: ["projects"] });
-                                        }}
-                                      />
-                                    )}
-                                  </div>
-                                );
-                              })()}
-
-{/* Comment Thread */}
+                              {/* Comment Thread */}
                               <ChecklistCommentThread
                                 checklistItemId={item.id}
                                 checklistItemTitle={item.title}
