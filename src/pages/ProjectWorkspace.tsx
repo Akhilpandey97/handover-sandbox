@@ -736,7 +736,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             {/* Customer access — two ways of giving the customer a way in, in one place. */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 gap-1.5 px-3 text-sm font-medium text-primary hover:bg-primary-soft hover:text-primary">
+                <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90">
                   <Share2 className="h-3.5 w-3.5" />
                   Customer access
                 </Button>
@@ -769,7 +769,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 Assign owner
               </Button>
             ) : null}
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 rounded-md border-primary/40 px-3 text-sm font-medium text-primary hover:bg-primary-soft hover:text-primary" onClick={() => setEditOpen(true)}>
+            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90" onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" />
               Edit project
             </Button>
@@ -813,7 +813,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                   ))}
                 </SelectContent>
               </Select>
-              <span className="inline-flex h-7 items-center rounded-full bg-primary-soft px-3 text-xs font-medium text-primary">
+              <span className="inline-flex h-7 items-center rounded-full px-3 text-xs font-medium text-navy [background:color-mix(in_oklab,var(--color-navy)_12%,transparent)] dark:text-foreground">
                 Waiting on {waitingOnLabel}
               </span>
               {isAtRisk && (
