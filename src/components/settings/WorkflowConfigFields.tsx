@@ -36,6 +36,35 @@ const useProfiles = () => {
   return profiles;
 };
 
+/** Checklist step names configured for this workspace, deduplicated across teams. */
+const useChecklistStepTitles = () => {
+  const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
+  const [titles, setTitles] = useState<Array<{ title: string; teams: string[] }>>([]);
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from("checklist_templates")
+      .select("title, owner_team")
+      .eq("tenant_id", tenantId)
+      .order("sort_order")
+      .then(({ data }) => {
+        if (cancelled) return;
+        const byTitle = new Map<string, string[]>();
+        for (const row of (data || []) as Array<{ title: string; owner_team: string }>) {
+          const teams = byTitle.get(row.title) || [];
+          if (!teams.includes(row.owner_team)) teams.push(row.owner_team);
+          byTitle.set(row.title, teams);
+        }
+        setTitles(Array.from(byTitle, ([title, teams]) => ({ title, teams })));
+      });
+    return () => { cancelled = true; };
+  }, [tenantId]);
+  return titles;
+};
+
+const ANY_STEP = "__any__";
+
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="space-y-1.5">
     <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
@@ -46,6 +75,8 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 export const TriggerConfigFields = ({
   triggerType, value, onChange,
 }: { triggerType: string; value: ConfigValue; onChange: (v: ConfigValue) => void }) => {
+  const stepTitles = useChecklistStepTitles();
+  const { teamLabelMap } = useTeams();
   const set = (k: string, v: unknown) => onChange({ ...value, [k]: v });
   const str = (k: string) => (typeof value[k] === "string" ? (value[k] as string) : "");
 
@@ -61,8 +92,28 @@ export const TriggerConfigFields = ({
           </Select>
         </Field>
         {str("event_name") === "checklist_completed" && (
-          <Field label="Only for steps named (optional)">
-            <Input value={str("checklist_title")} onChange={(e) => set("checklist_title", e.target.value)} placeholder="Any step, or part of a name like “Go-live”" />
+          <Field label="Only for this step (optional)">
+            <Select
+              value={str("checklist_title") || ANY_STEP}
+              onValueChange={(v) => set("checklist_title", v === ANY_STEP ? undefined : v)}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ANY_STEP}>Any step</SelectItem>
+                {stepTitles.map((step) => (
+                  <SelectItem key={step.title} value={step.title}>
+                    {step.title}
+                    {step.teams.length === 1 && (
+                      <span className="ml-1 text-muted-foreground">· {teamLabelMap[step.teams[0]] || step.teams[0]}</span>
+                    )}
+                  </SelectItem>
+                ))}
+                {/* A rule set up before a step was renamed keeps working; show what it holds. */}
+                {str("checklist_title") && !stepTitles.some((s) => s.title === str("checklist_title")) && (
+                  <SelectItem value={str("checklist_title")}>{str("checklist_title")} (no longer a step)</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
           </Field>
         )}
         {str("event_name") === "go_live_date_passed" && (
