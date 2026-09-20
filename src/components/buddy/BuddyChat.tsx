@@ -52,7 +52,8 @@ export const BuddyChat = ({ variant, page, onClose }: Props) => {
   const pageProject = page.projectId ? projects.find((p) => p.id === page.projectId) : undefined;
 
   const voice = useVoice((text) => void chat.send(text));
-  const chat = useBuddyChat({ page, onAnswer: (text) => voice.autoSpeak && voice.speak(text) });
+  // The Buddy tab opens on a new chat; the drawer keeps the conversation you were having.
+  const chat = useBuddyChat({ page, onAnswer: (text) => voice.autoSpeak && voice.speak(text), startFresh: !drawer });
 
   useEffect(() => {
     let cancelled = false;

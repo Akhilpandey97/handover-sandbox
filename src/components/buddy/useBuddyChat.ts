@@ -108,7 +108,16 @@ const mergeSources = (a: BuddySource[] = [], b: BuddySource[] = []) => {
   return out;
 };
 
-export function useBuddyChat({ page, onAnswer }: { page: BuddyPage; onAnswer?: (text: string) => void }) {
+export function useBuddyChat({
+  page,
+  onAnswer,
+  startFresh = false,
+}: {
+  page: BuddyPage;
+  onAnswer?: (text: string) => void;
+  /** Open on an empty chat rather than the last one; past chats stay in the list. */
+  startFresh?: boolean;
+}) {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
   const userId = currentUser?.id;
@@ -222,12 +231,18 @@ export function useBuddyChat({ page, onAnswer }: { page: BuddyPage; onAnswer?: (
       const rows = await fetchRows();
       const { byConversation, list } = groupThreads(rows);
       setThreads(list);
-      const active = list[0]?.id ?? newId();
-      setConversationId(active);
-      setMessages((byConversation.get(active) || []).map(fromRow));
+      if (startFresh) {
+        // The thread list is still loaded, so yesterday's chat is one click away.
+        setConversationId(newId());
+        setMessages([]);
+      } else {
+        const active = list[0]?.id ?? newId();
+        setConversationId(active);
+        setMessages((byConversation.get(active) || []).map(fromRow));
+      }
       setHistoryLoaded(true);
     })();
-  }, [userId, historyLoaded, fetchRows]);
+  }, [userId, historyLoaded, fetchRows, startFresh]);
 
   const saveMessage = useCallback(
     async (m: BuddyMessage) => {

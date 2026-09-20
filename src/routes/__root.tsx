@@ -16,6 +16,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LabelsProvider } from "@/contexts/LabelsContext";
+import { BuddyDrawer } from "@/components/buddy/BuddyDrawer";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import NotFound from "@/page-views/NotFound";
 
@@ -126,6 +127,9 @@ function RootComponent() {
                 <Sonner />
                 {/* Required: nested routes render here. */}
                 <Outlet />
+                {/* Buddy travels with the app rather than being added per page,
+                    so every signed-in screen has it, whatever the person's role. */}
+                <BuddyDrawer />
               </ProjectProvider>
             </LabelsProvider>
           </AuthProvider>

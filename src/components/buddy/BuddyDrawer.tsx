@@ -38,6 +38,8 @@ export const BuddyDrawer = () => {
   }, []);
 
   const onBuddyTab = pathname.startsWith("/hi-there");
+  // Customer-facing pages are not ours to put an internal assistant on.
+  const customerPage = ["/portal", "/brd", "/reset-password"].some((path) => pathname.startsWith(path));
 
   useEffect(() => {
     if (onBuddyTab) return;
@@ -57,7 +59,7 @@ export const BuddyDrawer = () => {
     if (open) window.setTimeout(() => panelRef.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus(), 50);
   }, [open, pathname]);
 
-  if (!currentUser || onBuddyTab) return null;
+  if (!currentUser || onBuddyTab || customerPage) return null;
 
   const projectId = pathname.match(/^\/projects\/([^/?#]+)/)?.[1] ?? null;
 
@@ -69,7 +71,7 @@ export const BuddyDrawer = () => {
           onClick={() => setOpenPersist(true)}
           aria-label="Open Buddy"
           title="Open Buddy (⌘J)"
-          className="fixed bottom-4 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar shadow-lg ring-1 ring-border transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-sidebar shadow-lg ring-1 ring-border transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <BuddyAvatar size={30} className="rounded-full" />
         </button>
@@ -80,7 +82,7 @@ export const BuddyDrawer = () => {
         aria-label="Buddy"
         aria-hidden={!open}
         className={cn(
-          "fixed inset-y-0 right-0 z-50 w-[min(440px,100vw)] border-l border-border bg-card shadow-2xl transition-transform duration-200 motion-reduce:transition-none",
+          "fixed inset-y-0 right-0 z-[60] w-[min(440px,100vw)] border-l border-border bg-card shadow-2xl transition-transform duration-200 motion-reduce:transition-none",
           open ? "translate-x-0" : "pointer-events-none translate-x-full",
         )}
       >
