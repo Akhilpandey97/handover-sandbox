@@ -607,7 +607,7 @@ const FunnelSection = ({
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
-        <button className="flex w-full items-center justify-between gap-3 border-b border-border py-2 text-left transition-colors hover:text-foreground">
+        <button className="flex w-full items-center justify-between gap-3 py-2 text-left transition-colors hover:text-foreground">
           <span className="flex items-center gap-2">
             <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", open ? "" : "-rotate-90")} />
             <span className="text-sm font-semibold">{funnelStageLabels[stage]}</span>
