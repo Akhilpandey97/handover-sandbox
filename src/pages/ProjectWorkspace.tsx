@@ -416,9 +416,9 @@ const PanelRow = ({
     </>
   );
   return (
-    <div className="grid grid-cols-[minmax(84px,38%)_minmax(0,1fr)] items-center gap-3 border-b border-border/50 py-1.5 last:border-b-0">
-      <dt className="truncate text-xs text-muted-foreground">{label}</dt>
-      <dd className="min-w-0">
+    <div className="grid grid-cols-[minmax(88px,42%)_minmax(0,1fr)] items-start gap-3 border-b border-border/50 py-2 last:border-b-0">
+      <dt className="text-xs leading-5 text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 text-sm">
         {onEdit ? (
           <button
             type="button"
@@ -793,7 +793,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
       {/* Body: the record on the left, the work on the right. Stacks below lg. */}
       <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 flex-col bg-white dark:bg-card lg:flex-row">
-        <ScrollArea className="order-1 max-h-[45vh] shrink-0 border-b border-slate-200 bg-white dark:border-border dark:bg-card lg:max-h-none lg:w-[268px] lg:border-b-0 lg:border-r">
+        <ScrollArea className="order-1 max-h-[45vh] shrink-0 border-b border-slate-200 bg-white dark:border-border dark:bg-card lg:max-h-none lg:w-[316px] lg:border-b-0 lg:border-r">
           <div className="p-4">
             {/* Where the project is, before any label is read. */}
             <div className="mb-3 flex flex-wrap items-center gap-2">
