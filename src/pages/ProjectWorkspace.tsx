@@ -412,13 +412,13 @@ const PanelRow = ({
         </span>
       )}
       <span className="truncate" title={value}>{value}</span>
-      {hint && <span className="shrink-0 text-xs text-muted-foreground">· {hint}</span>}
+      {hint && <span className="shrink-0 text-muted-foreground">· {hint}</span>}
     </>
   );
   return (
     <div className="grid grid-cols-[minmax(88px,42%)_minmax(0,1fr)] items-start gap-3 border-b border-border/50 py-2 last:border-b-0">
       <dt className="text-xs leading-5 text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-sm">
+      <dd className="min-w-0 text-xs">
         {onEdit ? (
           <button
             type="button"
@@ -824,7 +824,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             </div>
 
             {/* The five facts people ask for, editable where they are read. */}
-            <dl className="text-sm">
+            <dl className="text-xs">
               <PanelRow label="Next step" value={nextStepLabel} />
               <PanelRow
                 label={getLabel("field_project_stage")}
@@ -866,7 +866,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 ].map((section) => (
                   <section key={section.title} className="mt-3">
                     <p className="mb-1 text-xs font-semibold text-foreground">{section.title}</p>
-                    <dl className="text-sm">
+                    <dl className="text-xs">
                       {section.rows
                         .filter(([, value]) => value && value !== "—")
                         .map(([label, value]) => <PanelRow key={label} label={label} value={value} />)}
@@ -882,11 +882,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       .map(([label, value]) => (
                         <div key={label}>
                           <p className="text-xs text-muted-foreground">{label}</p>
-                          <p className="whitespace-pre-line text-sm text-foreground">{value}</p>
+                          <p className="whitespace-pre-line text-xs text-foreground">{value}</p>
                         </div>
                       ))}
                     {noteSections.every(([, value]) => !value || value.startsWith("No ")) && (
-                      <p className="text-sm text-muted-foreground">No notes yet.</p>
+                      <p className="text-xs text-muted-foreground">No notes yet.</p>
                     )}
                   </div>
                 </section>
@@ -901,7 +901,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           href={link.href}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-between py-0.5 text-sm text-primary hover:underline"
+                          className="flex items-center justify-between py-0.5 text-xs text-primary hover:underline"
                         >
                           <span>{link.label}</span>
                           <ExternalLink className="h-3.5 w-3.5" />
@@ -909,7 +909,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No links attached.</p>
+                    <p className="text-xs text-muted-foreground">No links attached.</p>
                   )}
                 </section>
               </div>
