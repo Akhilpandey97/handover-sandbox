@@ -21,7 +21,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 
 /** One date format across the checklist: "9 Sep 2026", not the browser's locale guess. */
 const shortDate = (value: string | Date) =>
@@ -158,9 +157,6 @@ export const ChecklistDialog = ({
 
 
   const checklist = project?.checklist || [];
-  const completedCount = checklist.filter((c) => c.completed).length;
-  const totalCount = checklist.length;
-  const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // Check if all current team's checklist items are completed for transfer unlock notification
   const currentTeamChecklist = project ? checklist.filter(c => c.ownerTeam === project.currentOwnerTeam) : [];
@@ -273,26 +269,12 @@ export const ChecklistDialog = ({
         )}
 
 
-        {/* Progress, once: the sections below carry their own counts. */}
-        <div className="space-y-2 py-1">
-          <div className="flex items-baseline justify-between">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-semibold text-foreground">{completedCount} of {totalCount}</span> done
-            </p>
-            {completedCount < totalCount && (
-              <p className="text-xs text-muted-foreground">{totalCount - completedCount} left</p>
-            )}
-          </div>
-          <Progress value={progress} className="h-1.5" />
-        </div>
-
         <ScrollArea className="flex-1 min-h-0 pr-4">
           <div className="space-y-6">
             {orderedTeams.map((team) => {
               const items = groupedByTeam[team];
               const isUserTeam = team === userTeam || userTeam === "manager";
               const teamCount = teamCounts[team];
-              const teamProgress = teamCount ? Math.round((teamCount.completed / teamCount.total) * 100) : 0;
               
               // All checklist items (no more is_task separation)
               const checklistItems = items.filter(i => !i.isTask);
