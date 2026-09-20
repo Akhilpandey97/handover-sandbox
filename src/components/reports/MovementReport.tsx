@@ -540,7 +540,7 @@ export const MovementReport = ({ timeframe }: Props) => {
         ) : filteredProjects.length === 0 ? (
           <div className="py-20 text-center text-muted-foreground">No projects match the current filters.</div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-5">
             {funnelOrder.map(stage => {
               const list = grouped[stage];
               if (!list || list.length === 0) return null;
@@ -607,19 +607,19 @@ const FunnelSection = ({
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>
-        <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-foreground text-background hover:opacity-90 transition">
-          <div className="flex items-center gap-3">
-            <ChevronDown className={cn("h-4 w-4 transition-transform", open ? "" : "-rotate-90")} />
-            <span className="font-semibold text-sm">{funnelStageLabels[stage]}</span>
-            <Badge variant="secondary">{projects.length} projects</Badge>
-          </div>
-          <div className="text-xs">
-            <span className="text-success font-semibold">{activeCount} active</span>
-            <span className="opacity-60"> · {projects.length - activeCount} inactive</span>
-          </div>
+        <button className="flex w-full items-center justify-between gap-3 border-b border-border py-2 text-left transition-colors hover:text-foreground">
+          <span className="flex items-center gap-2">
+            <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", open ? "" : "-rotate-90")} />
+            <span className="text-sm font-semibold">{funnelStageLabels[stage]}</span>
+            <span className="text-xs text-muted-foreground">{projects.length} project{projects.length === 1 ? "" : "s"}</span>
+          </span>
+          <span className="text-xs text-muted-foreground">
+            <span className="font-medium text-success-strong">{activeCount} active</span>
+            {` · ${projects.length - activeCount} inactive`}
+          </span>
         </button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 space-y-2">
+      <CollapsibleContent className="mt-2 space-y-2 pt-1">
         {projects.map(p => {
           const entries = movementMap[p.id] || [];
           const isActive = entries.length > 0;
