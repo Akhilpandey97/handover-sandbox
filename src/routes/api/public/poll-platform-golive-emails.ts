@@ -3,24 +3,14 @@ import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/t
 
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
+import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
-function gmailHeaders(googleKey?: string | null) {
-  const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-  const GOOGLE_MAIL_API_KEY = googleKey || process.env['GOOGLE_MAIL_API_KEY'];
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-  if (!GOOGLE_MAIL_API_KEY) throw new Error("GOOGLE_MAIL_API_KEY is not configured (Gmail connector not linked)");
-  return {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    "X-Connection-Api-Key": GOOGLE_MAIL_API_KEY,
-  };
-}
 
 const PLATFORMS = ["Aasaan", "Zoho", "Shoppachino", "Shoopy", "Zen Zen", "Tradexa"] as const;
 type Platform = typeof PLATFORMS[number];
@@ -205,7 +195,7 @@ async function handler(req: Request): Promise<Response> {
     let headers: Record<string, string>;
     try {
       const creds = await getTenantIntegrations(tenantId);
-      headers = gmailHeaders(creds.google_mail_api_key);
+      headers = await gmailHeaders(creds);
     } catch (e) {
       return new Response(JSON.stringify({ error: (e as Error).message }), {
         status: 400,
@@ -215,7 +205,7 @@ async function handler(req: Request): Promise<Response> {
 
     const afterEpoch = Math.floor((Date.now() - lookbackDays * 86400000) / 1000);
     const query = `subject:("Brand Live" "Handover to CSM") after:${afterEpoch}`;
-    const searchUrl = `${GATEWAY_URL}/users/me/messages?q=${encodeURIComponent(query)}&maxResults=50`;
+    const searchUrl = `${GMAIL_API}/users/me/messages?q=${encodeURIComponent(query)}&maxResults=50`;
     console.log("[poll-platform-golive] query:", query);
 
     const searchRes = await fetch(searchUrl, { headers });
@@ -278,7 +268,7 @@ async function handler(req: Request): Promise<Response> {
       try {
         if (existingMsg.has(msg.id) || existingThread.has(msg.threadId)) continue;
 
-        const msgRes = await fetch(`${GATEWAY_URL}/users/me/messages/${msg.id}?format=full`, { headers });
+        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, { headers });
         const msgData = await msgRes.json();
         if (!msgRes.ok || msgData.error) continue;
 
@@ -330,13 +320,13 @@ async function handler(req: Request): Promise<Response> {
         try {
           const nboQuery = `subject:("New Brand On Board") "${brand}"`;
           const nboRes = await fetch(
-            `${GATEWAY_URL}/users/me/messages?q=${encodeURIComponent(nboQuery)}&maxResults=5`,
+            `${GMAIL_API}/users/me/messages?q=${encodeURIComponent(nboQuery)}&maxResults=5`,
             { headers }
           );
           const nboData = await nboRes.json();
           const nboMsg = (nboData.messages || [])[0];
           if (nboMsg) {
-            const nboFullRes = await fetch(`${GATEWAY_URL}/users/me/messages/${nboMsg.id}?format=full`, { headers });
+            const nboFullRes = await fetch(`${GMAIL_API}/users/me/messages/${nboMsg.id}?format=full`, { headers });
             const nboFull = await nboFullRes.json();
             const nboBodies = collectBodies(nboFull.payload);
             const fields = parseEmailTable(nboBodies.html);

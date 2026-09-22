@@ -2,13 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
+import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
 const ALLOWED_OWNERS = [
   "ankit@gokwik.co",
@@ -16,16 +16,6 @@ const ALLOWED_OWNERS = [
   "deepak.sharma@gokwik.co",
 ];
 
-function gmailHeaders(googleKey?: string | null) {
-  const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-  const GOOGLE_MAIL_API_KEY = googleKey || process.env['GOOGLE_MAIL_API_KEY'];
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-  if (!GOOGLE_MAIL_API_KEY) throw new Error("Gmail connector not linked");
-  return {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    "X-Connection-Api-Key": GOOGLE_MAIL_API_KEY,
-  };
-}
 
 function b64url(s: string): string {
   const bytes = new TextEncoder().encode(s);
@@ -73,11 +63,11 @@ async function handler(req: Request): Promise<Response> {
     }
 
     const creds = await getTenantIntegrations(await tenantIdFromRequest(req));
-      const gHeaders = gmailHeaders(creds.google_mail_api_key);
+      const gHeaders = await gmailHeaders(creds);
 
     // Fetch original message to get thread + headers
     const msgRes = await fetch(
-      `${GATEWAY_URL}/users/me/messages/${row.gmail_message_id}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Message-Id&metadataHeaders=References`,
+      `${GMAIL_API}/users/me/messages/${row.gmail_message_id}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Message-Id&metadataHeaders=References`,
       { headers: gHeaders },
     );
     if (!msgRes.ok) {
@@ -148,7 +138,7 @@ async function handler(req: Request): Promise<Response> {
       `--${boundary}--\r\n`;
 
 
-    const sendRes = await fetch(`${GATEWAY_URL}/users/me/messages/send`, {
+    const sendRes = await fetch(`${GMAIL_API}/users/me/messages/send`, {
       method: "POST",
       headers: { ...gHeaders, "Content-Type": "application/json" },
       body: JSON.stringify({ raw: b64url(rfc2822Lines), threadId }),

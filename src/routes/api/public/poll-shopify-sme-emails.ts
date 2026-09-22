@@ -3,24 +3,14 @@ import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/t
 
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
+import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
-function gmailHeaders(googleKey?: string | null) {
-  const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-  const GOOGLE_MAIL_API_KEY = googleKey || process.env['GOOGLE_MAIL_API_KEY'];
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-  if (!GOOGLE_MAIL_API_KEY) throw new Error("GOOGLE_MAIL_API_KEY is not configured (Gmail connector not linked)");
-  return {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    "X-Connection-Api-Key": GOOGLE_MAIL_API_KEY,
-  };
-}
 
 function parseNum(str: string): number {
   if (!str) return 0;
@@ -87,7 +77,7 @@ async function handler(req: Request): Promise<Response> {
 
     let headers: Record<string, string>;
     try { const creds = await getTenantIntegrations(tenantId);
-      headers = gmailHeaders(creds.google_mail_api_key); }
+      headers = await gmailHeaders(creds); }
     catch (e) {
       return new Response(JSON.stringify({ error: (e as Error).message }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -99,7 +89,7 @@ async function handler(req: Request): Promise<Response> {
     const afterEpoch = Math.floor(since.getTime() / 1000);
     // Relaxed: enterprise emails don't include "Store Front" in subject. Filter by Merchant Size in body.
     const query = `subject:"New Brand On Board" after:${afterEpoch}`;
-    const searchUrl = `${GATEWAY_URL}/users/me/messages?q=${encodeURIComponent(query)}&maxResults=100`;
+    const searchUrl = `${GMAIL_API}/users/me/messages?q=${encodeURIComponent(query)}&maxResults=100`;
 
     const searchRes = await fetch(searchUrl, { headers });
     const searchData = await searchRes.json();
@@ -139,7 +129,7 @@ async function handler(req: Request): Promise<Response> {
 
     for (const msg of newMessages) {
       try {
-        const msgRes = await fetch(`${GATEWAY_URL}/users/me/messages/${msg.id}?format=full`, { headers });
+        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, { headers });
         const msgData = await msgRes.json();
         if (!msgRes.ok || msgData.error) continue;
 

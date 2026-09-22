@@ -45,7 +45,7 @@ async function verifyToken(req: Request): Promise<string | null> {
     "";
   if (!provided) return null;
 
-  const envToken = process.env["LOVABLE_CRON_SECRET"];
+  const envToken = (process.env['CRON_SECRET'] ?? process.env['LOVABLE_CRON_SECRET']);
   if (envToken && provided === envToken) return provided;
 
   const { data } = await adminClient().rpc("cron_token_matches", { _token: provided });

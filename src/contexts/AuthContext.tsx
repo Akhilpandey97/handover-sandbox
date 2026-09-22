@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { logActivity } from "@/hooks/useActivityLogs";
 import { User, Session } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -304,20 +303,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /**
-   * Managed Google sign-in. The helper handles the editor preview popup and the
-   * full-page redirect, then sets the session; onAuthStateChange resolves the
-   * profile from there.
+   * Google sign-in through Supabase Auth. This is a full-page redirect out to Google
+   * and back to the app, where onAuthStateChange picks the session up and resolves
+   * the profile. Who may sign in is still decided by our own invite rules below.
    */
   const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       setAccessError(null);
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: { prompt: "select_account" },
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: { prompt: "select_account" },
+        },
       });
 
-      if (result.error) {
-        return { success: false, error: result.error.message ?? "Could not start Google sign-in" };
+      if (error) {
+        return { success: false, error: error.message ?? "Could not start Google sign-in" };
       }
 
       return { success: true };

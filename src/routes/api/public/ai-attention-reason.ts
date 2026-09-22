@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
+import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
 
 /**
  * On-demand AI explanation for a single project's attention / EGL risk.
@@ -47,7 +48,7 @@ async function handler(req: Request): Promise<Response> {
 
     if (!projectId || reasons.length === 0) return json({ error: "projectId and reasons are required" }, 400);
 
-    const apiKey = process.env["LOVABLE_API_KEY"];
+    const apiKey = aiApiKey();
     if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
 
     const supabase = createClient(
@@ -176,12 +177,12 @@ Produce:
     const timeout = setTimeout(() => controller.abort(), 45_000);
     let response: Response;
     try {
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      response = await fetch(aiEndpoint(), {
         method: "POST",
         signal: controller.signal,
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiModel("google/gemini-2.5-flash"),
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userContent },
@@ -235,7 +236,7 @@ Produce:
         findings_hash,
         why: parsed.why,
         recommendation: parsed.recommendation + (evidence.length ? `\n${evidence.map((e) => `• ${e}`).join("\n")}` : ""),
-        model: "google/gemini-2.5-flash",
+        model: aiModel("google/gemini-2.5-flash"),
         generated_at,
       },
       { onConflict: "project_id,kind" },

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireInternalCaller } from "@/lib/api-auth.server";
+import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,8 +48,8 @@ async function handler(req: Request): Promise<Response> {
       });
     }
 
-    const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const AI_KEY = aiApiKey();
+    if (!AI_KEY) throw new Error("AI_API_KEY is not configured");
 
     const projectFieldsList = PROJECT_FIELDS.map(f => `${f.key}: ${f.label}`).join("\n");
 
@@ -73,14 +74,14 @@ Rules:
 Example output:
 {"Merchant": "merchant_name", "MID": "mid", "Revenue": "arr", "Random Column": null}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(aiEndpoint(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${AI_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: aiModel("google/gemini-2.5-flash"),
         messages: [
           { role: "system", content: "You are a precise data mapping assistant. Return only valid JSON." },
           { role: "user", content: prompt },

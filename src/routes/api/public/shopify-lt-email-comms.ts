@@ -1,23 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
-function gmailHeaders(googleKey?: string | null) {
-  const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-  const GOOGLE_MAIL_API_KEY = googleKey || process.env['GOOGLE_MAIL_API_KEY'];
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-  if (!GOOGLE_MAIL_API_KEY) throw new Error("Gmail connector is not linked");
-  return {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    "X-Connection-Api-Key": GOOGLE_MAIL_API_KEY,
-  };
-}
 
 const hdr = (headers: any[], name: string) =>
   headers?.find((h: any) => h.name?.toLowerCase() === name.toLowerCase())?.value || "";
@@ -173,7 +164,7 @@ async function handler(req: Request): Promise<Response> {
     let headers: Record<string, string>;
     try {
       const creds = await getTenantIntegrations(await tenantIdFromRequest(req, body.tenant_id));
-      headers = gmailHeaders(creds.google_mail_api_key);
+      headers = await gmailHeaders(creds);
     } catch (e) {
       return new Response(JSON.stringify({ error: (e as Error).message }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -194,7 +185,7 @@ async function handler(req: Request): Promise<Response> {
         });
       }
 
-      const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
+      const AI_KEY = aiApiKey();
       const prompt =
         `You are matching account names from a user's spreadsheet to merchant brand names extracted from email subjects.\n` +
         `For EACH account name, return the single best matching merchant name from the candidate list, or null if there is no reasonable match.\n` +
@@ -205,14 +196,14 @@ async function handler(req: Request): Promise<Response> {
         `Candidate merchant names:\n${merchantNames.map((m, i) => `${i + 1}. ${m}`).join("\n")}\n\n` +
         `Return ONLY valid JSON: {"matches":{"<account name>":"<merchant name>"|null, ...}} — include EVERY account name as a key, exactly as given.`;
 
-      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const aiRes = await fetch(aiEndpoint(), {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${AI_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiModel("google/gemini-2.5-flash"),
           temperature: 0,
           messages: [
             { role: "system", content: "You are a precise entity-matching assistant. Return only valid JSON." },
@@ -281,7 +272,7 @@ async function handler(req: Request): Promise<Response> {
       const items = await Promise.all(
         threadIds.map(async (id) => {
           try {
-            const tRes = await fetch(`${GATEWAY_URL}/users/me/threads/${id}?format=full`, { headers });
+            const tRes = await fetch(`${GMAIL_API}/users/me/threads/${id}?format=full`, { headers });
             const tData = await tRes.json();
             if (!tRes.ok || tData.error) return null;
             const msgs = tData.messages || [];
@@ -305,7 +296,7 @@ async function handler(req: Request): Promise<Response> {
         });
       }
 
-      const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
+      const AI_KEY = aiApiKey();
       const STATUSES = [
         "CE - Merchant Live",
         "CE - Button Implementation",
@@ -358,14 +349,14 @@ async function handler(req: Request): Promise<Response> {
           )
           .join("\n\n");
 
-      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const aiRes = await fetch(aiEndpoint(), {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          Authorization: `Bearer ${AI_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiModel("google/gemini-2.5-flash"),
           messages: [{ role: "user", content: prompt }],
         }),
       });
@@ -455,7 +446,7 @@ async function handler(req: Request): Promise<Response> {
     const allThreads: any[] = [];
     let pageToken: string | undefined = undefined;
     for (let page = 0; page < 20; page++) {
-      const url = `${GATEWAY_URL}/users/me/threads?q=${encodeURIComponent(q)}&maxResults=500${
+      const url = `${GMAIL_API}/users/me/threads?q=${encodeURIComponent(q)}&maxResults=500${
         pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ""
       }`;
       const listRes = await fetch(url, { headers });
@@ -485,7 +476,7 @@ async function handler(req: Request): Promise<Response> {
       let livePageToken: string | undefined = undefined;
       for (let page = 0; page < 20; page++) {
         const liveRes = await fetch(
-          `${GATEWAY_URL}/users/me/threads?q=${encodeURIComponent(liveQ)}&maxResults=500${
+          `${GMAIL_API}/users/me/threads?q=${encodeURIComponent(liveQ)}&maxResults=500${
             livePageToken ? `&pageToken=${encodeURIComponent(livePageToken)}` : ""
           }`,
           { headers },
@@ -514,7 +505,7 @@ async function handler(req: Request): Promise<Response> {
         chunk.map(async (t: any) => {
         try {
           const tRes = await fetch(
-            `${GATEWAY_URL}/users/me/threads/${t.id}?${light ? "format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date" : "format=full"}`,
+            `${GMAIL_API}/users/me/threads/${t.id}?${light ? "format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date" : "format=full"}`,
             { headers },
           );
           const tData = await tRes.json();

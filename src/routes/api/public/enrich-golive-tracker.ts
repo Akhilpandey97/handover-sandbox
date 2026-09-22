@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { corsHeaders } from "@/lib/api-cors";
 import { createClient } from "@supabase/supabase-js";
+import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
 
-const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
 const SUPABASE_URL = process.env['SUPABASE_URL']!;
 const SERVICE_ROLE = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
 
@@ -75,9 +75,9 @@ ${ctx.map(c => `[${c.when}] (${c.type}) ${c.text}`).join('\n').slice(0, 4000)}
 Return ONLY JSON, nothing else.`;
 
       try {
-        const r = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const r = await fetch(aiEndpoint(), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${LOVABLE_API_KEY}` },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${aiApiKey()}` },
           body: JSON.stringify({
             model: 'google/gemini-2.5-flash',
             messages: [{ role: 'user', content: prompt }],

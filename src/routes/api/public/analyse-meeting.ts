@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminClient } from "@/lib/tenant-integrations.server";
 import { requireInternalCaller } from "@/lib/api-auth.server";
+import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
 
 /**
  * The AI layer behind a checklist meeting.
@@ -28,7 +29,7 @@ const json = (body: unknown, status = 200) =>
 
 export const MEETING_AI_AUTHOR = "Meeting AI";
 
-const MODEL = "google/gemini-2.5-flash";
+const MODEL = aiModel("google/gemini-2.5-flash");
 
 /** Keeps a very long call inside the model's context without silently truncating the end. */
 const clipTranscript = (text: string, limit = 60_000): string => {
@@ -94,7 +95,7 @@ Be concise. Minutes under 200 words.`;
   const timeout = setTimeout(() => controller.abort(), 60_000);
   let response: Response;
   try {
-    response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    response = await fetch(aiEndpoint(), {
       method: "POST",
       signal: controller.signal,
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
@@ -186,7 +187,7 @@ export async function analyseMeeting(
   meetingId: string,
   transcriptOverride?: string,
 ): Promise<{ comment_id: string | null; risks_created: number }> {
-  const apiKey = process.env["LOVABLE_API_KEY"];
+  const apiKey = aiApiKey();
   if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
 
   const supabase = adminClient();

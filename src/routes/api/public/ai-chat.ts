@@ -7,6 +7,7 @@ import { SETUP_TOOL_DEF, runSetupTool, teamNameMap } from "@/lib/buddy/setup-rea
 import { hasRole } from "@/lib/buddy/setup-catalog.server";
 import { DEFAULT_LABELS } from "@/data/defaultLabels";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
+import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
 
 /**
  * Buddy's conversation endpoint.
@@ -26,7 +27,7 @@ import { loadBuddySettings } from "@/lib/buddy/settings.server";
  * followed by `data: [DONE]`.
  */
 
-const MODEL = "google/gemini-3-flash-preview";
+const MODEL = aiModel("google/gemini-3-flash-preview");
 const MAX_ROUNDS = 8;
 const TOOL_RESULT_LIMIT = 24_000;
 
@@ -88,7 +89,7 @@ async function handler(req: Request): Promise<Response> {
   const caller = await buddyCaller(req);
   if (!caller) return json({ error: "Sign in again to use Buddy." }, 401, corsHeaders);
 
-  const apiKey = process.env["LOVABLE_API_KEY"];
+  const apiKey = aiApiKey();
   if (!apiKey) return json({ error: "Buddy isn't configured on this server." }, 500, corsHeaders);
 
   const body = (await req.json().catch(() => ({}))) as {
@@ -221,7 +222,7 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
 
       try {
         for (let round = 0; round < MAX_ROUNDS; round++) {
-          const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const res = await fetch(aiEndpoint(), {
             method: "POST",
             headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({ model: MODEL, messages: convo, tools, tool_choice: "auto", stream: true }),

@@ -3,6 +3,7 @@ import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/t
 
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
+import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,19 +11,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// Use the Lovable connector gateway for Gmail (auto refresh, no manual tokens)
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
 
-function gmailHeaders(googleKey?: string | null) {
-  const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-  const GOOGLE_MAIL_API_KEY = googleKey || process.env['GOOGLE_MAIL_API_KEY'];
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-  if (!GOOGLE_MAIL_API_KEY) throw new Error("GOOGLE_MAIL_API_KEY is not configured (Gmail connector not linked)");
-  return {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    "X-Connection-Api-Key": GOOGLE_MAIL_API_KEY,
-  };
-}
 
 // Parse INR currency strings like "INR 1,571,461.88" to number
 function parseINR(str: string): number {
@@ -137,7 +126,7 @@ async function replyWithAssignedCE(
     bodyHtml + "\r\n\r\n" +
     `--${boundary}--\r\n`;
 
-  const sendRes = await fetch(`${GATEWAY_URL}/users/me/messages/send`, {
+  const sendRes = await fetch(`${GMAIL_API}/users/me/messages/send`, {
     method: "POST",
     headers: { ...gHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ raw: b64url(raw), threadId }),
@@ -174,7 +163,7 @@ async function handler(req: Request): Promise<Response> {
     let headers: Record<string, string>;
     try {
       const creds = await getTenantIntegrations(tenantId);
-      headers = gmailHeaders(creds.google_mail_api_key);
+      headers = await gmailHeaders(creds);
     } catch (e) {
       return new Response(
         JSON.stringify({ error: (e as Error).message }),
@@ -202,7 +191,7 @@ async function handler(req: Request): Promise<Response> {
     const subjectClause = subjectKeywords.map((k: string) => `"${k}"`).join(" OR ");
     // Match subject from ANY sender — no from: filter
     const query = `subject:(${subjectClause}) newer_than:30d`;
-    const searchUrl = `${GATEWAY_URL}/users/me/messages?q=${encodeURIComponent(query)}&maxResults=50`;
+    const searchUrl = `${GMAIL_API}/users/me/messages?q=${encodeURIComponent(query)}&maxResults=50`;
 
     console.log("[poll-emails] query:", query);
 
@@ -285,7 +274,7 @@ async function handler(req: Request): Promise<Response> {
     let autoCreated = 0;
     for (const msg of newMessages) {
       try {
-        const msgRes = await fetch(`${GATEWAY_URL}/users/me/messages/${msg.id}?format=full`, { headers });
+        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, { headers });
         const msgData = await msgRes.json();
         if (!msgRes.ok || msgData.error) {
           console.error(`Error fetching message ${msg.id}:`, msgData);

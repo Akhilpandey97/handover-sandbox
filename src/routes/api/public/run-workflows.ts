@@ -31,7 +31,7 @@ async function cronToken(req: Request): Promise<boolean> {
   const provided =
     req.headers.get("x-cron-token") || new URL(req.url).searchParams.get("token") || "";
   if (!provided) return false;
-  if (process.env["LOVABLE_CRON_SECRET"] && provided === process.env["LOVABLE_CRON_SECRET"]) return true;
+  if ((process.env['CRON_SECRET'] ?? process.env['LOVABLE_CRON_SECRET']) && provided === (process.env['CRON_SECRET'] ?? process.env['LOVABLE_CRON_SECRET'])) return true;
   const { data } = await adminClient().rpc("cron_token_matches", { _token: provided });
   return data === true;
 }

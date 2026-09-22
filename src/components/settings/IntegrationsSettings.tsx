@@ -54,7 +54,7 @@ const GROUPS: Group[] = [
       { key: "from_email", label: "From Address", placeholder: "updates@notifications.yourdomain.com" },
       { key: "from_name", label: "From Name", placeholder: "MINT Updates" },
       { key: "reply_to", label: "Reply-To", placeholder: "onboarding@yourdomain.com" },
-      { key: "app_base_url", label: "App Base URL", placeholder: "https://yourworkspace.lovable.app", help: "Used to build links inside emails" },
+      { key: "app_base_url", label: "App Base URL", placeholder: "https://handover.yourcompany.com", help: "Used to build links inside emails" },
     ],
   },
   {
@@ -62,7 +62,9 @@ const GROUPS: Group[] = [
     icon: Inbox,
     description: "Reads the shared mailbox to auto-create projects and sync project email threads.",
     fields: [
-      { key: "google_mail_api_key", label: "Gmail Connector Key", placeholder: "gmail-connector-key", secret: true },
+      { key: "google_oauth_client_id", label: "Google OAuth Client ID", placeholder: "...apps.googleusercontent.com", help: "Google Cloud → Credentials. Shared with Meet and Calendar." },
+      { key: "google_oauth_client_secret", label: "Google OAuth Client Secret", placeholder: "•••••", secret: true },
+      { key: "google_mail_refresh_token", label: "Gmail Refresh Token", placeholder: "•••••", secret: true, help: "Scopes: gmail.readonly, and gmail.send to reply on handover threads" },
       { key: "gmail_monitor_address", label: "Mailbox to Monitor", placeholder: "integration@yourdomain.com" },
     ],
   },

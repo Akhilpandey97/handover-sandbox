@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
+import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -121,7 +122,7 @@ async function handler(req: Request): Promise<Response> {
       clauses.push(`cc:${em}`);
     }
     const query = `(${clauses.join(" OR ")}) newer_than:180d`;
-    const searchUrl = `https://connector-gateway.lovable.dev/google_mail/gmail/v1/users/me/threads?q=${encodeURIComponent(query)}&maxResults=20`;
+    const searchUrl = `${GMAIL_API}/users/me/threads?q=${encodeURIComponent(query)}&maxResults=20`;
 
     console.log(`[fetch-project-emails] mailbox=${INTERNAL_EMAIL} query=${query}`);
 
@@ -154,7 +155,7 @@ async function handler(req: Request): Promise<Response> {
 
     for (const thread of threads.slice(0, 20)) {
       try {
-        const threadUrl = `https://connector-gateway.lovable.dev/google_mail/gmail/v1/users/me/threads/${thread.id}?format=full`;
+        const threadUrl = `${GMAIL_API}/users/me/threads/${thread.id}?format=full`;
         const threadRes = await fetch(threadUrl, {
           headers: gatewayHeaders,
         });

@@ -4,6 +4,7 @@ import { getTenantBranding, tenantIdForProject } from "@/lib/tenant-branding.ser
 // AI Project Insights Edge Function
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
+import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,7 +23,7 @@ async function handler(req: Request): Promise<Response> {
     const body = await req.json();
     const { project, projects, type } = body;
 
-    const apiKey = process.env['LOVABLE_API_KEY'];
+    const apiKey = aiApiKey();
     if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
 
     // Movement report summarizer (Daily/Weekly): classify and 2-line summary per project
@@ -66,11 +67,11 @@ Recent activity:
 ${entriesTxt}`;
       }).join("\n\n");
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch(aiEndpoint(), {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiModel("google/gemini-2.5-flash"),
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userContent },
@@ -153,12 +154,12 @@ For EACH merchant, produce:
       const timeout = setTimeout(() => controller.abort(), 45_000);
       let response: Response;
       try {
-        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        response = await fetch(aiEndpoint(), {
           method: "POST",
           signal: controller.signal,
           headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: aiModel("google/gemini-2.5-flash"),
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userContent },
@@ -216,7 +217,7 @@ For EACH merchant, produce:
       const known = new Set(items.map((i) => i.id));
       results = results.filter((r) => r && known.has(r.id) && r.why && r.recommendation);
 
-      return new Response(JSON.stringify({ result: results, model: "google/gemini-2.5-flash" }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ result: results, model: aiModel("google/gemini-2.5-flash") }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Email context: generate summary, test cases, and go-live checklist context from email threads
@@ -289,14 +290,14 @@ ${threadsSummary || "No threads available."}
 Open Jira tickets (${openJira.length} of ${(jiraRows || []).length} total):
 ${jiraSummary}`;
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch(aiEndpoint(), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: aiModel("google/gemini-3-flash-preview"),
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userContent },
@@ -350,14 +351,14 @@ ${jiraSummary}`;
     if (type === "map_email_fields") {
       const { emailFields, projectFields } = body;
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch(aiEndpoint(), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: aiModel("google/gemini-2.5-flash"),
           messages: [
             {
               role: "system",
@@ -416,14 +417,14 @@ ${jiraSummary}`;
         return `- ${p.merchantName} (${p.currentPhase}/${p.projectState || "not_started"}): ${completed}/${total} done. Next: ${pending}`;
       }).join("\n");
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch(aiEndpoint(), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: aiModel("google/gemini-3-flash-preview"),
           messages: [
             { role: "system", content: `You are a project management AI. For each project listed, provide exactly ONE critical next action and flag any blockers. Format as JSON array: [{"project":"name","action":"next action","priority":"high|medium|low","alert":"optional critical alert or empty string"}]. Only output the JSON array, nothing else.` },
             { role: "user", content: projectsSummary },
@@ -471,14 +472,14 @@ Pending Items: ${project.checklist?.filter((c: any) => !c.completed).map((c: any
 Transfer History: ${project.transferHistory?.length || 0} transfers
 `;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(aiEndpoint(), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: aiModel("google/gemini-3-flash-preview"),
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: projectSummary },

@@ -59,7 +59,7 @@ export async function isCronCaller(req: Request): Promise<boolean> {
   const provided = cronTokenFromRequest(req);
   if (!provided) return false;
 
-  const envToken = process.env["LOVABLE_CRON_SECRET"];
+  const envToken = (process.env['CRON_SECRET'] ?? process.env['LOVABLE_CRON_SECRET']);
   if (envToken && provided === envToken) return true;
 
   try {

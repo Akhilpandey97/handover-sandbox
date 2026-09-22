@@ -29,6 +29,7 @@ export interface TenantIntegrations {
   google_oauth_client_secret: string | null;
   google_meet_refresh_token: string | null;
   google_calendar_refresh_token: string | null;
+  google_mail_refresh_token: string | null;
 }
 
 const EMPTY: TenantIntegrations = {
@@ -59,6 +60,7 @@ const EMPTY: TenantIntegrations = {
   google_oauth_client_secret: null,
   google_meet_refresh_token: null,
   google_calendar_refresh_token: null,
+  google_mail_refresh_token: null,
 };
 
 export const INTEGRATION_FIELDS = Object.keys(EMPTY) as (keyof TenantIntegrations)[];
@@ -75,6 +77,7 @@ export const SECRET_FIELDS: (keyof TenantIntegrations)[] = [
   "google_oauth_client_secret",
   "google_meet_refresh_token",
   "google_calendar_refresh_token",
+  "google_mail_refresh_token",
 ];
 
 function envFallbacks(): TenantIntegrations {
@@ -82,6 +85,7 @@ function envFallbacks(): TenantIntegrations {
     ...EMPTY,
     resend_api_key: process.env["RESEND_API_KEY"] ?? null,
     google_mail_api_key: process.env["GOOGLE_MAIL_API_KEY"] ?? null,
+    google_mail_refresh_token: process.env["GOOGLE_MAIL_REFRESH_TOKEN"] ?? null,
     jira_base_url: process.env["JIRA_BASE_URL"] ?? null,
     jira_email: process.env["JIRA_EMAIL"] ?? null,
     jira_api_token: process.env["JIRA_API_TOKEN"] ?? null,

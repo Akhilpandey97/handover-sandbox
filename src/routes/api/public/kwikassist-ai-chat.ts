@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { adminClient } from "@/lib/tenant-integrations.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { portalCaller, userCaller, unauthorized } from "@/lib/api-auth.server";
+import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,8 +34,8 @@ async function handler(req: Request): Promise<Response> {
     }
 
     const { orgName } = await getTenantBranding(tenantId);
-    const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const AI_KEY = aiApiKey();
+    if (!AI_KEY) throw new Error("AI_KEY not configured");
 
     const systemPrompt = `You are a helpful integration support assistant for ${orgName}'s merchants. The merchant name is "${merchant_name || "Unknown"}".
 
@@ -50,11 +51,11 @@ ${Array.isArray(faqs) && faqs.length > 0 ? faqs.map((f: any, i: number) => `${i 
 
 Use the merchant-specific FAQ content first when it answers the question. Keep answers concise, practical, and developer-friendly. Use code examples when helpful. If unsure, recommend contacting the SE.`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(aiEndpoint(), {
       method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${AI_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: aiModel("google/gemini-2.5-flash"),
         messages: [{ role: "system", content: systemPrompt }, ...messages],
       }),
     });
