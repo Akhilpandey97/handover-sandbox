@@ -164,45 +164,50 @@ export const BuddyChat = ({ variant, page, onClose }: Props) => {
   );
 
   const conversation = (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {/* Header */}
-      <div className={cn("flex shrink-0 items-center justify-between gap-2 border-b border-border", drawer ? "px-3 py-2" : "px-5 py-3")}>
-        <div className="flex min-w-0 items-center gap-2.5">
-          <BuddyAvatar size={drawer ? 24 : 28} />
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground">Buddy</p>
-            {!drawer && <p className="truncate text-2xs text-muted-foreground">{chat.isLoading ? "Working…" : `Looking at ${scopeLabel.toLowerCase().startsWith("all") || scopeLabel.startsWith("Your") ? scopeLabel.toLowerCase() : scopeLabel}`}</p>}
-          </div>
-        </div>
-        <div className="flex items-center gap-0.5">
-          {drawer && <kbd className="mr-1 hidden rounded border border-b-2 border-border px-1.5 py-0.5 font-mono text-2xs text-muted-foreground sm:inline">⌘J</kbd>}
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      {!drawer && (
+        <div className="absolute right-3 top-3 z-10">
           <HeaderButton label={voice.autoSpeak ? "Stop reading answers aloud" : "Read answers aloud"} onClick={() => voice.setAutoSpeak(!voice.autoSpeak)}>
             {voice.autoSpeak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </HeaderButton>
-          {drawer && (
-            <>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button type="button" title="Chat history" aria-label="Chat history" className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
-                    <History className="h-4 w-4" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="flex h-96 w-72 flex-col p-0">
-                  {threadList}
-                </PopoverContent>
-              </Popover>
-              <HeaderButton label="New chat" onClick={chat.startNewChat}>
-                <Plus className="h-4 w-4" />
-              </HeaderButton>
-              {onClose && (
-                <HeaderButton label="Close Buddy" onClick={onClose}>
-                  <X className="h-4 w-4" />
-                </HeaderButton>
-              )}
-            </>
-          )}
         </div>
-      </div>
+      )}
+
+      {/* Header */}
+      {drawer && (
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <BuddyAvatar size={24} />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">Buddy</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-0.5">
+            <kbd className="mr-1 hidden rounded border border-b-2 border-border px-1.5 py-0.5 font-mono text-2xs text-muted-foreground sm:inline">⌘J</kbd>
+            <HeaderButton label={voice.autoSpeak ? "Stop reading answers aloud" : "Read answers aloud"} onClick={() => voice.setAutoSpeak(!voice.autoSpeak)}>
+              {voice.autoSpeak ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </HeaderButton>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button type="button" title="Chat history" aria-label="Chat history" className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+                  <History className="h-4 w-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="flex h-96 w-72 flex-col p-0">
+                {threadList}
+              </PopoverContent>
+            </Popover>
+            <HeaderButton label="New chat" onClick={chat.startNewChat}>
+              <Plus className="h-4 w-4" />
+            </HeaderButton>
+            {onClose && (
+              <HeaderButton label="Close Buddy" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </HeaderButton>
+            )}
+          </div>
+        </div>
+      )}
 
       {drawer && (
         <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-border bg-muted/50 px-3 py-1.5 text-2xs text-muted-foreground">
