@@ -1,7 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
-import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { aiText } from "@/lib/ai-gateway.server";
+import Anthropic from "@anthropic-ai/sdk";
 import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
+
+
+/** Maps an SDK error onto the HTTP shape this route has always returned. */
+function aiErrorResponse(e: unknown, corsHeaders: Record<string, string>, rateMessage: string): Response | null {
+  if (e instanceof Anthropic.RateLimitError) {
+    return new Response(JSON.stringify({ error: rateMessage }), {
+      status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
+    return new Response(JSON.stringify({ error: "AI credits exhausted" }), {
+      status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (e instanceof Anthropic.APIError) {
+    return new Response(JSON.stringify({ error: `AI error: ${e.status}` }), {
+      status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  return null;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -185,7 +207,6 @@ async function handler(req: Request): Promise<Response> {
         });
       }
 
-      const AI_KEY = aiApiKey();
       const prompt =
         `You are matching account names from a user's spreadsheet to merchant brand names extracted from email subjects.\n` +
         `For EACH account name, return the single best matching merchant name from the candidate list, or null if there is no reasonable match.\n` +
@@ -196,40 +217,19 @@ async function handler(req: Request): Promise<Response> {
         `Candidate merchant names:\n${merchantNames.map((m, i) => `${i + 1}. ${m}`).join("\n")}\n\n` +
         `Return ONLY valid JSON: {"matches":{"<account name>":"<merchant name>"|null, ...}} — include EVERY account name as a key, exactly as given.`;
 
-      const aiRes = await fetch(aiEndpoint(), {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${AI_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: aiModel("google/gemini-2.5-flash"),
+      let content = "";
+      try {
+        content = await aiText({
+          system: "You are a precise entity-matching assistant. Return only valid JSON.",
+          prompt,
           temperature: 0,
-          messages: [
-            { role: "system", content: "You are a precise entity-matching assistant. Return only valid JSON." },
-            { role: "user", content: prompt },
-          ],
-        }),
-      });
-
-      if (aiRes.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited, try again in a moment" }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          json: true,
         });
+      } catch (e) {
+        const res = aiErrorResponse(e, corsHeaders, "Rate limited, try again in a moment");
+        if (res) return res;
+        throw e;
       }
-      if (aiRes.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted" }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (!aiRes.ok) {
-        return new Response(JSON.stringify({ error: `AI error: ${aiRes.status}` }), {
-          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const aiData = await aiRes.json();
-      const content: string = aiData.choices?.[0]?.message?.content || "";
       let matches: Record<string, string | null> = {};
       try {
         const jsonText = content.replace(/```json|```/g, "").trim();
@@ -296,7 +296,6 @@ async function handler(req: Request): Promise<Response> {
         });
       }
 
-      const AI_KEY = aiApiKey();
       const STATUSES = [
         "CE - Merchant Live",
         "CE - Button Implementation",
@@ -349,36 +348,14 @@ async function handler(req: Request): Promise<Response> {
           )
           .join("\n\n");
 
-      const aiRes = await fetch(aiEndpoint(), {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${AI_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: aiModel("google/gemini-2.5-flash"),
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
-
-      if (aiRes.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited, summaries will retry later" }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      let content = "";
+      try {
+        content = await aiText({ prompt, maxTokens: 8000, json: true });
+      } catch (e) {
+        const res = aiErrorResponse(e, corsHeaders, "Rate limited, summaries will retry later");
+        if (res) return res;
+        throw e;
       }
-      if (aiRes.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted" }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (!aiRes.ok) {
-        return new Response(JSON.stringify({ error: `AI error: ${aiRes.status}` }), {
-          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const aiData = await aiRes.json();
-      const content: string = aiData.choices?.[0]?.message?.content || "";
       let summaries: any[] = [];
       try {
         const jsonText = content.replace(/```json|```/g, "").trim();

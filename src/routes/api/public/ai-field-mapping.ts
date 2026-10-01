@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireInternalCaller } from "@/lib/api-auth.server";
-import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { aiText } from "@/lib/ai-gateway.server";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,8 +48,6 @@ async function handler(req: Request): Promise<Response> {
       });
     }
 
-    const AI_KEY = aiApiKey();
-    if (!AI_KEY) throw new Error("AI_API_KEY is not configured");
 
     const projectFieldsList = PROJECT_FIELDS.map(f => `${f.key}: ${f.label}`).join("\n");
 
@@ -74,32 +72,14 @@ Rules:
 Example output:
 {"Merchant": "merchant_name", "MID": "mid", "Revenue": "arr", "Random Column": null}`;
 
-    const response = await fetch(aiEndpoint(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${AI_KEY}`,
-      },
-      body: JSON.stringify({
-        model: aiModel("google/gemini-2.5-flash"),
-        messages: [
-          { role: "system", content: "You are a precise data mapping assistant. Return only valid JSON." },
-          { role: "user", content: prompt },
-        ],
-        temperature: 0.1,
-        max_tokens: 1000,
-      }),
+    let content = await aiText({
+      system: "You are a precise data mapping assistant. Return only valid JSON.",
+      prompt,
+      temperature: 0.1,
+      maxTokens: 1000,
+      json: true,
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("AI API error:", errText);
-      throw new Error(`AI API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    let content = data.choices?.[0]?.message?.content || "{}";
-    
     // Strip markdown code fences if present
     content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 

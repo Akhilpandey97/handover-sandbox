@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireInternalCaller } from "@/lib/api-auth.server";
-import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { aiText } from "@/lib/ai-gateway.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,26 +40,7 @@ Respond with ONLY valid JSON (no markdown, no explanation):
   "recommendation": "one actionable recommendation if fail/skip, else empty string"
 }`;
 
-    const response = await fetch(aiEndpoint(), {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${aiApiKey()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: aiModel("google/gemini-2.5-flash"),
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 512,
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`AI Gateway error ${response.status}: ${errText}`);
-    }
-
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || "{}";
+    const text = await aiText({ prompt, maxTokens: 512, json: true });
 
     // Extract JSON even if wrapped in markdown fences
     const jsonMatch = text.match(/\{[\s\S]*\}/);

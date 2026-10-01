@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminClient } from "@/lib/tenant-integrations.server";
 import { requireInternalCaller } from "@/lib/api-auth.server";
-import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { aiStructured, BACKGROUND_MODEL } from "@/lib/ai-gateway.server";
+import Anthropic from "@anthropic-ai/sdk";
 
 /**
  * The AI layer behind a checklist meeting.
@@ -29,7 +30,7 @@ const json = (body: unknown, status = 200) =>
 
 export const MEETING_AI_AUTHOR = "Meeting AI";
 
-const MODEL = aiModel("google/gemini-2.5-flash");
+const MODEL = BACKGROUND_MODEL;
 
 /** Keeps a very long call inside the model's context without silently truncating the end. */
 const clipTranscript = (text: string, limit = 60_000): string => {
@@ -79,7 +80,7 @@ function formatMinutes(analysis: Analysis, meetingTitle: string, scheduledAt: st
   return lines.join("\n");
 }
 
-async function callModel(apiKey: string, transcript: string, context: string): Promise<Analysis> {
+async function callModel(transcript: string, context: string): Promise<Analysis> {
   const systemPrompt = `You are a delivery analyst reading the transcript of a merchant onboarding call.
 
 Return TWO things:
@@ -93,72 +94,51 @@ Be concise. Minutes under 200 words.`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60_000);
-  let response: Response;
+  let parsed: Partial<Analysis> = {};
   try {
-    response = await fetch(aiEndpoint(), {
-      method: "POST",
-      signal: controller.signal,
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `${context}\n\nTRANSCRIPT:\n${clipTranscript(transcript)}` },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "submit_meeting_analysis",
-              description: "Return the minutes and any risks worth flagging",
-              parameters: {
+    parsed =
+      (await aiStructured<Partial<Analysis>>({
+        system: systemPrompt,
+        messages: [{ role: "user", content: `${context}
+
+TRANSCRIPT:
+${clipTranscript(transcript)}` }],
+        toolName: "submit_meeting_analysis",
+        description: "Return the minutes, decisions, action items and risks for this meeting",
+        schema: {
+          type: "object",
+          properties: {
+            summary: { type: "string" },
+            decisions: { type: "array", items: { type: "string" } },
+            action_items: { type: "array", items: { type: "string" } },
+            risks: {
+              type: "array",
+              items: {
                 type: "object",
                 properties: {
-                  summary: { type: "string" },
-                  decisions: { type: "array", items: { type: "string" } },
-                  action_items: { type: "array", items: { type: "string" } },
-                  risks: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        title: { type: "string" },
-                        description: { type: "string" },
-                        severity: { type: "string", enum: ["low", "medium", "high", "critical"] },
-                        category: { type: "string" },
-                      },
-                      required: ["title", "description", "severity"],
-                      additionalProperties: false,
-                    },
-                  },
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  severity: { type: "string", enum: ["low", "medium", "high", "critical"] },
+                  category: { type: "string" },
                 },
-                required: ["summary", "decisions", "action_items", "risks"],
+                required: ["title", "description", "severity"],
                 additionalProperties: false,
               },
             },
           },
-        ],
-        tool_choice: { type: "function", function: { name: "submit_meeting_analysis" } },
-      }),
-    });
+          required: ["summary", "decisions", "action_items", "risks"],
+          additionalProperties: false,
+        },
+        model: MODEL,
+        maxTokens: 8000,
+        signal: controller.signal,
+      })) ?? {};
+  } catch (e) {
+    if (e instanceof Anthropic.RateLimitError) throw new Error("AI rate limit exceeded. Try again shortly.");
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) throw new Error("AI credits exhausted.");
+    throw e;
   } finally {
     clearTimeout(timeout);
-  }
-
-  if (!response.ok) {
-    if (response.status === 429) throw new Error("AI rate limit exceeded. Try again shortly.");
-    if (response.status === 402) throw new Error("AI credits exhausted.");
-    console.error("AI gateway error:", response.status, await response.text());
-    throw new Error(`AI gateway error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const args = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-  let parsed: Partial<Analysis> = {};
-  try {
-    parsed = args ? JSON.parse(args) : {};
-  } catch {
-    parsed = {};
   }
   if (!parsed.summary) throw new Error("The model returned no minutes for this transcript");
 
@@ -187,9 +167,6 @@ export async function analyseMeeting(
   meetingId: string,
   transcriptOverride?: string,
 ): Promise<{ comment_id: string | null; risks_created: number }> {
-  const apiKey = aiApiKey();
-  if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
-
   const supabase = adminClient();
 
   const { data: meeting, error } = await supabase
@@ -231,7 +208,7 @@ export async function analyseMeeting(
       .filter(Boolean)
       .join("\n");
 
-    const analysis = await callModel(apiKey, transcript, context);
+    const analysis = await callModel(transcript, context);
 
     // Minutes go back to the checklist item as a comment from a non-human author.
     const { data: comment, error: commentError } = await supabase

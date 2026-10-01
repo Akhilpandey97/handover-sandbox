@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { adminClient } from "@/lib/tenant-integrations.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { portalCaller, userCaller, unauthorized } from "@/lib/api-auth.server";
-import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { aiText, BUDDY_MODEL } from "@/lib/ai-gateway.server";
+import Anthropic from "@anthropic-ai/sdk";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,8 +35,6 @@ async function handler(req: Request): Promise<Response> {
     }
 
     const { orgName } = await getTenantBranding(tenantId);
-    const AI_KEY = aiApiKey();
-    if (!AI_KEY) throw new Error("AI_KEY not configured");
 
     const systemPrompt = `You are a helpful integration support assistant for ${orgName}'s merchants. The merchant name is "${merchant_name || "Unknown"}".
 
@@ -51,24 +50,19 @@ ${Array.isArray(faqs) && faqs.length > 0 ? faqs.map((f: any, i: number) => `${i 
 
 Use the merchant-specific FAQ content first when it answers the question. Keep answers concise, practical, and developer-friendly. Use code examples when helpful. If unsure, recommend contacting the SE.`;
 
-    const res = await fetch(aiEndpoint(), {
-      method: "POST",
-      headers: { Authorization: `Bearer ${AI_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: aiModel("google/gemini-2.5-flash"),
-        messages: [{ role: "system", content: systemPrompt }, ...messages],
-      }),
-    });
-
-    if (res.status === 429) return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    if (res.status === 402) return new Response(JSON.stringify({ error: "Credits exhausted" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    if (!res.ok) throw new Error(`AI error: ${res.status}`);
-
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn't process that.";
+    const reply =
+      (await aiText({ system: systemPrompt, messages, model: BUDDY_MODEL })) ||
+      "Sorry, I couldn't process that.";
 
     return new Response(JSON.stringify({ reply }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
+    // Keep the rate-limit and billing cases distinct, as the gateway used to.
+    if (e instanceof Anthropic.RateLimitError) {
+      return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
+      return new Response(JSON.stringify({ error: "AI credentials rejected" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 }

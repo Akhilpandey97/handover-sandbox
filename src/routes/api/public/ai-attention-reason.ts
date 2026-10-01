@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
-import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { aiStructured, BACKGROUND_MODEL } from "@/lib/ai-gateway.server";
+import Anthropic from "@anthropic-ai/sdk";
 
 /**
  * On-demand AI explanation for a single project's attention / EGL risk.
@@ -47,9 +48,6 @@ async function handler(req: Request): Promise<Response> {
     const force: boolean = body.force === true;
 
     if (!projectId || reasons.length === 0) return json({ error: "projectId and reasons are required" }, 400);
-
-    const apiKey = aiApiKey();
-    if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
 
     const supabase = createClient(
       process.env["SUPABASE_URL"]!,
@@ -175,54 +173,35 @@ Produce:
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 45_000);
-    let response: Response;
+    let parsed: { why?: string; recommendation?: string; evidence?: string[] } = {};
     try {
-      response = await fetch(aiEndpoint(), {
-        method: "POST",
-        signal: controller.signal,
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: aiModel("google/gemini-2.5-flash"),
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userContent },
-          ],
-          tools: [{
-            type: "function",
-            function: {
-              name: "submit_attention_reason",
-              description: "Return the explanation for this merchant",
-              parameters: {
-                type: "object",
-                properties: {
-                  why: { type: "string" },
-                  recommendation: { type: "string" },
-                  evidence: { type: "array", items: { type: "string" } },
-                },
-                required: ["why", "recommendation"],
-                additionalProperties: false,
-              },
+      parsed =
+        (await aiStructured<{ why?: string; recommendation?: string; evidence?: string[] }>({
+          system: systemPrompt,
+          prompt: userContent,
+          toolName: "submit_attention_reason",
+          description: "Return the explanation for this merchant",
+          schema: {
+            type: "object",
+            properties: {
+              why: { type: "string" },
+              recommendation: { type: "string" },
+              evidence: { type: "array", items: { type: "string" } },
             },
-          }],
-          tool_choice: { type: "function", function: { name: "submit_attention_reason" } },
-        }),
-      });
+            required: ["why", "recommendation"],
+            additionalProperties: false,
+          },
+          signal: controller.signal,
+        })) ?? {};
+    } catch (e) {
+      if (e instanceof Anthropic.RateLimitError) return json({ error: "Rate limit exceeded. Try again shortly." }, 429);
+      if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
+        return json({ error: "AI credits exhausted." }, 402);
+      }
+      throw e;
     } finally {
       clearTimeout(timeout);
     }
-
-    if (!response.ok) {
-      if (response.status === 429) return json({ error: "Rate limit exceeded. Try again shortly." }, 429);
-      if (response.status === 402) return json({ error: "AI credits exhausted." }, 402);
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const args = data.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-    let parsed: { why?: string; recommendation?: string; evidence?: string[] } = {};
-    try { parsed = args ? JSON.parse(args) : {}; } catch { parsed = {}; }
     if (!parsed.why || !parsed.recommendation) throw new Error("AI returned an empty explanation");
 
     const evidence = Array.isArray(parsed.evidence) ? parsed.evidence.slice(0, 3) : [];
@@ -236,7 +215,7 @@ Produce:
         findings_hash,
         why: parsed.why,
         recommendation: parsed.recommendation + (evidence.length ? `\n${evidence.map((e) => `• ${e}`).join("\n")}` : ""),
-        model: aiModel("google/gemini-2.5-flash"),
+        model: BACKGROUND_MODEL,
         generated_at,
       },
       { onConflict: "project_id,kind" },

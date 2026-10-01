@@ -7,7 +7,8 @@ import { SETUP_TOOL_DEF, runSetupTool, teamNameMap } from "@/lib/buddy/setup-rea
 import { hasRole } from "@/lib/buddy/setup-catalog.server";
 import { DEFAULT_LABELS } from "@/data/defaultLabels";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
-import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { aiStream, BUDDY_MODEL } from "@/lib/ai-gateway.server";
+import Anthropic from "@anthropic-ai/sdk";
 
 /**
  * Buddy's conversation endpoint.
@@ -27,7 +28,7 @@ import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
  * followed by `data: [DONE]`.
  */
 
-const MODEL = aiModel("google/gemini-3-flash-preview");
+const MODEL = BUDDY_MODEL;
 const MAX_ROUNDS = 8;
 const TOOL_RESULT_LIMIT = 24_000;
 
@@ -89,8 +90,6 @@ async function handler(req: Request): Promise<Response> {
   const caller = await buddyCaller(req);
   if (!caller) return json({ error: "Sign in again to use Buddy." }, 401, corsHeaders);
 
-  const apiKey = aiApiKey();
-  if (!apiKey) return json({ error: "Buddy isn't configured on this server." }, 500, corsHeaders);
 
   const body = (await req.json().catch(() => ({}))) as {
     messages?: ClientMessage[];
@@ -144,6 +143,12 @@ async function handler(req: Request): Promise<Response> {
   const tools = [...READ_TOOL_DEFS, SETUP_TOOL_DEF, REPORT_TOOL_DEF, ...allowedActions];
   const terms = await terminologyLine(caller).catch(() => "");
   const allowedToolNames = new Set<string>(tools.map((t) => t.function.name as string));
+  // The tool definitions are written OpenAI-shaped; the Messages API wants name/input_schema.
+  const anthropicTools: Anthropic.Tool[] = tools.map((t) => ({
+    name: t.function.name as string,
+    description: t.function.description as string,
+    input_schema: t.function.parameters as Anthropic.Tool.InputSchema,
+  }));
 
   const system = [
     `You are Buddy, the assistant inside Handover, a tool for tracking merchant onboarding and integration projects. Today is ${todayIso()}.`,
@@ -214,7 +219,11 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
   const stream = new ReadableStream({
     async start(controller) {
       const emit = (evt: unknown) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(evt)}\n\n`));
-      const convo: any[] = [{ role: "system", content: system }, ...history.map((m) => ({ role: m.role, content: m.content }))];
+      // The system prompt rides outside the messages on the Messages API.
+      const convo: Anthropic.MessageParam[] = history.map((m) => ({
+        role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
+        content: m.content,
+      }));
       const toolsUsed: string[] = [];
       let actionsProposed = 0;
       let failed = false;
@@ -222,97 +231,65 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
 
       try {
         for (let round = 0; round < MAX_ROUNDS; round++) {
-          const res = await fetch(aiEndpoint(), {
-            method: "POST",
-            headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ model: MODEL, messages: convo, tools, tool_choice: "auto", stream: true }),
-            signal: req.signal,
-          });
-
-          if (!res.ok || !res.body) {
+          let text = "";
+          const parsed: Array<{ id: string; name: string; args: Record<string, any> }> = [];
+          try {
+            for await (const event of aiStream({
+              messages: convo,
+              system,
+              tools: anthropicTools,
+              model: MODEL,
+              signal: req.signal,
+            })) {
+              if (event.type === "text") {
+                text += event.text;
+                emit({ type: "delta", content: event.text });
+              } else if (event.type === "tool_call") {
+                parsed.push({ id: event.id, name: event.name, args: event.input });
+              }
+            }
+          } catch (err) {
+            if ((err as Error).name === "AbortError") throw err;
             failed = true;
             const message =
-              res.status === 429
+              err instanceof Anthropic.RateLimitError
                 ? "Buddy is getting a lot of requests. Try again in a moment."
-                : res.status === 402
+                : err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError
                   ? "This workspace has run out of AI credits. An admin can add more."
                   : "Buddy couldn't reach the AI service. Try again.";
-            if (res.status !== 429 && res.status !== 402) console.error("ai-chat gateway error:", res.status, await res.text().catch(() => ""));
+            if (!(err instanceof Anthropic.RateLimitError)) console.error("ai-chat error:", err);
             emit({ type: "error", message });
             break;
           }
 
-          let text = "";
-          const calls = new Map<number, { id: string; name: string; args: string }>();
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
-          const handleLine = (line: string) => {
-            if (!line.startsWith("data: ")) return;
-            const payload = line.slice(6).trim();
-            if (!payload || payload === "[DONE]") return;
-            try {
-              const delta = JSON.parse(payload).choices?.[0]?.delta;
-              if (delta?.content) {
-                text += delta.content;
-                emit({ type: "delta", content: delta.content });
-              }
-              for (const tc of delta?.tool_calls || []) {
-                const idx = tc.index ?? 0;
-                const acc = calls.get(idx) || { id: "", name: "", args: "" };
-                if (tc.id) acc.id = tc.id;
-                if (tc.function?.name) acc.name += tc.function.name;
-                if (tc.function?.arguments) acc.args += tc.function.arguments;
-                calls.set(idx, acc);
-              }
-            } catch {
-              // A partial JSON line; the next chunk completes it.
-            }
-          };
-          for (;;) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            let nl: number;
-            while ((nl = buffer.indexOf("\n")) !== -1) {
-              handleLine(buffer.slice(0, nl).replace(/\r$/, ""));
-              buffer = buffer.slice(nl + 1);
-            }
-          }
-          if (buffer.trim()) buffer.split("\n").forEach((l) => handleLine(l.replace(/\r$/, "")));
-
-          const parsed = Array.from(calls.values())
-            .filter((c) => c.name)
-            .map((c, i) => {
-              let args: Record<string, any> = {};
-              try {
-                args = c.args ? JSON.parse(c.args) : {};
-              } catch {
-                args = {};
-              }
-              return { id: c.id || `call_${round}_${i}`, name: c.name, args, raw: c.args || "{}" };
-            });
           if (parsed.length === 0) break;
+
+          /** The assistant turn as Claude produced it: its words, then the calls it made. */
+          const assistantTurn = (): Anthropic.MessageParam => ({
+            role: "assistant",
+            content: [
+              ...(text.trim() ? [{ type: "text" as const, text }] : []),
+              ...parsed.map((c) => ({ type: "tool_use" as const, id: c.id, name: c.name, input: c.args })),
+            ],
+          });
 
           // A tool name the model made up, or one switched off for this workspace: tell the
           // model what exists and let it try again, rather than showing a card that can't run.
           if (parsed.some((c) => !allowedToolNames.has(c.name))) {
+            convo.push(assistantTurn());
             convo.push({
-              role: "assistant",
-              content: text || "",
-              tool_calls: parsed.map((c) => ({ id: c.id, type: "function", function: { name: c.name, arguments: c.raw } })),
-            });
-            for (const c of parsed) {
-              convo.push({
-                role: "tool",
-                tool_call_id: c.id,
+              role: "user",
+              content: parsed.map((c) => ({
+                type: "tool_result" as const,
+                tool_use_id: c.id,
+                is_error: true,
                 content: JSON.stringify(
                   allowedToolNames.has(c.name)
                     ? { error: "Not run, because another tool in the same step does not exist. Call the tools again." }
                     : { error: `There is no tool named ${c.name}. Available tools: ${Array.from(allowedToolNames).join(", ")}.` },
                 ),
-              });
-            }
+              })),
+            });
             continue;
           }
 
@@ -323,11 +300,9 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
             break;
           }
 
-          convo.push({
-            role: "assistant",
-            content: text || "",
-            tool_calls: parsed.map((c) => ({ id: c.id, type: "function", function: { name: c.name, arguments: c.raw } })),
-          });
+          convo.push(assistantTurn());
+          // Every tool result for a turn goes back in one user message.
+          const toolResults: Anthropic.ToolResultBlockParam[] = [];
           for (const call of parsed) {
             toolsUsed.push(call.name);
             const result =
@@ -339,8 +314,13 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
             emit({ type: "step", label: result.step });
             if (result.sources.length) emit({ type: "sources", items: result.sources });
             if ("report" in result && result.report) emit({ type: "report", report: result.report });
-            convo.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(result.data).slice(0, TOOL_RESULT_LIMIT) });
+            toolResults.push({
+              type: "tool_result",
+              tool_use_id: call.id,
+              content: JSON.stringify(result.data).slice(0, TOOL_RESULT_LIMIT),
+            });
           }
+          convo.push({ role: "user", content: toolResults });
 
           if (round === MAX_ROUNDS - 1) {
             emit({ type: "delta", content: "\n\nI couldn't finish looking that up. Try a narrower question." });

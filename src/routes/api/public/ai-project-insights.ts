@@ -4,7 +4,20 @@ import { getTenantBranding, tenantIdForProject } from "@/lib/tenant-branding.ser
 // AI Project Insights Edge Function
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
-import { aiApiKey, aiEndpoint, aiModel } from "@/lib/ai-gateway.server";
+import { aiText, aiStructured, BACKGROUND_MODEL } from "@/lib/ai-gateway.server";
+import Anthropic from "@anthropic-ai/sdk";
+
+
+/** The HTTP shape this route has always returned, from an SDK error. */
+function aiError(e: unknown, corsHeaders: Record<string, string>): Response | null {
+  const body = (error: string, status: number) =>
+    new Response(JSON.stringify({ error }), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (e instanceof Anthropic.RateLimitError) return body("Rate limit exceeded.", 429);
+  if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
+    return body("AI credits exhausted.", 402);
+  }
+  return null;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,8 +36,6 @@ async function handler(req: Request): Promise<Response> {
     const body = await req.json();
     const { project, projects, type } = body;
 
-    const apiKey = aiApiKey();
-    if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
 
     // Movement report summarizer (Daily/Weekly): classify and 2-line summary per project
     if (type === "movement_summary" && Array.isArray(body.items)) {
@@ -67,59 +78,41 @@ Recent activity:
 ${entriesTxt}`;
       }).join("\n\n");
 
-      const response = await fetch(aiEndpoint(), {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: aiModel("google/gemini-2.5-flash"),
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userContent },
-          ],
-          tools: [{
-            type: "function",
-            function: {
-              name: "submit_movement_summary",
-              description: "Return per-project bucket and 2-line summary",
-              parameters: {
-                type: "object",
-                properties: {
-                  results: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        id: { type: "string" },
-                        bucket: { type: "string", enum: ["wins", "updates", "lowlights"] },
-                        line1: { type: "string" },
-                        line2: { type: "string" },
-                      },
-                      required: ["id", "bucket", "line1", "line2"],
-                      additionalProperties: false,
-                    },
+      let results: any[] = [];
+      try {
+        const out = await aiStructured<{ results?: any[] }>({
+          system: systemPrompt,
+          prompt: userContent,
+          toolName: "submit_movement_summary",
+          description: "Return per-project bucket and 2-line summary",
+          schema: {
+            type: "object",
+            properties: {
+              results: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    bucket: { type: "string", enum: ["wins", "updates", "lowlights"] },
+                    line1: { type: "string" },
+                    line2: { type: "string" },
                   },
+                  required: ["id", "bucket", "line1", "line2"],
+                  additionalProperties: false,
                 },
-                required: ["results"],
-                additionalProperties: false,
               },
             },
-          }],
-          tool_choice: { type: "function", function: { name: "submit_movement_summary" } },
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        if (response.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        const errText = await response.text();
-        console.error("AI gateway error:", response.status, errText);
-        throw new Error(`AI gateway error: ${response.status}`);
-      }
-      const data = await response.json();
-      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-      let results: any[] = [];
-      if (toolCall?.function?.arguments) {
-        try { results = (JSON.parse(toolCall.function.arguments).results) || []; } catch { results = []; }
+            required: ["results"],
+            additionalProperties: false,
+          },
+          maxTokens: 8000,
+        });
+        results = out?.results ?? [];
+      } catch (e) {
+        const res = aiError(e, corsHeaders);
+        if (res) return res;
+        throw e;
       }
       return new Response(JSON.stringify({ result: results }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -152,72 +145,50 @@ For EACH merchant, produce:
       // stall the whole loop and risk the platform function timeout.
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 45_000);
-      let response: Response;
+      let results: Array<{ id: string; why: string; recommendation: string }> = [];
       try {
-        response = await fetch(aiEndpoint(), {
-          method: "POST",
-          signal: controller.signal,
-          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: aiModel("google/gemini-2.5-flash"),
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userContent },
-            ],
-            tools: [{
-              type: "function",
-              function: {
-                name: "submit_risk_explanations",
-                description: "Return one explanation and recommendation per merchant",
-                parameters: {
+        const out = await aiStructured<{ results?: Array<{ id: string; why: string; recommendation: string }> }>({
+          system: systemPrompt,
+          prompt: userContent,
+          toolName: "submit_risk_explanations",
+          description: "Return one explanation and recommendation per merchant",
+          schema: {
+            type: "object",
+            properties: {
+              results: {
+                type: "array",
+                items: {
                   type: "object",
                   properties: {
-                    results: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string" },
-                          why: { type: "string" },
-                          recommendation: { type: "string" },
-                        },
-                        required: ["id", "why", "recommendation"],
-                        additionalProperties: false,
-                      },
-                    },
+                    id: { type: "string" },
+                    why: { type: "string" },
+                    recommendation: { type: "string" },
                   },
-                  required: ["results"],
+                  required: ["id", "why", "recommendation"],
                   additionalProperties: false,
                 },
               },
-            }],
-            tool_choice: { type: "function", function: { name: "submit_risk_explanations" } },
-          }),
+            },
+            required: ["results"],
+            additionalProperties: false,
+          },
+          maxTokens: 8000,
+          signal: controller.signal,
         });
+        results = out?.results ?? [];
+      } catch (e) {
+        const res = aiError(e, corsHeaders);
+        if (res) return res;
+        throw e;
       } finally {
         clearTimeout(timeout);
-      }
-
-      if (!response.ok) {
-        if (response.status === 429) return new Response(JSON.stringify({ error: "Rate limit exceeded." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        if (response.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        const errText = await response.text();
-        console.error("AI gateway error:", response.status, errText);
-        throw new Error(`AI gateway error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-      let results: Array<{ id: string; why: string; recommendation: string }> = [];
-      if (toolCall?.function?.arguments) {
-        try { results = JSON.parse(toolCall.function.arguments).results || []; } catch { results = []; }
       }
       // Match by id and drop anything unrecognised — the model occasionally
       // returns fewer items than asked, so index alignment would mis-attribute.
       const known = new Set(items.map((i) => i.id));
       results = results.filter((r) => r && known.has(r.id) && r.why && r.recommendation);
 
-      return new Response(JSON.stringify({ result: results, model: aiModel("google/gemini-2.5-flash") }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ result: results, model: BACKGROUND_MODEL }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Email context: generate summary, test cases, and go-live checklist context from email threads
@@ -290,42 +261,20 @@ ${threadsSummary || "No threads available."}
 Open Jira tickets (${openJira.length} of ${(jiraRows || []).length} total):
 ${jiraSummary}`;
 
-      const response = await fetch(aiEndpoint(), {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: aiModel("google/gemini-3-flash-preview"),
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userContent },
-          ],
-          max_tokens: 1500,
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again." }), {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        const errText = await response.text();
-        console.error("AI gateway error:", response.status, errText);
-        throw new Error(`AI gateway error: ${response.status}`);
+      let content: string;
+      try {
+        content =
+          (await aiText({
+            system: systemPrompt,
+            prompt: userContent,
+            maxTokens: 1500,
+            json: true,
+          })) || "{}";
+      } catch (e) {
+        const res = aiError(e, corsHeaders);
+        if (res) return res;
+        throw e;
       }
-
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content || "{}";
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       let parsed: any = { summary: "", test_cases: [], checklist_context: "", action_items: [] };
       try { parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : parsed; } catch { /* use defaults */ }
@@ -351,48 +300,19 @@ ${jiraSummary}`;
     if (type === "map_email_fields") {
       const { emailFields, projectFields } = body;
 
-      const response = await fetch(aiEndpoint(), {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: aiModel("google/gemini-2.5-flash"),
-          messages: [
-            {
-              role: "system",
-              content: `You map email fields to project fields. Return ONLY a JSON object whose keys are the email field IDs (field_0, field_1, ...) and values are the best matching project field key from the provided list. Use "skip" only if truly no field matches. No prose, no markdown, no code fences.`,
-            },
-            {
-              role: "user",
-              content: `EMAIL FIELDS:\n${emailFields}\n\nPROJECT FIELDS (key: label):\n${projectFields}\n\nExample output: {"field_0":"merchantName","field_1":"arr","field_2":"skip"}\n\nReturn the JSON now.`,
-            },
-          ],
-          response_format: { type: "json_object" },
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again." }), {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        const errText = await response.text();
-        console.error("AI gateway error:", response.status, errText);
-        throw new Error(`AI gateway error: ${response.status}`);
+      let content: string;
+      try {
+        content =
+          (await aiText({
+            system: `You map email fields to project fields. Return ONLY a JSON object whose keys are the email field IDs (field_0, field_1, ...) and values are the best matching project field key from the provided list. Use "skip" only if truly no field matches. No prose, no markdown, no code fences.`,
+            prompt: `EMAIL FIELDS:\n${emailFields}\n\nPROJECT FIELDS (key: label):\n${projectFields}\n\nExample output: {"field_0":"merchantName","field_1":"arr","field_2":"skip"}\n\nReturn the JSON now.`,
+            json: true,
+          })) || "{}";
+      } catch (e) {
+        const res = aiError(e, corsHeaders);
+        if (res) return res;
+        throw e;
       }
-
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content || "{}";
       let result: Record<string, string> = {};
       try {
         const parsed = JSON.parse(content);
@@ -417,30 +337,20 @@ ${jiraSummary}`;
         return `- ${p.merchantName} (${p.currentPhase}/${p.projectState || "not_started"}): ${completed}/${total} done. Next: ${pending}`;
       }).join("\n");
 
-      const response = await fetch(aiEndpoint(), {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: aiModel("google/gemini-3-flash-preview"),
-          messages: [
-            { role: "system", content: `You are a project management AI. For each project listed, provide exactly ONE critical next action and flag any blockers. Format as JSON array: [{"project":"name","action":"next action","priority":"high|medium|low","alert":"optional critical alert or empty string"}]. Only output the JSON array, nothing else.` },
-            { role: "user", content: projectsSummary },
-          ],
-          max_tokens: 800,
-        }),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error("AI gateway error:", response.status, errText);
-        throw new Error(`AI gateway error: ${response.status}`);
+      let content: string;
+      try {
+        content =
+          (await aiText({
+            system: `You are a project management AI. For each project listed, provide exactly ONE critical next action and flag any blockers. Format as JSON array: [{"project":"name","action":"next action","priority":"high|medium|low","alert":"optional critical alert or empty string"}]. Only output the JSON array, nothing else.`,
+            prompt: projectsSummary,
+            maxTokens: 800,
+            json: true,
+          })) || "[]";
+      } catch (e) {
+        const res = aiError(e, corsHeaders);
+        if (res) return res;
+        throw e;
       }
-
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content || "[]";
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
 
@@ -472,42 +382,19 @@ Pending Items: ${project.checklist?.filter((c: any) => !c.completed).map((c: any
 Transfer History: ${project.transferHistory?.length || 0} transfers
 `;
 
-    const response = await fetch(aiEndpoint(), {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: aiModel("google/gemini-3-flash-preview"),
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: projectSummary },
-        ],
-        max_tokens: 500,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      throw new Error(`AI gateway error: ${response.status}`);
+    let content: string;
+    try {
+      content =
+        (await aiText({
+          system: systemPrompt,
+          prompt: projectSummary,
+          maxTokens: 500,
+        })) || "Unable to generate insights.";
+    } catch (e) {
+      const res = aiError(e, corsHeaders);
+      if (res) return res;
+      throw e;
     }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "Unable to generate insights.";
 
     return new Response(JSON.stringify({ result: content }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
