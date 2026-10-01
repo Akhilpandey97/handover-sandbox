@@ -33,7 +33,7 @@ import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { useChecklistTasks, useAddChecklistTask, useUpdateChecklistTask, useDeleteChecklistTask } from "@/hooks/useChecklistTasks";
 import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
-import { CheckCircle2, ClipboardList, Minus, FileText, ListTodo, Trash2, Calendar, Flag, Video, Building2, Users } from "lucide-react";
+import { CheckCircle2, ClipboardList, Minus, FileText, ListTodo, Trash2, Calendar, Flag, Video, Building2, Users, Plus } from "lucide-react";
 
 interface ChecklistDialogProps {
   project: Project | null;
@@ -529,10 +529,43 @@ export const ChecklistDialog = ({
                               // Sub-tasks show only when there are some, or while one is being added.
                               // Everything else is reachable from Tasks on the row above.
                               !hasSubTasks ? null : (
-                              <div className="mt-1.5">
-                                    <div className="ml-1 space-y-1">
-                                      {itemTasks.map(task => (
-                                        <div key={task.id} className="group flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-muted/40">
+                                <div className="mt-3 rounded-lg border border-border/60 bg-muted/20 p-2">
+                                  {/* Sub-tasks belong to the step above; say so, and say how many are left. */}
+                                  <div className="mb-1.5 flex items-center gap-2 px-1">
+                                    <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                      Tasks
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {itemTasks.filter(t => t.status === "done").length} of {itemTasks.length} done
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="ml-auto h-6 gap-1 px-2 text-xs"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setTaskDialogState({
+                                          open: true,
+                                          checklistItemId: item.id,
+                                          checklistItemTitle: item.title,
+                                        });
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                      Add task
+                                    </Button>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    {itemTasks.map(task => {
+                                      const overdue =
+                                        task.due_date && task.status !== "done" && new Date(task.due_date) < new Date();
+                                      return (
+                                        <div
+                                          key={task.id}
+                                          className="group flex items-center gap-2 rounded-md border border-border/50 bg-card px-2 py-1.5 transition-colors hover:border-primary/30"
+                                        >
                                           <Checkbox
                                             checked={task.status === "done"}
                                             onCheckedChange={(checked) => {
@@ -541,22 +574,23 @@ export const ChecklistDialog = ({
                                                 status: checked ? "done" : "open",
                                               });
                                             }}
-                                            className="h-4 w-4"
+                                            aria-label={`Mark "${task.title}" as ${task.status === "done" ? "not done" : "done"}`}
+                                            className="h-4 w-4 shrink-0"
                                           />
-                                          <span className={`flex-1 text-sm ${task.status === "done" ? "text-muted-foreground line-through" : ""}`}>
+                                          <span className={`flex-1 truncate text-sm ${task.status === "done" ? "text-muted-foreground line-through" : "text-foreground"}`}>
                                             {task.title}
                                           </span>
-                                          <Badge variant="outline" className={`text-2xs px-1.5 py-0 ${priorityColors[task.priority] || ""}`}>
-                                            <Flag className="h-2.5 w-2.5 mr-0.5" />
+                                          <Badge variant="outline" className={`shrink-0 px-1.5 py-0 text-2xs ${priorityColors[task.priority] || ""}`}>
+                                            <Flag className="mr-0.5 h-2.5 w-2.5" />
                                             {task.priority}
                                           </Badge>
                                           {task.assigned_to && (
-                                            <span className="text-2xs text-muted-foreground">
+                                            <span className="shrink-0 text-2xs text-muted-foreground">
                                               {profiles.find(p => p.id === task.assigned_to)?.name || task.assigned_to}
                                             </span>
                                           )}
                                           {task.due_date && (
-                                            <span className="text-2xs text-muted-foreground flex items-center gap-0.5">
+                                            <span className={`flex shrink-0 items-center gap-0.5 text-2xs ${overdue ? "font-medium text-destructive" : "text-muted-foreground"}`}>
                                               <Calendar className="h-2.5 w-2.5" />
                                               {shortDate(task.due_date)}
                                             </span>
@@ -564,16 +598,17 @@ export const ChecklistDialog = ({
                                           <Button
                                             variant="ghost"
                                             size="sm"
-                                            className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive"
+                                            aria-label={`Delete task "${task.title}"`}
+                                            className="h-5 w-5 shrink-0 p-0 text-destructive opacity-0 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
                                             onClick={() => deleteTaskMutation.mutate(task.id)}
                                           >
                                             <Trash2 className="h-3 w-3" />
                                           </Button>
                                         </div>
-                                      ))}
-
-                                    </div>
-                              </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
                               )
                             );
                           })()}
