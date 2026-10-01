@@ -5,7 +5,7 @@ created automatically, with owner assignment and checklist seeding, exactly as i
 it were created in the UI.
 
 Status: **live**. Phase 1 (inbound API + tenant API keys) is implemented and
-available at `https://handover.yourcompany.com/api/public/v1/…`. Outbound
+available at `https://seamlesshandover.in/api/public/v1/…`. Outbound
 webhooks (section 6) remain a future phase.
 
 ---
@@ -43,7 +43,7 @@ Content-Type: application/json
 ## 3. Base URL
 
 ```
-https://handover.yourcompany.com/api/public/v1
+https://seamlesshandover.in/api/public/v1
 ```
 
 ---
@@ -96,8 +96,8 @@ https://handover.yourcompany.com/api/public/v1
   "merchant_name": "BrewCraft",
   "mid": "BREW-001",
   "external_id": "SF-0061234",
-  "project_url": "https://handover.yourcompany.com/projects/5b1c…",
-  "portal_url": "https://handover.yourcompany.com/portal?token=…",
+  "project_url": "https://seamlesshandover.in/projects/5b1c…",
+  "portal_url": "https://seamlesshandover.in/portal?token=…",
   "checklist_items_created": 9,
   "created": true
 }

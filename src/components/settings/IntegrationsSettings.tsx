@@ -54,7 +54,7 @@ const GROUPS: Group[] = [
       { key: "from_email", label: "From Address", placeholder: "updates@notifications.yourdomain.com" },
       { key: "from_name", label: "From Name", placeholder: "MINT Updates" },
       { key: "reply_to", label: "Reply-To", placeholder: "onboarding@yourdomain.com" },
-      { key: "app_base_url", label: "App Base URL", placeholder: "https://handover.yourcompany.com", help: "Used to build links inside emails" },
+      { key: "app_base_url", label: "App Base URL", placeholder: "https://seamlesshandover.in", help: "Used to build links inside emails" },
     ],
   },
   {
