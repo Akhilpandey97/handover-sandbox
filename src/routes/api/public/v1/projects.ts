@@ -10,6 +10,7 @@ import {
   toProjectRow,
 } from "@/lib/crm-projects.server";
 import { publicAppUrl } from "@/lib/public-url.server";
+import { kickWorkflows } from "@/lib/workflows.server";
 
 const baseUrl = (req: Request) => publicAppUrl(req);
 
@@ -67,6 +68,7 @@ async function POST({ request }: { request: Request }): Promise<Response> {
         .eq("id", found.id);
       if (error) return apiJson({ error: error.message }, 500);
       await applyCustomFields(auth.tenantId, found.id, input.custom_fields);
+      await kickWorkflows(request, auth.tenantId);
       await logApiActivity(auth.tenantId, `CRM updated project ${input.merchant_name}`, {
         project_id: found.id,
         external_id: input.external_id,
@@ -111,6 +113,9 @@ async function POST({ request }: { request: Request }): Promise<Response> {
   const project = created as { id: string; mid: string };
 
   await applyCustomFields(auth.tenantId, project.id, input.custom_fields);
+
+  // Rules on "Project created" run now, as they would for a project made in the app.
+  await kickWorkflows(request, auth.tenantId);
 
   const { count } = await admin
     .from("checklist_items")

@@ -4,6 +4,7 @@ import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/t
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
 import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
+import { kickWorkflows } from "@/lib/workflows.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -404,6 +405,9 @@ async function handler(req: Request): Promise<Response> {
           .update({ status: "project_created", project_id: newProj.id })
           .eq("id", inserted.id);
         autoCreated++;
+
+        // Rules on "Project created" run now, as they do for a project made in the app.
+        await kickWorkflows(req, tenantId);
 
         try {
           const notifyUrl = `${SUPABASE_URL}/functions/v1/send-notification`;

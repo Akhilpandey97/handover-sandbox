@@ -8,6 +8,7 @@ import { getTenantIntegrations, resendFrom, resendReplyTo } from "@/lib/tenant-i
 import { brdUrl } from "@/lib/app-links.server";
 import { notifyAssignment } from "@/lib/notify.server";
 import { buddyLabels } from "@/lib/buddy/labels.server";
+import { kickWorkflows } from "@/lib/workflows.server";
 
 /**
  * Everything Buddy can change, in one registry.
@@ -562,7 +563,7 @@ const ACTIONS: Record<string, ActionDef> = {
         undoable: false,
       };
     },
-    async execute(c, p) {
+    async execute(c, p, ctx) {
       const allowed = ["merchant_name", "mid", "kick_off_date", "platform", "category", "arr", "contact_email", "sales_spoc", "integration_type", "expected_go_live_date", "project_notes"];
       const row: Record<string, unknown> = { tenant_id: c.tenantId, created_by: c.userId };
       for (const k of allowed) if (p[k] !== undefined && p[k] !== null && p[k] !== "") row[k] = p[k];
@@ -572,6 +573,8 @@ const ACTIONS: Record<string, ActionDef> = {
       const { data, error } = await c.client.from("projects").insert(row).select("id, merchant_name, mid").single();
       if (error) throw error;
       const created = data as { id: string; merchant_name: string; mid: string };
+      // Rules on "Project created" run now, not at the scheduler's next pass.
+      await kickWorkflows(ctx.req, c.tenantId);
       return {
         message: `${created.merchant_name} (MID ${created.mid}) is created.`,
         link: projectLink(created.id),

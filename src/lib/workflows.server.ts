@@ -370,6 +370,25 @@ export async function runScheduledPass(req: Request, tenantId: string | null): P
 }
 
 /** Run one rule on chosen projects, as a person asked. Projects outside the workspace are skipped. */
+/**
+ * Run anything waiting on a change this server just made.
+ *
+ * The database trigger has already queued the event, so this only decides how soon a rule
+ * fires, never whether it does — the same thing the app does after a change from the UI.
+ * Without it a project created by the CRM API, Buddy or the email intake sits unassigned
+ * until the scheduler's next pass, which is how "assign new projects to X" appeared not to
+ * work for the API.
+ *
+ * Failure is logged and swallowed: the event stays queued for the next drain.
+ */
+export async function kickWorkflows(req: Request, tenantId: string | null): Promise<void> {
+  try {
+    await drainQueue(req, tenantId);
+  } catch (err) {
+    console.warn("Could not run workflows now; they stay queued for the next drain.", err);
+  }
+}
+
 export async function runWorkflowOnProjects(
   req: Request,
   tenantId: string,
