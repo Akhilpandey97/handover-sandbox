@@ -33,7 +33,7 @@ import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { useChecklistTasks, useAddChecklistTask, useUpdateChecklistTask, useDeleteChecklistTask } from "@/hooks/useChecklistTasks";
 import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
-import { CheckCircle2, ClipboardList, Minus, FileText, ListTodo, Trash2, Calendar, Flag, Video } from "lucide-react";
+import { CheckCircle2, ClipboardList, Minus, FileText, ListTodo, Trash2, Calendar, Flag, Video, Building2, Users } from "lucide-react";
 
 interface ChecklistDialogProps {
   project: Project | null;
@@ -114,10 +114,6 @@ export const ChecklistDialog = ({
     openedTaskRef.current = deepLink.task;
     setTaskDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title });
   }, [deepLink.task, deepLink.item, project]);
-
-  // Inline sub-task add form state: which checklist item has the form open
-  const [openResponsibilityFor, setOpenResponsibilityFor] = useState<string | null>(null);
-  // Track which checklist items have expanded sub-tasks
 
   // Profiles for task assignment (cached lookup)
   const { profiles } = useProfilesLookup();
@@ -294,7 +290,7 @@ export const ChecklistDialog = ({
                   </div>
 
                   {/* Checklist Items */}
-                  <div className="pl-1">
+                  <div className="space-y-3 pl-2 ml-4">
                     {checklistItems.map((item, index) => {
                       const timeStats = calculateTimeByParty(item.responsibilityLog);
                       const itemTeam = (item.ownerTeam || "").toLowerCase();
@@ -304,11 +300,18 @@ export const ChecklistDialog = ({
                         <div
                           key={item.id}
                           id={`checklist-item-${item.id}`}
-                           className="scroll-mt-24 border-b border-border/70 px-1 py-2 transition-colors last:border-b-0 hover:bg-muted/30"
+                          className={`p-4 rounded-xl border transition-all scroll-mt-24 ${
+                            item.completed
+                              ? "bg-success/5 border-success/30"
+                              : "bg-card border-border hover:border-primary/30 hover:shadow-md"
+                          }`}
                         >
-                          <div className="flex items-start gap-3">
-                            {/* The checkbox is the control; completion is not spelled out three more ways. */}
-                            <div className="flex flex-col items-center gap-1 pt-0.5">
+                          <div className="flex items-start gap-4">
+                            {/* Step number, then the checkbox that actually completes the step. */}
+                            <div className="flex flex-col items-center gap-1">
+                              <Badge variant="outline" className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-mono p-0">
+                                {index + 1}
+                              </Badge>
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -338,61 +341,14 @@ export const ChecklistDialog = ({
                             
                             {/* Content */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                <span className={`text-sm font-medium ${item.completed ? "text-muted-foreground" : ""}`}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className={`font-medium ${item.completed ? "line-through text-muted-foreground" : ""}`}>
                                   {item.title}
                                 </span>
                                 {item.completed && (
                                   <CheckCircle2 className="h-4 w-4 shrink-0 text-success-strong" />
                                 )}
-                                {/* One meta line: due, who finished it, and the time split only when there is some. */}
-                                {(() => {
-                                  const overdue = item.dueDate && !item.completed && new Date(item.dueDate) < new Date();
-                                  const parts: React.ReactNode[] = [];
-                                  if (item.dueDate) {
-                                    parts.push(
-                                      <span key="due" className={overdue ? "font-medium text-destructive" : undefined}>
-                                        Due {shortDate(item.dueDate)}{overdue ? " · overdue" : ""}
-                                      </span>,
-                                    );
-                                  }
-                                  if (item.completedBy) {
-                                    parts.push(
-                                      <span key="by">Done{item.completedAt ? ` ${shortDate(item.completedAt)}` : ""} by {item.completedBy}</span>,
-                                    );
-                                  }
-                                  if (timeStats.gokwik > 0 || timeStats.merchant > 0) {
-                                    parts.push(
-                                      <span key="time">
-                                        {responsibilityLabels.gokwik} {formatDuration(timeStats.gokwik)} · {responsibilityLabels.merchant} {formatDuration(timeStats.merchant)}
-                                      </span>,
-                                    );
-                                  }
-                                  return (
-                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                                      {parts.map((part, i) => (
-                                        <span key={i} className="flex items-center gap-2">
-                                          {i > 0 && <span aria-hidden="true">·</span>}
-                                          {part}
-                                        </span>
-                                      ))}
-                                      {canEdit && !item.completed && (
-                                        <Input
-                                          type="date"
-                                          defaultValue={item.dueDate || ""}
-                                          aria-label="Due date"
-                                          className="h-6 w-32 px-1 text-xs"
-                                          onChange={async (e) => {
-                                            const newDate = e.target.value || null;
-                                            await supabase.from("checklist_items").update({ due_date: newDate }).eq("id", item.id);
-                                            queryClient.invalidateQueries({ queryKey: ["projects"] });
-                                          }}
-                                        />
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-                                <div className="ml-auto flex shrink-0 items-center gap-0.5">
+                                <div className="ml-auto flex shrink-0 items-center gap-2">
                                 {/* Form button */}
                                 {(() => {
                                   const templateId = checklistTemplatesByTitle[item.title];
@@ -400,9 +356,9 @@ export const ChecklistDialog = ({
                                   if (!formInfo) return null;
                                   return (
                                     <Button
-                                      variant="ghost"
+                                      variant="outline"
                                       size="sm"
-                                      className="h-6 gap-1 px-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+                                      className="h-6 px-2 text-xs gap-1"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setFormDialogState({
@@ -425,9 +381,9 @@ export const ChecklistDialog = ({
                                   const openTaskCount = allTasks.filter(t => t.checklist_item_id === item.id && t.status !== "done").length;
                                   return (
                                     <Button
-                                      variant="ghost"
+                                      variant="outline"
                                       size="sm"
-                                      className="h-6 gap-1 px-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+                                      className="h-6 px-2 text-xs gap-1"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setTaskDialogState({
@@ -450,9 +406,9 @@ export const ChecklistDialog = ({
                                   ).length;
                                   return (
                                     <Button
-                                      variant="ghost"
+                                      variant="outline"
                                       size="sm"
-                                      className="h-6 gap-1 px-1.5 text-xs font-normal text-muted-foreground hover:text-foreground"
+                                      className="h-6 px-2 text-xs gap-1"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setMeetingDialogState({
@@ -471,6 +427,53 @@ export const ChecklistDialog = ({
                                 </div>
                               </div>
 
+                              {/* Due date */}
+                              {(item.dueDate || (canEdit && !item.completed)) && (
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Calendar className="h-3 w-3 text-muted-foreground" />
+                                  {item.dueDate ? (
+                                    <span className={`text-xs ${!item.completed && new Date(item.dueDate) < new Date() ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                                      Due: {shortDate(item.dueDate)}
+                                      {!item.completed && new Date(item.dueDate) < new Date() && " (Overdue)"}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">No due date</span>
+                                  )}
+                                  {canEdit && !item.completed && (
+                                    <Input
+                                      type="date"
+                                      defaultValue={item.dueDate || ""}
+                                      aria-label="Due date"
+                                      className="h-6 w-32 text-xs px-1"
+                                      onChange={async (e) => {
+                                        const newDate = e.target.value || null;
+                                        await supabase.from("checklist_items").update({ due_date: newDate }).eq("id", item.id);
+                                        queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                      }}
+                                    />
+                                  )}
+                                </div>
+                              )}
+
+                              {item.completedBy && (
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  ✓ Completed by {item.completedBy}
+                                  {item.completedAt && ` on ${shortDate(item.completedAt)}`}
+                                </p>
+                              )}
+
+                              {/* Time Stats */}
+                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Building2 className="h-3 w-3 text-primary" />
+                                  <span>{responsibilityLabels.gokwik}: {formatDuration(timeStats.gokwik)}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3 text-warning-strong" />
+                                  <span>{responsibilityLabels.merchant}: {formatDuration(timeStats.merchant)}</span>
+                                </div>
+                              </div>
+
                               {/* Comment Thread */}
                               <ChecklistCommentThread
                                 checklistItemId={item.id}
@@ -480,53 +483,40 @@ export const ChecklistDialog = ({
                               />
                             </div>
 
-                            {/* Who it is waiting on: the value, until you click it. Completed rows show nothing. */}
-                            <div className="flex shrink-0 flex-col items-end gap-1">
-                              {item.completed ? null : openResponsibilityFor === item.id ? (
-                                <ToggleGroup
-                                  type="single"
-                                  value={item.currentResponsibility}
-                                  onValueChange={(value) => {
-                                    handleResponsibilityChange(item.id, value);
-                                    setOpenResponsibilityFor(null);
-                                  }}
-                                  className="gap-0 overflow-hidden rounded-lg border"
+                            {/* Responsibility Toggle */}
+                            <div className="flex flex-col items-end gap-2 shrink-0">
+                              <span className="text-xs text-muted-foreground">Pending with</span>
+                              <ToggleGroup
+                                type="single"
+                                value={item.currentResponsibility}
+                                onValueChange={(value) => handleResponsibilityChange(item.id, value)}
+                                disabled={item.completed || !canEdit}
+                                className="gap-0 border rounded-lg overflow-hidden"
+                              >
+                                <ToggleGroupItem
+                                  value="gokwik"
+                                  aria-label={responsibilityLabels.gokwik}
+                                  className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white"
                                 >
-                                  <ToggleGroupItem
-                                    value="gokwik"
-                                    aria-label={responsibilityLabels.gokwik}
-                                    className="h-7 rounded-none px-2.5 text-xs data-[state=on]:bg-primary data-[state=on]:text-white"
-                                  >
-                                    {responsibilityLabels.gokwik}
-                                  </ToggleGroupItem>
-                                  <ToggleGroupItem
-                                    value="neutral"
-                                    aria-label={responsibilityLabels.neutral}
-                                    className="h-7 rounded-none border-x px-2.5 text-xs data-[state=on]:bg-muted"
-                                  >
-                                    <Minus className="h-3 w-3" />
-                                  </ToggleGroupItem>
-                                  <ToggleGroupItem
-                                    value="merchant"
-                                    aria-label={responsibilityLabels.merchant}
-                                    className="h-7 rounded-none px-2.5 text-xs data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
-                                  >
-                                    {responsibilityLabels.merchant}
-                                  </ToggleGroupItem>
-                                </ToggleGroup>
-                              ) : (
-                                <button
-                                  type="button"
-                                  disabled={!canEdit}
-                                  onClick={() => setOpenResponsibilityFor(item.id)}
-                                  title="Change who this is waiting on"
-                                  className="rounded-md px-1.5 py-0.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none"
+                                  <Building2 className="h-3 w-3 mr-1" />
+                                  {responsibilityLabels.gokwik}
+                                </ToggleGroupItem>
+                                <ToggleGroupItem
+                                  value="neutral"
+                                  aria-label={responsibilityLabels.neutral}
+                                  className="text-xs px-3 py-1.5 h-8 rounded-none border-x data-[state=on]:bg-muted"
                                 >
-                                  {item.currentResponsibility === "neutral"
-                                    ? "Waiting on no one"
-                                    : `Waiting on ${responsibilityLabels[item.currentResponsibility] || item.currentResponsibility}`}
-                                </button>
-                              )}
+                                  <Minus className="h-3 w-3" />
+                                </ToggleGroupItem>
+                                <ToggleGroupItem
+                                  value="merchant"
+                                  aria-label={responsibilityLabels.merchant}
+                                  className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
+                                >
+                                  <Users className="h-3 w-3 mr-1" />
+                                  {responsibilityLabels.merchant}
+                                </ToggleGroupItem>
+                              </ToggleGroup>
                             </div>
                           </div>
 
