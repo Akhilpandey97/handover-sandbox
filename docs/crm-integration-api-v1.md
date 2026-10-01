@@ -75,7 +75,7 @@ effect immediately.
 ### Create or update a project
 
 ```
-POST https://seamlesshandover.in/api/public/v1/projects
+POST https://handover-sandbox-production.up.railway.app/api/public/v1/projects
 ```
 
 A sandbox base URL and key are provided for testing; only the host differs.
@@ -158,7 +158,7 @@ This is what lets Handover recognise the deal on a later request.
   "merchant_name": "BrewCraft",
   "mid": "BREW-001",
   "external_id": "SF-0061234",
-  "project_url": "https://seamlesshandover.in/projects/5b1c...",
+  "project_url": "https://handover-sandbox-production.up.railway.app/projects/5b1c...",
   "checklist_items_created": 8,
   "created": true
 }
@@ -177,7 +177,7 @@ second one:
   "id": "5b1c...",
   "merchant_name": "BrewCraft",
   "external_id": "SF-0061234",
-  "project_url": "https://seamlesshandover.in/projects/5b1c...",
+  "project_url": "https://handover-sandbox-production.up.railway.app/projects/5b1c...",
   "created": false
 }
 ```
@@ -193,7 +193,7 @@ response.
 ## 8. Reading projects back
 
 ```
-GET https://seamlesshandover.in/api/public/v1/projects?updated_since=2026-10-01T00:00:00Z&limit=100
+GET https://handover-sandbox-production.up.railway.app/api/public/v1/projects?updated_since=2026-10-01T00:00:00Z&limit=100
 ```
 
 Returns projects in your workspace, newest change first:
@@ -343,7 +343,7 @@ Handover provides a sandbox base URL and key. Suggested run-through:
 ### A request you can copy
 
 ```bash
-curl -X POST https://seamlesshandover.in/api/public/v1/projects \
+curl -X POST https://handover-sandbox-production.up.railway.app/api/public/v1/projects \
   -H "Authorization: Bearer hk_live_xxxxxxxxxxxxxxxxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
