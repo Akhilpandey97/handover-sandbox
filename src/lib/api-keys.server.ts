@@ -34,8 +34,31 @@ export interface ApiKeyAuth {
  * key. Returns null when the key is missing, unknown or revoked.
  */
 export async function authenticateApiKey(req: Request): Promise<ApiKeyAuth | null> {
-  const raw = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!raw || !raw.startsWith(KEY_PREFIX)) return null;
+  const header = req.headers.get("authorization") || "";
+  const raw = header.replace(/^Bearer\s+/i, "").trim();
+
+  /**
+   * A rejected key is almost always the integrator sending the wrong thing, and the
+   * response can only say "Invalid API key" — so say more in the log: enough to tell a
+   * missing header from a wrong key from a key meant for another environment, and never
+   * enough to use. The prefix is the same 16 characters already stored in key_prefix.
+   */
+  const explain = (reason: string) =>
+    console.warn(
+      `[api-key] ${reason}`,
+      JSON.stringify({
+        host: req.headers.get("host"),
+        forwarded_host: req.headers.get("x-forwarded-host"),
+        auth_header: header ? `${header.slice(0, 13)}… (${header.length} chars)` : "(absent)",
+        key_prefix: raw.startsWith(KEY_PREFIX) ? raw.slice(0, 16) : null,
+        key_length: raw.length || 0,
+      }),
+    );
+
+  if (!raw || !raw.startsWith(KEY_PREFIX)) {
+    explain(raw ? "rejected: not an hk_live_ key" : "rejected: no Authorization header");
+    return null;
+  }
 
   const hash = await sha256Hex(raw);
   const admin = adminClient();
@@ -46,7 +69,14 @@ export async function authenticateApiKey(req: Request): Promise<ApiKeyAuth | nul
     .maybeSingle();
 
   const row = data as { id: string; tenant_id: string; revoked_at: string | null } | null;
-  if (!row || row.revoked_at) return null;
+  if (!row) {
+    explain("rejected: no key with that hash in this database");
+    return null;
+  }
+  if (row.revoked_at) {
+    explain("rejected: key revoked");
+    return null;
+  }
 
   void admin.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("id", row.id);
   return { tenantId: row.tenant_id, keyId: row.id };
