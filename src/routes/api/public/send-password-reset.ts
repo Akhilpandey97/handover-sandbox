@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { publicAppUrl } from "@/lib/public-url.server";
 import {
   adminClient,
   getTenantIntegrations,
@@ -36,7 +37,7 @@ async function handler(req: Request): Promise<Response> {
     const email = (body.email || "").trim().toLowerCase();
     if (!email) return json({ error: "Email is required" }, 400);
 
-    const origin = new URL(req.url).origin;
+    const origin = publicAppUrl(req);
     const redirectTo = body.redirectTo || `${origin}/reset-password`;
 
     const admin = adminClient();

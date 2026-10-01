@@ -9,8 +9,9 @@ import {
   slugMid,
   toProjectRow,
 } from "@/lib/crm-projects.server";
+import { publicAppUrl } from "@/lib/public-url.server";
 
-const baseUrl = (req: Request) => new URL(req.url).origin;
+const baseUrl = (req: Request) => publicAppUrl(req);
 
 async function GET({ request }: { request: Request }): Promise<Response> {
   const auth = await authenticateApiKey(request);
