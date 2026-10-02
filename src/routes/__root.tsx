@@ -15,6 +15,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LabelsProvider } from "@/contexts/LabelsContext";
+import { BrandColor } from "@/components/BrandColor";
 import { BuddyDrawer } from "@/components/buddy/BuddyDrawer";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import NotFound from "@/page-views/NotFound";
@@ -118,6 +119,8 @@ function RootComponent() {
           <AuthProvider>
             <LabelsProvider>
               <ProjectProvider>
+                {/* Paints the workspace's brand colour onto the theme tokens. */}
+                <BrandColor />
                 <Toaster />
                 <Sonner />
                 {/* Required: nested routes render here. */}

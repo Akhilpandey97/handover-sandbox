@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,8 @@ interface MeetingSchedulerDialogProps {
   checklistItemTitle: string;
   projectId: string;
   projectName?: string;
+  /** Open with the scheduling form already showing. */
+  startAdding?: boolean;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -77,13 +79,18 @@ export const MeetingSchedulerDialog = ({
   checklistItemTitle,
   projectId,
   projectName,
+  startAdding,
 }: MeetingSchedulerDialogProps) => {
   const { data: meetings = [], isLoading } = useChecklistMeetingsByItem(checklistItemId);
   const addMeeting = useAddChecklistMeeting();
   const deleteMeeting = useDeleteChecklistMeeting();
   const analyse = useAnalyseMeeting();
 
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(!!startAdding);
+
+  useEffect(() => {
+    if (open) setShowForm(!!startAdding);
+  }, [open, startAdding]);
   const [title, setTitle] = useState("");
   const [agenda, setAgenda] = useState("");
   const [provider, setProvider] = useState<MeetingProvider>("google_meet");

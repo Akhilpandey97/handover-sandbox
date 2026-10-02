@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import {
   Dialog,
@@ -30,6 +30,8 @@ interface TaskManagementDialogProps {
   projectId: string;
   projectName?: string;
   profiles?: { id: string; name: string }[];
+  /** Open with the add form already showing. */
+  startAdding?: boolean;
 }
 
 const priorityConfig = {
@@ -52,6 +54,7 @@ export const TaskManagementDialog = ({
   projectId,
   projectName,
   profiles = [],
+  startAdding,
 }: TaskManagementDialogProps) => {
   const { data: tasks = [], isLoading } = useChecklistTasksByItem(checklistItemId);
 
@@ -63,7 +66,12 @@ export const TaskManagementDialog = ({
   const updateTask = useUpdateChecklistTask();
   const deleteTask = useDeleteChecklistTask();
 
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(!!startAdding);
+
+  // Reopening the same dialog should start adding again, not show the list.
+  useEffect(() => {
+    if (open) setShowAddForm(!!startAdding);
+  }, [open, startAdding]);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newPriority, setNewPriority] = useState("medium");

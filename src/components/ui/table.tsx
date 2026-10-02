@@ -55,7 +55,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
     <th
       ref={ref}
       className={cn(
-        "h-9 px-3 text-left align-middle text-xs font-semibold tracking-normal text-navy [&:has([role=checkbox])]:pr-0",
+        "h-9 px-3 text-left align-middle text-xs font-semibold tracking-normal text-foreground [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}

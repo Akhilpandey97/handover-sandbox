@@ -214,18 +214,18 @@
 
   --radius: 0.55rem;
 
-  --sidebar-background: 212 52% 24%;
-  --sidebar-foreground: 200 30% 92%;
-  --sidebar-primary: 212 100% 49%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 206 45% 30%;
+  --sidebar-background: 212 100% 49%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 0 0% 100%;
+  --sidebar-primary-foreground: 212 100% 40%;
+  --sidebar-accent: 212 100% 42%;
   --sidebar-accent-foreground: 0 0% 100%;
-  --sidebar-border: 206 40% 32%;
-  --sidebar-ring: 190 56% 45%;
+  --sidebar-border: 212 100% 42%;
+  --sidebar-ring: 0 0% 100%;
 
   --surface: 205 42% 99%;
   --surface-2: 202 34% 96%;
-  --hero: 212 52% 24%;
+  --hero: 212 100% 49%;
   --hero-foreground: 190 45% 96%;
 
 
@@ -470,8 +470,8 @@
 @utility table-header-tint {
   background-color: hsl(var(--card));
   background-image: linear-gradient(
-    color-mix(in oklab, var(--color-navy) 5%, transparent),
-    color-mix(in oklab, var(--color-navy) 5%, transparent)
+    color-mix(in oklab, hsl(var(--muted-foreground)) 7%, transparent),
+    color-mix(in oklab, hsl(var(--muted-foreground)) 7%, transparent)
   );
 }
 

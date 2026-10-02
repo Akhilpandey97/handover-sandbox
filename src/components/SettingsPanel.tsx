@@ -22,6 +22,7 @@ import { IntegrationsSettings } from "./settings/IntegrationsSettings";
 import { usePermissions } from "@/hooks/usePermissions";
 import { NoAccessCard } from "@/components/NoAccessCard";
 import { BuddySettings } from "@/components/buddy/BuddySettings";
+import { BrandColorSettings } from "@/components/settings/BrandColorSettings";
 
 interface LabelGroup {
   title: string;
@@ -446,6 +447,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
 
         {/* Colours Tab */}
         <TabsContent value="colours" className="space-y-6">
+          <BrandColorSettings />
           <ThemePresets
             onApply={(colors) => {
               Object.entries(colors).forEach(([key, value]) => {

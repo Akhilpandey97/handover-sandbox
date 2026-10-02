@@ -396,8 +396,8 @@ export const ChecklistDialog = ({
                                         });
                                       }}
                                     >
-                                      <ListTodo className="h-3 w-3" />
-                                      {taskCount > 0 ? `${openTaskCount} of ${taskCount} tasks` : "Tasks"}
+                                      <Plus className="h-3 w-3" />
+                                      Task{taskCount > 0 ? ` (${openTaskCount}/${taskCount})` : ""}
                                     </Button>
                                   );
                                 })()}
@@ -421,9 +421,8 @@ export const ChecklistDialog = ({
                                         });
                                       }}
                                     >
-                                      <Video className="h-3 w-3" />
-                                      Meetings
-                                      {itemMeetings.length > 0 && ` (${upcoming}/${itemMeetings.length})`}
+                                      <Plus className="h-3 w-3" />
+                                      Meeting{itemMeetings.length > 0 ? ` (${upcoming}/${itemMeetings.length})` : ""}
                                     </Button>
                                   );
                                 })()}
@@ -661,6 +660,7 @@ export const ChecklistDialog = ({
             checklistItemTitle={taskDialogState.checklistItemTitle}
             projectId={project.id}
             profiles={profiles}
+            startAdding
           />
         )}
 
@@ -675,6 +675,7 @@ export const ChecklistDialog = ({
             checklistItemTitle={meetingDialogState.checklistItemTitle}
             projectId={project.id}
             projectName={project.merchantName}
+            startAdding
           />
         )}
     </Shell>

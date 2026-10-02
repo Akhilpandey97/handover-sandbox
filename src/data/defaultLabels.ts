@@ -118,6 +118,8 @@ export const DEFAULT_LABELS: Record<string, string> = {
   field_kp_sandbox_jwe_key: "KP Sandbox JWE Key",
 
   // Color settings - team badge colors
+  // The one brand colour; everything else here is a category colour.
+  color_brand: "#0074F8",
   color_team_mint_badge: "#3b82f6",
   color_team_integration_badge: "#a855f7",
   color_team_ms_badge: "#10b981",
