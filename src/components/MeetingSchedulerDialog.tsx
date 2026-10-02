@@ -205,13 +205,18 @@ export const MeetingSchedulerDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Video className="h-4 w-4 text-primary" />
+      <DialogContent className="flex max-h-[80vh] max-w-2xl flex-col">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Video className="h-4 w-4 text-muted-foreground" />
             Meetings
+            {meetings.length > 0 ? (
+              <span className="ml-auto text-xs font-normal text-muted-foreground">
+                {meetings.length} scheduled
+              </span>
+            ) : null}
           </DialogTitle>
-          <p className="text-xs text-muted-foreground">{checklistItemTitle}</p>
+          <p className="truncate text-xs text-muted-foreground">{checklistItemTitle}</p>
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh] pr-3">

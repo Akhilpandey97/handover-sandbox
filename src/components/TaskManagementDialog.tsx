@@ -108,28 +108,17 @@ export const TaskManagementDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <ListTodo className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <span className="text-lg">Tasks</span>
-              <p className="text-sm font-normal text-muted-foreground mt-0.5 max-w-md truncate">
-                {checklistItemTitle}
-              </p>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              {openCount > 0 && (
-                <Badge variant="outline" className="text-xs">{openCount} open</Badge>
-              )}
-              {doneCount > 0 && (
-                <Badge className="text-xs bg-success-soft text-success-strong border-success/30">
-                  {doneCount} done
-                </Badge>
-              )}
-            </div>
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <ListTodo className="h-4 w-4 text-muted-foreground" />
+            Tasks
+            <span className="ml-auto flex items-center gap-1.5 text-xs font-normal text-muted-foreground">
+              {openCount > 0 ? <span>{openCount} open</span> : null}
+              {openCount > 0 && doneCount > 0 ? <span aria-hidden="true">·</span> : null}
+              {doneCount > 0 ? <span>{doneCount} done</span> : null}
+            </span>
           </DialogTitle>
+          <p className="truncate text-xs text-muted-foreground">{checklistItemTitle}</p>
         </DialogHeader>
 
         <ScrollArea className="flex-1 min-h-0 pr-2">

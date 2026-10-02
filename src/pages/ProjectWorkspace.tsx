@@ -422,7 +422,7 @@ const PanelRow = ({
   return (
     <div className="grid grid-cols-[minmax(88px,42%)_minmax(0,1fr)] items-start gap-3 border-b border-border/50 py-2 last:border-b-0">
       <dt className="text-xs leading-5 text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 text-xs">
+      <dd className="min-w-0 text-sm">
         {onEdit ? (
           <button
             type="button"
@@ -898,7 +898,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       .map(([label, value]) => (
                         <div key={label}>
                           <p className="text-xs text-muted-foreground">{label}</p>
-                          <p className="whitespace-pre-line text-xs text-foreground">{value}</p>
+                          <p className="whitespace-pre-line text-sm text-foreground">{value}</p>
                         </div>
                       ))}
                     {noteSections.every(([, value]) => !value || value.startsWith("No ")) && (
@@ -917,7 +917,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                           href={link.href}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-between py-0.5 text-xs text-primary hover:underline"
+                          className="flex items-center justify-between py-0.5 text-sm text-primary hover:underline"
                         >
                           <span>{link.label}</span>
                           <ExternalLink className="h-3.5 w-3.5" />
