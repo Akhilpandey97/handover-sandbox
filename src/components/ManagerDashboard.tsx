@@ -20,10 +20,6 @@ import { TenantManagement } from "./TenantManagement";
 import { SettingsPanel } from "./SettingsPanel";
 import { ChecklistManagement } from "./ChecklistManagement";
 import { BulkEditDialog, BulkFieldUpdates } from "./BulkEditDialog";
-import { ParsedEmailsTab } from "./ParsedEmailsTab";
-import { PlatformMerchants } from "./PlatformMerchants";
-import { ShopifySmeTab } from "./ShopifySmeTab";
-import { ShopifyLtEmailComms } from "./ShopifyLtEmailComms";
 import { MonthlyGoLiveTracker } from "./MonthlyGoLiveTracker";
 import { KanbanBoard } from "./KanbanBoard";
 import { CSVUploadDialog } from "./CSVUploadDialog";
@@ -99,8 +95,6 @@ import {
   ShieldAlert,
   ArchiveRestore,
   MessageCircle,
-  Server,
-  ShoppingBag,
   Filter,
 } from "lucide-react";
 import { exportProjectsToCSV } from "@/utils/exportProjects";
@@ -150,12 +144,8 @@ const ALL_NAV_ITEMS = [
   "risks",
   "reports",
   "settings",
-  "emails",
   "archived",
-  "platforms",
   "golive",
-  "shopify-sme",
-  "shopify-lt-emails",
   "tenants",
 ];
 const ADMIN_ONLY_SETTINGS = ["users", "integrations"];
@@ -330,7 +320,7 @@ export const ManagerDashboard = () => {
   const navVisibility = getNavVisibility();
 
   // Draggable tab order
-  const DEFAULT_TAB_ORDER = ["dashboard", "projects", "risks", "reports", "settings", "emails", "platforms", "golive", "shopify-sme", "shopify-lt-emails"];
+  const DEFAULT_TAB_ORDER = ["dashboard", "projects", "risks", "reports", "settings", "golive"];
   const [tabOrder, setTabOrder] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem("manager_tab_order");
@@ -839,13 +829,9 @@ export const ManagerDashboard = () => {
     settings: { icon: <Settings className="h-4 w-4" />, label: "Settings" },
     risks: { icon: <ShieldAlert className="h-4 w-4" />, label: "Risks" },
     kanban: { icon: <FolderKanban className="h-4 w-4" />, label: "Kanban" },
-    emails: { icon: <Mail className="h-4 w-4" />, label: "Emails" },
     tenants: { icon: <Building2 className="h-4 w-4" />, label: "Tenants" },
     archived: { icon: <Archive className="h-4 w-4" />, label: "Archived" },
-    platforms: { icon: <Server className="h-4 w-4" />, label: "Platforms" },
     golive: { icon: <CalendarDays className="h-4 w-4" />, label: "Go-Live Tracker" },
-    "shopify-sme": { icon: <ShoppingBag className="h-4 w-4" />, label: "Shopify SME and Ent" },
-    "shopify-lt-emails": { icon: <Mail className="h-4 w-4" />, label: "Shopify LT Integration Email Communication" },
     "hi-there": { icon: <span className="animate-wave text-base leading-none">👋</span>, label: "Buddy" },
   };
 
@@ -993,10 +979,7 @@ export const ManagerDashboard = () => {
     ...tabOrder,
     ...(currentUser?.team === "super_admin" && !tabOrder.includes("tenants") ? ["tenants"] : []),
     ...(isManagerOrAdmin && !tabOrder.includes("archived") ? ["archived"] : []),
-    ...(!tabOrder.includes("platforms") ? ["platforms"] : []),
     ...(!tabOrder.includes("golive") ? ["golive"] : []),
-    ...(!tabOrder.includes("shopify-sme") ? ["shopify-sme"] : []),
-    ...(!tabOrder.includes("shopify-lt-emails") ? ["shopify-lt-emails"] : []),
     ...(!tabOrder.includes("hi-there") ? ["hi-there"] : []),
   ]
     .filter(tab => !["listview", "kanban", "calendar", "checklist", "users"].includes(tab))
@@ -2510,15 +2493,7 @@ export const ManagerDashboard = () => {
 
 
           {/* Emails Tab */}
-          {activeTab === "emails" && <div className="space-y-6">
-            <ParsedEmailsTab />
-          </div>}
-
-          {/* Platforms Tab */}
-          {activeTab === "platforms" && <PlatformMerchants />}
           {activeTab === "golive" && <MonthlyGoLiveTracker />}
-          {activeTab === "shopify-sme" && <ShopifySmeTab />}
-          {activeTab === "shopify-lt-emails" && <ShopifyLtEmailComms />}
 
           {/* Tenants Tab (Super Admin only) */}
           {activeTab === "tenants" && (currentUser?.team === "super_admin" ? <TenantManagement /> : <NoAccessCard />)}
