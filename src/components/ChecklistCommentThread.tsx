@@ -56,6 +56,8 @@ interface ChecklistCommentThreadProps {
   checklistItemTitle?: string;
   projectId?: string;
   projectName?: string;
+  /** Changing this opens the thread and puts the cursor in the box. */
+  focusSignal?: number;
 }
 
 export const ChecklistCommentThread = ({
@@ -63,6 +65,7 @@ export const ChecklistCommentThread = ({
   checklistItemTitle,
   projectId,
   projectName,
+  focusSignal,
 }: ChecklistCommentThreadProps) => {
   const { currentUser } = useAuth();
   const { data: comments = [], isLoading } = useChecklistComments(checklistItemId);
@@ -79,6 +82,13 @@ export const ChecklistCommentThread = ({
   }, [isCommentTarget]);
   useScrollToAnchor(isCommentTarget ? `comment-${deepLink.comment}` : null, isExpanded);
   const [commentText, setCommentText] = useState("");
+  // Opened from outside — after ticking a task, say — so the box is ready to type in.
+  useEffect(() => {
+    if (!focusSignal) return;
+    setIsExpanded(true);
+    const id = window.setTimeout(() => textareaRef.current?.focus(), 50);
+    return () => window.clearTimeout(id);
+  }, [focusSignal]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

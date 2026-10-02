@@ -29,7 +29,7 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
   const { data: tasks = [], isLoading } = useChecklistTasks(project.id);
   const { profiles } = useProfilesLookup();
   const updateTask = useUpdateChecklistTask();
-  const [showDone, setShowDone] = useState(false);
+  const [showDone, setShowDone] = useState(true);
   const [dialog, setDialog] = useState<{ checklistItemId: string; checklistItemTitle: string } | null>(null);
 
   const itemTitle = useMemo(() => {

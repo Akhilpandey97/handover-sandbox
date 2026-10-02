@@ -115,6 +115,9 @@ export const ChecklistDialog = ({
     setTaskDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title });
   }, [deepLink.task, deepLink.item, project]);
 
+  // After a task is ticked, the toast can open that step's comment box.
+  const [commentPrompt, setCommentPrompt] = useState<{ itemId: string; at: number } | null>(null);
+
   // Profiles for task assignment (cached lookup)
   const { profiles } = useProfilesLookup();
 
@@ -480,6 +483,7 @@ export const ChecklistDialog = ({
                                 checklistItemTitle={item.title}
                                 projectId={project.id}
                                 projectName={project.merchantName}
+                                focusSignal={commentPrompt?.itemId === item.id ? commentPrompt.at : undefined}
                               />
                             </div>
 
@@ -572,6 +576,15 @@ export const ChecklistDialog = ({
                                                 id: task.id,
                                                 status: checked ? "done" : "open",
                                               });
+                                              // Finishing something is when people have something to say about it.
+                                              if (checked) {
+                                                toast.success(`Completed "${task.title}"`, {
+                                                  action: {
+                                                    label: "Add comment",
+                                                    onClick: () => setCommentPrompt({ itemId: item.id, at: Date.now() }),
+                                                  },
+                                                });
+                                              }
                                             }}
                                             aria-label={`Mark "${task.title}" as ${task.status === "done" ? "not done" : "done"}`}
                                             className="h-4 w-4 shrink-0"

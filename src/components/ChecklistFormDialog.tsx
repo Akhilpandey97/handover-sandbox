@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Save, Download, FileText } from "lucide-react";
@@ -91,18 +90,19 @@ export const ChecklistFormDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[90vw] max-w-[900px] h-[85vh] max-h-[85vh] flex flex-col overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-              <FileText className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <span className="text-lg">{formTemplateName}</span>
-              <p className="text-xs font-normal text-muted-foreground mt-0.5">
-                {projectName} · {checklistItemTitle}
-              </p>
-            </div>
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            {formTemplateName}
+            {fields.length > 0 ? (
+              <span className="ml-auto text-xs font-normal text-muted-foreground">
+                {fields.length} question{fields.length === 1 ? "" : "s"}
+              </span>
+            ) : null}
           </DialogTitle>
+          <p className="truncate text-xs text-muted-foreground">
+            {projectName} · {checklistItemTitle}
+          </p>
         </DialogHeader>
 
         {isLoading ? (
@@ -114,17 +114,19 @@ export const ChecklistFormDialog = ({
         ) : (
           <>
             <ScrollArea className="flex-1 min-h-0 pr-4">
-              <div className="space-y-8 pb-4">
+              <div className="space-y-6 pb-4">
                 {grouped.map(([category, catFields], ci) => (
                   <div key={category}>
-                    {ci > 0 && <Separator className="mb-6" />}
-                    <div className="flex items-center gap-2 mb-4">
-                      <Badge variant="outline" className="text-sm font-semibold px-3 py-1">{category}</Badge>
-                      <span className="text-xs text-muted-foreground">({catFields.length} questions)</span>
+                    {ci > 0 && <Separator className="mb-5" />}
+                    <div className="mb-3 flex items-baseline gap-2">
+                      <h3 className="text-sm font-semibold text-foreground">{category}</h3>
+                      <span className="text-xs text-muted-foreground">
+                        {catFields.length} question{catFields.length === 1 ? "" : "s"}
+                      </span>
                     </div>
                     <div className="space-y-4">
                       {catFields.map((field, fi) => (
-                        <div key={field.id} className="p-4 rounded-lg border bg-card hover:border-primary/20 transition-colors">
+                        <div key={field.id} className="rounded-lg border border-border/60 bg-card p-3 transition-colors hover:border-primary/30">
                           <div className="flex items-start gap-3">
                             <span className="text-xs font-mono text-muted-foreground mt-1 shrink-0 w-6">{fi + 1}.</span>
                             <div className="flex-1 space-y-2">

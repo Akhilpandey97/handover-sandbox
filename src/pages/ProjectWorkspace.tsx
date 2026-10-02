@@ -77,6 +77,20 @@ import { formatArrCr } from "@/lib/arr";
 type WorkspaceTab = "activity" | "checklists" | "jira" | "tasks" | "meetings";
 type ActivityKind = "user" | "system" | "handoff" | "milestone";
 
+const TAB_ORDER_KEY = "workspace_tab_order";
+
+/** The saved order, ignoring anything stale and appending tabs added since. */
+const readTabOrder = (): WorkspaceTab[] => {
+  const all = tabOptions.map((t) => t.value);
+  try {
+    const saved = JSON.parse(localStorage.getItem(TAB_ORDER_KEY) || "[]") as WorkspaceTab[];
+    const kept = saved.filter((v) => all.includes(v));
+    return [...kept, ...all.filter((v) => !kept.includes(v))];
+  } catch {
+    return all;
+  }
+};
+
 const PROJECT_STATES: ProjectState[] = ["not_started", "on_hold", "in_progress", "live", "blocked"];
 
 interface ProjectWorkspaceProps {
@@ -415,7 +429,7 @@ const PanelRow = ({
           {avatar.charAt(0).toUpperCase()}
         </span>
       )}
-      <span className="truncate" title={value}>{value}</span>
+      <span className="min-w-0 break-words" title={value}>{value}</span>
       {hint && <span className="shrink-0 text-muted-foreground">· {hint}</span>}
     </>
   );
@@ -427,12 +441,12 @@ const PanelRow = ({
           <button
             type="button"
             onClick={onEdit}
-            className="-mx-1.5 flex w-full items-center gap-1.5 rounded-md px-1.5 py-0.5 text-left font-medium text-foreground hover:bg-muted"
+            className="-mx-1.5 flex w-full items-start gap-1.5 rounded-md px-1.5 py-0.5 text-left font-medium text-foreground hover:bg-muted"
           >
             {body}
           </button>
         ) : (
-          <span className="flex items-center gap-1.5 px-0 font-medium text-foreground">{body}</span>
+          <span className="flex items-start gap-1.5 px-0 font-medium text-foreground">{body}</span>
         )}
       </dd>
     </div>
@@ -484,6 +498,23 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   );
   const [editOpen, setEditOpen] = useState(false);
   const [showAllFields, setShowAllFields] = useState(false);
+  const [tabOrder, setTabOrder] = useState<WorkspaceTab[]>(() => tabOptions.map((t) => t.value));
+  const [draggingTab, setDraggingTab] = useState<WorkspaceTab | null>(null);
+
+  // localStorage is only there in the browser, so read it after mount.
+  useEffect(() => setTabOrder(readTabOrder()), []);
+
+  const moveTab = (from: WorkspaceTab, to: WorkspaceTab) => {
+    if (from === to) return;
+    setTabOrder((current) => {
+      const next = current.filter((v) => v !== from);
+      next.splice(next.indexOf(to), 0, from);
+      try {
+        localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(next));
+      } catch { /* private mode */ }
+      return next;
+    });
+  };
   const [assignOpen, setAssignOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -818,8 +849,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               </DropdownMenuContent>
             </DropdownMenu>
             {currentUser?.team === "manager" ? (
-              <Button variant="ghost" size="sm" className="h-9 px-3 text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => setAssignOpen(true)}>
-                <UserRound className="mr-1 h-3.5 w-3.5" />
+              <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-navy-foreground hover:bg-navy/90" onClick={() => setAssignOpen(true)}>
+                <UserRound className="h-3.5 w-3.5" />
                 Assign owner
               </Button>
             ) : null}
@@ -870,11 +901,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               <span className="inline-flex h-7 items-center rounded-full px-3 text-xs font-medium text-navy [background:color-mix(in_oklab,var(--color-navy)_12%,transparent)] dark:text-foreground">
                 Waiting on {waitingOnLabel}
               </span>
-              {isAtRisk && (
-                <span className="inline-flex h-7 items-center rounded-full bg-destructive-soft px-3 text-xs font-medium text-destructive-strong" title={riskReasons || undefined}>
-                  Needs attention
-                </span>
-              )}
             </div>
 
             {/* The five facts people ask for, editable where they are read. */}
@@ -903,19 +929,14 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             <button
               type="button"
               onClick={() => setShowAllFields((open) => !open)}
-              className={cn(
-                "mt-3 flex w-full items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
-                showAllFields
-                  ? "border-primary/30 bg-primary/5 text-foreground"
-                  : "border-border/70 bg-muted/40 text-muted-foreground hover:border-primary/30 hover:bg-primary/5 hover:text-foreground",
-              )}
+              className="mt-3 flex w-full items-center justify-between rounded-md py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               <span>{showAllFields ? "Fewer details" : "More details"}</span>
               <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showAllFields && "rotate-180")} />
             </button>
 
             {showAllFields && (
-              <div className="rounded-lg border border-primary/20 bg-primary/[0.03] px-3 pb-2 pt-1 mt-1">
+              <div className="pb-1">
                 {[
                   // The chips and rows above already carry state, owner, go-live and MRR.
                   { title: "Ownership", rows: [["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], [getLabel("field_sales_spoc"), project.salesSpoc || "—"]] },
@@ -983,15 +1004,32 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
           <Tabs value={activeTab} onValueChange={(value) => openTab(value as WorkspaceTab)} className="flex flex-1 flex-col overflow-hidden">
             <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-0 dark:border-border dark:bg-card">
               <TabsList className="h-auto gap-1 rounded-none bg-transparent p-0">
-                {tabOptions.map((tab) => (
-                  <TabsTrigger
-                    key={tab.value}
-                    value={tab.value}
-                    className="rounded-none border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-slate-500 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none dark:text-muted-foreground dark:data-[state=active]:text-foreground"
-                  >
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
+                {tabOrder.map((value) => {
+                  const tab = tabOptions.find((t) => t.value === value);
+                  if (!tab) return null;
+                  return (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      draggable
+                      onDragStart={() => setDraggingTab(tab.value)}
+                      onDragEnd={() => setDraggingTab(null)}
+                      onDragOver={(event) => event.preventDefault()}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        if (draggingTab) moveTab(draggingTab, tab.value);
+                        setDraggingTab(null);
+                      }}
+                      title="Drag to reorder"
+                      className={cn(
+                        "cursor-grab rounded-none border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-slate-500 active:cursor-grabbing data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none dark:text-muted-foreground dark:data-[state=active]:text-foreground",
+                        draggingTab === tab.value && "opacity-50",
+                      )}
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
             </div>
 
