@@ -15,6 +15,7 @@ import type { RiskVerdict } from "@/data/riskRules";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
 import { EditProjectDialog } from "./EditProjectDialog";
 import { formatArrCr } from "@/lib/arr";
+import { openProjectInNewTab } from "@/lib/open-project";
 
 
 // riskVerdict is passed in rather than looked up here: the board renders one
@@ -72,13 +73,13 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
         onClick={(e) => {
           const el = e.target as HTMLElement;
           if (el.closest("button,a,input,label,[role='menuitem']")) return;
-          navigate({ to: "/projects/$projectId", params: { projectId: project.id }, search: { from: "kanban" } });
+          openProjectInNewTab(project.id, "kanban");
         }}
       >
         <div className="flex items-start gap-2">
           <button
             className="font-semibold text-xs truncate text-left flex-1 min-w-0 hover:text-primary hover:underline cursor-pointer transition-colors"
-            onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id }, search: { from: "kanban" } })}
+            onClick={() => openProjectInNewTab(project.id, "kanban")}
           >
             {project.merchantName}
           </button>

@@ -9,6 +9,7 @@ import { GoLiveDate } from "./GoLiveDate";
 import { AttentionReasonBlock } from "./AttentionReason";
 import { Button } from "@/components/ui/button";
 import type { Project } from "@/data/projectsData";
+import { openProjectInNewTab } from "@/lib/open-project";
 
 
 /**
@@ -87,7 +88,7 @@ export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { proje
                 <TableRow
                   key={project.id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
+                  onClick={() => openProjectInNewTab(project.id)}
                 >
                   <TableCell className="font-medium text-sm">{project.merchantName}</TableCell>
                   <TableCell className="text-sm whitespace-nowrap text-muted-foreground">

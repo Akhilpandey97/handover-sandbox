@@ -24,6 +24,7 @@ import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { arrCroreValue } from "@/lib/arr";
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
 import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
+import { openProjectInNewTab } from "@/lib/open-project";
 
 type Project = {
   id: string;
@@ -565,11 +566,11 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                 const isUrl = /^https?:\/\//i.test(blockerText);
                 const stage = stageOf(p.id);
                 return (
-                  <TableRow key={p.id} onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id }, search: { from: "go-live" } })} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-destructive/40")}>
+                  <TableRow key={p.id} onClick={() => openProjectInNewTab(p.id, "go-live")} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-destructive/40")}>
                     <TableCell className={cn("font-medium whitespace-nowrap", isBlocked && "text-destructive-strong")} title={p.merchant_name}>
                       <button
                         type="button"
-                        onClick={(event) => { event.stopPropagation(); navigate({ to: "/projects/$projectId", params: { projectId: p.id }, search: { from: "go-live" } }); }}
+                        onClick={(event) => { event.stopPropagation(); openProjectInNewTab(p.id, "go-live"); }}
                         className="max-w-[220px] truncate text-left hover:text-primary hover:underline cursor-pointer"
                       >
                         {p.merchant_name}

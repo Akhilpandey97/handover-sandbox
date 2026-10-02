@@ -136,6 +136,7 @@ import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
 import { arrToCrore, formatArrCr } from "@/lib/arr";
+import { openProjectInNewTab } from "@/lib/open-project";
 
 // All nav items that can be toggled
 const ALL_NAV_ITEMS = [
@@ -2020,7 +2021,7 @@ export const ManagerDashboard = () => {
                             project.projectState === "live" ? "text-success-strong" :
                             project.projectState === "blocked" ? "text-destructive" : "text-muted-foreground";
                           return (
-                            <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id }, search: { from: "list" } })}>
+                            <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openProjectInNewTab(project.id, "list")}>
                               <TableCell onClick={(event) => event.stopPropagation()}>
                                 <Checkbox checked={selectedProjects.has(project.id)} onCheckedChange={() => toggleProjectSelection(project.id)} aria-label={`Select ${project.merchantName}`} />
                               </TableCell>

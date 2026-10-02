@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useLabels } from "@/contexts/LabelsContext";
 import { useProjectActivityHistory, ActivityEntry } from "@/hooks/useProjectActivityHistory";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -82,10 +83,18 @@ const getTimelineColor = (category: string) => {
   }
 };
 
+/**
+ * Entries written before teams could be renamed end with the raw slug — "(mint)",
+ * "(ms)". Show this workspace's own name for them; the stored text is left alone.
+ */
+const withTeamNames = (text: string, teamLabels: Record<string, string>) =>
+  text.replace(/\(([a-z_]+)\)$/, (whole, slug) => (teamLabels[slug] ? `(${teamLabels[slug]})` : whole));
+
 export const ProjectActivityHistoryPanel = ({
   projectId,
   height = "calc(100vh - 320px)",
 }: ProjectActivityHistoryPanelProps) => {
+  const { teamLabels } = useLabels();
   const { data: entries = [], isLoading } = useProjectActivityHistory(projectId);
   const [activeFilter, setActiveFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -200,7 +209,7 @@ export const ProjectActivityHistoryPanel = ({
 
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm leading-snug text-foreground break-words">
-                                  {entry.description}
+                                  {withTeamNames(entry.description, teamLabels)}
                                 </p>
 
                                 {entry.metadata?.changes && Array.isArray(entry.metadata.changes) && entry.metadata.changes.length > 0 && (

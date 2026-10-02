@@ -8,6 +8,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { RiskBadge } from "./RiskBadge";
 import { GoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
+import { openProjectInNewTab } from "@/lib/open-project";
 
 interface Props {
   title: string;
@@ -52,7 +53,7 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
                 </TableHeader>
                 <TableBody>
                   {list.map((p) => (
-                    <TableRow key={p.id} className="cursor-pointer" onClick={() => { onOpenChange(false); navigate({ to: "/projects/$projectId", params: { projectId: p.id } }); }}>
+                    <TableRow key={p.id} className="cursor-pointer" onClick={() => { onOpenChange(false); openProjectInNewTab(p.id); }}>
                       <TableCell className="font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge projectId={p.id} verdict={verdicts[p.id]} /></span></TableCell>
                       <TableCell className="text-xs text-muted-foreground">{p.mid}</TableCell>
                       <TableCell className="text-sm">{stateLabels[p.projectState] || p.projectState}</TableCell>

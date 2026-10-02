@@ -358,7 +358,7 @@ export const ChecklistDialog = ({
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="h-6 px-2 text-xs gap-1"
+                                      className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setFormDialogState({
@@ -383,7 +383,7 @@ export const ChecklistDialog = ({
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="h-6 px-2 text-xs gap-1"
+                                      className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setTaskDialogState({
@@ -408,7 +408,7 @@ export const ChecklistDialog = ({
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="h-6 px-2 text-xs gap-1"
+                                      className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setMeetingDialogState({
@@ -483,9 +483,8 @@ export const ChecklistDialog = ({
                               />
                             </div>
 
-                            {/* Responsibility Toggle */}
-                            <div className="flex flex-col items-end gap-2 shrink-0">
-                              <span className="text-xs text-muted-foreground">Pending with</span>
+                            {/* Who it is waiting on — the control says it, so no label above it. */}
+                            <div className="flex shrink-0 items-center gap-2">
                               <ToggleGroup
                                 type="single"
                                 value={item.currentResponsibility}

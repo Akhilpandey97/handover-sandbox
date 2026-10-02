@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
 import type { Project } from "@/data/projectsData";
+import { openProjectInNewTab } from "@/lib/open-project";
 
 const WINDOWS: { key: EglWindow; label: string }[] = [
   { key: "week", label: "This week" },
@@ -87,7 +88,7 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
                 <TableRow
                   key={project.id}
                   className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
+                  onClick={() => openProjectInNewTab(project.id)}
                 >
                   <TableCell className="font-medium text-sm">{project.merchantName}</TableCell>
                   <TableCell className="text-sm whitespace-nowrap">

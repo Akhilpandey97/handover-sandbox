@@ -894,6 +894,9 @@ export const useRejectProject = () => {
 
 // Update checklist item mutation
 export const useUpdateChecklist = () => {
+  // Activity lines are read by people, so they carry the team's name in this
+  // workspace's words — not the internal slug ('mint', 'ms') they used to show.
+  const checklistTeamLabels = useLabelsOptional()?.teamLabels ?? {};
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
 
@@ -989,7 +992,7 @@ export const useUpdateChecklist = () => {
         logActivity({
           action_type: "user",
           category: "checklist",
-          description: `${action} checklist item: "${itemTitle}"${itemTeam ? ` (${itemTeam})` : ""}`,
+          description: `${action} checklist item: "${itemTitle}"${itemTeam ? ` (${checklistTeamLabels[itemTeam] || itemTeam})` : ""}`,
           entity_type: "project",
           entity_id: variables.projectId,
           metadata: {

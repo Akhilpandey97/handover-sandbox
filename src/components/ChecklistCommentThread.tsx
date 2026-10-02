@@ -21,6 +21,36 @@ import {
   AtSign,
 } from "lucide-react";
 
+/**
+ * Highlight the people actually tagged, and nothing else.
+ *
+ * Matching "@word word" blind made the word *after* a one-word tag blue too —
+ * "@Akhil ecec" highlighted "ecec". A two-word mention is only taken when those
+ * two words are a name somebody in the workspace actually has.
+ */
+function renderMentions(text: string, knownNames: string[]) {
+  const twoWord = new Set(knownNames.filter((n) => n.includes(" ")).map((n) => n.toLowerCase()));
+  const out: React.ReactNode[] = [];
+  const pattern = /@[\w.\-]+(?:\s[\w.\-]+)?/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    const whole = match[0];
+    const firstWordOnly = whole.split(/\s+/)[0];
+    // Keep the second word only when the pair is a real name.
+    const mention = twoWord.has(whole.slice(1).toLowerCase()) ? whole : firstWordOnly;
+
+    if (match.index > last) out.push(<span key={`t${last}`}>{text.slice(last, match.index)}</span>);
+    out.push(<span key={`m${match.index}`} className="font-semibold text-primary">{mention}</span>);
+    last = match.index + mention.length;
+    pattern.lastIndex = last;
+  }
+
+  if (last < text.length) out.push(<span key={`t${last}`}>{text.slice(last)}</span>);
+  return out;
+}
+
 interface ChecklistCommentThreadProps {
   checklistItemId: string;
   checklistItemTitle?: string;
@@ -142,6 +172,8 @@ export const ChecklistCommentThread = ({
   };
 
   const commentCount = comments.length;
+  /** Names that may appear after an @, so a tag is highlighted and the next word is not. */
+  const knownNames = useMemo(() => profiles.map((p) => p.name), [profiles]);
 
   return (
     <div className="mt-1.5">
@@ -161,19 +193,13 @@ export const ChecklistCommentThread = ({
         </button>
       )}
 
-      {!isExpanded && commentCount > 0 && (
-        <p className="mb-2 truncate text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">{comments[comments.length - 1]?.user_name}:</span>{" "}
-          {comments[comments.length - 1]?.comment}
-        </p>
-      )}
 
       {/* Expanded comment list */}
       {isExpanded && commentCount > 0 && (
         <ScrollArea className="mb-3 max-h-[240px] overflow-y-auto">
           <div className="space-y-2 pr-2">
             {comments.map((c) => (
-              <CommentBubble key={c.id} comment={c} currentUserId={currentUser?.id} />
+              <CommentBubble key={c.id} comment={c} currentUserId={currentUser?.id} knownNames={knownNames} />
             ))}
           </div>
         </ScrollArea>
@@ -264,6 +290,7 @@ export const ChecklistCommentThread = ({
 const CommentBubble = ({
   comment,
   currentUserId,
+  knownNames,
 }: {
   comment: {
     id: string;
@@ -275,6 +302,7 @@ const CommentBubble = ({
     created_at: string;
   };
   currentUserId?: string;
+  knownNames: string[];
 }) => {
   const isOwn = currentUserId && comment.user_id === currentUserId;
 
@@ -292,13 +320,7 @@ const CommentBubble = ({
         <span>{new Date(comment.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
       </div>
       <p className="text-foreground whitespace-pre-wrap">
-        {comment.comment.split(/(@[\w.\-]+(?:\s[\w.\-]+)?)/g).map((part, i) =>
-          part.startsWith("@") ? (
-            <span key={i} className="font-semibold text-primary">{part}</span>
-          ) : (
-            <span key={i}>{part}</span>
-          ),
-        )}
+        {renderMentions(comment.comment, knownNames)}
       </p>
       {comment.attachment_url && (
         <button
