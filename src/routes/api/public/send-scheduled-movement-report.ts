@@ -416,7 +416,7 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
       const activeList = list.filter(isActive);
       const inactiveList = list.filter((p) => !isActive(p));
       html += `<div style="margin-bottom:26px;">
-        <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#1d3a5c;color:#ffffff;border-radius:4px;">
+        <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#0074F8;color:#ffffff;border-radius:4px;">
           ${escapeHtml(funnelLabels[stage])} · ${list.length} projects · ${activeList.length} Active / ${inactiveList.length} Inactive
         </h2>`;
       if (activeList.length > 0) {
@@ -451,7 +451,7 @@ async function generateReportHtml(supa: any, tenantId: string, timeframe: "daily
       </div>`;
     };
     html += section("Wins", "#116958", buckets.wins, "No new wins this period.");
-    html += section("Updates", "#24598a", buckets.updates, "No active updates this period.");
+    html += section("Updates", "#0074F8", buckets.updates, "No active updates this period.");
     html += section("Lowlights", "#ad1f1f", buckets.lowlights, "No lowlights this period.");
   }
 

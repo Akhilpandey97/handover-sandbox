@@ -315,7 +315,7 @@ function buildDigestHtml(
       <div style="border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#ffffff">
         <div style="font-size:15px;font-weight:600;color:#11263b;margin-bottom:4px">
           ${url
-            ? `<a href="${url}" style="color:#24598a;text-decoration:none">${escapeHtml(it.merchant_name)}</a>`
+            ? `<a href="${url}" style="color:#0074F8;text-decoration:none">${escapeHtml(it.merchant_name)}</a>`
             : escapeHtml(it.merchant_name)}
           <span style="color:#546978;font-weight:400;font-size:13px"> · ${escapeHtml(it.funnel_stage)} · ${it.hours_stuck}h stuck</span>
         </div>

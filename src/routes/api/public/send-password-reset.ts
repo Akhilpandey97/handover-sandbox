@@ -65,14 +65,14 @@ async function handler(req: Request): Promise<Response> {
     const name = p.name || "there";
     const html = `
       <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: #1d3a5c; padding: 20px; border-radius: 12px 12px 0 0; color: #ffffff;">
+        <div style="background: #0074F8; padding: 20px; border-radius: 12px 12px 0 0; color: #ffffff;">
           <h1 style="margin: 0; font-size: 20px;">Reset your password</h1>
         </div>
         <div style="background: #f7fafc; padding: 24px; border: 1px solid #d5e0e6; border-top: none; border-radius: 0 0 12px 12px;">
           <p style="margin: 0 0 16px;">Hi <strong>${name}</strong>,</p>
           <p style="margin: 0 0 16px;">We received a request to reset your password. Click the button below to choose a new one. The link expires shortly and can be used once.</p>
           <div style="margin: 24px 0; text-align: center;">
-            <a href="${actionLink}" style="display: inline-block; background: #24598a; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">Reset password →</a>
+            <a href="${actionLink}" style="display: inline-block; background: #0074F8; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">Reset password →</a>
           </div>
           <p style="margin: 0; color: #546978; font-size: 13px;">If you did not request this, you can safely ignore this email.</p>
         </div>

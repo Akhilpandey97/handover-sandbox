@@ -201,7 +201,7 @@ const buildFunnelEmailHtml = (
     const inactive = list.filter(p => !isActive(p));
 
     html += `<div style="margin-bottom:26px;">
-      <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#1d3a5c;color:#ffffff;border-radius:4px;">
+      <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#0074F8;color:#ffffff;border-radius:4px;">
         ${escapeHtml(funnelStageLabels[stage])} · ${list.length} projects · ${active.length} Active / ${inactive.length} Inactive
       </h2>`;
     if (active.length > 0) {
@@ -260,7 +260,7 @@ const buildBucketedEmailHtml = (
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
   html += `<p style="margin:0 0 18px;color:#546978;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</p>`;
   html += section("Wins", "#116958", activeBuckets.wins, "No new wins this period.");
-  html += section("Updates", "#24598a", activeBuckets.updates, "No active updates this period.");
+  html += section("Updates", "#0074F8", activeBuckets.updates, "No active updates this period.");
   html += section("Lowlights", "#ad1f1f", activeBuckets.lowlights, "No lowlights this period.");
   if (inactive.length > 0) {
     html += `<div style="margin-top:32px;">

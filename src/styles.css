@@ -19,7 +19,7 @@
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1rem;
 
-  --color-navy: #30658F;
+  --color-navy: #0074F8;
   --color-navy-foreground: #ffffff;
 
   --color-border: hsl(var(--border));
@@ -159,11 +159,11 @@
   --popover-foreground: 212 55% 15%;
 
   /* Ocean Deep */
-  --primary: 206 58% 34%;
+  --primary: 212 100% 49%;
   --primary-foreground: 190 60% 97%;
-  --primary-glow: 190 56% 40%;
-  --primary-light: 200 55% 45%;
-  --primary-soft: 195 55% 94%;
+  --primary-glow: 212 100% 58%;
+  --primary-light: 212 100% 60%;
+  --primary-soft: 212 100% 96%;
 
   --secondary: 200 32% 95%;
   --secondary-foreground: 206 55% 20%;
@@ -210,13 +210,13 @@
 
   --border: 202 24% 86%;
   --input: 202 24% 86%;
-  --ring: 190 56% 40%;
+  --ring: 212 100% 49%;
 
   --radius: 0.55rem;
 
   --sidebar-background: 212 52% 24%;
   --sidebar-foreground: 200 30% 92%;
-  --sidebar-primary: 190 56% 42%;
+  --sidebar-primary: 212 100% 49%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 206 45% 30%;
   --sidebar-accent-foreground: 0 0% 100%;
@@ -262,11 +262,11 @@
   --popover: 210 34% 11%;
   --popover-foreground: 195 30% 93%;
 
-  --primary: 190 56% 56%;
+  --primary: 212 100% 62%;
   --primary-foreground: 212 55% 10%;
-  --primary-glow: 177 42% 58%;
-  --primary-light: 190 60% 64%;
-  --primary-soft: 205 32% 19%;
+  --primary-glow: 212 100% 68%;
+  --primary-light: 212 100% 72%;
+  --primary-soft: 212 60% 20%;
 
   --secondary: 210 28% 16%;
   --secondary-foreground: 195 30% 93%;
@@ -311,11 +311,11 @@
 
   --border: 208 24% 22%;
   --input: 208 24% 22%;
-  --ring: 190 56% 52%;
+  --ring: 212 100% 62%;
 
   --sidebar-background: 212 45% 18%;
   --sidebar-foreground: 195 25% 92%;
-  --sidebar-primary: 190 56% 50%;
+  --sidebar-primary: 212 100% 60%;
   --sidebar-primary-foreground: 212 55% 10%;
   --sidebar-accent: 208 30% 24%;
   --sidebar-accent-foreground: 195 30% 93%;

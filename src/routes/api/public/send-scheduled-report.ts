@@ -556,7 +556,7 @@ async function sendReportEmail(
 </head>
 <body>
   <div class="wrap">
-    <div class="header" style="background:#1d3a5c;padding:18px 20px;border-radius:12px 12px 0 0;color:#ffffff;">
+    <div class="header" style="background:#0074F8;padding:18px 20px;border-radius:12px 12px 0 0;color:#ffffff;">
       <h1 style="margin:0;font-size:18px;font-weight:600;">${report.name}</h1>
       <p style="margin:4px 0 0;font-size:13px;opacity:0.9;">Scheduled Report — ${dateStr}</p>
     </div>

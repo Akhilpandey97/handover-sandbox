@@ -163,7 +163,7 @@ async function handler(req: Request): Promise<Response> {
         ${meeting.agenda ? `<p style="margin:0 0 16px;white-space:pre-wrap">${escapeHtml(meeting.agenda)}</p>` : ""}
         <p style="margin:0 0 20px">
           <a href="${escapeHtml(meeting.join_url)}"
-             style="background:#24598a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">
+             style="background:#0074F8;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">
             Join ${escapeHtml(providerLabel)}
           </a>
         </p>

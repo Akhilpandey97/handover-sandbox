@@ -18,11 +18,11 @@ const API_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 // (--color-navy) and some styles append a two-digit alpha to them.
 // Status colours come from the theme so they match the app and switch with dark mode.
 const BRAND = {
-  primary: "#30658F",
+  primary: "#0074F8",
   primaryLight: "#3f7fb0",
   primarySoft: "#e8f1f7",
   accent: "#3f7fb0",
-  logoKwik: "#30658F",
+  logoKwik: "#0074F8",
   green: "hsl(var(--success))",
   greenLight: "hsl(var(--success-soft))",
   amber: "hsl(var(--warning))",
@@ -672,7 +672,7 @@ export default function MerchantPortal() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-background via-muted/40 to-background">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #30658F 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #0074F8 1px, transparent 0)', backgroundSize: '40px 40px' }} />
         <div className="w-full max-w-md relative z-10">
           <div className="bg-card rounded-2xl shadow-xl shadow-[var(--shadow-soft)] p-8 border border-border">
             <div className="text-center mb-8">
