@@ -6,6 +6,7 @@ import {
   resendFrom,
   resendReplyTo,
 } from "@/lib/tenant-integrations.server";
+import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { requireInternalCaller } from "@/lib/api-auth.server";
 
 /**
@@ -134,6 +135,7 @@ async function handler(req: Request): Promise<Response> {
     if (attendees.length === 0) return json({ error: "This meeting has no attendees" }, 400);
 
     const creds = await getTenantIntegrations(meeting.tenant_id);
+    const { brandColor } = await getTenantBranding(meeting.tenant_id);
     const resendKey = requireCred(creds, "resend_api_key", "Resend email");
     const from = resendFrom(creds, "Handover");
 
@@ -163,7 +165,7 @@ async function handler(req: Request): Promise<Response> {
         ${meeting.agenda ? `<p style="margin:0 0 16px;white-space:pre-wrap">${escapeHtml(meeting.agenda)}</p>` : ""}
         <p style="margin:0 0 20px">
           <a href="${escapeHtml(meeting.join_url)}"
-             style="background:#0074F8;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">
+             style="background:${brandColor};color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;display:inline-block">
             Join ${escapeHtml(providerLabel)}
           </a>
         </p>

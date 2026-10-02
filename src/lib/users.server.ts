@@ -81,17 +81,17 @@ export async function sendInviteEmail(opts: {
   const link = data?.properties?.action_link;
   if (error || !link) throw new Error(error?.message || "Couldn't create the invite link.");
 
-  const { orgName } = await getTenantBranding(opts.tenantId);
+  const { orgName, brandColor } = await getTenantBranding(opts.tenantId);
   const html = `
     <div style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background: #0074F8; padding: 20px; border-radius: 12px 12px 0 0; color: #ffffff;">
+      <div style="background: ${brandColor}; padding: 20px; border-radius: 12px 12px 0 0; color: #ffffff;">
         <h1 style="margin: 0; font-size: 20px;">You're invited to ${escape(orgName)}</h1>
       </div>
       <div style="background: #f7fafc; padding: 24px; border: 1px solid #d5e0e6; border-top: none; border-radius: 0 0 12px 12px;">
         <p style="margin: 0 0 16px;">Hi <strong>${escape(opts.name)}</strong>,</p>
         <p style="margin: 0 0 16px;">${escape(opts.invitedBy)} added you to ${escape(orgName)}'s onboarding workspace. Choose a password to sign in.</p>
         <div style="margin: 24px 0; text-align: center;">
-          <a href="${link}" style="display: inline-block; background: #0074F8; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">Set your password</a>
+          <a href="${link}" style="display: inline-block; background: ${brandColor}; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">Set your password</a>
         </div>
         <p style="margin: 0; color: #546978; font-size: 13px;">The link can be used once. If it expires, use "Forgot password" on the sign-in page with ${escape(opts.email)}.</p>
       </div>

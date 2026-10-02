@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantIntegrations, tenantIdFromRequest, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { projectUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
@@ -23,13 +24,16 @@ async function handler(req: Request): Promise<Response> {
 
     // tenantId lets server-to-server callers (which have no user JWT) still get
     // the right tenant's branding and base URL.
-    const creds = await getTenantIntegrations(await tenantIdFromRequest(req, tenantId));
+    const resolvedTenantId = await tenantIdFromRequest(req, tenantId);
+    const creds = await getTenantIntegrations(resolvedTenantId);
+    // The workspace's own colour, so its mail looks like its app.
+    const { brandColor } = await getTenantBranding(resolvedTenantId);
     const RESEND_API_KEY = requireCred(creds, "resend_api_key", "Resend email");
 
     const link = projectUrl(creds, projectId, { item: checklistItemId, task: taskId, comment: commentId });
     const viewProjectBtn = link
       ? `<div style="margin-top: 20px; text-align: center;">
-           <a href="${link}" style="display: inline-block; background: #0074F8; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">View Project →</a>
+           <a href="${link}" style="display: inline-block; background: ${brandColor}; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">View Project →</a>
          </div>`
       : "";
 
@@ -40,7 +44,7 @@ async function handler(req: Request): Promise<Response> {
       subject = `New project assigned: ${projectName}`;
       htmlContent = `
         <div style="color: #11263b; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: #0074F8; padding: 20px; border-radius: 12px 12px 0 0; color: white;">
+          <div style="background: ${brandColor}; padding: 20px; border-radius: 12px 12px 0 0; color: white;">
             <h1 style="margin: 0; font-size: 20px;">New project assignment</h1>
           </div>
           <div style="background: #f7fafc; padding: 24px; border: 1px solid #d5e0e6; border-top: none; border-radius: 0 0 12px 12px;">
@@ -58,7 +62,7 @@ async function handler(req: Request): Promise<Response> {
       subject = `Incoming project transfer: ${projectName}`;
       htmlContent = `
         <div style="color: #11263b; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background: #0074F8; padding: 20px; border-radius: 12px 12px 0 0; color: white;">
+          <div style="background: ${brandColor}; padding: 20px; border-radius: 12px 12px 0 0; color: white;">
             <h1 style="margin: 0; font-size: 20px;">Incoming project transfer</h1>
           </div>
           <div style="background: #f7fafc; padding: 24px; border: 1px solid #d5e0e6; border-top: none; border-radius: 0 0 12px 12px;">

@@ -166,6 +166,7 @@ const buildFunnelEmailHtml = (
   movementMap: Record<string, MovementEntry[]>,
   aiMap: Record<string, AiSummary>,
   funnelOrder: FunnelStage[],
+  brandColor: string,
 ): string => {
   const isActive = (p: Project) => (movementMap[p.id]?.length ?? 0) > 0;
 
@@ -201,7 +202,7 @@ const buildFunnelEmailHtml = (
     const inactive = list.filter(p => !isActive(p));
 
     html += `<div style="margin-bottom:26px;">
-      <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:#0074F8;color:#ffffff;border-radius:4px;">
+      <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:${brandColor};color:#ffffff;border-radius:4px;">
         ${escapeHtml(funnelStageLabels[stage])} · ${list.length} projects · ${active.length} Active / ${inactive.length} Inactive
       </h2>`;
     if (active.length > 0) {
@@ -230,6 +231,7 @@ const buildBucketedEmailHtml = (
   inactive: Project[],
   movementMap: Record<string, MovementEntry[]>,
   aiMap: Record<string, AiSummary>,
+  brandColor: string,
 ): string => {
   const renderLine = (p: Project) => {
     const ai = aiMap[p.id];
@@ -260,7 +262,7 @@ const buildBucketedEmailHtml = (
   html += `<h1 style="margin:0 0 4px;font-size:20px;">${escapeHtml(title)}</h1>`;
   html += `<p style="margin:0 0 18px;color:#546978;font-size:12px;">${escapeHtml(windowLabel)} · Generated ${format(new Date(), "dd MMM yyyy, HH:mm")}</p>`;
   html += section("Wins", "#116958", activeBuckets.wins, "No new wins this period.");
-  html += section("Updates", "#0074F8", activeBuckets.updates, "No active updates this period.");
+  html += section("Updates", brandColor, activeBuckets.updates, "No active updates this period.");
   html += section("Lowlights", "#ad1f1f", activeBuckets.lowlights, "No lowlights this period.");
   if (inactive.length > 0) {
     html += `<div style="margin-top:32px;">
@@ -276,7 +278,8 @@ const buildBucketedEmailHtml = (
 
 export const MovementReport = ({ timeframe }: Props) => {
   const { projects } = useProjects();
-  const { teamLabels } = useLabels();
+  const { teamLabels, labels } = useLabels();
+  const brandColor = labels["color_brand"] || "#0074F8";
   const { currentUser } = useAuth();
   const { stages } = useFunnelConfig();
   const { data: movementMap = {}, isLoading, refetch, isFetching, dataUpdatedAt } = useMovementReport(timeframe);
@@ -371,7 +374,7 @@ export const MovementReport = ({ timeframe }: Props) => {
 
     if (timeframe === "daily") {
       const sorted = [...filteredProjects].sort(byFunnel);
-      return buildFunnelEmailHtml(reportTitle, windowLabel, sorted, movementMap, aiMap, funnelOrder);
+      return buildFunnelEmailHtml(reportTitle, windowLabel, sorted, movementMap, aiMap, funnelOrder, brandColor);
     }
 
     const activeBuckets: Record<Bucket, Project[]> = { wins: [], updates: [], lowlights: [] };
@@ -385,7 +388,7 @@ export const MovementReport = ({ timeframe }: Props) => {
     activeBuckets.wins.sort(byArrDesc);
     activeBuckets.updates.sort(byArrDesc);
     activeBuckets.lowlights.sort(byArrDesc);
-    return buildBucketedEmailHtml(reportTitle, windowLabel, activeBuckets, [], movementMap, aiMap);
+    return buildBucketedEmailHtml(reportTitle, windowLabel, activeBuckets, [], movementMap, aiMap, brandColor);
   };
 
   const generateAiSummaries = async () => {

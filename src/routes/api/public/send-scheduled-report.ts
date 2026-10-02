@@ -424,7 +424,8 @@ async function sendReportEmail(
   report: any,
   creds: TenantIntegrations
 ): Promise<{ sent: number; failed: number; errors: string[]; execution_id?: string }> {
-  const columnLabel = labelledColumns(await getTenantBranding(report.tenant_id));
+  const branding = await getTenantBranding(report.tenant_id);
+  const columnLabel = labelledColumns(branding);
   const RESEND_API_KEY = requireCred(creds, "resend_api_key", "Resend email");
   const recipients = report.recipients || [];
   if (recipients.length === 0) {
@@ -556,7 +557,7 @@ async function sendReportEmail(
 </head>
 <body>
   <div class="wrap">
-    <div class="header" style="background:#0074F8;padding:18px 20px;border-radius:12px 12px 0 0;color:#ffffff;">
+    <div class="header" style="background:${branding.brandColor};padding:18px 20px;border-radius:12px 12px 0 0;color:#ffffff;">
       <h1 style="margin:0;font-size:18px;font-weight:600;">${report.name}</h1>
       <p style="margin:4px 0 0;font-size:13px;opacity:0.9;">Scheduled Report — ${dateStr}</p>
     </div>

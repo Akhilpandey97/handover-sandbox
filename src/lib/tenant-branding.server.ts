@@ -26,11 +26,16 @@ export interface TenantBranding {
   /** The two sides of the work, e.g. "Our team" and "Brand". */
   internalLabel: string;
   externalLabel: string;
+  /** The workspace's brand colour, for the emails and pages it sends out. */
+  brandColor: string;
   /** Any workspace label by key, falling back to the product default. */
   label: (key: string) => string;
 }
 
 const NEUTRAL_ORG = "the onboarding team";
+
+/** The product default, used until a workspace sets or derives its own. */
+export const DEFAULT_BRAND_COLOR = "#0074F8";
 
 const FALLBACK: TenantBranding = {
   orgName: NEUTRAL_ORG,
@@ -39,6 +44,7 @@ const FALLBACK: TenantBranding = {
   merchantPluralLabel: DEFAULT_LABELS.field_merchant_name_plural,
   internalLabel: DEFAULT_LABELS.responsibility_internal,
   externalLabel: DEFAULT_LABELS.responsibility_external,
+  brandColor: DEFAULT_BRAND_COLOR,
   label: (key) => DEFAULT_LABELS[key] || key,
 };
 
@@ -55,6 +61,7 @@ const LABEL_KEYS = [
   "field_project_state",
   "responsibility_internal",
   "responsibility_external",
+  "color_brand",
 ];
 
 const cache = new Map<string, { at: number; value: TenantBranding }>();
@@ -96,6 +103,9 @@ export async function getTenantBranding(
       merchantPluralLabel: label("field_merchant_name_plural"),
       internalLabel: label("responsibility_internal"),
       externalLabel: label("responsibility_external"),
+      brandColor: /^#[0-9a-fA-F]{6}$/.test((byKey.get("color_brand") || "").trim())
+        ? (byKey.get("color_brand") || "").trim()
+        : DEFAULT_BRAND_COLOR,
       label,
     };
     cache.set(tenantId, { at: Date.now(), value });
