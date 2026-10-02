@@ -430,7 +430,7 @@ const PanelRow = ({
         </span>
       )}
       <span className="min-w-0 break-words" title={value}>{value}</span>
-      {hint && <span className="shrink-0 text-muted-foreground">· {hint}</span>}
+      {hint && <span className="whitespace-nowrap text-muted-foreground">· {hint}</span>}
     </>
   );
   return (
@@ -441,12 +441,12 @@ const PanelRow = ({
           <button
             type="button"
             onClick={onEdit}
-            className="-mx-1.5 flex w-full items-start gap-1.5 rounded-md px-1.5 py-0.5 text-left font-medium text-foreground hover:bg-muted"
+            className="-mx-1.5 flex w-full flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-md px-1.5 py-0.5 text-left font-medium text-foreground hover:bg-muted"
           >
             {body}
           </button>
         ) : (
-          <span className="flex items-start gap-1.5 px-0 font-medium text-foreground">{body}</span>
+          <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 px-0 font-medium text-foreground">{body}</span>
         )}
       </dd>
     </div>
@@ -629,7 +629,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
       const nextTeamKey = project.currentOwnerTeam === "mint" ? "integration" : project.currentOwnerTeam === "integration" ? "ms" : null;
       const nextTeamLabel = nextTeamKey ? teamLabels[nextTeamKey] || nextTeamKey : null;
       if (nextTeamLabel) {
-        return { label: `Transfer to ${nextTeamLabel}`, hint: `${open.length} item${open.length === 1 ? "" : "s"} waiting there` };
+        return { label: `Transfer to ${nextTeamLabel}`, hint: undefined };
       }
     }
 
