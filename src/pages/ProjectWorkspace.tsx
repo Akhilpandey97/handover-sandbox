@@ -573,10 +573,53 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const isAtRisk = risk.label === "High risk";
   const riskReasons = isAtRisk ? risk.drivers.map((d) => d.label).join("; ") : null;
   const openTasksCount = project.checklist.length - completedChecklist;
-  const nextPendingItem = project.checklist.find((item) => !item.completed);
   const waitingOnLabel = pendingOn === "merchant" ? responsibilityLabels.merchant : teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam;
   const waitingOnSub = pendingOn === "merchant" ? "External work outstanding" : `${openTasksCount} checklist item${openTasksCount === 1 ? "" : "s"} remaining`;
-  const nextStepLabel = nextPendingItem?.title || "Ready to transfer";
+
+  /**
+   * The next thing somebody should actually do.
+   *
+   * It used to be the first unticked row in checklist order, which ignored dates, teams
+   * and whether the project was ready to move on — so an overdue item sat behind a row
+   * that happens to be listed first, and a project with nothing left for its own team
+   * still showed a step instead of saying it can be handed on.
+   *
+   * The order now: the owning team's work first, soonest due before undated, overdue
+   * called out. With nothing left for that team, the next step is the handover itself.
+   */
+  const nextStep = (() => {
+    const open = project.checklist.filter((item) => !item.completed);
+    if (open.length === 0) return { label: "All checklist items complete", hint: undefined as string | undefined };
+
+    const ownTeam = open.filter((item) => (item.ownerTeam || "").toLowerCase() === project.currentOwnerTeam);
+
+    // The owning team is clear; what remains belongs to whoever comes next.
+    if (ownTeam.length === 0) {
+      const nextTeamKey = project.currentOwnerTeam === "mint" ? "integration" : project.currentOwnerTeam === "integration" ? "ms" : null;
+      const nextTeamLabel = nextTeamKey ? teamLabels[nextTeamKey] || nextTeamKey : null;
+      if (nextTeamLabel) {
+        return { label: `Transfer to ${nextTeamLabel}`, hint: `${open.length} item${open.length === 1 ? "" : "s"} waiting there` };
+      }
+    }
+
+    const pool = ownTeam.length > 0 ? ownTeam : open;
+    const dueTime = (item: (typeof pool)[number]) =>
+      item.dueDate ? new Date(item.dueDate).getTime() : Number.POSITIVE_INFINITY;
+    const pick = [...pool].sort((a, b) => dueTime(a) - dueTime(b))[0];
+
+    const overdue = pick.dueDate ? new Date(pick.dueDate) < new Date() : false;
+    const owner = (pick.ownerTeam || "").toLowerCase();
+    const hint = overdue
+      ? "overdue"
+      : pick.dueDate
+        ? `due ${friendlyDate(pick.dueDate)}`
+        : owner && owner !== project.currentOwnerTeam
+          ? teamLabels[owner] || owner
+          : undefined;
+
+    return { label: pick.title, hint };
+  })();
+  const nextStepLabel = nextStep.label;
   // Workspace-defined extra fields (Settings → Custom Fields)
   const customFieldRows: string[][] = customFields
     .filter((f) => (customFieldValues[f.id] ?? "").length > 0)
@@ -836,7 +879,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
             {/* The five facts people ask for, editable where they are read. */}
             <dl className="text-xs">
-              <PanelRow label="Next step" value={nextStepLabel} />
+              <PanelRow label="Next step" value={nextStepLabel} hint={nextStep.hint} />
               <PanelRow
                 label={getLabel("field_project_stage")}
                 value={funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)}
