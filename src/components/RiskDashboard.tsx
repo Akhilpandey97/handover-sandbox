@@ -233,15 +233,15 @@ export const RiskDashboard = () => {
           ) : (
             <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
               <TableHeader className="table-header-tint">
-                <TableRow className="hover:bg-navy/5 border-b">
-                  <TableHead className="text-navy font-semibold">{getLabel("field_merchant_name")}</TableHead>
-                  <TableHead className="text-navy font-semibold">Risk</TableHead>
-                  <TableHead className="text-navy font-semibold whitespace-nowrap">Why</TableHead>
-                  <TableHead className="text-navy font-semibold whitespace-nowrap">{getLabel("field_expected_go_live_date")}</TableHead>
-                  <TableHead className="text-navy font-semibold whitespace-nowrap">{getLabel("field_project_state")}</TableHead>
-                  <TableHead className="text-navy font-semibold whitespace-nowrap">{getLabel("field_assigned_owner")}</TableHead>
-                  <TableHead className="text-navy font-semibold whitespace-nowrap text-right">{getLabel("field_arr")} (Cr)</TableHead>
-                  <TableHead className="text-navy font-semibold text-right">Action</TableHead>
+                <TableRow className="hover:bg-muted/40 border-b">
+                  <TableHead className="font-semibold text-foreground">{getLabel("field_merchant_name")}</TableHead>
+                  <TableHead className="font-semibold text-foreground">Risk</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap">Why</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_expected_go_live_date")}</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_project_state")}</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_assigned_owner")}</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap text-right">{getLabel("field_arr")} (Cr)</TableHead>
+                  <TableHead className="font-semibold text-foreground text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

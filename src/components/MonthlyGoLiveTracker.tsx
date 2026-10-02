@@ -532,26 +532,26 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       <Card className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
         <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-            <div className="h-1 w-full shrink-0 bg-navy" />
+            <div className="h-px w-full shrink-0 bg-border" />
             <div className="min-h-0 flex-1 overflow-auto">
             <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
               <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
-                <TableRow className="hover:bg-navy/5 border-b">
-                  <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-navy">{getLabel("field_merchant_name")}</TableHead>
-                  {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-navy">{arrLabel} Cr.</TableHead>}
-                  {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stageLabel}</TableHead>}
-                  {isVisible("status") && <TableHead className="font-semibold whitespace-nowrap text-navy">{stateLabel}</TableHead>}
-                  {isVisible("blocker") && <TableHead className="font-semibold min-w-[240px] max-w-[340px] text-navy">Blocker</TableHead>}
-                  {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-navy">Blocked On</TableHead>}
-                  {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-navy">Deadline</TableHead>}
-                  {isVisible("confidence") && <TableHead className="font-semibold whitespace-nowrap text-navy">Confidence</TableHead>}
-                  {isVisible("owner") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-navy">{ownerLabel}</TableHead>}
-                  {isVisible("expected") && <TableHead className="font-semibold whitespace-nowrap text-navy">{expectedLabel}</TableHead>}
+                <TableRow className="hover:bg-muted/40 border-b">
+                  <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-foreground">{getLabel("field_merchant_name")}</TableHead>
+                  {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-foreground">{arrLabel} Cr.</TableHead>}
+                  {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-foreground">{stageLabel}</TableHead>}
+                  {isVisible("status") && <TableHead className="font-semibold whitespace-nowrap text-foreground">{stateLabel}</TableHead>}
+                  {isVisible("blocker") && <TableHead className="font-semibold min-w-[240px] max-w-[340px] text-foreground">Blocker</TableHead>}
+                  {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-foreground">Blocked On</TableHead>}
+                  {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-foreground">Deadline</TableHead>}
+                  {isVisible("confidence") && <TableHead className="font-semibold whitespace-nowrap text-foreground">Confidence</TableHead>}
+                  {isVisible("owner") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-foreground">{ownerLabel}</TableHead>}
+                  {isVisible("expected") && <TableHead className="font-semibold whitespace-nowrap text-foreground">{expectedLabel}</TableHead>}
                   {SYSTEM_COLUMNS.map(col => isVisible(col.key) && (
-                    <TableHead key={col.key} className="font-semibold whitespace-nowrap text-navy">{col.label}</TableHead>
+                    <TableHead key={col.key} className="font-semibold whitespace-nowrap text-foreground">{col.label}</TableHead>
                   ))}
                   {customFields.map(cf => isVisible(`custom_field_${cf.id}`) && (
-                    <TableHead key={cf.id} className="font-semibold whitespace-nowrap text-navy">{cf.field_label}</TableHead>
+                    <TableHead key={cf.id} className="font-semibold whitespace-nowrap text-foreground">{cf.field_label}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>

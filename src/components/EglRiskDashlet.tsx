@@ -68,12 +68,12 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
             rounded, bordered surface, which reads as a table inside a card. */}
         <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
           <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
-            <TableRow className="hover:bg-navy/5 border-b">
-              <TableHead className="text-navy font-semibold">Project</TableHead>
-              <TableHead className="text-navy font-semibold whitespace-nowrap">
+            <TableRow className="hover:bg-muted/40 border-b">
+              <TableHead className="font-semibold text-foreground">Project</TableHead>
+              <TableHead className="font-semibold text-foreground whitespace-nowrap">
                 {getLabel("field_expected_go_live_date")}
               </TableHead>
-              <TableHead className="text-navy font-semibold">Reason</TableHead>
+              <TableHead className="font-semibold text-foreground">Reason</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

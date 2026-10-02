@@ -1903,14 +1903,14 @@ export const ManagerDashboard = () => {
               </CardHeader>, projectToolbarHost) : null}
               <CardContent className="flex min-h-0 flex-1 flex-col p-0">
                 {/* rounded + clipping so the accent bar and header follow the card's corners */}
-                <div className="h-1 w-full shrink-0 bg-navy" />
+                <div className="h-px w-full shrink-0 bg-border" />
                 <div className="min-h-0 flex-1 overflow-auto">
                   <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
                     {/* Opaque: the header sits over scrolling rows, and bg-navy/5
                         is only a 5% tint on its own. */}
                     <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
-                      <TableRow className="hover:bg-navy/5 border-b">
-                        <TableHead className="w-10 text-navy">
+                      <TableRow className="hover:bg-muted/40 border-b">
+                        <TableHead className="w-10 text-foreground">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
                         </TableHead>
                         {listViewColumns.map(colKey => {
@@ -1928,7 +1928,7 @@ export const ManagerDashboard = () => {
                               onDragStart={() => handleColDragStart(colKey)}
                               onDragOver={(e) => { e.preventDefault(); handleColDragOver(colKey); }}
                               onDragEnd={() => handleColDragEnd(listViewColumns)}
-                              className={cn("whitespace-nowrap text-xs tracking-normal cursor-grab select-none font-semibold text-navy", draggedCol === colKey && "opacity-40")}
+                              className={cn("whitespace-nowrap text-xs tracking-normal cursor-grab select-none font-semibold text-foreground", draggedCol === colKey && "opacity-40")}
                             >
                               {label}
                             </TableHead>
