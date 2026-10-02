@@ -30,6 +30,7 @@ import { Project, calculateTimeByParty, calculateTimeFromChecklist, formatDurati
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectCardNew } from "./ProjectCardNew";
 import { ProjectListDialog } from "@/components/ProjectListDialog";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { ProjectDialog } from "./ProjectDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -1126,8 +1127,8 @@ export const ManagerDashboard = () => {
                 <div className="flex shrink-0 items-center gap-0.5 [&_button]:text-sidebar-foreground/70 [&_button:hover]:text-sidebar-foreground">
                   <button
                     type="button"
-                    onClick={() => setSearchOpen((o) => !o)}
-                    title="Search projects"
+                    onClick={() => setSearchOpen(true)}
+                    title="Search (⌘K)"
                     aria-label="Search projects"
                     aria-expanded={searchOpen}
                     className={cn(
@@ -1158,8 +1159,8 @@ export const ManagerDashboard = () => {
             <div className="mt-3 flex flex-col items-center gap-1 [&_button]:text-sidebar-foreground/70 [&_button:hover]:text-sidebar-foreground">
               <button
                 type="button"
-                onClick={() => { setSidebarCollapsed(false); setSearchOpen(true); }}
-                title="Search projects"
+                onClick={() => setSearchOpen(true)}
+                title="Search (⌘K)"
                 aria-label="Search projects"
                 className="rounded-md p-2 transition-colors hover:bg-sidebar-accent/60"
               >
@@ -1179,33 +1180,13 @@ export const ManagerDashboard = () => {
           )}
         </div>
 
-        {/* Revealed by the icon above. Kept mounted only while open so the
-            sidebar stays compact, but the query itself survives closing. */}
-        {!sidebarCollapsed && searchOpen && (
-          <div className="px-3 pb-3">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-foreground/50" />
-              <Input
-                autoFocus
-                placeholder="Search projects..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Escape") { setSearchQuery(""); setSearchOpen(false); } }}
-                className="h-8 border-sidebar-border bg-sidebar-accent/40 pl-8 pr-7 text-xs text-sidebar-foreground placeholder:text-sidebar-foreground/50"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  aria-label="Clear search"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-sidebar-foreground/50 hover:text-sidebar-foreground"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+
+        <GlobalSearch
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+          projects={projects}
+          onFilterList={setSearchQuery}
+        />
 
         {/* Navigation */}
         <nav className="flex-1 px-2 pb-2 pt-8 overflow-y-auto">
