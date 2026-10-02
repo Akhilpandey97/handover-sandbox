@@ -11,7 +11,7 @@ What every setup needs, whatever the CRM:
 | | |
 |---|---|
 | Method | `POST` |
-| URL | `https://handover-sandbox-production.up.railway.app/api/public/v1/projects` |
+| URL | `https://app.seamlesshandover.in/api/public/v1/projects` |
 | Header | `Authorization: Bearer hk_live_…` (your workspace key) |
 | Header | `Content-Type: application/json` |
 | Trigger | Deal / opportunity stage becomes Won |
@@ -56,7 +56,7 @@ Flow with an HTTP Callout. The key lives in a Named Credential, never in the flo
 1. **Setup → Named Credentials → External Credential**: authentication protocol **Custom**.
    Add a Principal (name it `Handover`), then a Custom Header: name `Authorization`, value
    `Bearer hk_live_…`.
-2. **Named Credential**: URL `https://handover-sandbox-production.up.railway.app`, link it to that External
+2. **Named Credential**: URL `https://app.seamlesshandover.in`, link it to that External
    Credential. Give your integration user's permission set access to the principal.
 3. **Flow** (Record-Triggered, Opportunity, "A record is updated"):
    - Entry condition: `StageName` equals `Closed Won`, and set the flow to run only when
@@ -75,7 +75,7 @@ Sample response to paste when Salesforce asks for one:
   "merchant_name": "BrewCraft",
   "mid": "BREW-001",
   "external_id": "SF-0061234",
-  "project_url": "https://handover-sandbox-production.up.railway.app/projects/5b1c...",
+  "project_url": "https://app.seamlesshandover.in/projects/5b1c...",
   "checklist_items_created": 8,
   "created": true
 }
@@ -99,7 +99,7 @@ action (Node.js), with the key stored as a secret named `HANDOVER_API_KEY`:
 exports.main = async (event, callback) => {
   const props = event.inputFields;
 
-  const res = await fetch("https://handover-sandbox-production.up.railway.app/api/public/v1/projects", {
+  const res = await fetch("https://app.seamlesshandover.in/api/public/v1/projects", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.HANDOVER_API_KEY}`,
@@ -149,7 +149,7 @@ headers.put("Content-Type", "application/json");
 
 response = invokeurl
 [
-  url: "https://handover-sandbox-production.up.railway.app/api/public/v1/projects"
+  url: "https://app.seamlesshandover.in/api/public/v1/projects"
   type: POST
   parameters: payload.toString()
   headers: headers
@@ -171,7 +171,7 @@ Pipedrive's built-in automation webhook sends no custom headers, so use its
 or route through Zapier or Make.
 
 Trigger: Deal updated, filter `Status = Won`. Action: Send API request —
-`POST https://handover-sandbox-production.up.railway.app/api/public/v1/projects`, headers as above, body:
+`POST https://app.seamlesshandover.in/api/public/v1/projects`, headers as above, body:
 
 ```json
 {
@@ -193,7 +193,7 @@ Works with any CRM, and the right answer when the CRM can't send custom headers.
 **Zapier:** Trigger = your CRM's "Deal won" / "Updated deal" event (add a filter on stage).
 Action = **Webhooks by Zapier → Custom Request**:
 
-- Method `POST`, URL `https://handover-sandbox-production.up.railway.app/api/public/v1/projects`
+- Method `POST`, URL `https://app.seamlesshandover.in/api/public/v1/projects`
 - Data: the JSON body, mapping CRM fields in
 - Headers: `Authorization` = `Bearer hk_live_…`, `Content-Type` = `application/json`
 - Set **Unflatten** to `no`
