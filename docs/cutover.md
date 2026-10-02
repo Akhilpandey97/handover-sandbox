@@ -84,12 +84,12 @@ Pick a quiet hour. The mail pollers run hourly, so an hour's gap costs nothing.
      --data-binary "@<file>"
    ```
 
-8. **Point the domain** at Railway, then set APP_BASE_URL back to https://app.seamlesshandover.in on the Railway service (it points at the Railway address while the domain still serves Lovable) and wait for the certificate.
+8. **Point the domain** at Railway, then set APP_BASE_URL back to https://handover-sandbox-production.up.railway.app on the Railway service (it points at the Railway address while the domain still serves Lovable) and wait for the certificate.
 
 9. **Turn the scheduled jobs on** — this is what starts the new database calling the app:
 
    ```sql
-   select private.set_app_base_url('https://app.seamlesshandover.in');
+   select private.set_app_base_url('https://handover-sandbox-production.up.railway.app');
    select jobname, schedule from cron.job order by jobname;   -- expect 10
    ```
 
