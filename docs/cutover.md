@@ -56,13 +56,24 @@ Pick a quiet hour. The mail pollers run hourly, so an hour's gap costs nothing.
    Errors about `sandbox_exec`, `must be owner of table objects` and Supabase's own
    internal storage objects are expected and harmless.
 
-5. **Re-apply the migrations written since the export** — the dump predates them:
+5. **Clear what must not come back.** The dump carries the old workspace's outbound
+   settings, including the Slack webhook that was posting reports into a customer's
+   channel, and any report recipients pointing at it:
+
+   ```sql
+   update public.tenant_integrations
+      set slack_webhook_url = null, slack_bot_token = null, slack_channel = null;
+   -- then check report recipients before the scheduler is switched on:
+   select id, name, recipients from public.saved_reports where recipients::text ilike '%slack%';
+   ```
+
+6. **Re-apply the migrations written since the export** — the dump predates them:
 
    ```
    supabase db push      # scheduler extensions, portable jobs, gmail refresh token
    ```
 
-6. **Copy the storage files.** The dump carries the rows, not the bytes. Public bucket files
+7. **Copy the storage files.** The dump carries the rows, not the bytes. Public bucket files
    can be pulled straight from the old project; private ones download from Lovable → Storage.
    Upload with the legacy `service_role` JWT (the `sb_secret_` key is rejected by this
    project's storage API):
@@ -73,22 +84,22 @@ Pick a quiet hour. The mail pollers run hourly, so an hour's gap costs nothing.
      --data-binary "@<file>"
    ```
 
-7. **Point the domain** at Railway and wait for the certificate.
+8. **Point the domain** at Railway, then set APP_BASE_URL back to https://seamlesshandover.in on the Railway service (it points at the Railway address while the domain still serves Lovable) and wait for the certificate.
 
-8. **Turn the scheduled jobs on** — this is what starts the new database calling the app:
+9. **Turn the scheduled jobs on** — this is what starts the new database calling the app:
 
    ```sql
    select private.set_app_base_url('https://seamlesshandover.in');
    select jobname, schedule from cron.job order by jobname;   -- expect 10
    ```
 
-9. **Rotate the scheduler token** and put the result in Railway's `CRON_SECRET`:
+10. **Rotate the scheduler token** and put the result in Railway's `CRON_SECRET`:
 
    ```sql
    select private.rotate_cron_token();
    ```
 
-10. **Update the outside world**: the Zoom webhook URL, the CRM API base URL customers call,
+11. **Update the outside world**: the Zoom webhook URL, the CRM API base URL customers call,
     the Google OAuth redirect URIs, and each workspace's App Base URL in Settings → Integrations.
 
 ## After the switch
