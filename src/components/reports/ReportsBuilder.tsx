@@ -60,8 +60,18 @@ const NUMERIC_COLUMNS = ["arr", "txnsPerDay", "aov", "goLivePercent", "transferC
 
 const DEFAULT_GROUP_ORDER = ["Basic", "Financial", "Status", "Dates", "Details", "Links", "Notes", "Metrics", "Custom Fields"];
 
-/** The forms this report can take. A table always works; the rest need a dimension. */
-const VIEW_TYPES: ChartType[] = ["table", "column", "bar", "line", "area", "pie", "donut"];
+/** Palette slots, never cycled: an eighth value is the last one drawn in its own hue. */
+const SERIES_SLOTS = 8;
+const OTHER_LABEL = "Other";
+
+/** The forms a report of one measure can take. A table always works; the rest need a dimension. */
+const SINGLE_VIEWS: ChartType[] = ["table", "column", "bar", "line", "area", "pie", "donut"];
+
+/**
+ * With a split, every form has to carry a second dimension. Bar, pie and donut
+ * can only draw one series, so they drop out; stacked, grouped and lines arrive.
+ */
+const SPLIT_VIEWS: ChartType[] = ["table", "stacked", "grouped", "column", "line", "multiline", "area"];
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -161,7 +171,12 @@ interface PivotGroup {
 export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = {}, initialPivot = false }: { projects: Project[]; customFields?: CustomField[]; customValuesMap?: Record<string, Record<string, string>>; initialPivot?: boolean }) => {
   const { teamLabels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
   const { currentUser } = useAuth();
-  const labels = { teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap };
+  // Rebuilt on every render this re-ran every aggregation below it, grouping and
+  // charting included, for a value that rarely changes.
+  const labels = useMemo(
+    () => ({ teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap }),
+    [teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap],
+  );
 
   const [selectedColumns, setSelectedColumns] = useState<string[]>(["merchantName", "projectState", "arr", "goLivePercent"]);
   const [reportAggType, setReportAggType] = useState<AggType>("sum");
@@ -185,6 +200,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [view, setView] = useState<ChartType>("table");
   const [chartMeasure, setChartMeasure] = useState<string>("count");
+  const [splitByColumn, setSplitByColumn] = useState<string>("none");
 
   const filterState = useReportFilters(projects);
   const { filteredProjects } = filterState;
@@ -618,9 +634,18 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
 
   // Dropping the grouping, or the column a chart was measuring, leaves a chart with
   // nothing to draw. Fall back rather than render an empty frame.
+  const availableViews = splitByColumn === "none" ? SINGLE_VIEWS : SPLIT_VIEWS;
+
   useEffect(() => {
     if (groupByColumn === "none" && view !== "table") setView("table");
-  }, [groupByColumn, view]);
+    else if (!availableViews.includes(view)) setView("table");
+  }, [groupByColumn, view, availableViews]);
+
+  // A split can only be read against a grouping, and never against itself.
+  useEffect(() => {
+    if (splitByColumn === "none") return;
+    if (groupByColumn === "none" || splitByColumn === groupByColumn) setSplitByColumn("none");
+  }, [splitByColumn, groupByColumn]);
 
   useEffect(() => {
     if (chartMeasure !== "count" && !selectedNumericCols.includes(chartMeasure)) setChartMeasure("count");
@@ -632,22 +657,62 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     return col ? `${col.label} (${reportAggType})` : chartMeasure;
   }, [chartMeasure, allColumns, reportAggType]);
 
-  const chartRows = useMemo<ChartRow[]>(
-    () =>
-      pivotGroups.map((group) => ({
-        name: group.label,
-        value: chartMeasure === "count" ? group.projects.length : group.aggregates[chartMeasure] ?? 0,
-      })),
-    [pivotGroups, chartMeasure],
-  );
+  /**
+   * The chart's data, bucketed by Group By and — when one is chosen — split again
+   * by a second dimension.
+   *
+   * The palette has eight slots and is never cycled, so a split with more values
+   * than that keeps the seven largest and folds the rest into "Other" rather than
+   * inventing a ninth hue.
+   */
+  const { chartRows, chartSeries } = useMemo(() => {
+    const measure = (list: Project[]) =>
+      chartMeasure === "count"
+        ? list.length
+        : computeAgg(list.map((p) => getNumericValue(p, chartMeasure)), reportAggType);
+
+    if (splitByColumn === "none") {
+      return {
+        chartRows: pivotGroups.map((group) => ({ name: group.label, s0: measure(group.projects) })) as ChartRow[],
+        chartSeries: [{ key: "s0", label: measureLabel }],
+      };
+    }
+
+    // Rank the split's values across the whole report, so a value keeps its colour
+    // whichever group it appears in.
+    const totals = new Map<string, number>();
+    filteredProjects.forEach((p) => {
+      const val = getCellValue(p, splitByColumn, labels) || "—";
+      totals.set(val, (totals.get(val) || 0) + (chartMeasure === "count" ? 1 : getNumericValue(p, chartMeasure)));
+    });
+    const ranked = [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k);
+    const kept = ranked.slice(0, SERIES_SLOTS - (ranked.length > SERIES_SLOTS ? 1 : 0));
+    const keptSet = new Set(kept);
+    const labelsInOrder = ranked.length > SERIES_SLOTS ? [...kept, OTHER_LABEL] : kept;
+    const keyFor = new Map(labelsInOrder.map((label, i) => [label, `s${i}`]));
+
+    const rows = pivotGroups.map((group) => {
+      const row: ChartRow = { name: group.label };
+      labelsInOrder.forEach((label) => {
+        const key = keyFor.get(label)!;
+        const members = group.projects.filter((p) => {
+          const val = getCellValue(p, splitByColumn, labels) || "—";
+          return label === OTHER_LABEL ? !keptSet.has(val) : val === label;
+        });
+        row[key] = measure(members);
+      });
+      return row;
+    });
+
+    return {
+      chartRows: rows,
+      chartSeries: labelsInOrder.map((label) => ({ key: keyFor.get(label)!, label })),
+    };
+  }, [pivotGroups, filteredProjects, splitByColumn, chartMeasure, reportAggType, measureLabel, labels]);
 
   const chartSpec = useMemo(
-    () => ({
-      x: "name",
-      series: [{ key: "value", label: measureLabel }],
-      valueLabel: measureLabel,
-    }),
-    [measureLabel],
+    () => ({ x: "name", series: chartSeries, valueLabel: measureLabel }),
+    [chartSeries, measureLabel],
   );
 
   return (
@@ -777,7 +842,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
                 so the forms stay disabled until Group By names one. */}
             <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
               <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Report view">
-                {VIEW_TYPES.map((type) => {
+                {availableViews.map((type) => {
                   const Icon = CHART_META[type].icon;
                   const disabled = type !== "table" && groupByColumn === "none";
                   return (
@@ -801,6 +866,21 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
                   );
                 })}
               </div>
+              {view !== "table" && (
+                <div className="flex items-center gap-1.5">
+                  <Label className="whitespace-nowrap text-xs text-muted-foreground">Split by:</Label>
+                  <Select value={splitByColumn} onValueChange={setSplitByColumn} disabled={groupByColumn === "none"}>
+                    <SelectTrigger className="h-7 w-[150px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No split</SelectItem>
+                      {groupableColumns.filter(k => selectedColumns.includes(k) && k !== groupByColumn).map(k => {
+                        const col = allColumns.find(c => c.key === k);
+                        return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               {view !== "table" && (
                 <div className="flex items-center gap-1.5">
                   <Label className="whitespace-nowrap text-xs text-muted-foreground">Measure:</Label>
