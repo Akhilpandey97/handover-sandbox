@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Project, calculateTimeByParty, formatDuration, ResponsibilityParty } from "@/data/projectsData";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useProjectDeepLink } from "@/hooks/useProjectDeepLink";
+import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useFormAssignments, useFormTemplates } from "@/hooks/useChecklistForms";
 import { useTeams } from "@/hooks/useTeams";
@@ -104,17 +104,11 @@ export const ChecklistDialog = ({
     checklistItemTitle: string;
   } | null>(null);
 
-  // A ?task= link opens that item's task dialog once the checklist has loaded.
+  // A ?task= link goes to the task where it lives — on its checklist step — and
+  // rings it. It used to open the add-task dialog, which answered a question
+  // nobody had asked and hid the step the task belongs to.
   const deepLink = useProjectDeepLink();
-  const openedTaskRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!deepLink.task || !deepLink.item || !project) return;
-    if (openedTaskRef.current === deepLink.task) return;
-    const item = project.checklist.find((i) => i.id === deepLink.item);
-    if (!item) return;
-    openedTaskRef.current = deepLink.task;
-    setTaskDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title });
-  }, [deepLink.task, deepLink.item, project]);
+  useScrollToAnchor(deepLink.task ? `task-${deepLink.task}` : null, !!project);
 
   // After a task is ticked, the toast can open that step's comment box.
   const [commentPrompt, setCommentPrompt] = useState<{ itemId: string; at: number } | null>(null);
@@ -563,6 +557,7 @@ export const ChecklistDialog = ({
                                       return (
                                         <div
                                           key={task.id}
+                                          id={`task-${task.id}`}
                                           className="group flex items-center gap-2 rounded-md border border-border/50 bg-card px-2 py-1.5 transition-colors hover:border-primary/30"
                                         >
                                           <Checkbox
