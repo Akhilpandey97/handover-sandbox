@@ -12,7 +12,6 @@ export interface ChecklistTask {
   title: string;
   description: string | null;
   status: "open" | "in_progress" | "done";
-  priority: "low" | "medium" | "high";
   assigned_to: string | null;
   due_date: string | null;
   created_by: string | null;
@@ -63,7 +62,6 @@ export const useAddChecklistTask = () => {
       project_id: string;
       title: string;
       description?: string;
-      priority?: string;
       assigned_to?: string;
       due_date?: string;
       project_name?: string;
@@ -75,7 +73,6 @@ export const useAddChecklistTask = () => {
         .insert({
           ...payload,
           status: "open",
-          priority: task.priority || "medium",
           created_by: currentUser?.name || "Unknown",
           tenant_id: currentUser?.tenantId || null,
         })

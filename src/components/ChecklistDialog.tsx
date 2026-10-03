@@ -31,9 +31,10 @@ import { ChecklistCommentThread } from "@/components/ChecklistCommentThread";
 import { ChecklistFormDialog } from "@/components/ChecklistFormDialog";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
+import { ChecklistItemMeetings } from "@/components/ChecklistItemMeetings";
 import { useChecklistTasks, useAddChecklistTask, useUpdateChecklistTask, useDeleteChecklistTask } from "@/hooks/useChecklistTasks";
 import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
-import { CheckCircle2, ClipboardList, Minus, FileText, ListTodo, Trash2, Calendar, Flag, Video, Building2, Users, Plus } from "lucide-react";
+import { CheckCircle2, ClipboardList, Minus, FileText, ListTodo, Trash2, Calendar, Video, Building2, Users, Plus } from "lucide-react";
 
 interface ChecklistDialogProps {
   project: Project | null;
@@ -240,12 +241,6 @@ export const ChecklistDialog = ({
     if (newParty && (newParty === "gokwik" || newParty === "merchant" || newParty === "neutral")) {
       toggleChecklistResponsibility(project.id, checklistId, newParty as ResponsibilityParty);
     }
-  };
-
-  const priorityColors: Record<string, string> = {
-    low: "text-success-strong bg-success/10",
-    medium: "text-warning-strong bg-warning/10",
-    high: "text-destructive-strong bg-destructive/10",
   };
 
   return (
@@ -522,16 +517,18 @@ export const ChecklistDialog = ({
                             </div>
                           </div>
 
-                          {/* Inline Sub-tasks Section */}
+                          {/* Inline sub-tasks and meetings, side by side */}
                           {(() => {
                             const itemTasks = allTasks.filter(t => t.checklist_item_id === item.id);
-                            const hasSubTasks = itemTasks.length > 0;
+                            const itemMeetings = allMeetings.filter(m => m.checklist_item_id === item.id);
+                            const hasSubTasks = itemTasks.length > 0 || itemMeetings.length > 0;
 
                             return (
-                              // Sub-tasks show only when there are some, or while one is being added.
-                              // Everything else is reachable from Tasks on the row above.
+                              // The box shows only when the step has something under it.
+                              // Everything else is reachable from the row above.
                               !hasSubTasks ? null : (
-                                <div className="mt-3 rounded-lg border border-border/60 bg-muted/20 p-2">
+                                <div className="mt-3 grid gap-2 rounded-lg border border-border/60 bg-muted/20 p-2 md:grid-cols-2">
+                                  <div className="min-w-0">
                                   {/* Sub-tasks belong to the step above; say so, and say how many are left. */}
                                   <div className="mb-1.5 flex items-center gap-2 px-1">
                                     <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
@@ -591,10 +588,6 @@ export const ChecklistDialog = ({
                                           <span className={`flex-1 truncate text-sm ${task.status === "done" ? "text-muted-foreground line-through" : "text-foreground"}`}>
                                             {task.title}
                                           </span>
-                                          <Badge variant="outline" className={`shrink-0 px-1.5 py-0 text-2xs ${priorityColors[task.priority] || ""}`}>
-                                            <Flag className="mr-0.5 h-2.5 w-2.5" />
-                                            {task.priority}
-                                          </Badge>
                                           {task.assigned_to && (
                                             <span className="shrink-0 text-2xs text-muted-foreground">
                                               {profiles.find(p => p.id === task.assigned_to)?.name || task.assigned_to}
@@ -618,6 +611,43 @@ export const ChecklistDialog = ({
                                         </div>
                                       );
                                     })}
+                                  </div>
+                                  </div>
+
+                                  {/* Meetings for the same step, with the minutes they produced. */}
+                                  <div className="min-w-0 md:border-l md:border-border/60 md:pl-2">
+                                    <div className="mb-1.5 flex items-center gap-2 px-1">
+                                      <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                        Meetings
+                                      </span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {itemMeetings.length}
+                                      </span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="ml-auto h-6 gap-1 px-2 text-xs"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setMeetingDialogState({
+                                            open: true,
+                                            checklistItemId: item.id,
+                                            checklistItemTitle: item.title,
+                                          });
+                                        }}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                        Schedule
+                                      </Button>
+                                    </div>
+                                    {itemMeetings.length === 0 ? (
+                                      <p className="px-1 py-2 text-xs text-muted-foreground">
+                                        No meetings for this step yet.
+                                      </p>
+                                    ) : (
+                                      <ChecklistItemMeetings meetings={itemMeetings} />
+                                    )}
                                   </div>
                                 </div>
                               )
@@ -660,7 +690,6 @@ export const ChecklistDialog = ({
             checklistItemTitle={taskDialogState.checklistItemTitle}
             projectId={project.id}
             profiles={profiles}
-            startAdding
           />
         )}
 
@@ -675,7 +704,6 @@ export const ChecklistDialog = ({
             checklistItemTitle={meetingDialogState.checklistItemTitle}
             projectId={project.id}
             projectName={project.merchantName}
-            startAdding
           />
         )}
     </Shell>

@@ -122,7 +122,7 @@ async function handler(req: Request): Promise<Response> {
         .eq("project_id", projectId),
       supabase
         .from("checklist_tasks")
-        .select("id, title, description, status, priority, due_date, assigned_to, checklist_item_id, created_at")
+        .select("id, title, description, status, due_date, assigned_to, checklist_item_id, created_at")
         .eq("project_id", projectId),
       supabase
         .from("project_responsibility_logs")

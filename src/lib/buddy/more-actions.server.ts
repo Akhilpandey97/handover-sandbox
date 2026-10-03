@@ -30,7 +30,6 @@ const RISK_CATEGORIES: Record<string, string> = {
   project_viability: "Project viability",
 };
 const SEVERITIES: Record<string, string> = { low: "Low", medium: "Medium", high: "High", critical: "Critical" };
-const PRIORITIES: Record<string, string> = { low: "Low", medium: "Medium", high: "High" };
 const PROVIDERS: Record<string, string> = { google_meet: "Google Meet", zoom: "Zoom", teams: "Microsoft Teams" };
 
 const cleanEmails = (v: unknown): string[] =>
@@ -151,7 +150,6 @@ const MORE: Record<string, ActionDef> = {
       const { item, project } = await loadItem(c, p.checklist_item_id);
       if (!p.title) fail("The task needs a title.");
       const assignee = p.assignee_id ? await loadPerson(c, p.assignee_id) : null;
-      const priority = PRIORITIES[p.priority] ? p.priority : "medium";
       return {
         action: "add_task",
         title: "Add task",
@@ -161,7 +159,6 @@ const MORE: Record<string, ActionDef> = {
           { label: "Under", after: item.title },
           { label: "Assigned to", after: assignee?.name || "Nobody yet" },
           { label: "Due", after: p.due_date ? fmt(p.due_date) : "No date" },
-          { label: "Priority", after: PRIORITIES[priority]! },
           ...(p.description ? [{ label: "Details", after: String(p.description) }] : []),
         ],
         notes: assignee ? [`${assignee.name} gets a notification.`] : undefined,
@@ -182,7 +179,6 @@ const MORE: Record<string, ActionDef> = {
           description: p.description || null,
           assigned_to: assignee?.id || null,
           due_date: p.due_date || null,
-          priority: PRIORITIES[p.priority] ? p.priority : "medium",
           status: "open",
           created_by: c.name,
           tenant_id: c.tenantId,
@@ -674,7 +670,6 @@ const MORE_DEFS: any[] = [
           description: { type: "string" },
           assignee_id: { type: "string" },
           due_date: { type: "string", description: "YYYY-MM-DD" },
-          priority: { type: "string", enum: ["low", "medium", "high"] },
         },
         required: ["checklist_item_id", "title"],
       },

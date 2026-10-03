@@ -243,7 +243,7 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
   const today = todayIso();
   const [items, tasks, risks, transfers, notes, meetings, jira] = await Promise.all([
     caller.client.from("checklist_items").select("id, title, phase, owner_team, completed, completed_at, due_date, current_responsibility").eq("tenant_id", caller.tenantId).eq("project_id", id).order("sort_order", { ascending: true }),
-    caller.client.from("checklist_tasks").select("id, checklist_item_id, title, status, priority, due_date, assigned_to").eq("tenant_id", caller.tenantId).eq("project_id", id).order("created_at", { ascending: false }).limit(60),
+    caller.client.from("checklist_tasks").select("id, checklist_item_id, title, status, due_date, assigned_to").eq("tenant_id", caller.tenantId).eq("project_id", id).order("created_at", { ascending: false }).limit(60),
     caller.client.from("project_risks").select("title, severity, category, status, description, mitigation_plan, mitigation_due_at").eq("tenant_id", caller.tenantId).eq("project_id", id).in("status", ["open", "mitigating"]).limit(20),
     caller.client.from("transfer_history").select("from_team, to_team, transferred_by, transferred_at, accepted_at, notes").eq("tenant_id", caller.tenantId).eq("project_id", id).order("transferred_at", { ascending: false }).limit(5),
     caller.client.from("project_comment_logs").select("field_name, content, author_name, created_at").eq("tenant_id", caller.tenantId).eq("project_id", id).order("created_at", { ascending: false }).limit(8),
@@ -321,7 +321,6 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
         task_id: t.id,
         title: t.title,
         status: TASK_STATUS_LABELS[t.status] || t.status,
-        priority: t.priority,
         due: t.due_date,
         assigned_to: owners.get(t.assigned_to) || (t.assigned_to ? "Someone" : "Nobody"),
         under_item: itemTitle.get(t.checklist_item_id) || null,

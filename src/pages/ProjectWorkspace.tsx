@@ -479,12 +479,13 @@ const PanelRow = ({
     </>
   );
   return (
-    <div className="grid grid-cols-[minmax(96px,42%)_minmax(0,1fr)] items-start gap-3 border-b border-border/50 py-2 last:border-b-0">
-      <dt className="flex items-start gap-1.5 text-sm leading-5 text-muted-foreground">
-        {Icon ? <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : null}
+    <div className="grid grid-cols-[minmax(88px,42%)_minmax(0,1fr)] items-start gap-2.5 border-b border-border/50 py-1.5 last:border-b-0">
+      {/* A notch under the section headings, so the panel reads quieter than its titles. */}
+      <dt className="flex items-start gap-1.5 text-[12.6px] leading-[1.45] text-muted-foreground">
+        {Icon ? <Icon className="mt-0.5 h-3 w-3 shrink-0" /> : null}
         <span className="min-w-0 break-words">{label}</span>
       </dt>
-      <dd className="min-w-0 text-sm">
+      <dd className="min-w-0 text-[12.6px] leading-[1.45]">
         {children ? (
           children
         ) : onEdit ? (
@@ -939,7 +940,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     <SelectTrigger
                       aria-label={getLabel("field_project_state")}
                       className={cn(
-                        "h-7 w-auto gap-1.5 rounded-full border-0 px-3 text-sm font-medium shadow-none focus:ring-1",
+                        "h-6 w-auto gap-1.5 rounded-full border-0 px-2.5 text-[12.6px] font-medium shadow-none focus:ring-1",
                         stateSelectToneMap[project.projectState],
                       )}
                     >
@@ -983,7 +984,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             </PanelSection>
 
             {/* Who is on it, on both sides. */}
-            <PanelSection title="People" defaultOpen>
+            <PanelSection title="People">
               <dl className="text-xs">
                 <PanelRow
                   label={getLabel("field_assigned_owner")}

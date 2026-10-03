@@ -4,19 +4,12 @@ import { useChecklistTasks, useUpdateChecklistTask } from "@/hooks/useChecklistT
 import { useProfilesLookup } from "@/hooks/useLookups";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Flag, ListTodo, Plus } from "lucide-react";
+import { Calendar, ListTodo, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const shortDate = (value: string | Date) =>
   new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-
-const priorityTone: Record<string, string> = {
-  high: "border-destructive/30 bg-destructive-soft text-destructive-strong",
-  medium: "border-warning/30 bg-warning-soft text-warning-strong",
-  low: "border-border bg-muted text-muted-foreground",
-};
 
 /**
  * Every task on the project in one place, grouped by the checklist step it belongs to.
@@ -126,10 +119,6 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                     >
                       {task.title}
                     </span>
-                    <Badge variant="outline" className={cn("shrink-0 px-1.5 py-0 text-2xs", priorityTone[task.priority])}>
-                      <Flag className="mr-0.5 h-2.5 w-2.5" />
-                      {task.priority}
-                    </Badge>
                     {task.assigned_to && (
                       <span className="shrink-0 text-2xs text-muted-foreground">
                         {profiles.find((p) => p.id === task.assigned_to)?.name || "Assigned"}

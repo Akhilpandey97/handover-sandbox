@@ -113,7 +113,7 @@ async function handler(req: Request): Promise<Response> {
 
     const { data: tasks } = await supabase
       .from("checklist_tasks")
-      .select("title, status, priority, due_date, checklist_item_id")
+      .select("title, status, due_date, checklist_item_id")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false })
       .limit(40);
@@ -155,7 +155,7 @@ Overdue count: ${overdue.length}
 Recently completed: ${done.slice(-6).map((i) => i.title).join(", ") || "none"}
 
 Sub-tasks:
-${(tasks || []).slice(0, 20).map((t: any) => `- [${t.status}/${t.priority}] ${t.title}${t.due_date ? ` (due ${t.due_date})` : ""} on "${titleById.get(t.checklist_item_id) || "?"}"`).join("\n") || "- none"}
+${(tasks || []).slice(0, 20).map((t: any) => `- [${t.status}] ${t.title}${t.due_date ? ` (due ${t.due_date})` : ""} on "${titleById.get(t.checklist_item_id) || "?"}"`).join("\n") || "- none"}
 
 Latest checklist comments (newest first):
 ${comments.slice(0, 15).map((c) => `- ${c.created_at.slice(0, 10)} ${c.user_name} on "${titleById.get(c.checklist_item_id) || "?"}": ${c.comment.replace(/\s+/g, " ").slice(0, 240)}`).join("\n") || "- none"}`;
