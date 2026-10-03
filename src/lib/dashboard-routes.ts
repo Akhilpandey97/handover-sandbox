@@ -126,7 +126,11 @@ export const pathForTab = (tab: string, opts: PathOptions = {}): string => {
     return `/reports/${opts.reportSubTab}`;
   }
 
-  if (tab === "settings") return `/settings/${opts.settingsSubTab || DEFAULT_SETTINGS_SUB_TAB}`;
+  if (tab === "settings") {
+    // No explicit sub-tab means the plain /settings landing URL.
+    if (!opts.settingsSubTab) return "/settings";
+    return `/settings/${opts.settingsSubTab}`;
+  }
 
   return SIMPLE_TAB_PATHS[tab] || SIMPLE_TAB_PATHS["dashboard"]!;
 };
@@ -134,9 +138,9 @@ export const pathForTab = (tab: string, opts: PathOptions = {}): string => {
 const EMPTY: DashboardLocation = {
   tab: "",
   projectView: DEFAULT_PROJECT_VIEW,
-  reportSubTab: DEFAULT_REPORT_SUB_TAB,
+  reportSubTab: "",
   reportType: DEFAULT_REPORT_TYPE,
-  settingsSubTab: DEFAULT_SETTINGS_SUB_TAB,
+  settingsSubTab: "",
 };
 
 /** `tab: ""` means "not a dashboard path" — the caller resolves a default. */
@@ -151,9 +155,9 @@ export const parseDashboardPath = (pathname: string): DashboardLocation => {
   }
 
   if (first === "reports") {
-    const sub = (REPORT_SUB_TABS as readonly string[]).includes(second || "")
-      ? second!
-      : DEFAULT_REPORT_SUB_TAB;
+    // No segment, or one we do not know, lands on the card index rather than
+    // guessing which report the user meant.
+    const sub = (REPORT_SUB_TABS as readonly string[]).includes(second || "") ? second! : "";
     const type = (PREDEFINED_REPORT_TYPES as readonly string[]).includes(third || "")
       ? third!
       : DEFAULT_REPORT_TYPE;
@@ -161,9 +165,7 @@ export const parseDashboardPath = (pathname: string): DashboardLocation => {
   }
 
   if (first === "settings") {
-    const sub = (SETTINGS_SUB_TABS as readonly string[]).includes(second || "")
-      ? second!
-      : DEFAULT_SETTINGS_SUB_TAB;
+    const sub = (SETTINGS_SUB_TABS as readonly string[]).includes(second || "") ? second! : "";
     return { ...EMPTY, tab: "settings", settingsSubTab: sub };
   }
 

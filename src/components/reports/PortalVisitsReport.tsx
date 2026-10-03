@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Search, Eye } from "lucide-react";
+import { Download, Search, Eye, CalendarRange } from "lucide-react";
 
 interface VisitRow {
   id: string;
@@ -19,6 +19,16 @@ interface VisitRow {
 }
 
 interface ProjectMini { id: string; merchant_name: string; mid: string | null }
+
+type RangeKey = "7" | "30" | "90" | "all" | "custom";
+
+const RANGES: { key: RangeKey; label: string }[] = [
+  { key: "7", label: "7 days" },
+  { key: "30", label: "30 days" },
+  { key: "90", label: "90 days" },
+  { key: "all", label: "All time" },
+  { key: "custom", label: "Custom" },
+];
 
 const PAGE_LABEL: Record<string, string> = {
   login: "Login",
@@ -39,7 +49,10 @@ export function PortalVisitsReport() {
   const [projects, setProjects] = useState<Record<string, ProjectMini>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [range, setRange] = useState<RangeKey>("30");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [pageFilter, setPageFilter] = useState<string>("all");
 
   useEffect(() => {
     (async () => {
@@ -64,9 +77,28 @@ export function PortalVisitsReport() {
     })();
   }, [tenantId]);
 
+  // The window the range picker describes, as [start, end) in epoch ms.
+  const bounds = useMemo(() => {
+    if (range === "custom") {
+      return {
+        start: from ? new Date(`${from}T00:00:00`).getTime() : null,
+        end: to ? new Date(`${to}T23:59:59.999`).getTime() : null,
+      };
+    }
+    if (range === "all") return { start: null, end: null };
+    const days = Number(range);
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - (days - 1));
+    return { start: start.getTime(), end: null };
+  }, [range, from, to]);
+
   const filtered = useMemo(() => {
     return visits.filter(v => {
-      if (projectFilter !== "all" && v.project_id !== projectFilter) return false;
+      const at = new Date(v.visited_at).getTime();
+      if (bounds.start !== null && at < bounds.start) return false;
+      if (bounds.end !== null && at > bounds.end) return false;
+      if (pageFilter !== "all" && v.page !== pageFilter) return false;
       if (search) {
         const s = search.toLowerCase();
         const merchant = projects[v.project_id]?.merchant_name?.toLowerCase() || "";
@@ -74,12 +106,20 @@ export function PortalVisitsReport() {
       }
       return true;
     });
-  }, [visits, search, projectFilter, projects]);
+  }, [visits, search, pageFilter, bounds, projects]);
 
-  const projectOptions = useMemo(() => {
-    const ids = Array.from(new Set(visits.map(v => v.project_id)));
-    return ids.map(id => ({ id, name: projects[id]?.merchant_name || id.slice(0, 8) }));
-  }, [visits, projects]);
+  const pageOptions = useMemo(
+    () => Array.from(new Set(visits.map(v => v.page))).sort(),
+    [visits],
+  );
+
+  // What the numbers under the filters describe: how much of the traffic in this
+  // window came from distinct people and distinct merchants.
+  const summary = useMemo(() => ({
+    visits: filtered.length,
+    people: new Set(filtered.map(v => v.email.toLowerCase())).size,
+    merchants: new Set(filtered.map(v => v.project_id)).size,
+  }), [filtered]);
 
   const exportCsv = () => {
     const header = ["Visited At", "Email", merchantLabel, getLabel("field_mid"), "Page"];
@@ -101,18 +141,53 @@ export function PortalVisitsReport() {
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle className="portal-heading flex items-center gap-2"><Eye className="w-4 h-4" /> {merchantLabel} Portal Visits</CardTitle>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search email, merchant, page..." className="pl-8 h-9 w-64" />
+        <CardHeader className="space-y-3">
+          <div className="flex flex-row items-center justify-between gap-2">
+            <CardTitle className="portal-heading flex items-center gap-2"><Eye className="w-4 h-4" /> {merchantLabel} Portal Visits</CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search email, merchant, page..." className="pl-8 h-9 w-64" />
+              </div>
+              <Button size="sm" variant="outline" onClick={exportCsv}><Download className="w-3.5 h-3.5 mr-1" /> Export</Button>
             </div>
-            <select value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} className="h-9 rounded-md border bg-background px-2 text-sm">
-              <option value="all">All projects</option>
-              {projectOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </div>
+
+          {/* When, and which page — the two questions this report gets asked. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <CalendarRange className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <div className="flex items-center gap-1" role="group" aria-label="Date range">
+              {RANGES.map(({ key, label }) => (
+                <Button
+                  key={key}
+                  size="sm"
+                  variant={range === key ? "default" : "outline"}
+                  className="h-8 px-2.5 text-xs"
+                  onClick={() => setRange(key)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+            {range === "custom" && (
+              <div className="flex items-center gap-1.5">
+                <Input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} className="h-8 w-36 text-xs" aria-label="From date" />
+                <span className="text-xs text-muted-foreground">to</span>
+                <Input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} className="h-8 w-36 text-xs" aria-label="To date" />
+              </div>
+            )}
+            <select
+              value={pageFilter}
+              onChange={(e) => setPageFilter(e.target.value)}
+              aria-label="Page"
+              className="h-8 rounded-md border bg-background px-2 text-xs"
+            >
+              <option value="all">All pages</option>
+              {pageOptions.map(p => <option key={p} value={p}>{PAGE_LABEL[p] || p}</option>)}
             </select>
-            <Button size="sm" variant="outline" onClick={exportCsv}><Download className="w-3.5 h-3.5 mr-1" /> Export</Button>
+            <span className="ml-auto text-xs text-muted-foreground">
+              {summary.visits} visits · {summary.people} people · {summary.merchants} {merchantLabel.toLowerCase()}
+            </span>
           </div>
         </CardHeader>
         <CardContent>

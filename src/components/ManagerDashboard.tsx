@@ -97,6 +97,22 @@ import {
   ArchiveRestore,
   MessageCircle,
   Filter,
+  Tag,
+  ListPlus,
+  ClipboardList,
+  Palette,
+  Table2,
+  History,
+  Bot,
+  Bell,
+  Plug,
+  LayoutDashboard,
+  FileStack,
+  Wrench,
+  FlaskConical,
+  Eye,
+  CalendarRange,
+  type LucideIcon,
 } from "lucide-react";
 import { exportProjectsToCSV } from "@/utils/exportProjects";
 import { exportProjectChecklistCSV, exportTeamOwnerCSV } from "@/utils/reportExportCSV";
@@ -140,6 +156,41 @@ import { arrToCrore, formatArrCr } from "@/lib/arr";
 import { openProjectInNewTab } from "@/lib/open-project";
 
 // All nav items that can be toggled
+/**
+ * A section's sub-pages as cards, in place of a second list in the sidebar.
+ *
+ * Reports and Settings both hold a dozen-odd pages. Unfolded in the nav they pushed
+ * everything else down and gave no room to say what each one does; as cards they get
+ * a line of description and the sidebar stays one level deep.
+ */
+const SubTabCardGrid = ({
+  items,
+  onSelect,
+}: {
+  items: { key: string; label: string; icon: LucideIcon; description: string }[];
+  onSelect: (key: string) => void;
+}) => (
+  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    {items.map(({ key, label, icon: Icon, description }) => (
+      <button
+        key={key}
+        type="button"
+        onClick={() => onSelect(key)}
+        className="group flex h-full flex-col rounded-lg border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-primary">
+            <Icon className="h-4 w-4" />
+          </span>
+          <span className="portal-heading truncate text-sm">{label}</span>
+          <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+        </div>
+        <p className="mt-2 line-clamp-2 text-2xs leading-4 text-muted-foreground">{description}</p>
+      </button>
+    ))}
+  </div>
+);
+
 const ALL_NAV_ITEMS = [
   "dashboard",
   "projects",
@@ -188,6 +239,7 @@ export const ManagerDashboard = () => {
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
   const [searchQuery, setSearchQuery] = useState("");
+  const [archivedSearch, setArchivedSearch] = useState("");
   // Search is an icon in the sidebar that reveals its input, rather than a
   // permanent field in a global bar.
   const [searchOpen, setSearchOpen] = useState(false);
@@ -264,8 +316,6 @@ export const ManagerDashboard = () => {
   const [lvGoLiveTo, setLvGoLiveTo] = useState<string>("");
 
   // Sidebar expand state for sub-menus
-  const [reportsExpanded, setReportsExpanded] = useState(false);
-  const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // List view column selection
@@ -836,35 +886,35 @@ export const ManagerDashboard = () => {
     "hi-there": { icon: <span className="animate-wave text-base leading-none">👋</span>, label: "Buddy" },
   };
 
-  const SETTINGS_SUB_CONFIG: Record<string, { label: string }> = {
-    general: { label: "General" },
-    fields: { label: "Field Labels" },
-    "custom-fields": { label: "Custom Fields" },
-    "checklist-forms": { label: "Checklist Forms" },
-    checklist: { label: "Checklist" },
-    users: { label: "Users" },
-    colours: { label: "Colours" },
-    email: { label: "Add New Projects" },
-    workflows: { label: "AI Workflows" },
-    "pivot-table": { label: "Pivot Table" },
-    funnel: { label: "Project Stages" },
-    "risk-rules": { label: "Risk Rules" },
-    "activity-log": { label: "Activity Log" },
-    buddy: { label: "Buddy" },
-    "slack-alerts": { label: "Slack Alerts" },
-    integrations: { label: "Integrations" },
-    navigation: { label: "Navigation" },
+  const SETTINGS_SUB_CONFIG: Record<string, { label: string; icon: LucideIcon; description: string }> = {
+    general: { label: "General", icon: Settings, description: "Workspace name, logo and the basics everything else inherits." },
+    fields: { label: "Field Labels", icon: Tag, description: "Rename the fields so the app speaks your team's words." },
+    "custom-fields": { label: "Custom Fields", icon: ListPlus, description: "Fields of your own, on every project." },
+    "checklist-forms": { label: "Checklist Forms", icon: ClipboardList, description: "Forms a checklist step can ask people to fill in." },
+    checklist: { label: "Checklist", icon: ListChecks, description: "The steps every project runs through, and who owns them." },
+    users: { label: "Users", icon: Users, description: "Who gets in, and what they are allowed to do." },
+    colours: { label: "Colours", icon: Palette, description: "The brand colour the whole workspace is drawn in." },
+    email: { label: "Add New Projects", icon: Mail, description: "Create projects from an inbox or an upload." },
+    workflows: { label: "AI Workflows", icon: Sparkles, description: "What the AI drafts, summarises and watches for." },
+    "pivot-table": { label: "Pivot Table", icon: Table2, description: "The dimensions and measures the pivot offers." },
+    funnel: { label: "Project Stages", icon: Filter, description: "The stages a project moves through on its way live." },
+    "risk-rules": { label: "Risk Rules", icon: ShieldAlert, description: "What counts as a project needing attention." },
+    "activity-log": { label: "Activity Log", icon: History, description: "Everything that happened, and who did it." },
+    buddy: { label: "Buddy", icon: Bot, description: "How the assistant behaves and what it may change." },
+    "slack-alerts": { label: "Slack Alerts", icon: Bell, description: "Which events reach Slack, and in which channel." },
+    integrations: { label: "Integrations", icon: Plug, description: "Jira, meetings, email and the keys that connect them." },
+    navigation: { label: "Navigation", icon: LayoutDashboard, description: "Which items the sidebar shows." },
   };
 
-  const REPORTS_SUB_CONFIG: Record<string, { label: string; icon?: string }> = {
-    predefined: { label: "Pre Defined" },
-    builder: { label: "Report Builder" },
-    scheduler: { label: "Scheduler" },
-    "pivot-table": { label: "Pivot Table" },
-    sandbox: { label: "Sandbox Testing" },
-    "portal-visits": { label: "Portal Visits" },
-    "daily-report": { label: "Daily Report" },
-    "weekly-report": { label: "Weekly Report" },
+  const REPORTS_SUB_CONFIG: Record<string, { label: string; icon: LucideIcon; description: string }> = {
+    predefined: { label: "Pre Defined", icon: FileStack, description: "The standing reports: executive, operational, merchant and more." },
+    builder: { label: "Report Builder", icon: Wrench, description: "Build a report from the fields you care about." },
+    scheduler: { label: "Scheduler", icon: Clock, description: "Send a report on a schedule, to whoever needs it." },
+    "pivot-table": { label: "Pivot Table", icon: Table2, description: "Slice projects by any two dimensions." },
+    sandbox: { label: "Sandbox Testing", icon: FlaskConical, description: "Try a report against sample data before you trust it." },
+    "portal-visits": { label: "Portal Visits", icon: Eye, description: "Who opened the merchant portal, and what they looked at." },
+    "daily-report": { label: "Daily Report", icon: CalendarDays, description: "What moved yesterday, in one page." },
+    "weekly-report": { label: "Weekly Report", icon: CalendarRange, description: "The week's movement, wins and slippage." },
   };
 
   const handleTabDragStart = (tab: string) => setDraggedTab(tab);
@@ -985,6 +1035,8 @@ export const ManagerDashboard = () => {
     .filter(tab => !["listview", "kanban", "calendar", "checklist", "users", "golive"].includes(tab))
     .filter(tab => tab !== "tenants" || currentUser?.team === "super_admin")
     .filter(tab => tab !== "archived" || isManagerOrAdmin)
+    // Settings belongs to admins; managers run projects, not the workspace.
+    .filter(tab => tab !== "settings" || perms.canManageSettings)
     .filter(tab => TAB_CONFIG[tab])
     .filter(tab => navVisibility[tab] !== false || tab === "tenants" || tab === "settings" || tab === "archived")
     .filter(tab => !isGokwikGeneral || GOKWIK_GENERAL_TABS.includes(tab) || tab === "hi-there")
@@ -1002,100 +1054,38 @@ export const ManagerDashboard = () => {
     navigate({ to: pathForTab(tab) });
   };
 
-  // Render a single nav item
+  // Render a single nav item. Reports and Settings are plain destinations: each
+  // opens a page of cards rather than unfolding a second list in the sidebar.
   const renderNavItem = (tab: string) => {
-    const isReports = tab === "reports";
-    const isSettings = tab === "settings";
     const isActive = activeTab === tab;
-    const isParentActive = isActive || (isReports && reportsExpanded) || (isSettings && settingsExpanded);
 
     return (
       <div key={tab}>
         <button
-          onClick={() => {
-            if (isReports) {
-              setReportsExpanded(!reportsExpanded);
-              if (!reportsExpanded) { openTab("reports"); }
-            } else if (isSettings) {
-              setSettingsExpanded(!settingsExpanded);
-              if (!settingsExpanded) { openTab("settings"); }
-            } else {
-              openTab(tab);
-            }
-          }}
+          onClick={() => openTab(tab)}
           draggable
           onDragStart={() => handleTabDragStart(tab)}
           onDragOver={(e) => handleTabDragOver(e, tab)}
           onDragEnd={handleTabDragEnd}
           className={cn(
             "w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all duration-200 text-left group",
-            isActive && !isReports && !isSettings
+            isActive
               ? "gradient-primary text-primary-foreground shadow-[var(--shadow-soft)]"
-              : isParentActive
-              ? "bg-primary/20 text-sidebar-foreground font-semibold"
               : "hover:bg-sidebar-accent/60 text-sidebar-foreground",
             draggedTab === tab ? "opacity-50" : ""
           )}
         >
           <span className={cn(
             "flex items-center justify-center h-7 w-7 rounded-md shrink-0 transition-colors",
-            isActive && !isReports && !isSettings
+            isActive
               ? "bg-primary-foreground/20 text-primary-foreground"
-              : isParentActive
-              ? "bg-primary/10 text-primary"
               : "bg-sidebar-accent text-sidebar-foreground group-hover:text-sidebar-foreground"
           )}>
             {TAB_CONFIG[tab].icon}
           </span>
           <span className="font-medium text-sm flex-1">{TAB_CONFIG[tab].label}</span>
-          {(isReports || isSettings) && (
-            <ChevronDown className={cn(
-              "h-4 w-4 transition-transform duration-200",
-              (isReports ? reportsExpanded : settingsExpanded) ? "rotate-180" : ""
-            )} />
-          )}
         </button>
 
-        {/* Reports sub-menu */}
-        {isReports && reportsExpanded && (
-          <div className="ml-4 mt-0.5 mb-1 space-y-0.5 border-l border-sidebar-border/60 pl-2">
-            {Object.entries(REPORTS_SUB_CONFIG).filter(([key]) => navVisibility[`reports:${key}`] !== false).map(([key, cfg]) => (
-              <button
-                key={key}
-                onClick={() => navigate({ to: pathForTab("reports", { reportSubTab: key, reportType }) })}
-                className={cn(
-                  "w-full flex items-center gap-2 text-left px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-150",
-                  reportSubTab === key && activeTab === "reports"
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
-                )}
-              >
-                {cfg.icon && <span className="text-base">{cfg.icon}</span>}
-                {cfg.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Settings sub-menu */}
-        {isSettings && settingsExpanded && (
-          <div className="ml-4 mt-0.5 mb-1 space-y-0.5 border-l border-sidebar-border/60 pl-2">
-            {Object.entries(SETTINGS_SUB_CONFIG).filter(([key]) => (key === "navigation" || navVisibility[`settings:${key}`] !== false) && (!ADMIN_ONLY_SETTINGS.includes(key) || perms.canManageUsers)).map(([key, { label }]) => (
-              <button
-                key={key}
-                onClick={() => navigate({ to: pathForTab("settings", { settingsSubTab: key }) })}
-                className={cn(
-                  "w-full flex items-center gap-2 text-left px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-150",
-                  settingsSubTab === key && activeTab === "settings"
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-sidebar-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     );
   };
@@ -2103,6 +2093,29 @@ export const ManagerDashboard = () => {
 
           {/* ========= REPORTS TAB ========= */}
           {activeTab === "reports" && <div className="space-y-6">
+            {/* No sub-tab chosen: the reports themselves, as cards. */}
+            {!reportSubTab && (
+              <SubTabCardGrid
+                items={Object.entries(REPORTS_SUB_CONFIG)
+                  .filter(([key]) => navVisibility[`reports:${key}`] !== false)
+                  .map(([key, cfg]) => ({ key, ...cfg }))}
+                onSelect={(key) => navigate({ to: pathForTab("reports", { reportSubTab: key, reportType }) })}
+              />
+            )}
+
+            {/* Inside a report, the way back to the rest of them. */}
+            {reportSubTab && (
+              <button
+                type="button"
+                onClick={() => navigate({ to: pathForTab("reports") })}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                All reports
+                <span className="text-foreground">· {REPORTS_SUB_CONFIG[reportSubTab]?.label}</span>
+              </button>
+            )}
+
             {/* Sub-tab: Pre Defined */}
                   {reportSubTab === "predefined" && (
                     <div className="space-y-4">
@@ -2380,7 +2393,32 @@ export const ManagerDashboard = () => {
 
           {/* Settings Tab */}
           {activeTab === "settings" && <div className="space-y-6">
-            {ADMIN_ONLY_SETTINGS.includes(settingsSubTab) && !perms.canManageUsers ? (
+            {/* Inside one setting, the way back to the rest of them. */}
+            {perms.canManageSettings && settingsSubTab && (
+              <button
+                type="button"
+                onClick={() => navigate({ to: pathForTab("settings") })}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                All settings
+                <span className="text-foreground">· {SETTINGS_SUB_CONFIG[settingsSubTab]?.label}</span>
+              </button>
+            )}
+
+            {!perms.canManageSettings ? (
+              <NoAccessCard />
+            ) : !settingsSubTab ? (
+              <SubTabCardGrid
+                items={Object.entries(SETTINGS_SUB_CONFIG)
+                  .filter(([key]) =>
+                    (key === "navigation" || navVisibility[`settings:${key}`] !== false) &&
+                    (!ADMIN_ONLY_SETTINGS.includes(key) || perms.canManageUsers),
+                  )
+                  .map(([key, cfg]) => ({ key, ...cfg }))}
+                onSelect={(key) => navigate({ to: pathForTab("settings", { settingsSubTab: key }) })}
+              />
+            ) : ADMIN_ONLY_SETTINGS.includes(settingsSubTab) && !perms.canManageUsers ? (
               <NoAccessCard />
             ) : settingsSubTab === "checklist" ? (
               <ChecklistManagement />
@@ -2481,7 +2519,14 @@ export const ManagerDashboard = () => {
           {/* Archived Projects Tab (Manager / Super Admin only) */}
           {activeTab === "archived" && !isManagerOrAdmin && <NoAccessCard />}
           {activeTab === "archived" && isManagerOrAdmin && (() => {
-            const archivedProjects = projects.filter(p => p.archived);
+            const all = projects.filter(p => p.archived);
+            const q = archivedSearch.trim().toLowerCase();
+            const archivedProjects = q
+              ? all.filter(p =>
+                  [p.merchantName, p.mid, p.platform, p.assignedOwnerName, p.projectState]
+                    .some(field => (field || "").toLowerCase().includes(q)),
+                )
+              : all;
             return (
               <div className="space-y-4">
                 <Card className="flex min-h-0 flex-1 flex-col overflow-hidden shadow-sm border-border">
@@ -2490,17 +2535,33 @@ export const ManagerDashboard = () => {
                       <CardTitle className="portal-heading flex items-center gap-2">
                         <Archive className="h-5 w-5 text-primary" />
                         Archived Projects
-                        <Badge variant="secondary" className="ml-1">{archivedProjects.length}</Badge>
+                        <Badge variant="secondary" className="ml-1">
+                          {q ? `${archivedProjects.length} of ${all.length}` : all.length}
+                        </Badge>
                       </CardTitle>
-                      <p className="text-xs text-muted-foreground">Archived projects are hidden from all other views. Restore them to make them active again.</p>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            value={archivedSearch}
+                            onChange={(e) => setArchivedSearch(e.target.value)}
+                            placeholder="Search name, MID, platform, owner..."
+                            aria-label="Search archived projects"
+                            className="h-9 w-72 pl-8"
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">Archived projects are hidden from all other views. Restore them to make them active again.</p>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
                     {archivedProjects.length === 0 ? (
                       <div className="text-center py-20">
                         <Archive className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-                        <h3 className="heading-section mb-2">No Archived Projects</h3>
-                        <p className="text-muted-foreground text-sm">Projects you archive will appear here.</p>
+                        <h3 className="heading-section mb-2">{q ? "No matches" : "No Archived Projects"}</h3>
+                        <p className="text-muted-foreground text-sm">
+                          {q ? `Nothing archived matches "${archivedSearch}".` : "Projects you archive will appear here."}
+                        </p>
                       </div>
                     ) : (
                       <div className="divide-y divide-border/50">

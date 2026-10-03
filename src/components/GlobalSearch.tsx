@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/command";
 import { Project } from "@/data/projectsData";
 import { pathForTab } from "@/lib/dashboard-routes";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   Archive,
   CalendarDays,
@@ -38,7 +39,7 @@ const PAGES = [
   { label: "Go-Live Tracker", to: pathForTab("golive"), icon: CalendarDays, keywords: "golive launch dates" },
   { label: "Reports", to: pathForTab("reports"), icon: Sparkles, keywords: "tat movement export" },
   { label: "Archived", to: pathForTab("archived"), icon: Archive, keywords: "closed old" },
-  { label: "Settings", to: pathForTab("settings"), icon: Settings, keywords: "integrations users labels" },
+  { label: "Settings", to: pathForTab("settings"), icon: Settings, keywords: "integrations users labels", adminOnly: true },
 ];
 
 /**
@@ -51,7 +52,14 @@ const PAGES = [
  */
 export const GlobalSearch = ({ open, onOpenChange, projects, onFilterList }: GlobalSearchProps) => {
   const navigate = useNavigate();
+  const perms = usePermissions();
   const [query, setQuery] = useState("");
+
+  // Settings is an admin destination; it should not be offered to anyone else.
+  const pages = useMemo(
+    () => PAGES.filter((page) => !page.adminOnly || perms.canManageSettings),
+    [perms.canManageSettings],
+  );
 
   // ⌘K / Ctrl-K from anywhere, the shortcut people already try.
   useEffect(() => {
@@ -121,7 +129,7 @@ export const GlobalSearch = ({ open, onOpenChange, projects, onFilterList }: Glo
         <CommandSeparator />
 
         <CommandGroup heading="Go to">
-          {PAGES.map((page) => (
+          {pages.map((page) => (
             <CommandItem
               key={page.to}
               value={`${page.label} ${page.keywords}`}

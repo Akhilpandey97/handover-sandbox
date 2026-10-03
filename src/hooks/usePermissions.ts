@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
  * Role model
  * - super_admin : everything, across all workspaces
  * - admin       : tenant owner — all settings + users + integrations + API keys
- * - manager     : all operational tenant settings + full project work (no users/integrations)
+ * - manager     : full project work; no settings, users or integrations
  * - team roles  : project work within their own scope
  */
 export const usePermissions = () => {
@@ -28,8 +28,8 @@ export const usePermissions = () => {
     canManageIntegrations: isTenantAdmin || isSuperAdmin,
     /** Workspace branding (logo, name) */
     canManageBranding: isTenantAdmin || isSuperAdmin,
-    /** All other tenant settings */
-    canManageSettings: isManager || isTenantAdmin || isSuperAdmin,
+    /** The Settings area as a whole — admins only; managers run projects, not the workspace */
+    canManageSettings: isTenantAdmin || isSuperAdmin,
     /** Create / edit organisations */
     canManageTenants: isSuperAdmin,
   };

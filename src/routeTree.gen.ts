@@ -31,6 +31,7 @@ import { Route as DashProjectsKanbanRouteImport } from './routes/_dash.projects.
 import { Route as DashProjectsListRouteImport } from './routes/_dash.projects.list'
 import { Route as DashReportsIndexRouteImport } from './routes/_dash.reports.index'
 import { Route as DashReportsSubTabRouteImport } from './routes/_dash.reports.$subTab'
+import { Route as DashSettingsIndexRouteImport } from './routes/_dash.settings.index'
 import { Route as DashSettingsSubTabRouteImport } from './routes/_dash.settings.$subTab'
 import { Route as ApiPublicAiActionsRouteImport } from './routes/api/public/ai-actions'
 import { Route as ApiPublicAiAttentionReasonRouteImport } from './routes/api/public/ai-attention-reason'
@@ -194,6 +195,11 @@ const DashReportsIndexRoute = DashReportsIndexRouteImport.update({
 const DashReportsSubTabRoute = DashReportsSubTabRouteImport.update({
   id: '/reports/$subTab',
   path: '/reports/$subTab',
+  getParentRoute: () => DashRoute,
+} as any)
+const DashSettingsIndexRoute = DashSettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
   getParentRoute: () => DashRoute,
 } as any)
 const DashSettingsSubTabRoute = DashSettingsSubTabRouteImport.update({
@@ -574,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/zoom-webhook': typeof ApiPublicZoomWebhookRoute
   '/reports/': typeof DashReportsIndexRoute
+  '/settings/': typeof DashSettingsIndexRoute
   '/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
@@ -652,6 +659,7 @@ export interface FileRoutesByTo {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/zoom-webhook': typeof ApiPublicZoomWebhookRoute
   '/reports': typeof DashReportsIndexRoute
+  '/settings': typeof DashSettingsIndexRoute
   '/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
@@ -732,6 +740,7 @@ export interface FileRoutesById {
   '/api/public/upload-project-pdf': typeof ApiPublicUploadProjectPdfRoute
   '/api/public/zoom-webhook': typeof ApiPublicZoomWebhookRoute
   '/_dash/reports/': typeof DashReportsIndexRoute
+  '/_dash/settings/': typeof DashSettingsIndexRoute
   '/_dash/reports/predefined/$reportType': typeof DashReportsPredefinedReportTypeRoute
   '/api/public/merchant-portal-data/$': typeof ApiPublicMerchantPortalDataSplatRoute
   '/api/public/v1/health': typeof ApiPublicV1HealthRoute
@@ -812,6 +821,7 @@ export interface FileRouteTypes {
     | '/api/public/upload-project-pdf'
     | '/api/public/zoom-webhook'
     | '/reports/'
+    | '/settings/'
     | '/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
@@ -890,6 +900,7 @@ export interface FileRouteTypes {
     | '/api/public/upload-project-pdf'
     | '/api/public/zoom-webhook'
     | '/reports'
+    | '/settings'
     | '/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
@@ -969,6 +980,7 @@ export interface FileRouteTypes {
     | '/api/public/upload-project-pdf'
     | '/api/public/zoom-webhook'
     | '/_dash/reports/'
+    | '/_dash/settings/'
     | '/_dash/reports/predefined/$reportType'
     | '/api/public/merchant-portal-data/$'
     | '/api/public/v1/health'
@@ -1190,6 +1202,13 @@ declare module '@tanstack/react-router' {
       path: '/reports/$subTab'
       fullPath: '/reports/$subTab'
       preLoaderRoute: typeof DashReportsSubTabRouteImport
+      parentRoute: typeof DashRoute
+    }
+    '/_dash/settings/': {
+      id: '/_dash/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof DashSettingsIndexRouteImport
       parentRoute: typeof DashRoute
     }
     '/_dash/settings/$subTab': {
@@ -1598,6 +1617,7 @@ interface DashRouteChildren {
   DashReportsSubTabRoute: typeof DashReportsSubTabRoute
   DashSettingsSubTabRoute: typeof DashSettingsSubTabRoute
   DashReportsIndexRoute: typeof DashReportsIndexRoute
+  DashSettingsIndexRoute: typeof DashSettingsIndexRoute
   DashReportsPredefinedReportTypeRoute: typeof DashReportsPredefinedReportTypeRoute
 }
 
@@ -1619,6 +1639,7 @@ const DashRouteChildren: DashRouteChildren = {
   DashReportsSubTabRoute: DashReportsSubTabRoute,
   DashSettingsSubTabRoute: DashSettingsSubTabRoute,
   DashReportsIndexRoute: DashReportsIndexRoute,
+  DashSettingsIndexRoute: DashSettingsIndexRoute,
   DashReportsPredefinedReportTypeRoute: DashReportsPredefinedReportTypeRoute,
 }
 
