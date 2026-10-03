@@ -5,7 +5,7 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { tenantScope } from "@/lib/tenant-scope";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { Save, Trash2, Play, Plus, Clock, Calendar, FileText, X, ChevronRight, ChevronDown, Sigma, GripVertical } from "lucide-react";
 import { useReportFilters } from "@/hooks/useReportFilters";
 import { ReportFilterBar } from "@/components/reports/ReportFilterBar";
+import { ChartView, CHART_META, type ChartRow, type ChartType } from "@/components/charts/ReportChartView";
+import { cn } from "@/lib/utils";
 
 // All available columns for report builder
 const AVAILABLE_COLUMNS: { key: string; label: string; group: string }[] = [
@@ -57,6 +59,9 @@ const BASE_GROUPABLE_COLUMNS = ["projectState", "currentOwnerTeam", "platform", 
 const NUMERIC_COLUMNS = ["arr", "txnsPerDay", "aov", "goLivePercent", "transferCount"];
 
 const DEFAULT_GROUP_ORDER = ["Basic", "Financial", "Status", "Dates", "Details", "Links", "Notes", "Metrics", "Custom Fields"];
+
+/** The forms this report can take. A table always works; the rest need a dimension. */
+const VIEW_TYPES: ChartType[] = ["table", "column", "bar", "line", "area", "pie", "donut"];
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -178,7 +183,8 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   const [recipients, setRecipients] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [columnsOpen, setColumnsOpen] = useState(false);
+  const [view, setView] = useState<ChartType>("table");
+  const [chartMeasure, setChartMeasure] = useState<string>("count");
 
   const filterState = useReportFilters(projects);
   const { filteredProjects } = filterState;
@@ -610,148 +616,233 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     );
   };
 
+  // Dropping the grouping, or the column a chart was measuring, leaves a chart with
+  // nothing to draw. Fall back rather than render an empty frame.
+  useEffect(() => {
+    if (groupByColumn === "none" && view !== "table") setView("table");
+  }, [groupByColumn, view]);
+
+  useEffect(() => {
+    if (chartMeasure !== "count" && !selectedNumericCols.includes(chartMeasure)) setChartMeasure("count");
+  }, [chartMeasure, selectedNumericCols]);
+
+  const measureLabel = useMemo(() => {
+    if (chartMeasure === "count") return "Projects";
+    const col = allColumns.find((c) => c.key === chartMeasure);
+    return col ? `${col.label} (${reportAggType})` : chartMeasure;
+  }, [chartMeasure, allColumns, reportAggType]);
+
+  const chartRows = useMemo<ChartRow[]>(
+    () =>
+      pivotGroups.map((group) => ({
+        name: group.label,
+        value: chartMeasure === "count" ? group.projects.length : group.aggregates[chartMeasure] ?? 0,
+      })),
+    [pivotGroups, chartMeasure],
+  );
+
+  const chartSpec = useMemo(
+    () => ({
+      x: "name",
+      series: [{ key: "value", label: measureLabel }],
+      valueLabel: measureLabel,
+    }),
+    [measureLabel],
+  );
+
   return (
-    <div className="mx-auto max-w-[1500px] space-y-4">
-      {savedReports.length > 0 && (
+    <div className="mx-auto flex max-w-[1500px] flex-col gap-4 lg:flex-row lg:items-start">
+      {/* Left: what the report is made of — the columns, and the ones saved earlier. */}
+      <aside className="w-full shrink-0 space-y-3 lg:sticky lg:top-4 lg:w-[290px]">
         <Card>
-          <CardHeader className="py-3 px-4">
-            <CardTitle className="portal-heading flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />Saved Reports</CardTitle>
+          <CardHeader className="px-4 py-3">
+            <CardTitle className="portal-heading text-sm">
+              Columns <span className="ml-1 text-2xs font-normal text-muted-foreground">({selectedColumns.length} selected)</span>
+            </CardTitle>
+            <CardDescription className="text-2xs">Drag a group to reorder it in the report.</CardDescription>
           </CardHeader>
-          <CardContent className="px-4 pb-3 pt-0">
-            <div className="flex flex-wrap gap-2">
-              {savedReports.map(report => (
-                <div key={report.id} className="flex items-center gap-1 border rounded-lg px-3 py-1.5 bg-muted/30">
-                  <button onClick={() => loadReport(report)} className="text-sm font-medium hover:text-primary transition-colors">{report.name}</button>
-                  {report.schedule !== "none" && (
-                    <Badge variant="secondary" className="text-2xs px-1.5 py-0 ml-1">
-                      <Calendar className="h-3 w-3 mr-0.5 inline" />
-                      scheduled
-                    </Badge>
-                  )}
-                  <Button variant="ghost" size="icon" className="h-5 w-5 ml-1" onClick={() => handleDeleteReport(report.id)}>
-                    <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-                  </Button>
+          <CardContent className="max-h-[52vh] space-y-2 overflow-y-auto px-4 pb-3 pt-0">
+            {groupOrder.filter(g => columnGroups[g]).map(group => (
+              <div
+                key={group}
+                draggable
+                onDragStart={() => handleGroupDragStart(group)}
+                onDragOver={(e) => handleGroupDragOver(e, group)}
+                onDragEnd={handleGroupDragEnd}
+                className={`cursor-grab rounded-md p-1.5 transition-opacity active:cursor-grabbing ${draggedGroup === group ? "bg-primary/10 opacity-50" : "hover:bg-muted/40"}`}
+              >
+                <div className="mb-1 flex items-center gap-1">
+                  <GripVertical className="h-3 w-3 text-muted-foreground/50" />
+                  <p className="text-2xs font-semibold tracking-normal text-muted-foreground">{group}</p>
                 </div>
-              ))}
-            </div>
+                {columnGroups[group].map(col => (
+                  <label key={col.key} className="flex cursor-pointer items-center gap-1.5 py-0.5 text-xs transition-colors hover:text-primary">
+                    <Checkbox checked={selectedColumns.includes(col.key)} onCheckedChange={() => toggleColumn(col.key)} className="h-3.5 w-3.5" />
+                    {col.label}
+                  </label>
+                ))}
+              </div>
+            ))}
           </CardContent>
         </Card>
-      )}
 
-      <Card>
-        <CardHeader className="py-3 px-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-7 justify-start gap-1.5 px-1"
-              onClick={() => setColumnsOpen((open) => !open)}
-              aria-expanded={columnsOpen}
-              aria-controls="report-column-selector"
-              title={columnsOpen ? "Collapse column selector" : "Expand column selector"}
-            >
-              {columnsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-              <CardTitle className="portal-heading">Select Columns ({selectedColumns.length} selected) <span className="text-2xs text-muted-foreground font-normal ml-1">— drag groups to reorder</span></CardTitle>
-            </Button>
-            <div className="flex gap-2 items-center flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <Label className="text-xs text-muted-foreground whitespace-nowrap">Agg:</Label>
-                <Select value={reportAggType} onValueChange={(v) => setReportAggType(v as AggType)}>
-                  <SelectTrigger className="h-7 text-xs w-[90px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sum">Sum</SelectItem>
-                    <SelectItem value="avg">Average</SelectItem>
-                    <SelectItem value="count">Count</SelectItem>
-                    <SelectItem value="min">Min</SelectItem>
-                    <SelectItem value="max">Max</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Label className="text-xs text-muted-foreground whitespace-nowrap">Group By:</Label>
-                <Select value={groupByColumn} onValueChange={setGroupByColumn}>
-                  <SelectTrigger className="h-7 text-xs w-[140px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Grouping</SelectItem>
-                    {groupableColumns.filter(k => selectedColumns.includes(k)).map(k => {
-                      const col = allColumns.find(c => c.key === k);
-                      return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={exportReportCSV}>
-                <Play className="h-3 w-3" />Export CSV
-              </Button>
-              <Button size="sm" className="h-7 text-xs gap-1" onClick={() => setSaveDialogOpen(true)}>
-                <Save className="h-3 w-3" />Save & Schedule
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        {columnsOpen && (
-          <CardContent id="report-column-selector" className="px-4 pb-3 pt-0">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-1">
-              {groupOrder.filter(g => columnGroups[g]).map(group => (
-                <div
-                  key={group}
-                  draggable
-                  onDragStart={() => handleGroupDragStart(group)}
-                  onDragOver={(e) => handleGroupDragOver(e, group)}
-                  onDragEnd={handleGroupDragEnd}
-                  className={`cursor-grab active:cursor-grabbing rounded-md p-1.5 transition-opacity ${draggedGroup === group ? "opacity-50 bg-primary/10" : "hover:bg-muted/40"}`}
-                >
-                  <div className="flex items-center gap-1 mb-1">
-                    <GripVertical className="h-3 w-3 text-muted-foreground/50" />
-                    <p className="text-2xs font-semibold text-muted-foreground tracking-normal">{group}</p>
+        <Card>
+          <CardHeader className="px-4 py-3">
+            <CardTitle className="portal-heading flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-primary" />
+              Saved Reports
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="max-h-[32vh] overflow-y-auto px-4 pb-3 pt-0">
+            {savedReports.length === 0 ? (
+              <p className="text-2xs text-muted-foreground">
+                Nothing saved yet. Pick your columns, then use Save &amp; Schedule.
+              </p>
+            ) : (
+              <div className="space-y-1">
+                {savedReports.map(report => (
+                  <div key={report.id} className="flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 px-2 py-1.5">
+                    <button onClick={() => loadReport(report)} className="min-w-0 flex-1 truncate text-left text-xs font-medium transition-colors hover:text-primary">
+                      {report.name}
+                    </button>
+                    {report.schedule !== "none" && (
+                      <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-2xs" title="Scheduled">
+                        <Calendar className="h-3 w-3" />
+                      </Badge>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => handleDeleteReport(report.id)} aria-label={`Delete ${report.name}`}>
+                      <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                    </Button>
                   </div>
-                  {columnGroups[group].map(col => (
-                    <label key={col.key} className="flex items-center gap-1.5 py-0.5 cursor-pointer text-xs hover:text-primary transition-colors">
-                      <Checkbox checked={selectedColumns.includes(col.key)} onCheckedChange={() => toggleColumn(col.key)} className="h-3.5 w-3.5" />
-                      {col.label}
-                    </label>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        )}
-      </Card>
-
-      {/* Report Preview */}
-      <Card>
-        <CardHeader className="py-3 px-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-3 flex-wrap">
-              <CardTitle className="portal-heading">
-                Report Preview ({filteredProjects.length}{filteredProjects.length !== projects.length ? ` of ${projects.length}` : ""} projects)
-                {groupByColumn !== "none" && (
-                  <Badge variant="outline" className="ml-2 text-2xs px-1.5 py-0">
-                    Grouped by {allColumns.find(c => c.key === groupByColumn)?.label}
-                  </Badge>
-                )}
-              </CardTitle>
-              <ReportFilterBar {...filterState} projectCount={filteredProjects.length} />
-            </div>
-            {groupByColumn !== "none" && (
-              <Button variant="ghost" size="sm" className="h-6 text-2xs"
-                onClick={() => {
-                  if (expandedGroups.size === pivotGroups.length) setExpandedGroups(new Set());
-                  else setExpandedGroups(new Set(pivotGroups.map(g => g.key)));
-                }}
-              >
-                {expandedGroups.size === pivotGroups.length ? "Collapse All" : "Expand All"}
-              </Button>
+                ))}
+              </div>
             )}
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-auto max-h-[70vh]">
-            {groupByColumn !== "none" ? renderGroupedTable() : renderFlatTable()}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </aside>
 
+      {/* Right: the report itself. */}
+      <div className="min-w-0 flex-1">
+        <Card>
+          <CardHeader className="px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <CardTitle className="portal-heading">
+                  Report ({filteredProjects.length}{filteredProjects.length !== projects.length ? ` of ${projects.length}` : ""} projects)
+                  {groupByColumn !== "none" && (
+                    <Badge variant="outline" className="ml-2 px-1.5 py-0 text-2xs">
+                      Grouped by {allColumns.find(c => c.key === groupByColumn)?.label}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <ReportFilterBar {...filterState} projectCount={filteredProjects.length} />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Label className="whitespace-nowrap text-xs text-muted-foreground">Agg:</Label>
+                  <Select value={reportAggType} onValueChange={(v) => setReportAggType(v as AggType)}>
+                    <SelectTrigger className="h-7 w-[90px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sum">Sum</SelectItem>
+                      <SelectItem value="avg">Average</SelectItem>
+                      <SelectItem value="count">Count</SelectItem>
+                      <SelectItem value="min">Min</SelectItem>
+                      <SelectItem value="max">Max</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Label className="whitespace-nowrap text-xs text-muted-foreground">Group By:</Label>
+                  <Select value={groupByColumn} onValueChange={setGroupByColumn}>
+                    <SelectTrigger className="h-7 w-[140px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Grouping</SelectItem>
+                      {groupableColumns.filter(k => selectedColumns.includes(k)).map(k => {
+                        const col = allColumns.find(c => c.key === k);
+                        return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={exportReportCSV}>
+                  <Play className="h-3 w-3" />Export CSV
+                </Button>
+                <Button size="sm" className="h-7 gap-1 text-xs" onClick={() => setSaveDialogOpen(true)}>
+                  <Save className="h-3 w-3" />Save &amp; Schedule
+                </Button>
+              </div>
+            </div>
+
+            {/* How the report is drawn. A chart needs a dimension to draw along,
+                so the forms stay disabled until Group By names one. */}
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+              <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Report view">
+                {VIEW_TYPES.map((type) => {
+                  const Icon = CHART_META[type].icon;
+                  const disabled = type !== "table" && groupByColumn === "none";
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      role="tab"
+                      aria-selected={view === type}
+                      disabled={disabled}
+                      title={disabled ? "Choose a Group By column to chart the report" : CHART_META[type].label}
+                      onClick={() => setView(type)}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        view === type ? "bg-primary-soft text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        disabled && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-muted-foreground",
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                      {CHART_META[type].label}
+                    </button>
+                  );
+                })}
+              </div>
+              {view !== "table" && (
+                <div className="flex items-center gap-1.5">
+                  <Label className="whitespace-nowrap text-xs text-muted-foreground">Measure:</Label>
+                  <Select value={chartMeasure} onValueChange={setChartMeasure}>
+                    <SelectTrigger className="h-7 w-[150px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="count">Projects</SelectItem>
+                      {selectedNumericCols.map(k => {
+                        const col = allColumns.find(c => c.key === k);
+                        return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {groupByColumn !== "none" && view === "table" && (
+                <Button variant="ghost" size="sm" className="ml-auto h-6 text-2xs"
+                  onClick={() => {
+                    if (expandedGroups.size === pivotGroups.length) setExpandedGroups(new Set());
+                    else setExpandedGroups(new Set(pivotGroups.map(g => g.key)));
+                  }}
+                >
+                  {expandedGroups.size === pivotGroups.length ? "Collapse All" : "Expand All"}
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {view === "table" ? (
+              <div className="max-h-[70vh] overflow-auto">
+                {groupByColumn !== "none" ? renderGroupedTable() : renderFlatTable()}
+              </div>
+            ) : chartRows.length === 0 ? (
+              <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+                Nothing to chart for these filters.
+              </p>
+            ) : (
+              <ChartView rows={chartRows} chart={chartSpec} type={view} />
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Save & Schedule Dialog - Google Calendar style */}
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
