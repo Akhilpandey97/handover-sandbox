@@ -129,7 +129,7 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
     for (const k of args.columns || []) if (COLUMNS[k]) needed.add(COLUMNS[k]!.field);
 
     let q = caller.client.from("projects").select(Array.from(needed).join(", ")).eq("tenant_id", caller.tenantId).eq("archived", false);
-    if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId);
+    if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId).eq("pending_acceptance", false);
     if (args.state) q = q.eq("project_state", args.state);
     if (args.phase) q = q.eq("current_phase", args.phase);
     if (args.platform) q = q.ilike("platform", String(args.platform));

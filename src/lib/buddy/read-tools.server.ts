@@ -160,7 +160,8 @@ async function searchProjects(caller: BuddyCaller, args: Record<string, any>): P
     .select(PROJECT_COLUMNS, { count: "exact" })
     .eq("tenant_id", caller.tenantId)
     .eq("archived", false);
-  if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId);
+  // Not yours until accepted, so it is not in your list or your numbers.
+  if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId).eq("pending_acceptance", false);
   if (typeof args.query === "string" && args.query.trim()) {
     const term = safeLike(args.query);
     if (term) q = q.or(`merchant_name.ilike.%${term}%,mid.ilike.%${term}%`);
@@ -359,7 +360,8 @@ async function portfolioStats(caller: BuddyCaller, args: Record<string, any>): P
     .select("project_state, current_phase, assigned_owner, platform, expected_go_live_date, current_responsibility, arr")
     .eq("tenant_id", caller.tenantId)
     .eq("archived", false);
-  if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId);
+  // Not yours until accepted, so it is not in your list or your numbers.
+  if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId).eq("pending_acceptance", false);
   if (args.state) q = q.eq("project_state", args.state);
   if (args.phase) q = q.eq("current_phase", args.phase);
   const { data, error } = await q.limit(5000);

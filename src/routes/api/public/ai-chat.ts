@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { buddyCaller, corsHeaders, json, PHASE_LABELS, STATE_LABELS, todayIso } from "@/lib/buddy/scope.server";
 import { READ_TOOL_DEFS, READ_TOOL_NAMES, runReadTool, type BuddySource } from "@/lib/buddy/read-tools.server";
 import { REPORT_TOOL_DEF, runReportTool } from "@/lib/buddy/report-tool.server";
-import { ALL_ACTION_TOOL_DEFS as ACTION_TOOL_DEFS, actionRequires } from "@/lib/buddy/registry.server";
+import { ALL_ACTION_TOOL_DEFS as ACTION_TOOL_DEFS, actionRequires, actionIsPortfolioOnly } from "@/lib/buddy/registry.server";
 import { SETUP_TOOL_DEF, runSetupTool, teamNameMap } from "@/lib/buddy/setup-read.server";
 import { hasRole } from "@/lib/buddy/setup-catalog.server";
 import { DEFAULT_LABELS } from "@/data/defaultLabels";
@@ -137,7 +137,12 @@ async function handler(req: Request): Promise<Response> {
   const isAdmin = hasRole(caller.roles, "admin");
   const allowedActions = caller.canAct
     ? ACTION_TOOL_DEFS.filter(
-        (t) => !settings.disabled_actions.includes(t.function.name) && (actionRequires(t.function.name) !== "admin" || isAdmin),
+        (t) =>
+          !settings.disabled_actions.includes(t.function.name) &&
+          (actionRequires(t.function.name) !== "admin" || isAdmin) &&
+          // Don't offer what the server would refuse: an own-queue role cannot
+          // create projects, change them in bulk or hand ownership around.
+          !(caller.ownScopeOnly && actionIsPortfolioOnly(t.function.name)),
       )
     : [];
   const tools = [...READ_TOOL_DEFS, SETUP_TOOL_DEF, REPORT_TOOL_DEF, ...allowedActions];
@@ -153,6 +158,9 @@ async function handler(req: Request): Promise<Response> {
   const system = [
     `You are Buddy, the assistant inside Handover, a tool for tracking merchant onboarding and integration projects. Today is ${todayIso()}.`,
     `You're talking to ${caller.name}. Their scope is ${caller.portfolio ? "every project in their workspace" : "only the projects assigned to them"}.`,
+    caller.ownScopeOnly
+      ? "They can change the projects assigned to them, once they have accepted them. They cannot create projects, change projects in bulk, or reassign ownership — say so plainly if they ask."
+      : "",
     terms,
     pageLine,
     mentionLines.length ? `They referred to these specifically; act on them unless they say otherwise:\n${mentionLines.join("\n")}` : "",

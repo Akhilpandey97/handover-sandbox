@@ -4,6 +4,7 @@ import {
   AlertCircle,
   BarChart3,
   CalendarDays,
+  Check,
   CheckCircle2,
   CircleDashed,
   FolderKanban,
@@ -16,7 +17,6 @@ import {
   Search,
   Settings,
   UserCheck,
-  XCircle,
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,13 +84,27 @@ export const TeamDashboard = () => {
     () => projects.filter((project) => project.assignedOwner === currentUser?.id && !project.archived),
     [projects, currentUser?.id],
   );
-  const visibleProjects = useMemo(() => {
+  const matchesSearch = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return userProjects;
-    return userProjects.filter((project) =>
-      project.merchantName.toLowerCase().includes(query) || project.mid.toLowerCase().includes(query),
-    );
-  }, [userProjects, searchQuery]);
+    return (project: Project) =>
+      !query ||
+      project.merchantName.toLowerCase().includes(query) ||
+      project.mid.toLowerCase().includes(query);
+  }, [searchQuery]);
+
+  /**
+   * A handover is not yours until you accept it. Everything on this screen — the
+   * KPIs, the dashlets, Projects — works from the accepted ones; the one place an
+   * incoming project appears is the dashlet that asks you to decide.
+   */
+  const visibleProjects = useMemo(
+    () => userProjects.filter((project) => !project.pendingAcceptance && matchesSearch(project)),
+    [userProjects, matchesSearch],
+  );
+  const incomingProjects = useMemo(
+    () => userProjects.filter((project) => project.pendingAcceptance && matchesSearch(project)),
+    [userProjects, matchesSearch],
+  );
 
   useEffect(() => {
     // Everyone starts in Buddy.
@@ -99,7 +113,6 @@ export const TeamDashboard = () => {
   }, [pathname, navigate]);
 
   if (!currentUser) return null;
-  const incomingProjects = visibleProjects.filter((project) => project.pendingAcceptance);
   const totalProjects = visibleProjects.length;
   
   const deliveryProjects = visibleProjects.filter((project) => project.projectState === "in_progress");
@@ -214,9 +227,28 @@ export const TeamDashboard = () => {
                         <span>· {getLabel("field_expected_go_live_date")}: {formatGoLiveDate(project)}</span>
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <Button size="sm" className="h-7 gap-1 bg-success px-2.5 text-xs text-success-foreground hover:bg-success" onClick={() => acceptProject(project.id)}><CheckCircle2 className="h-3 w-3" />Accept</Button>
-                      <Button size="sm" variant="destructive" className="h-7 gap-1 px-2.5 text-xs" onClick={() => setRejectTarget(project)}><XCircle className="h-3 w-3" />Reject</Button>
+                    {/* Accept or reject, as the two icons the row is really about. */}
+                    <div className="flex shrink-0 items-center rounded-md border border-border p-0.5">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        title={`Accept ${project.merchantName}`}
+                        aria-label={`Accept ${project.merchantName}`}
+                        className="h-7 w-7 text-success-strong hover:bg-success-soft hover:text-success-strong"
+                        onClick={() => acceptProject(project.id)}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        title={`Reject ${project.merchantName}`}
+                        aria-label={`Reject ${project.merchantName}`}
+                        className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setRejectTarget(project)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 );

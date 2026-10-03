@@ -90,6 +90,13 @@ interface ActionDef {
   label: string;
   /** Lowest role that may run it. Defaults to manager. */
   requires?: "manager" | "admin";
+  /**
+   * Set when an action reaches past one assigned project — creating a project,
+   * changing a batch of them, or handing ownership around. Someone who works from
+   * their own queue cannot run these, because there is no single project to check
+   * them against.
+   */
+  portfolioOnly?: true;
   /** Params as they may be stored in logs and chat history (secrets masked). */
   redactParams?: (p: Record<string, any>) => Record<string, any>;
   preview: (c: BuddyCaller, p: Record<string, any>, ctx: ActionContext) => Promise<ActionPreview>;
@@ -106,12 +113,26 @@ const fail = (msg: string): never => {
 
 const projectLink = (id: string, label = "Open project") => ({ label, href: `/projects/${id}` });
 
+/**
+ * The project an action names, and the right to act on it.
+ *
+ * Someone who works from their own queue may only change a project that is assigned
+ * to them and that they have accepted — an unaccepted handover is not theirs yet.
+ * Every action reaches a project through here, including the checklist ones, so the
+ * check sits here rather than in each action.
+ */
 async function loadProject(c: BuddyCaller, id: string, cols = "id, merchant_name, mid") {
   if (!id) fail("No project was given.");
-  const { data, error } = await c.client.from("projects").select(cols).eq("tenant_id", c.tenantId).eq("id", id).maybeSingle();
+  const select = c.ownScopeOnly ? `${cols}, assigned_owner, pending_acceptance` : cols;
+  const { data, error } = await c.client.from("projects").select(select).eq("tenant_id", c.tenantId).eq("id", id).maybeSingle();
   if (error) throw error;
   if (!data) fail("That project isn't in this workspace.");
-  return data as any;
+  const row = data as any;
+  if (c.ownScopeOnly) {
+    if (row.assigned_owner !== c.userId) fail("That project isn't assigned to you, so Buddy can't change it.");
+    if (row.pending_acceptance) fail("You haven't accepted that project yet. Accept it first and Buddy can work on it.");
+  }
+  return row;
 }
 
 async function loadPerson(c: BuddyCaller, id: string) {
@@ -318,6 +339,7 @@ export const ACTION_TOOL_DEFS: any[] = [
 const ACTIONS: Record<string, ActionDef> = {
   assign_owner: {
     label: "Assign owner",
+    portfolioOnly: true,
     async preview(c, p) {
       const project = await loadProject(c, p.project_id, "id, merchant_name, assigned_owner");
       const owner = await loadPerson(c, p.owner_id);
@@ -415,6 +437,7 @@ const ACTIONS: Record<string, ActionDef> = {
 
   bulk_update_projects: {
     label: "Update several projects",
+    portfolioOnly: true,
     async preview(c, p, ctx) {
       const f = FIELDS[p.field];
       if (!f || f.kind === "note") fail(`${String(p.field).replace(/_/g, " ")} can't be changed in bulk.`);
@@ -543,6 +566,7 @@ const ACTIONS: Record<string, ActionDef> = {
 
   create_project: {
     label: "Create project",
+    portfolioOnly: true,
     async preview(c, p) {
       if (!p.merchant_name || !p.mid) fail("A project needs a merchant name and MID.");
       const { data: existing } = await c.client.from("projects").select("id").eq("tenant_id", c.tenantId).eq("mid", p.mid).maybeSingle();

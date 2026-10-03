@@ -72,6 +72,13 @@ async function handler(req: Request): Promise<Response> {
     if (def.requires === "admin" && !hasRole(caller.roles, "admin")) {
       return json({ error: `${def.label} is for workspace admins.` }, 403, corsHeaders);
     }
+    if (caller.ownScopeOnly && (def as { portfolioOnly?: boolean }).portfolioOnly) {
+      return json(
+        { error: `${def.label} covers more than the projects assigned to you. A manager or admin can do that.` },
+        403,
+        corsHeaders,
+      );
+    }
     const settings = await loadBuddySettings(caller);
     if (settings.disabled_actions.includes(name)) {
       return json({ error: `${def.label} is switched off for this workspace.` }, 403, corsHeaders);

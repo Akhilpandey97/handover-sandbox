@@ -16,3 +16,6 @@ export const getAnyAction = (name: string) => SETUP_ACTIONS[name] || MORE_ACTION
 
 /** The lowest role that may run an action: managers unless the action says admin. */
 export const actionRequires = (name: string): "manager" | "admin" => getAnyAction(name)?.requires || "manager";
+
+/** True when an action reaches past a single assigned project, so an own-queue role cannot run it. */
+export const actionIsPortfolioOnly = (name: string): boolean => Boolean(getAnyAction(name)?.portfolioOnly);

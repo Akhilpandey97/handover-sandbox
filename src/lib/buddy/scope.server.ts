@@ -1,7 +1,14 @@
 import { adminClient } from "@/lib/tenant-integrations.server";
 import { bearerToken, resolveUserScope } from "@/lib/api-auth.server";
 
-/** Roles allowed to ask Buddy to change data. Checked on the server for every action. */
+/**
+ * Roles allowed to ask Buddy to change anything in the workspace. Checked on the
+ * server for every action.
+ *
+ * A role outside this set may still act, but only on the projects assigned to it —
+ * see `ownScopeOnly` below. The one role that may not act at all is a portfolio
+ * reader: it sees every project, so letting it act would be a workspace-wide grant.
+ */
 export const ACTION_ROLES = new Set(["manager", "admin", "super_admin", "superadmin"]);
 
 /**
@@ -22,6 +29,11 @@ export interface BuddyCaller {
   roles: string[];
   canAct: boolean;
   portfolio: boolean;
+  /**
+   * True when every action this caller takes must be checked against the projects
+   * assigned to them. Set for the roles that work from their own queue.
+   */
+  ownScopeOnly: boolean;
 }
 
 /**
@@ -45,6 +57,10 @@ export async function buddyCaller(req: Request): Promise<BuddyCaller | null> {
 
   const p = profile as { name?: string; email?: string; team?: string } | null;
   const roles = scope.roles.length ? scope.roles : p?.team ? [p.team] : [];
+  const portfolio = roles.some((r) => PORTFOLIO_ROLES.has(r));
+  // Someone who works from their own queue may act on it. Someone who can see the
+  // whole portfolio needs an action role before they can change any of it.
+  const ownScopeOnly = !portfolio && roles.length > 0;
 
   return {
     client,
@@ -53,8 +69,9 @@ export async function buddyCaller(req: Request): Promise<BuddyCaller | null> {
     email: p?.email || user.email || "",
     tenantId: scope.tenantId,
     roles,
-    canAct: roles.some((r) => ACTION_ROLES.has(r)),
-    portfolio: roles.some((r) => PORTFOLIO_ROLES.has(r)),
+    canAct: roles.some((r) => ACTION_ROLES.has(r)) || ownScopeOnly,
+    portfolio,
+    ownScopeOnly,
   };
 }
 
