@@ -11,6 +11,9 @@ import { cn } from "@/lib/utils";
 const shortDate = (value: string | Date) =>
   new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
+const initials = (name: string) =>
+  name.split(/\s+/).slice(0, 2).map((w) => w[0] || "").join("").toUpperCase() || "?";
+
 const STATUS_LABEL: Record<string, string> = {
   open: "Open",
   in_progress: "In progress",
@@ -91,30 +94,36 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
           {/* Fixed layout: the columns keep their share of the width instead of the
               title absorbing every spare pixel and stranding the rest at the edge. */}
           <table className="w-full table-fixed text-sm">
-            <thead className="bg-muted/50 text-xs text-muted-foreground">
+            <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
               <tr>
-                <th scope="col" className="w-9 px-2 py-2" aria-label="Done" />
-                <th scope="col" className="w-[40%] px-2 py-2 text-left font-medium">Task</th>
-                <th scope="col" className="w-[22%] px-2 py-2 text-left font-medium">Assignee</th>
-                <th scope="col" className="w-[20%] px-2 py-2 text-left font-medium">Due</th>
-                <th scope="col" className="w-[18%] px-2 py-2 text-left font-medium">Status</th>
+                <th scope="col" className="w-10 px-3 py-2.5" aria-label="Done" />
+                <th scope="col" className="w-[40%] px-3 py-2.5 text-left font-medium">Task</th>
+                <th scope="col" className="w-[22%] px-3 py-2.5 text-left font-medium">Assignee</th>
+                <th scope="col" className="w-[20%] px-3 py-2.5 text-left font-medium">Due</th>
+                <th scope="col" className="w-[18%] px-3 py-2.5 text-left font-medium">Status</th>
               </tr>
             </thead>
             {grouped.map(([checklistItemId, list]) => (
-              <tbody key={checklistItemId} className="border-t border-border/60">
+              <tbody key={checklistItemId} className="border-b border-border last:border-b-0">
                 <tr className="bg-muted/20">
-                  <td colSpan={5} className="px-2 py-1.5">
+                  <td colSpan={5} className="px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <span className="text-sm font-semibold text-foreground">
                         {itemTitle.get(checklistItemId) || "Other"}
                       </span>
-                      <span className="text-2xs text-muted-foreground">
-                        {list.filter((t) => t.status === "done").length} of {list.length} done
+                      <span className="text-xs text-muted-foreground">
+                        {list.length} task{list.length === 1 ? "" : "s"}
+                      </span>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        <span className="font-medium text-success-strong">
+                          {list.filter((t) => t.status === "done").length} done
+                        </span>
+                        {` · ${list.filter((t) => t.status !== "done").length} open`}
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="ml-auto h-6 gap-1 px-2 text-xs"
+                        className="h-6 gap-1 px-2 text-xs"
                         onClick={() =>
                           setDialog({
                             checklistItemId,
@@ -134,9 +143,9 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                     <tr
                       key={task.id}
                       id={`task-${task.id}`}
-                      className="border-t border-border/40 transition-colors hover:bg-muted/30"
+                      className="border-t border-border/40 align-middle transition-colors hover:bg-muted/30"
                     >
-                      <td className="px-2 py-1.5 align-middle">
+                      <td className="px-3 py-2.5 align-middle">
                         <Checkbox
                           checked={task.status === "done"}
                           onCheckedChange={(checked) =>
@@ -146,7 +155,7 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                           className="h-4 w-4"
                         />
                       </td>
-                      <td className="px-2 py-1.5 align-middle">
+                      <td className="px-3 py-2.5 align-middle">
                         <span
                           className={cn(
                             "block truncate",
@@ -157,12 +166,21 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                           {task.title}
                         </span>
                       </td>
-                      <td className="truncate px-2 py-1.5 align-middle text-xs text-muted-foreground">
-                        {task.assigned_to
-                          ? profiles.find((p) => p.id === task.assigned_to)?.name || "Assigned"
-                          : "—"}
+                      <td className="px-3 py-2.5 align-middle">
+                        {task.assigned_to ? (
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
+                              {initials(profiles.find((p) => p.id === task.assigned_to)?.name || "?")}
+                            </span>
+                            <span className="truncate text-sm">
+                              {profiles.find((p) => p.id === task.assigned_to)?.name || "Assigned"}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </td>
-                      <td className="px-2 py-1.5 align-middle text-xs">
+                      <td className="px-3 py-2.5 align-middle text-xs">
                         {task.due_date ? (
                           <span
                             className={cn(
@@ -177,7 +195,7 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                           <span className="text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="px-2 py-1.5 align-middle">
+                      <td className="px-3 py-2.5 align-middle">
                         <span
                           className={cn(
                             "inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium",

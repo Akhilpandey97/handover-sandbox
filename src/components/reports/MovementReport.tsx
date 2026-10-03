@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,8 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, RefreshCw, Filter, Mail, ExternalLink, Loader2, Sparkles, CalendarClock } from "lucide-react";
+import { ChevronDown, RefreshCw, Filter, Mail, ExternalLink, Loader2, Sparkles, CalendarClock, Columns3, Download, Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ProjectDialog } from "@/components/ProjectDialog";
 import { EmailReportDialog } from "./EmailReportDialog";
@@ -93,6 +93,19 @@ const buildSummary = (entries: MovementEntry[], maxParts = 3): string => {
   if (out.length > 320) out = out.slice(0, 317) + "...";
   return out;
 };
+
+/** The optional columns, in the order they sit in the table. */
+const COLUMN_KEYS: { key: string; label: string }[] = [
+  { key: "status", label: "Status" },
+  { key: "arr", label: "ARR" },
+  { key: "egl", label: "EGL" },
+  { key: "owner", label: "Owner" },
+  { key: "progress", label: "Progress" },
+  { key: "updated", label: "Last Update" },
+];
+
+const initials = (name: string) =>
+  name.split(/\s+/).slice(0, 2).map(w => w[0] || "").join("").toUpperCase() || "?";
 
 const PHASE_RANK: Record<string, number> = {
   sales: 0, pre_integration: 1, mint: 2, integration: 2, under_integration: 2, ms: 2, live: 3,
@@ -295,6 +308,13 @@ export const MovementReport = ({ timeframe }: Props) => {
     [funnelOrder],
   );
 
+  // The row of quick filters above the table, composing with the fuller popover.
+  const [search, setSearch] = useState("");
+  const [quickGroup, setQuickGroup] = useState("all");
+  const [quickState, setQuickState] = useState("all");
+  const [quickOwner, setQuickOwner] = useState("all");
+  const [visibleCols, setVisibleCols] = useState<string[]>(COLUMN_KEYS.map(c => c.key));
+
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -343,9 +363,24 @@ export const MovementReport = ({ timeframe }: Props) => {
       if (platformFilter.length && !platformFilter.includes(p.platform)) return false;
       if (arrMin && p.arr < parseFloat(arrMin)) return false;
       if (arrMax && p.arr > parseFloat(arrMax)) return false;
+      if (quickGroup !== "all" && resolveStageKey(p, funnelOrder) !== quickGroup) return false;
+      if (quickState !== "all" && p.projectState !== quickState) return false;
+      if (quickOwner !== "all" && (p.assignedOwnerName || "Unassigned") !== quickOwner) return false;
+      if (search.trim()) {
+        const q = search.trim().toLowerCase();
+        if (!p.merchantName.toLowerCase().includes(q) && !(p.mid || "").toLowerCase().includes(q)) return false;
+      }
       return true;
     });
-  }, [projects, movementMap, funnelOrder, funnelFilter, teamFilter, stateFilter, responsibilityFilter, platformFilter, statusFilter, arrMin, arrMax]);
+  }, [projects, movementMap, funnelOrder, funnelFilter, teamFilter, stateFilter, responsibilityFilter, platformFilter, statusFilter, arrMin, arrMax, quickGroup, quickState, quickOwner, search]);
+
+  const ownerOptions = useMemo(
+    () => Array.from(new Set(projects.filter(p => !p.archived).map(p => p.assignedOwnerName || "Unassigned"))).sort(),
+    [projects],
+  );
+  const quickFilterCount = [search.trim() !== "", quickGroup !== "all", quickState !== "all", quickOwner !== "all"].filter(Boolean).length;
+  const clearQuickFilters = () => { setSearch(""); setQuickGroup("all"); setQuickState("all"); setQuickOwner("all"); };
+  const showCol = (key: string) => visibleCols.includes(key);
 
   const grouped = useMemo(() => {
     const g: Record<FunnelStage, Project[]> = {};
@@ -438,6 +473,37 @@ export const MovementReport = ({ timeframe }: Props) => {
   };
 
 
+  const exportCsv = () => {
+    const cols = [{ key: "project", label: "Project / Merchant" }, ...COLUMN_KEYS.filter(c => showCol(c.key))];
+    const cell = (p: Project, key: string): string => {
+      const isActive = (movementMap[p.id]?.length ?? 0) > 0;
+      switch (key) {
+        case "project": return p.merchantName;
+        case "status": return isActive ? "Active" : "Inactive";
+        case "arr": return formatArr(p.arr);
+        case "egl": return formatEgl(p.dates?.expectedGoLiveDate);
+        case "owner": return p.assignedOwnerName || "Unassigned";
+        case "progress": return `${p.goLivePercent ?? 0}%`;
+        case "updated": return p.updatedAt ? format(new Date(p.updatedAt), "dd MMM yyyy HH:mm") : "—";
+        default: return "";
+      }
+    };
+    const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+    const lines = [["Group", ...cols.map(c => c.label)].map(esc).join(",")];
+    for (const stage of funnelOrder) {
+      for (const p of grouped[stage] || []) {
+        lines.push([funnelStageLabels[stage] || stage, ...cols.map(c => cell(p, c.key))].map(esc).join(","));
+      }
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${timeframe}-report-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const title = timeframe === "daily" ? "Daily Report" : "Weekly Report";
   const istNow = new Date(Date.now() + 5.5 * 3600 * 1000);
   const istY = istNow.getUTCFullYear(), istM = istNow.getUTCMonth(), istD = istNow.getUTCDate();
@@ -517,6 +583,33 @@ export const MovementReport = ({ timeframe }: Props) => {
                 </ScrollArea>
               </PopoverContent>
             </Popover>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Columns3 className="h-4 w-4" />
+                  Columns
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2" align="end">
+                <p className="px-1 pb-1.5 text-xs font-semibold text-muted-foreground">Show columns</p>
+                {COLUMN_KEYS.map(col => (
+                  <label key={col.key} className="flex cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-sm hover:bg-muted">
+                    <Checkbox
+                      checked={visibleCols.includes(col.key)}
+                      onCheckedChange={() =>
+                        setVisibleCols(prev => prev.includes(col.key) ? prev.filter(k => k !== col.key) : [...prev, col.key])
+                      }
+                      className="h-3.5 w-3.5"
+                    />
+                    {col.label}
+                  </label>
+                ))}
+              </PopoverContent>
+            </Popover>
+            <Button variant="outline" size="sm" onClick={exportCsv} className="gap-2">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="gap-2">
               {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               Refresh
@@ -537,29 +630,91 @@ export const MovementReport = ({ timeframe }: Props) => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-4">
+      {/* Quick filters, as one row above the table. */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border bg-card px-4 py-3">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search project or merchant..."
+            className="h-9 pl-8"
+          />
+        </div>
+        <Select value={quickGroup} onValueChange={setQuickGroup}>
+          <SelectTrigger className="h-9 w-[170px] text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Groups</SelectItem>
+            {funnelOrder.map(s => <SelectItem key={s} value={s}>{funnelStageLabels[s] || s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={quickState} onValueChange={setQuickState}>
+          <SelectTrigger className="h-9 w-[150px] text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            {(Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>).map(st => (
+              <SelectItem key={st} value={st}>{projectStateLabels[st]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={quickOwner} onValueChange={setQuickOwner}>
+          <SelectTrigger className="h-9 w-[170px] text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Owners</SelectItem>
+            {ownerOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="ml-auto h-9"
+          onClick={clearQuickFilters}
+          disabled={quickFilterCount === 0}
+        >
+          Clear
+        </Button>
+      </div>
+
+      <CardContent className="p-0">
         {isLoading ? (
           <div className="py-20 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Loading report...</div>
         ) : filteredProjects.length === 0 ? (
           <div className="py-20 text-center text-muted-foreground">No projects match the current filters.</div>
         ) : (
-          <div className="space-y-5">
-            {funnelOrder.map(stage => {
-              const list = grouped[stage];
-              if (!list || list.length === 0) return null;
-              const activeCount = list.filter(p => (movementMap[p.id]?.length ?? 0) > 0).length;
-              return (
-                <FunnelSection
-                  key={stage}
-                  stage={stage}
-                  projects={list}
-                  movementMap={movementMap}
-                  aiMap={aiMap}
-                  activeCount={activeCount}
-                  onOpenProject={setSelectedProject}
-                />
-              );
-            })}
+          <div className="overflow-x-auto">
+            <table className="w-full table-fixed text-sm">
+              <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
+                <tr>
+                  <th scope="col" className="w-10 px-3 py-2.5" aria-label="Select" />
+                  <th scope="col" className="w-[24%] px-3 py-2.5 text-left font-medium">Project / Merchant</th>
+                  {showCol("status") && <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">Status</th>}
+                  {showCol("arr") && <th scope="col" className="w-[12%] px-3 py-2.5 text-left font-medium">ARR</th>}
+                  {showCol("egl") && <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">EGL</th>}
+                  {showCol("owner") && <th scope="col" className="w-[15%] px-3 py-2.5 text-left font-medium">Owner</th>}
+                  {showCol("progress") && <th scope="col" className="w-[13%] px-3 py-2.5 text-left font-medium">Progress</th>}
+                  {showCol("updated") && <th scope="col" className="w-[12%] px-3 py-2.5 text-left font-medium">Last Update</th>}
+                  <th scope="col" className="w-12 px-3 py-2.5 text-left font-medium">Actions</th>
+                </tr>
+              </thead>
+              {funnelOrder.map(stage => {
+                const list = grouped[stage];
+                if (!list || list.length === 0) return null;
+                const activeCount = list.filter(p => (movementMap[p.id]?.length ?? 0) > 0).length;
+                return (
+                  <FunnelSection
+                    key={stage}
+                    stage={stage}
+                    projects={list}
+                    movementMap={movementMap}
+                    aiMap={aiMap}
+                    activeCount={activeCount}
+                    onOpenProject={setSelectedProject}
+                    showCol={showCol}
+                    colCount={3 + COLUMN_KEYS.filter(c => showCol(c.key)).length}
+                  />
+                );
+              })}
+            </table>
           </div>
         )}
       </CardContent>
@@ -597,7 +752,7 @@ const bucketBadge = (b: Bucket) => {
 };
 
 const FunnelSection = ({
-  stage, projects, movementMap, aiMap, activeCount, onOpenProject,
+  stage, projects, movementMap, aiMap, activeCount, onOpenProject, showCol, colCount,
 }: {
   stage: FunnelStage;
   projects: Project[];
@@ -605,70 +760,124 @@ const FunnelSection = ({
   aiMap: Record<string, AiSummary>;
   activeCount: number;
   onOpenProject: (p: Project) => void;
+  showCol: (key: string) => boolean;
+  colCount: number;
 }) => {
   // Collapsed by default: the report is a scan of many stages, not a wall of rows.
   const [open, setOpen] = useState(false);
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger asChild>
-        <button className="flex w-full items-center justify-between gap-3 py-2 text-left transition-colors hover:text-foreground">
-          <span className="flex items-center gap-2">
-            <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", open ? "" : "-rotate-90")} />
-            <span className="text-sm font-semibold">{funnelStageLabels[stage]}</span>
-            <span className="text-xs text-muted-foreground">{projects.length} project{projects.length === 1 ? "" : "s"}</span>
-          </span>
-          <span className="text-xs text-muted-foreground">
-            <span className="font-medium text-success-strong">{activeCount} active</span>
-            {` · ${projects.length - activeCount} inactive`}
-          </span>
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="mt-2 space-y-2 pt-1">
-        {projects.map(p => {
-          const entries = movementMap[p.id] || [];
-          const isActive = entries.length > 0;
-          const ai = aiMap[p.id];
-          const fallback = isActive ? buildSummary(entries, 3) : "";
-          return (
-            <div key={p.id} className="border border-border/50 rounded-lg p-3 bg-card hover:border-border transition">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <button
-                    onClick={() => onOpenProject(p)}
-                    className="font-semibold text-sm text-foreground hover:underline flex items-center gap-1.5"
-                  >
-                    {p.merchantName} <ExternalLink className="h-3 w-3 opacity-50" />
-                  </button>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    <span className="font-medium text-foreground/80">ARR:</span> {formatArr(p.arr)}
-                    <span className="mx-1.5">|</span>
-                    <span className="font-medium text-foreground/80">EGL:</span> {formatEgl(p.dates?.expectedGoLiveDate)}
-                    <span className="mx-1.5">|</span>
-                    {funnelStageLabels[getProjectFunnelStage(p)]} · {projectStateLabels[p.projectState]}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-1.5">
+    <tbody className="border-b border-border last:border-b-0">
+      <tr className="bg-muted/20">
+        <td colSpan={colCount} className="px-3 py-2">
+          <button
+            type="button"
+            onClick={() => setOpen(v => !v)}
+            aria-expanded={open}
+            className="flex w-full items-center justify-between gap-3 text-left"
+          >
+            <span className="flex items-center gap-2">
+              <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", open ? "" : "-rotate-90")} />
+              <span className="text-sm font-semibold">{funnelStageLabels[stage]}</span>
+              <span className="text-xs text-muted-foreground">{projects.length} project{projects.length === 1 ? "" : "s"}</span>
+            </span>
+            <span className="text-xs text-muted-foreground">
+              <span className="font-medium text-success-strong">{activeCount} active</span>
+              {` · ${projects.length - activeCount} inactive`}
+            </span>
+          </button>
+        </td>
+      </tr>
+
+      {open && projects.map(p => {
+        const entries = movementMap[p.id] || [];
+        const isActive = entries.length > 0;
+        const ai = aiMap[p.id];
+        const fallback = isActive ? buildSummary(entries, 3) : "";
+        const percent = Math.max(0, Math.min(100, p.goLivePercent ?? 0));
+        const owner = p.assignedOwnerName || "Unassigned";
+        return (
+          <Fragment key={p.id}>
+            <tr className="border-t border-border/40 align-middle transition-colors hover:bg-muted/30">
+              <td className="px-3 py-2.5">
+                <Checkbox aria-label={`Select ${p.merchantName}`} className="h-4 w-4" />
+              </td>
+              <td className="px-3 py-2.5">
+                <button
+                  onClick={() => onOpenProject(p)}
+                  className="block max-w-full truncate text-left font-semibold text-foreground hover:underline"
+                  title={p.merchantName}
+                >
+                  {p.merchantName}
+                </button>
+                <span className="block truncate text-xs text-muted-foreground">{funnelStageLabels[getProjectFunnelStage(p)]}</span>
+              </td>
+              {showCol("status") && (
+                <td className="px-3 py-2.5">
                   {isActive && ai ? bucketBadge(ai.bucket) : (
-                    <Badge
-                      variant={isActive ? "default" : "secondary"}
-                      className={isActive ? "bg-success hover:bg-success" : ""}
-                    >
-                      {isActive ? "Active" : "Inactive"}
+                    <Badge variant="secondary" className="whitespace-nowrap text-2xs font-medium">
+                      {projectStateLabels[p.projectState] || p.projectState}
                     </Badge>
                   )}
-                </div>
-              </div>
-              {isActive && (ai || fallback) && (
-                <div className="mt-2 text-xs leading-relaxed space-y-0.5">
-                  <p className="text-foreground/90">{ai?.line1 || fallback}</p>
-                  {ai?.line2 && <p className="text-muted-foreground">{ai.line2}</p>}
-                </div>
+                </td>
               )}
-            </div>
-          );
-        })}
-      </CollapsibleContent>
-    </Collapsible>
+              {showCol("arr") && <td className="truncate px-3 py-2.5 text-sm">{formatArr(p.arr)}</td>}
+              {showCol("egl") && <td className="truncate px-3 py-2.5 text-sm">{formatEgl(p.dates?.expectedGoLiveDate)}</td>}
+              {showCol("owner") && (
+                <td className="px-3 py-2.5">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
+                      {initials(owner)}
+                    </span>
+                    <span className="truncate text-sm">{owner}</span>
+                  </span>
+                </td>
+              )}
+              {showCol("progress") && (
+                <td className="px-3 py-2.5">
+                  <span className="flex items-center gap-2">
+                    <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+                      <span className="block h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+                    </span>
+                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{percent}%</span>
+                  </span>
+                </td>
+              )}
+              {showCol("updated") && (
+                <td className="px-3 py-2.5 text-xs text-muted-foreground">
+                  {p.updatedAt ? (
+                    <>
+                      <span className="block">{format(new Date(p.updatedAt), "dd MMM yyyy")}</span>
+                      <span className="block">{format(new Date(p.updatedAt), "HH:mm")}</span>
+                    </>
+                  ) : "—"}
+                </td>
+              )}
+              <td className="px-3 py-2.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground"
+                  onClick={() => onOpenProject(p)}
+                  aria-label={`Open ${p.merchantName}`}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </Button>
+              </td>
+            </tr>
+            {/* What actually moved, under the row it belongs to. */}
+            {isActive && (ai || fallback) && (
+              <tr className="bg-muted/10">
+                <td />
+                <td colSpan={colCount - 1} className="px-3 pb-2.5 text-xs leading-relaxed">
+                  <span className="block text-foreground/90">{ai?.line1 || fallback}</span>
+                  {ai?.line2 && <span className="block text-muted-foreground">{ai.line2}</span>}
+                </td>
+              </tr>
+            )}
+          </Fragment>
+        );
+      })}
+    </tbody>
   );
 };
 
