@@ -4,7 +4,6 @@ import {
   AlertCircle,
   BarChart3,
   CalendarDays,
-  Check,
   CheckCircle2,
   CircleDashed,
   FolderKanban,
@@ -227,28 +226,36 @@ export const TeamDashboard = () => {
                         <span>· {getLabel("field_expected_go_live_date")}: {formatGoLiveDate(project)}</span>
                       </p>
                     </div>
-                    {/* Accept or reject, as the two icons the row is really about. */}
-                    <div className="flex shrink-0 items-center rounded-md border border-border p-0.5">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        title={`Accept ${project.merchantName}`}
-                        aria-label={`Accept ${project.merchantName}`}
-                        className="h-7 w-7 text-success-strong hover:bg-success-soft hover:text-success-strong"
-                        onClick={() => acceptProject(project.id)}
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        title={`Reject ${project.merchantName}`}
-                        aria-label={`Reject ${project.merchantName}`}
-                        className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    {/* One slide with two ends. The thumb rests in the middle while the
+                        decision is open and runs to whichever end you reach for, so the
+                        control reads as a switch rather than a pair of buttons. */}
+                    <div
+                      role="radiogroup"
+                      aria-label={`Accept or reject ${project.merchantName}`}
+                      className="relative flex h-7 w-32 shrink-0 items-center rounded-full border border-border bg-muted p-0.5"
+                    >
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={false}
                         onClick={() => setRejectTarget(project)}
+                        className="peer/reject relative z-10 h-6 flex-1 rounded-full text-2xs font-semibold text-muted-foreground transition-colors hover:text-destructive focus-visible:text-destructive focus:outline-none"
                       >
-                        <X className="h-4 w-4" />
-                      </Button>
+                        Reject
+                      </button>
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={false}
+                        onClick={() => acceptProject(project.id)}
+                        className="peer/accept relative z-10 h-6 flex-1 rounded-full text-2xs font-semibold text-muted-foreground transition-colors hover:text-success-strong focus-visible:text-success-strong focus:outline-none"
+                      >
+                        Accept
+                      </button>
+                      <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-0.5 h-6 w-[calc(50%-2px)] rounded-full bg-background shadow-sm transition-all duration-200 left-1/2 -translate-x-1/2 peer-hover/reject:left-[2px] peer-hover/reject:translate-x-0 peer-focus-visible/reject:left-[2px] peer-focus-visible/reject:translate-x-0 peer-hover/accept:left-auto peer-hover/accept:right-[2px] peer-hover/accept:translate-x-0 peer-focus-visible/accept:left-auto peer-focus-visible/accept:right-[2px] peer-focus-visible/accept:translate-x-0"
+                      />
                     </div>
                   </div>
                 );
