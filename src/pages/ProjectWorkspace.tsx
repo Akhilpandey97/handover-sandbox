@@ -855,7 +855,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             {/* Customer access — two ways of giving the customer a way in, in one place. */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-foreground-foreground hover:bg-navy/90">
+                <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90">
                   <Share2 className="h-3.5 w-3.5" />
                   Customer access
                 </Button>
@@ -883,19 +883,19 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               </DropdownMenuContent>
             </DropdownMenu>
             {currentUser?.team === "manager" ? (
-              <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-foreground-foreground hover:bg-navy/90" onClick={() => setAssignOpen(true)}>
+              <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90" onClick={() => setAssignOpen(true)}>
                 <UserRound className="h-3.5 w-3.5" />
                 Assign owner
               </Button>
             ) : null}
-            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-foreground-foreground hover:bg-navy/90" onClick={() => setEditOpen(true)}>
+            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90" onClick={() => setEditOpen(true)}>
               <Pencil className="h-3.5 w-3.5" />
               Edit project
             </Button>
             {/* The one action that moves the project on. */}
             <Button
               size="sm"
-              className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-foreground-foreground hover:bg-navy/90"
+              className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90"
               onClick={() => isTransferReady && setTransferOpen(true)}
               disabled={!isTransferReady}
               title={transferBlockedReason || undefined}
