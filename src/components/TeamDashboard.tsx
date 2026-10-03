@@ -4,6 +4,7 @@ import {
   AlertCircle,
   BarChart3,
   CalendarDays,
+  Check,
   CheckCircle2,
   CircleDashed,
   FolderKanban,
@@ -232,25 +233,29 @@ export const TeamDashboard = () => {
                     <div
                       role="radiogroup"
                       aria-label={`Accept or reject ${project.merchantName}`}
-                      className="relative flex h-7 w-32 shrink-0 items-center rounded-full border border-border bg-muted p-0.5"
+                      className="relative flex h-7 w-[4.5rem] shrink-0 items-center rounded-full border border-border bg-muted p-0.5"
                     >
                       <button
                         type="button"
                         role="radio"
                         aria-checked={false}
+                        title={`Reject ${project.merchantName}`}
+                        aria-label={`Reject ${project.merchantName}`}
                         onClick={() => setRejectTarget(project)}
-                        className="peer/reject relative z-10 h-6 flex-1 rounded-full text-2xs font-semibold text-muted-foreground transition-colors hover:text-destructive focus-visible:text-destructive focus:outline-none"
+                        className="peer/reject relative z-10 flex h-6 flex-1 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-destructive focus-visible:text-destructive focus:outline-none"
                       >
-                        Reject
+                        <X className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
                         role="radio"
                         aria-checked={false}
+                        title={`Accept ${project.merchantName}`}
+                        aria-label={`Accept ${project.merchantName}`}
                         onClick={() => acceptProject(project.id)}
-                        className="peer/accept relative z-10 h-6 flex-1 rounded-full text-2xs font-semibold text-muted-foreground transition-colors hover:text-success-strong focus-visible:text-success-strong focus:outline-none"
+                        className="peer/accept relative z-10 flex h-6 flex-1 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-success-strong focus-visible:text-success-strong focus:outline-none"
                       >
-                        Accept
+                        <Check className="h-3.5 w-3.5" />
                       </button>
                       <span
                         aria-hidden="true"
