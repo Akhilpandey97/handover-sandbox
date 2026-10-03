@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Search, Eye, CalendarRange } from "lucide-react";
+import { FilteredEmptyState } from "@/components/filters/FilterPanel";
+import { Download, Search, Eye, CalendarRange, X } from "lucide-react";
 
 interface VisitRow {
   id: string;
@@ -185,6 +186,17 @@ export function PortalVisitsReport() {
               <option value="all">All pages</option>
               {pageOptions.map(p => <option key={p} value={p}>{PAGE_LABEL[p] || p}</option>)}
             </select>
+            {(range !== "30" || pageFilter !== "all" || search.trim() !== "") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 px-2 text-xs"
+                onClick={() => { setRange("30"); setPageFilter("all"); setSearch(""); setFrom(""); setTo(""); }}
+              >
+                <X className="h-3 w-3" />
+                Clear
+              </Button>
+            )}
             <span className="ml-auto text-xs text-muted-foreground">
               {summary.visits} visits · {summary.people} people · {summary.merchants} {merchantLabel.toLowerCase()}
             </span>
@@ -194,7 +206,14 @@ export function PortalVisitsReport() {
           {loading ? (
             <div className="text-sm text-muted-foreground py-8 text-center">Loading...</div>
           ) : filtered.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-8 text-center">No portal visits recorded yet.</div>
+            visits.length > 0 ? (
+              <FilteredEmptyState
+                onClear={() => { setRange("all"); setPageFilter("all"); setSearch(""); setFrom(""); setTo(""); }}
+                noun="visits"
+              />
+            ) : (
+              <div className="text-sm text-muted-foreground py-8 text-center">No portal visits recorded yet.</div>
+            )
           ) : (
             <div className="overflow-auto max-h-[600px] border rounded-md">
               <table className="w-full text-sm">

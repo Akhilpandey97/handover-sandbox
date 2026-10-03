@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useActivityLogs, ActivityLog } from "@/hooks/useActivityLogs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FilteredEmptyState } from "@/components/filters/FilterPanel";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Activity, Search, Filter, ChevronDown, ChevronRight, Bot, User, Settings, CheckCircle2, XCircle, Loader2, RefreshCw } from "lucide-react";
+import { Activity, Search, Filter, ChevronDown, ChevronRight, Bot, User, Settings, CheckCircle2, XCircle, Loader2, RefreshCw, X } from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -35,6 +36,9 @@ export const ActivityLogViewer = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const activeFilters = [search.trim() !== "", typeFilter !== "all", categoryFilter !== "all", statusFilter !== "all"].filter(Boolean).length;
+  const clearFilters = () => { setSearch(""); setTypeFilter("all"); setCategoryFilter("all"); setStatusFilter("all"); };
 
   const filtered = logs.filter((log) => {
     if (typeFilter !== "all" && log.action_type !== typeFilter) return false;
@@ -113,6 +117,15 @@ export const ActivityLogViewer = () => {
               <SelectItem value="failed">Failed</SelectItem>
             </SelectContent>
           </Select>
+          {activeFilters > 0 && (
+            <Button variant="ghost" size="sm" className="h-9 gap-1 px-2 text-xs" onClick={clearFilters}>
+              <X className="h-3 w-3" />
+              Clear
+              <span className="ml-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-2xs font-semibold leading-none text-primary-foreground">
+                {activeFilters}
+              </span>
+            </Button>
+          )}
         </div>
 
         {/* Stats bar */}
@@ -128,11 +141,15 @@ export const ActivityLogViewer = () => {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <Activity className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="font-medium">No activity logs found</p>
-            <p className="text-sm">Activities will appear here as you use the application</p>
-          </div>
+          activeFilters > 0 ? (
+            <FilteredEmptyState onClear={clearFilters} noun="entries" />
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Activity className="h-12 w-12 mx-auto mb-3 opacity-30" />
+              <p className="font-medium">No activity logs found</p>
+              <p className="text-sm">Activities will appear here as you use the application</p>
+            </div>
+          )
         ) : (
           <ScrollArea className="h-[500px]">
             <div className="space-y-1">

@@ -3,6 +3,9 @@ import { useProjectRisks, ProjectRisk } from "@/hooks/useProjectRisks";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useUrlFilters } from "@/hooks/useUrlFilters";
+import { FilterPanel, FilterGroup, FilteredEmptyState } from "@/components/filters/FilterPanel";
+import { SortableHeader } from "@/components/filters/SortableHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import {
   ShieldAlert, Plus,
-  Zap, Trash2, Pencil, ArrowUpDown
+  Zap, Trash2, Pencil, X
 } from "lucide-react";
 import { Project, projectStateLabels } from "@/data/projectsData";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
@@ -24,6 +27,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { useLabels } from "@/contexts/LabelsContext";
 import { GoLiveDate } from "./GoLiveDate";
 import { arrCroreValue } from "@/lib/arr";
+
+/** Empty array = no filter; the URL stays clean until something is chosen. */
+const RISK_FILTER_DEFAULTS = {
+  category: [] as string[],
+  severity: [] as string[],
+  status: [] as string[],
+  sort: "severity",
+  dir: "desc",
+};
 
 const CATEGORIES = [
   { value: "merchant_dependency", label: "Merchant Dependency" },
@@ -60,11 +72,13 @@ export const RiskDashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRisk, setEditingRisk] = useState<ProjectRisk | null>(null);
   const [activityProject, setActivityProject] = useState<{ id: string; name: string } | null>(null);
-  const [filterCategory, setFilterCategory] = useState("all");
-  const [filterSeverity, setFilterSeverity] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [sortField, setSortField] = useState<"severity" | "created_at" | "mitigation_due_at">("severity");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  // Filters and sort live in the URL: they survive a reload and the view is a link.
+  const { values: f, setValue, toggleValue, clear, activeCount } = useUrlFilters("risk", RISK_FILTER_DEFAULTS);
+  const categories = f.category as string[];
+  const severities = f.severity as string[];
+  const statuses = f.status as string[];
+  const sortField = f.sort as "severity" | "created_at" | "mitigation_due_at";
+  const sortDir = f.dir as "asc" | "desc";
 
   // Form state
   const [formProjectId, setFormProjectId] = useState("");
@@ -100,9 +114,9 @@ export const RiskDashboard = () => {
   // Filtered & sorted risks
   const filteredRisks = useMemo(() => {
     let list = [...risks];
-    if (filterCategory !== "all") list = list.filter(r => r.category === filterCategory);
-    if (filterSeverity !== "all") list = list.filter(r => r.severity === filterSeverity);
-    if (filterStatus !== "all") list = list.filter(r => r.status === filterStatus);
+    if (categories.length) list = list.filter(r => categories.includes(r.category));
+    if (severities.length) list = list.filter(r => severities.includes(r.severity));
+    if (statuses.length) list = list.filter(r => statuses.includes(r.status));
 
     const sevOrder: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
     list.sort((a, b) => {
@@ -117,7 +131,7 @@ export const RiskDashboard = () => {
       return sortDir === "desc" ? -cmp : cmp;
     });
     return list;
-  }, [risks, filterCategory, filterSeverity, filterStatus, sortField, sortDir]);
+  }, [risks, categories, severities, statuses, sortField, sortDir]);
 
 
   const openDialog = (risk?: ProjectRisk) => {
@@ -193,35 +207,58 @@ export const RiskDashboard = () => {
   };
 
   const toggleSort = (field: typeof sortField) => {
-    if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
-    else { setSortField(field); setSortDir("desc"); }
+    if (sortField === field) setValue("dir", sortDir === "asc" ? "desc" : "asc");
+    else { setValue("sort", field); setValue("dir", "desc"); }
   };
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-4">
       {/* Filters + Add */}
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 shadow-sm">
-        <Select value={filterCategory} onValueChange={setFilterCategory}>
-          <SelectTrigger className="h-8 w-48 text-xs"><SelectValue placeholder="Category" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterSeverity} onValueChange={setFilterSeverity}>
-          <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Severity" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Severities</SelectItem>
-            {SEVERITIES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2.5 shadow-sm">
+        <FilterPanel count={activeCount} onClear={clear}>
+          <FilterGroup
+            title="Category"
+            options={CATEGORIES.map(c => ({ value: c.value, label: c.label }))}
+            selected={categories}
+            onToggle={(v) => toggleValue("category", v)}
+          />
+          <FilterGroup
+            title="Severity"
+            options={SEVERITIES.map(sv => ({ value: sv.value, label: sv.label }))}
+            selected={severities}
+            onToggle={(v) => toggleValue("severity", v)}
+          />
+          <FilterGroup
+            title="Status"
+            options={STATUSES.map(st => ({ value: st.value, label: st.label }))}
+            selected={statuses}
+            onToggle={(v) => toggleValue("status", v)}
+          />
+        </FilterPanel>
+
+        {/* What is on, as removable chips, so a filtered table explains itself
+            without opening the panel. */}
+        {[
+          ...categories.map(v => ({ k: "category", v, label: CATEGORIES.find(c => c.value === v)?.label || v })),
+          ...severities.map(v => ({ k: "severity", v, label: SEVERITIES.find(c => c.value === v)?.label || v })),
+          ...statuses.map(v => ({ k: "status", v, label: STATUSES.find(c => c.value === v)?.label || v })),
+        ].map(chip => (
+          <button
+            key={`${chip.k}-${chip.v}`}
+            type="button"
+            onClick={() => toggleValue(chip.k as "category" | "severity" | "status", chip.v)}
+            title={`Remove ${chip.label}`}
+            className="flex h-7 items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 text-xs text-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
+          >
+            {chip.label}
+            <X className="h-3 w-3" />
+          </button>
+        ))}
+
+        <span className="text-xs text-muted-foreground">
+          {filteredRisks.length}{activeCount > 0 ? ` of ${risks.length}` : ""} risk{filteredRisks.length === 1 ? "" : "s"}
+        </span>
+
         <div className="flex-1" />
         {!isReadOnly && (
           <Button onClick={() => openDialog()} size="sm" className="h-8 gap-1.5 text-xs">
@@ -239,25 +276,26 @@ export const RiskDashboard = () => {
                 <TableHead>Project</TableHead>
                 <TableHead>Risk</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead className="cursor-pointer" onClick={() => toggleSort("severity")}>
-                  <span className="flex items-center gap-1">Severity <ArrowUpDown className="h-3 w-3" /></span>
-                </TableHead>
+                <SortableHeader label="Severity" active={sortField === "severity"} dir={sortDir} onSort={() => toggleSort("severity")} />
                 <TableHead>Status</TableHead>
-                <TableHead className="cursor-pointer" onClick={() => toggleSort("created_at")}>
-                  <span className="flex items-center gap-1">Age <ArrowUpDown className="h-3 w-3" /></span>
-                </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => toggleSort("mitigation_due_at")}>
-                  <span className="flex items-center gap-1">SLA <ArrowUpDown className="h-3 w-3" /></span>
-                </TableHead>
+                <SortableHeader label="Age" active={sortField === "created_at"} dir={sortDir} onSort={() => toggleSort("created_at")} />
+                <SortableHeader label="SLA" active={sortField === "mitigation_due_at"} dir={sortDir} onSort={() => toggleSort("mitigation_due_at")} />
                 <TableHead>Mitigation</TableHead>
                 {!isReadOnly && <TableHead className="w-28">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRisks.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={isReadOnly ? 8 : 9} className="text-center py-8 text-muted-foreground">
-                    {isLoading ? "Loading..." : "No risks found"}
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={isReadOnly ? 8 : 9} className="p-0">
+                    {isLoading ? (
+                      <p className="py-8 text-center text-muted-foreground">Loading...</p>
+                    ) : activeCount > 0 ? (
+                      /* Hidden by a filter is not the same as not existing. */
+                      <FilteredEmptyState onClear={clear} noun="risks" />
+                    ) : (
+                      <p className="py-8 text-center text-muted-foreground">No risks found</p>
+                    )}
                   </TableCell>
                 </TableRow>
               )}

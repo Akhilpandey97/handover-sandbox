@@ -11,6 +11,7 @@ import {
 } from "@/data/projectsData";
 import { useMovementReport, MovementEntry } from "@/hooks/useMovementReport";
 import { useFunnelConfig } from "@/hooks/useFunnelConfig";
+import { FilterPanel, FilterGroup, FilteredEmptyState } from "@/components/filters/FilterPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,20 +34,6 @@ interface Props {
 }
 
 type Bucket = "wins" | "updates" | "lowlights";
-
-const FilterGroup = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="space-y-2">
-    <p className="text-xs font-semibold tracking-normal text-muted-foreground">{title}</p>
-    <div className="space-y-1.5">{children}</div>
-  </div>
-);
-
-const CheckRow = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) => (
-  <label className="flex items-center gap-2 cursor-pointer text-sm hover:bg-muted/60 px-2 py-1 rounded">
-    <Checkbox checked={checked} onCheckedChange={onChange} />
-    <span>{label}</span>
-  </label>
-);
 
 // ---------- Helpers ----------
 
@@ -528,61 +515,51 @@ export const MovementReport = ({ timeframe }: Props) => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filters
-                  {activeFilterCount > 0 && <Badge variant="secondary" className="ml-1">{activeFilterCount}</Badge>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[420px] p-0" align="end">
-                <div className="flex items-center justify-between p-3 border-b">
-                  <p className="font-semibold text-sm">Filters</p>
-                  <Button variant="ghost" size="sm" onClick={resetFilters} disabled={activeFilterCount === 0}>Reset</Button>
+            <FilterPanel count={activeFilterCount} onClear={resetFilters} align="end">
+              <FilterGroup
+                title="Status"
+                options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]}
+                selected={statusFilter}
+                onToggle={(v) => toggle(setStatusFilter, v)}
+              />
+              <FilterGroup
+                title="Project Stage"
+                options={funnelOrder.map(st => ({ value: st, label: funnelStageLabels[st] || st }))}
+                selected={funnelFilter}
+                onToggle={(v) => toggle(setFunnelFilter, v)}
+              />
+              <FilterGroup
+                title="Team"
+                options={teams.map(t => ({ value: t, label: teamLabels[t] || t }))}
+                selected={teamFilter}
+                onToggle={(v) => toggle(setTeamFilter, v)}
+              />
+              <FilterGroup
+                title="Project State"
+                options={(Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>).map(st => ({ value: st, label: projectStateLabels[st] }))}
+                selected={stateFilter}
+                onToggle={(v) => toggle(setStateFilter, v)}
+              />
+              <FilterGroup
+                title="Responsibility"
+                options={["gokwik", "merchant", "neutral"].map(r => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) }))}
+                selected={responsibilityFilter}
+                onToggle={(v) => toggle(setResponsibilityFilter, v)}
+              />
+              <FilterGroup
+                title="Platform"
+                options={platforms.map(pl => ({ value: pl, label: pl }))}
+                selected={platformFilter}
+                onToggle={(v) => toggle(setPlatformFilter, v)}
+              />
+              <div className="space-y-1 px-1.5 pb-1 pt-2">
+                <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">ARR Range</p>
+                <div className="flex gap-1.5">
+                  <Input placeholder="Min" type="number" value={arrMin} onChange={(e) => setArrMin(e.target.value)} className="h-7 text-xs" />
+                  <Input placeholder="Max" type="number" value={arrMax} onChange={(e) => setArrMax(e.target.value)} className="h-7 text-xs" />
                 </div>
-                <ScrollArea className="max-h-[500px] p-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FilterGroup title="Status">
-                      <CheckRow label="Active" checked={statusFilter.includes("active")} onChange={() => toggle(setStatusFilter, "active")} />
-                      <CheckRow label="Inactive" checked={statusFilter.includes("inactive")} onChange={() => toggle(setStatusFilter, "inactive")} />
-                    </FilterGroup>
-                    <FilterGroup title="Project Stage">
-                      {funnelOrder.map(s => (
-                        <CheckRow key={s} label={funnelStageLabels[s]} checked={funnelFilter.includes(s)} onChange={() => toggle(setFunnelFilter, s)} />
-                      ))}
-                    </FilterGroup>
-                    <FilterGroup title="Team">
-                      {teams.map(t => (
-                        <CheckRow key={t} label={teamLabels[t] || t} checked={teamFilter.includes(t)} onChange={() => toggle(setTeamFilter, t)} />
-                      ))}
-                    </FilterGroup>
-                    <FilterGroup title="Project State">
-                      {(Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>).map(s => (
-                        <CheckRow key={s} label={projectStateLabels[s]} checked={stateFilter.includes(s)} onChange={() => toggle(setStateFilter, s)} />
-                      ))}
-                    </FilterGroup>
-                    <FilterGroup title="Responsibility">
-                      {["gokwik", "merchant", "neutral"].map(r => (
-                        <CheckRow key={r} label={r.charAt(0).toUpperCase() + r.slice(1)} checked={responsibilityFilter.includes(r)} onChange={() => toggle(setResponsibilityFilter, r)} />
-                      ))}
-                    </FilterGroup>
-                    <FilterGroup title="Platform">
-                      {platforms.slice(0, 12).map(p => (
-                        <CheckRow key={p} label={p} checked={platformFilter.includes(p)} onChange={() => toggle(setPlatformFilter, p)} />
-                      ))}
-                    </FilterGroup>
-                    <div className="col-span-2 space-y-2">
-                      <p className="text-xs font-semibold tracking-normal text-muted-foreground">ARR Range</p>
-                      <div className="flex gap-2">
-                        <Input placeholder="Min" type="number" value={arrMin} onChange={(e) => setArrMin(e.target.value)} />
-                        <Input placeholder="Max" type="number" value={arrMax} onChange={(e) => setArrMax(e.target.value)} />
-                      </div>
-                    </div>
-                  </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
+              </div>
+            </FilterPanel>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -679,7 +656,10 @@ export const MovementReport = ({ timeframe }: Props) => {
         {isLoading ? (
           <div className="py-20 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Loading report...</div>
         ) : filteredProjects.length === 0 ? (
-          <div className="py-20 text-center text-muted-foreground">No projects match the current filters.</div>
+          <FilteredEmptyState
+            onClear={() => { resetFilters(); clearQuickFilters(); }}
+            noun="projects"
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full table-fixed text-sm">
