@@ -59,8 +59,8 @@ export function applyBrandColor(hex: string, isDark = false): void {
   const root = document.documentElement;
   const set = (name: string, value: string) => root.style.setProperty(name, value);
 
-  // The hex token, used by bg-navy and the places that need a real colour value.
-  set("--color-navy", hex);
+  // bg-navy and friends resolve through this at runtime.
+  set("--brand-hex", hex);
 
   if (isDark) {
     // Lifted so it holds up against dark surfaces.

@@ -19,8 +19,8 @@
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1rem;
 
-  --color-navy: #0074F8;
-  --color-navy-foreground: #ffffff;
+  --color-navy: var(--brand-hex);
+  --color-navy-foreground: var(--brand-hex-foreground);
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -211,6 +211,11 @@
   --border: 202 24% 86%;
   --input: 202 24% 86%;
   --ring: 212 100% 49%;
+
+  /* The brand colour as a hex, for utilities that need a real colour value.
+     Set at runtime from the workspace's setting. */
+  --brand-hex: #0074F8;
+  --brand-hex-foreground: #ffffff;
 
   --radius: 0.55rem;
 

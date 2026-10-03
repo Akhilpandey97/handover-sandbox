@@ -606,7 +606,8 @@ const FunnelSection = ({
   activeCount: number;
   onOpenProject: (p: Project) => void;
 }) => {
-  const [open, setOpen] = useState(true);
+  // Collapsed by default: the report is a scan of many stages, not a wall of rows.
+  const [open, setOpen] = useState(false);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <CollapsibleTrigger asChild>

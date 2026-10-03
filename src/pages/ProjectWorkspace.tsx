@@ -56,6 +56,9 @@ import { WorkspaceTasksPanel } from "@/components/project-workspace/WorkspaceTas
 import { WorkspaceMeetingsPanel } from "@/components/project-workspace/WorkspaceMeetingsPanel";
 import {
   ArrowLeft,
+  CalendarDays,
+  IndianRupee,
+  Layers,
   ArrowRight,
   ArrowUpRight,
   CheckCheck,
@@ -409,17 +412,44 @@ const relativeDay = (value?: string | null): string | undefined => {
  * One fact: muted label, value alongside, and — where the value can be changed —
  * a click that opens the right editor rather than a separate dialog for everything.
  */
+const PanelSection = ({
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) => {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className="border-b border-border/50 py-2 last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 py-1 text-left"
+      >
+        <span className="text-sm font-semibold text-foreground">{title}</span>
+        <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      {open ? <div className="pt-1">{children}</div> : null}
+    </section>
+  );
+};
+
 const PanelRow = ({
   label,
   value,
   hint,
   avatar,
+  icon: Icon,
   onEdit,
 }: {
   label: string;
   value: string;
   hint?: string;
   avatar?: string;
+  icon?: typeof CalendarDays;
   onEdit?: () => void;
 }) => {
   const body = (
@@ -435,7 +465,10 @@ const PanelRow = ({
   );
   return (
     <div className="grid grid-cols-[minmax(88px,42%)_minmax(0,1fr)] items-start gap-3 border-b border-border/50 py-2 last:border-b-0">
-      <dt className="text-xs leading-5 text-muted-foreground">{label}</dt>
+      <dt className="flex items-center gap-1.5 text-xs leading-5 text-muted-foreground">
+        {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" /> : null}
+        <span className="truncate">{label}</span>
+      </dt>
       <dd className="min-w-0 text-sm">
         {onEdit ? (
           <button
@@ -585,6 +618,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     project.currentPhase !== "completed" &&
     project.currentOwnerTeam !== "ms";
   const isTransferReady = canTransfer && allCurrentTeamChecklistCompleted;
+  const canAssignOwner = crossTeamRoles.includes(userTeamSlug);
   const openCurrentTeamItems = currentTeamChecklist.filter((item) => !item.completed).length;
   /** Say which condition is in the way, rather than one message for all of them. */
   const transferBlockedReason = isTransferReady
@@ -903,27 +937,83 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               </span>
             </div>
 
-            {/* The five facts people ask for, editable where they are read. */}
-            <dl className="text-xs">
-              <PanelRow label="Next step" value={nextStepLabel} hint={nextStep.hint} />
-              <PanelRow
-                label={getLabel("field_project_stage")}
-                value={funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)}
+            {/* The one thing to do, before the record. Tinted when it is late. */}
+            <button
+              type="button"
+              onClick={() => openTab("checklists")}
+              className={cn(
+                "mb-4 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors",
+                nextStep.hint === "overdue"
+                  ? "border-destructive/30 bg-destructive-soft hover:border-destructive/50"
+                  : "border-border bg-muted/40 hover:border-primary/30",
+              )}
+            >
+              <CalendarDays
+                className={cn(
+                  "mt-0.5 h-4 w-4 shrink-0",
+                  nextStep.hint === "overdue" ? "text-destructive-strong" : "text-muted-foreground",
+                )}
               />
-              <PanelRow
-                label={getLabel("field_expected_go_live_date")}
-                value={formatGoLiveDate(project, friendlyDate, "Not set")}
-                hint={relativeDay(project.dates.expectedGoLiveDate)}
-                onEdit={() => setEditOpen(true)}
-              />
-              <PanelRow
-                label={getLabel("field_assigned_owner")}
-                value={project.assignedOwnerName || "Unassigned"}
-                avatar={project.assignedOwnerName || undefined}
-                onEdit={currentUser?.team === "manager" ? () => setAssignOpen(true) : undefined}
-              />
-              <PanelRow label={getLabel("field_arr")} value={`₹${formatArrCr(project.arr)}`} onEdit={() => setEditOpen(true)} />
-            </dl>
+              <span className="min-w-0 flex-1">
+                <span className="block text-xs text-muted-foreground">Next action</span>
+                <span className="block text-sm font-semibold text-foreground">{nextStepLabel}</span>
+                {nextStep.hint ? (
+                  <span
+                    className={cn(
+                      "block text-xs capitalize",
+                      nextStep.hint === "overdue" ? "font-medium text-destructive" : "text-muted-foreground",
+                    )}
+                  >
+                    {nextStep.hint}
+                  </span>
+                ) : null}
+              </span>
+              <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            </button>
+
+            {/* Where the project stands. */}
+            <PanelSection title="Project overview" defaultOpen>
+              <dl className="text-xs">
+                <PanelRow
+                  label={getLabel("field_project_stage")}
+                  icon={Layers}
+                  value={funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)}
+                />
+                <PanelRow
+                  label={getLabel("field_expected_go_live_date")}
+                  icon={CalendarDays}
+                  value={formatGoLiveDate(project, friendlyDate, "Not set")}
+                  hint={relativeDay(project.dates.expectedGoLiveDate)}
+                  onEdit={() => setEditOpen(true)}
+                />
+                <PanelRow
+                  label={getLabel("field_arr")}
+                  icon={IndianRupee}
+                  value={`₹${formatArrCr(project.arr)}`}
+                  onEdit={() => setEditOpen(true)}
+                />
+              </dl>
+            </PanelSection>
+
+            {/* Who is on it, on both sides. */}
+            <PanelSection title="People" defaultOpen>
+              <dl className="text-xs">
+                <PanelRow
+                  label={getLabel("field_assigned_owner")}
+                  icon={UserRound}
+                  value={project.assignedOwnerName || "Unassigned"}
+                  avatar={project.assignedOwnerName || undefined}
+                  onEdit={canAssignOwner ? () => setAssignOpen(true) : undefined}
+                />
+                <PanelRow label={getLabel("field_sales_spoc")} icon={UserRound} value={project.salesSpoc || "—"} onEdit={() => setEditOpen(true)} />
+                <PanelRow
+                  label={getLabel("field_contact_email")}
+                  icon={Mail}
+                  value={project.contactEmail || "—"}
+                  onEdit={() => setEditOpen(true)}
+                />
+              </dl>
+            </PanelSection>
 
             {/* Everything else, one click away — rows, not another stack of cards. */}
             <button
