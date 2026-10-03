@@ -199,110 +199,6 @@ export const RiskDashboard = () => {
 
   return (
     <div className="mx-auto max-w-[1500px] space-y-4">
-      {/* Risk engine verdicts — deterministic, with AI prose layered on top */}
-      <Card className="shadow-sm border-border">
-        <CardHeader className="border-b bg-muted/30">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <CardTitle className="portal-heading flex items-center gap-2">
-                <ShieldAlert className="h-5 w-5 text-primary" />
-                At Risk
-                <Badge variant="secondary" className="text-xs">{atRiskProjects.length}</Badge>
-              </CardTitle>
-              <CardDescription>
-                Evaluated from Settings → Risk Rules. A project is High Risk when any enabled rule matches.
-              </CardDescription>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => setExplainAll((v) => !v)}
-              disabled={atRiskProjects.length === 0}
-            >
-              <Sparkles className="h-4 w-4" />
-              {explainAll ? "Hide AI explanations" : "Explain with AI"}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {atRiskProjects.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">
-              No projects are currently at risk.
-            </p>
-          ) : (
-            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
-              <TableHeader className="table-header-tint">
-                <TableRow className="hover:bg-muted/40 border-b">
-                  <TableHead className="font-semibold text-foreground">{getLabel("field_merchant_name")}</TableHead>
-                  <TableHead className="font-semibold text-foreground">Risk</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap">Why</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_expected_go_live_date")}</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_project_state")}</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_assigned_owner")}</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap text-right">{getLabel("field_arr")} (Cr)</TableHead>
-                  <TableHead className="font-semibold text-foreground text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {atRiskProjects.map((p) => {
-                  const verdict = verdicts[p.id]!;
-                  const reasons = verdict.findings.map((f) => f.detail);
-                  const overdue = Math.max(0, ...verdict.findings.map((f) => f.magnitude ?? 0));
-                  return (
-                    <>
-                      <TableRow key={p.id} className="align-top">
-                        <TableCell className="font-medium text-sm py-2">{p.merchantName}</TableCell>
-                        <TableCell className="py-2">
-                          <Badge className="bg-destructive hover:bg-destructive text-destructive-foreground text-2xs px-2 py-0">High Risk</Badge>
-                          {overdue > 0 && (
-                            <span className="ml-1.5 text-2xs font-medium text-destructive-strong">{overdue}d</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-2 text-xs text-muted-foreground max-w-[22rem]">
-                          {reasons.join(" · ")}
-                        </TableCell>
-                        <TableCell className="py-2 text-sm whitespace-nowrap">
-                          <GoLiveDate project={p} />
-                        </TableCell>
-                        <TableCell className="py-2 text-sm whitespace-nowrap">
-                          {stateLabels[p.projectState] || projectStateLabels[p.projectState] || p.projectState}
-                        </TableCell>
-                        <TableCell className="py-2 text-sm whitespace-nowrap">
-                          {p.assignedOwnerName || "Unassigned"}
-                        </TableCell>
-                        <TableCell className="py-2 text-sm text-right whitespace-nowrap">
-                          {arrCroreValue(p.arr)}
-                        </TableCell>
-                        <TableCell className="py-2 text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                            onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
-                          >
-                            Open
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      {/* Explanations are toggled once from the header button, and
-                          the endpoint caches by reason hash, so reopening costs nothing. */}
-                      {explainAll && (
-                        <TableRow key={`${p.id}-ai`} className="hover:bg-transparent">
-                          <TableCell colSpan={8} className="py-2 bg-muted/20">
-                            <AttentionReasonBlock projectId={p.id} kind="risk" reasons={reasons} enabled compact />
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Filters + Add */}
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 shadow-sm">
         <Select value={filterCategory} onValueChange={setFilterCategory}>
@@ -463,6 +359,110 @@ export const RiskDashboard = () => {
         </CardContent>
       </Card>
 
+
+      {/* Risk engine verdicts — deterministic, with AI prose layered on top */}
+      <Card className="shadow-sm border-border">
+        <CardHeader className="border-b bg-muted/30">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="portal-heading flex items-center gap-2">
+                <ShieldAlert className="h-5 w-5 text-primary" />
+                At Risk
+                <Badge variant="secondary" className="text-xs">{atRiskProjects.length}</Badge>
+              </CardTitle>
+              <CardDescription>
+                Evaluated from Settings → Risk Rules. A project is High Risk when any enabled rule matches.
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setExplainAll((v) => !v)}
+              disabled={atRiskProjects.length === 0}
+            >
+              <Sparkles className="h-4 w-4" />
+              {explainAll ? "Hide AI explanations" : "Explain with AI"}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {atRiskProjects.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-6 text-center">
+              No projects are currently at risk.
+            </p>
+          ) : (
+            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
+              <TableHeader className="table-header-tint">
+                <TableRow className="hover:bg-muted/40 border-b">
+                  <TableHead className="font-semibold text-foreground">{getLabel("field_merchant_name")}</TableHead>
+                  <TableHead className="font-semibold text-foreground">Risk</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap">Why</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_expected_go_live_date")}</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_project_state")}</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_assigned_owner")}</TableHead>
+                  <TableHead className="font-semibold text-foreground whitespace-nowrap text-right">{getLabel("field_arr")} (Cr)</TableHead>
+                  <TableHead className="font-semibold text-foreground text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {atRiskProjects.map((p) => {
+                  const verdict = verdicts[p.id]!;
+                  const reasons = verdict.findings.map((f) => f.detail);
+                  const overdue = Math.max(0, ...verdict.findings.map((f) => f.magnitude ?? 0));
+                  return (
+                    <>
+                      <TableRow key={p.id} className="align-top">
+                        <TableCell className="font-medium text-sm py-2">{p.merchantName}</TableCell>
+                        <TableCell className="py-2">
+                          <Badge className="bg-destructive hover:bg-destructive text-destructive-foreground text-2xs px-2 py-0">High Risk</Badge>
+                          {overdue > 0 && (
+                            <span className="ml-1.5 text-2xs font-medium text-destructive-strong">{overdue}d</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-2 text-xs text-muted-foreground max-w-[22rem]">
+                          {reasons.join(" · ")}
+                        </TableCell>
+                        <TableCell className="py-2 text-sm whitespace-nowrap">
+                          <GoLiveDate project={p} />
+                        </TableCell>
+                        <TableCell className="py-2 text-sm whitespace-nowrap">
+                          {stateLabels[p.projectState] || projectStateLabels[p.projectState] || p.projectState}
+                        </TableCell>
+                        <TableCell className="py-2 text-sm whitespace-nowrap">
+                          {p.assignedOwnerName || "Unassigned"}
+                        </TableCell>
+                        <TableCell className="py-2 text-sm text-right whitespace-nowrap">
+                          {arrCroreValue(p.arr)}
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
+                          >
+                            Open
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      {/* Explanations are toggled once from the header button, and
+                          the endpoint caches by reason hash, so reopening costs nothing. */}
+                      {explainAll && (
+                        <TableRow key={`${p.id}-ai`} className="hover:bg-transparent">
+                          <TableCell colSpan={8} className="py-2 bg-muted/20">
+                            <AttentionReasonBlock projectId={p.id} kind="risk" reasons={reasons} enabled compact />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Add/Edit Risk Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
