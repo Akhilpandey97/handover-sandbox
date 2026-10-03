@@ -88,14 +88,16 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
         /* One table, so every task lines up under the same columns; the checklist
            step stays as a band across it rather than a table of its own. */
         <div className="overflow-hidden rounded-lg border border-border/60">
-          <table className="w-full text-sm">
+          {/* Fixed layout: the columns keep their share of the width instead of the
+              title absorbing every spare pixel and stranding the rest at the edge. */}
+          <table className="w-full table-fixed text-sm">
             <thead className="bg-muted/50 text-xs text-muted-foreground">
               <tr>
                 <th scope="col" className="w-9 px-2 py-2" aria-label="Done" />
-                <th scope="col" className="px-2 py-2 text-left font-medium">Task</th>
-                <th scope="col" className="w-40 px-2 py-2 text-left font-medium">Assignee</th>
-                <th scope="col" className="w-32 px-2 py-2 text-left font-medium">Due</th>
-                <th scope="col" className="w-28 px-2 py-2 text-left font-medium">Status</th>
+                <th scope="col" className="w-[40%] px-2 py-2 text-left font-medium">Task</th>
+                <th scope="col" className="w-[22%] px-2 py-2 text-left font-medium">Assignee</th>
+                <th scope="col" className="w-[20%] px-2 py-2 text-left font-medium">Due</th>
+                <th scope="col" className="w-[18%] px-2 py-2 text-left font-medium">Status</th>
               </tr>
             </thead>
             {grouped.map(([checklistItemId, list]) => (
@@ -155,7 +157,7 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                           {task.title}
                         </span>
                       </td>
-                      <td className="px-2 py-1.5 align-middle text-xs text-muted-foreground">
+                      <td className="truncate px-2 py-1.5 align-middle text-xs text-muted-foreground">
                         {task.assigned_to
                           ? profiles.find((p) => p.id === task.assigned_to)?.name || "Assigned"
                           : "—"}
