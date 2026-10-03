@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Palette, Wand2, RotateCcw } from "lucide-react";
-import { DEFAULT_BRAND_COLOR, extractLogoColor, hexToHsl, luminance, readableOn } from "@/lib/brand-color";
+import { DEFAULT_BRAND_COLOR, extractLogoColor, hexToHsl } from "@/lib/brand-color";
 
 /**
  * The one colour that defines the product: nav, buttons, links, focus rings and the
@@ -125,20 +125,12 @@ export const BrandColorSettings = () => {
           </Button>
         </div>
 
-        {valid && (luminance(value) > 0.55 || luminance(value) < 0.05) ? (
-          <p className="text-xs text-warning-strong">
-            That colour is very {luminance(value) > 0.55 ? "light" : "dark"}. Buttons and the navigation
-            will use it with {readableOn(value) === "#ffffff" ? "white" : "dark"} text, and links and tints
-            are adjusted so they stay readable.
-          </p>
-        ) : null}
-
         {/* What it will look like, before committing to it. */}
         <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/60 bg-muted/20 p-3">
           <span className="text-xs text-muted-foreground">Preview</span>
           <span
-            className="inline-flex h-8 items-center rounded-md px-3 text-sm font-semibold"
-            style={{ backgroundColor: valid ? value : DEFAULT_BRAND_COLOR, color: readableOn(valid ? value : DEFAULT_BRAND_COLOR) }}
+            className="inline-flex h-8 items-center rounded-md px-3 text-sm font-semibold text-white"
+            style={{ backgroundColor: valid ? value : DEFAULT_BRAND_COLOR }}
           >
             Button
           </span>
@@ -149,8 +141,8 @@ export const BrandColorSettings = () => {
             Link
           </span>
           <span
-            className="inline-flex h-8 w-24 items-center rounded-md px-3 text-xs font-medium"
-            style={{ backgroundColor: valid ? value : DEFAULT_BRAND_COLOR, color: readableOn(valid ? value : DEFAULT_BRAND_COLOR) }}
+            className="inline-flex h-8 w-24 items-center rounded-md px-3 text-xs font-medium text-white"
+            style={{ backgroundColor: valid ? value : DEFAULT_BRAND_COLOR }}
           >
             Navigation
           </span>

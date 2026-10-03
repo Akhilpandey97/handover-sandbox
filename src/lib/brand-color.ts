@@ -42,21 +42,6 @@ export function hexToHsl(hex: string): Hsl | null {
 }
 
 const clamp = (n: number, min = 0, max = 100) => Math.min(max, Math.max(min, n));
-
-/** Relative luminance, for deciding whether text on this colour should be white or dark. */
-export function luminance(hex: string): number {
-  const clean = hex.replace(/^#/, "");
-  const channel = (i: number) => {
-    const v = parseInt(clean.slice(i, i + 2), 16) / 255;
-    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
-  };
-  return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
-}
-
-/** White or near-black, whichever can be read on the given colour. */
-export function readableOn(hex: string): string {
-  return luminance(hex) > 0.45 ? "#111827" : "#ffffff";
-}
 const triplet = ({ h, s, l }: Hsl) => `${h} ${s}% ${l}%`;
 
 /**
@@ -68,23 +53,14 @@ const triplet = ({ h, s, l }: Hsl) => `${h} ${s}% ${l}%`;
  */
 export function applyBrandColor(hex: string, isDark = false): void {
   if (typeof document === "undefined") return;
-  const raw = hexToHsl(hex);
-  if (!raw) return;
-
-  /**
-   * A brand can legitimately be black, white or near-grey; a *user interface* built
-   * entirely from one cannot. The colour is used as given on solid surfaces, where the
-   * text colour adapts to it, but the derived tokens — links, focus rings, tints — are
-   * pulled into a range where they still read as a colour against the page.
-   */
-  const base: Hsl = { h: raw.h, s: clamp(raw.s, 25, 100), l: clamp(raw.l, 30, 62) };
+  const base = hexToHsl(hex);
+  if (!base) return;
 
   const root = document.documentElement;
   const set = (name: string, value: string) => root.style.setProperty(name, value);
 
-  // bg-navy and friends resolve through this at runtime, with text that can be read on it.
+  // bg-navy and friends resolve through this at runtime.
   set("--brand-hex", hex);
-  set("--brand-hex-foreground", readableOn(hex));
 
   if (isDark) {
     // Lifted so it holds up against dark surfaces.
@@ -180,11 +156,5 @@ export async function extractLogoColor(url: string): Promise<string | null> {
   const avg = [best.r / best.count, best.g / best.count, best.b / best.count].map((v) =>
     Math.round(v).toString(16).padStart(2, "0"),
   );
-  const hex = `#${avg.join("")}`.toUpperCase();
-
-  // A colour this dark or this pale is the logo's ink or its paper, not its brand:
-  // using it would leave buttons black or invisible.
-  const hsl = hexToHsl(hex);
-  if (!hsl || hsl.l < 18 || hsl.l > 82 || hsl.s < 20) return null;
-  return hex;
+  return `#${avg.join("")}`.toUpperCase();
 }
