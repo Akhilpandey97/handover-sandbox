@@ -42,6 +42,32 @@ export function hexToHsl(hex: string): Hsl | null {
 }
 
 const clamp = (n: number, min = 0, max = 100) => Math.min(max, Math.max(min, n));
+
+/** The product's dark ink, for text on a light brand colour. */
+const INK = "#111827";
+
+function luminance(hex: string): number {
+  const clean = hex.replace(/^#/, "");
+  const channel = (i: number) => {
+    const v = parseInt(clean.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * channel(0) + 0.7152 * channel(2) + 0.0722 * channel(4);
+}
+
+const contrast = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+
+/**
+ * White or dark ink on this colour, whichever can actually be read.
+ *
+ * Assuming white works for a deep blue and fails for a mid pink or a yellow: on
+ * #EC3A94 dark ink reaches 5.6:1 where white manages 3.8:1. Rather than guess at a
+ * lightness threshold, compare both and take the better contrast.
+ */
+export function readableOn(hex: string): string {
+  const base = luminance(hex);
+  return contrast(base, luminance(INK)) > contrast(base, luminance("#ffffff")) ? INK : "#ffffff";
+}
 const triplet = ({ h, s, l }: Hsl) => `${h} ${s}% ${l}%`;
 
 /**
@@ -59,8 +85,10 @@ export function applyBrandColor(hex: string, isDark = false): void {
   const root = document.documentElement;
   const set = (name: string, value: string) => root.style.setProperty(name, value);
 
-  // bg-navy and friends resolve through this at runtime.
+  // bg-navy and friends resolve through this at runtime; the text on them follows suit.
   set("--brand-hex", hex);
+  set("--brand-hex-foreground", readableOn(hex));
+  set("--primary-foreground", readableOn(hex) === INK ? "222 47% 11%" : "0 0% 100%");
 
   if (isDark) {
     // Lifted so it holds up against dark surfaces.
@@ -83,14 +111,16 @@ export function applyBrandColor(hex: string, isDark = false): void {
 
   // The nav is the brand surface: the colour itself, with a darker step for hover and
   // borders so the active item still reads.
+  // The nav is a brand surface too, so its text follows the same rule.
+  const onBrand = readableOn(hex) === INK ? "222 47% 11%" : "0 0% 100%";
   set("--sidebar-background", triplet(base));
-  set("--sidebar-foreground", "0 0% 100%");
-  set("--sidebar-primary", "0 0% 100%");
+  set("--sidebar-foreground", onBrand);
+  set("--sidebar-primary", onBrand);
   set("--sidebar-primary-foreground", triplet({ ...base, l: clamp(base.l - 9, 15, 45) }));
   set("--sidebar-accent", triplet({ ...base, l: clamp(base.l - 7, 12, 60) }));
-  set("--sidebar-accent-foreground", "0 0% 100%");
+  set("--sidebar-accent-foreground", onBrand);
   set("--sidebar-border", triplet({ ...base, l: clamp(base.l - 7, 12, 60) }));
-  set("--sidebar-ring", "0 0% 100%");
+  set("--sidebar-ring", onBrand);
 }
 
 /**
