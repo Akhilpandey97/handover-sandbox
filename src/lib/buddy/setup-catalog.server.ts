@@ -199,7 +199,6 @@ export const NAV_TABS: { key: string; label: string }[] = [
   { key: "emails", label: "Emails" },
   { key: "archived", label: "Archived" },
   { key: "platforms", label: "Platforms" },
-  { key: "golive", label: "Go-Live Tracker" },
   { key: "shopify-sme", label: "Shopify SME and Ent" },
   { key: "shopify-lt-emails", label: "Shopify LT email communication" },
 ];

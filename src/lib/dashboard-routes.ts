@@ -90,6 +90,7 @@ export const LEGACY_TAB_ALIASES: Record<string, string | null> = {
   listview: "projects",
   kanban: "projects",
   calendar: "projects",
+  golive: "projects",
   checklist: null,
   users: null,
   overview: "dashboard",

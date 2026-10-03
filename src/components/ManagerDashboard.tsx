@@ -147,7 +147,6 @@ const ALL_NAV_ITEMS = [
   "reports",
   "settings",
   "archived",
-  "golive",
   "tenants",
 ];
 const ADMIN_ONLY_SETTINGS = ["users", "integrations"];
@@ -322,7 +321,7 @@ export const ManagerDashboard = () => {
   const navVisibility = getNavVisibility();
 
   // Draggable tab order
-  const DEFAULT_TAB_ORDER = ["dashboard", "projects", "risks", "reports", "settings", "golive"];
+  const DEFAULT_TAB_ORDER = ["dashboard", "projects", "risks", "reports", "settings"];
   const [tabOrder, setTabOrder] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem("manager_tab_order");
@@ -973,7 +972,7 @@ export const ManagerDashboard = () => {
   };
 
   const isGokwikGeneral = currentUser?.team === "gokwik_general";
-  // listview/kanban used to be separate nav entries; both are Projects views now.
+  // listview/kanban/golive used to be separate nav entries; all three are Projects views now.
   const GOKWIK_GENERAL_TABS = ["dashboard", "projects", "reports"];
 
   const isManagerOrAdmin = perms.isManagerOrAbove;
@@ -981,10 +980,9 @@ export const ManagerDashboard = () => {
     ...tabOrder,
     ...(currentUser?.team === "super_admin" && !tabOrder.includes("tenants") ? ["tenants"] : []),
     ...(isManagerOrAdmin && !tabOrder.includes("archived") ? ["archived"] : []),
-    ...(!tabOrder.includes("golive") ? ["golive"] : []),
     ...(!tabOrder.includes("hi-there") ? ["hi-there"] : []),
   ]
-    .filter(tab => !["listview", "kanban", "calendar", "checklist", "users"].includes(tab))
+    .filter(tab => !["listview", "kanban", "calendar", "checklist", "users", "golive"].includes(tab))
     .filter(tab => tab !== "tenants" || currentUser?.team === "super_admin")
     .filter(tab => tab !== "archived" || isManagerOrAdmin)
     .filter(tab => TAB_CONFIG[tab])
