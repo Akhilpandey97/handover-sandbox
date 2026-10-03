@@ -63,10 +63,11 @@ import {
   ArrowUpRight,
   CheckCheck,
   ChevronDown,
-  ChevronRight,
+  CircleDot,
   ExternalLink,
   FileStack,
   Globe,
+  Hourglass,
   Link2,
   Mail,
   Pencil,
@@ -441,16 +442,21 @@ const PanelRow = ({
   label,
   value,
   hint,
+  hintTone = "muted",
   avatar,
   icon: Icon,
   onEdit,
+  children,
 }: {
   label: string;
-  value: string;
+  value?: string;
   hint?: string;
+  hintTone?: "muted" | "overdue";
   avatar?: string;
   icon?: typeof CalendarDays;
   onEdit?: () => void;
+  /** A control in place of a plain value — the state pill, say. */
+  children?: React.ReactNode;
 }) => {
   const body = (
     <>
@@ -460,17 +466,28 @@ const PanelRow = ({
         </span>
       )}
       <span className="min-w-0 break-words" title={value}>{value}</span>
-      {hint && <span className="whitespace-nowrap text-muted-foreground">· {hint}</span>}
+      {hint && (
+        <span
+          className={cn(
+            "whitespace-nowrap capitalize",
+            hintTone === "overdue" ? "font-medium text-destructive" : "text-muted-foreground",
+          )}
+        >
+          · {hint}
+        </span>
+      )}
     </>
   );
   return (
-    <div className="grid grid-cols-[minmax(88px,42%)_minmax(0,1fr)] items-start gap-3 border-b border-border/50 py-2 last:border-b-0">
-      <dt className="flex items-center gap-1.5 text-xs leading-5 text-muted-foreground">
-        {Icon ? <Icon className="h-3.5 w-3.5 shrink-0" /> : null}
-        <span className="truncate">{label}</span>
+    <div className="grid grid-cols-[minmax(96px,42%)_minmax(0,1fr)] items-start gap-3 border-b border-border/50 py-2 last:border-b-0">
+      <dt className="flex items-start gap-1.5 text-sm leading-5 text-muted-foreground">
+        {Icon ? <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : null}
+        <span className="min-w-0 break-words">{label}</span>
       </dt>
       <dd className="min-w-0 text-sm">
-        {onEdit ? (
+        {children ? (
+          children
+        ) : onEdit ? (
           <button
             type="button"
             onClick={onEdit}
@@ -914,66 +931,36 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
       <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 flex-col bg-white dark:bg-card lg:flex-row">
         <ScrollArea className="order-1 max-h-[45vh] shrink-0 border-b border-slate-200 bg-white dark:border-border dark:bg-card lg:max-h-none lg:w-[316px] lg:border-b-0 lg:border-r">
           <div className="p-4">
-            {/* Where the project is, before any label is read. */}
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
-                <SelectTrigger
-                  aria-label={getLabel("field_project_state")}
-                  className={cn(
-                    "h-7 w-auto gap-1.5 rounded-full border-0 px-3 text-xs font-medium shadow-none focus:ring-1",
-                    stateSelectToneMap[project.projectState],
-                  )}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROJECT_STATES.map((state) => (
-                    <SelectItem key={state} value={state}>{stateLabels[state] || projectStateLabels[state]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="inline-flex h-7 items-center rounded-full bg-muted px-3 text-xs font-medium text-muted-foreground">
-                Waiting on {waitingOnLabel}
-              </span>
-            </div>
-
-            {/* The one thing to do, before the record. Tinted when it is late. */}
-            <button
-              type="button"
-              onClick={() => openTab("checklists")}
-              className={cn(
-                "mb-4 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors",
-                nextStep.hint === "overdue"
-                  ? "border-destructive/30 bg-destructive-soft hover:border-destructive/50"
-                  : "border-border bg-muted/40 hover:border-primary/30",
-              )}
-            >
-              <CalendarDays
-                className={cn(
-                  "mt-0.5 h-4 w-4 shrink-0",
-                  nextStep.hint === "overdue" ? "text-destructive-strong" : "text-muted-foreground",
-                )}
-              />
-              <span className="min-w-0 flex-1">
-                <span className="block text-xs text-muted-foreground">Next action</span>
-                <span className="block text-sm font-semibold text-foreground">{nextStepLabel}</span>
-                {nextStep.hint ? (
-                  <span
-                    className={cn(
-                      "block text-xs capitalize",
-                      nextStep.hint === "overdue" ? "font-medium text-destructive" : "text-muted-foreground",
-                    )}
-                  >
-                    {nextStep.hint}
-                  </span>
-                ) : null}
-              </span>
-              <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-            </button>
-
-            {/* Where the project stands. */}
+            {/* Where the project stands — state and next action lead, as rows like the rest. */}
             <PanelSection title="Project overview" defaultOpen>
               <dl className="text-xs">
+                <PanelRow label={getLabel("field_project_state")} icon={CircleDot}>
+                  <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
+                    <SelectTrigger
+                      aria-label={getLabel("field_project_state")}
+                      className={cn(
+                        "h-7 w-auto gap-1.5 rounded-full border-0 px-3 text-sm font-medium shadow-none focus:ring-1",
+                        stateSelectToneMap[project.projectState],
+                      )}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PROJECT_STATES.map((state) => (
+                        <SelectItem key={state} value={state}>{stateLabels[state] || projectStateLabels[state]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </PanelRow>
+                <PanelRow label="Waiting on" icon={Hourglass} value={waitingOnLabel} />
+                <PanelRow
+                  label="Next action"
+                  icon={CalendarDays}
+                  value={nextStepLabel}
+                  hint={nextStep.hint || undefined}
+                  hintTone={nextStep.hint === "overdue" ? "overdue" : "muted"}
+                  onEdit={() => openTab("checklists")}
+                />
                 <PanelRow
                   label={getLabel("field_project_stage")}
                   icon={Layers}
@@ -1019,10 +1006,17 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             <button
               type="button"
               onClick={() => setShowAllFields((open) => !open)}
-              className="mt-3 flex w-full items-center justify-between rounded-md py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+              className="flex w-full items-center justify-between gap-2 border-b border-border/50 py-3 text-left"
             >
-              <span>{showAllFields ? "Fewer details" : "More details"}</span>
-              <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showAllFields && "rotate-180")} />
+              <span className="text-sm font-semibold text-foreground">
+                {showAllFields ? "Fewer details" : "More details"}
+              </span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                  showAllFields && "rotate-180",
+                )}
+              />
             </button>
 
             {showAllFields && (
