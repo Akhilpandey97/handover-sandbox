@@ -261,14 +261,17 @@ export const ChecklistDialog = ({
           <div className="space-y-6">
             {orderedTeams.map((team) => {
               const items = groupedByTeam[team];
-              const isUserTeam = team === userTeam || userTeam === "manager";
+              // Dimming has to follow the same rule as editing, or a section an
+              // admin can fully edit reads as locked. "Your team" stays literal.
+              const isOwnTeam = team === userTeam;
+              const canEditSection = hasFullChecklistAccess || isOwnTeam;
               const teamCount = teamCounts[team];
               
               // All checklist items (no more is_task separation)
               const checklistItems = items.filter(i => !i.isTask);
               
               return (
-                <div key={team} className={!isUserTeam ? "opacity-60" : ""}>
+                <div key={team} className={canEditSection ? "" : "opacity-60"}>
                   {/* Team Header */}
                   <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -278,7 +281,7 @@ export const ChecklistDialog = ({
                         <p className="text-xs text-muted-foreground">{teamCount?.completed} of {teamCount?.total} done</p>
                       </div>
                     </div>
-                    {isUserTeam && <span className="text-xs text-muted-foreground">Your team</span>}
+                    {isOwnTeam && <span className="text-xs text-muted-foreground">Your team</span>}
                   </div>
 
                   {/* Checklist Items */}
