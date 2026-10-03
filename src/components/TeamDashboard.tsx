@@ -32,7 +32,6 @@ import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
 import { NotificationCenter } from "./NotificationCenter";
 import { ThemeToggle } from "./ThemeToggle";
@@ -341,11 +340,33 @@ export const TeamDashboard = () => {
         <nav className="flex-1 overflow-y-auto px-2 pb-2 pt-8">
           <div className="space-y-0.5">{navItems.map((item) => <Button key={item.key} variant="ghost" onClick={() => openTab(item.key)} title={item.label} className={cn("w-full justify-start gap-2.5 rounded-lg px-2.5 py-1.5 text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground", sidebarCollapsed && "justify-center px-0", resolvedTab === item.key && "gradient-primary text-primary-foreground hover:text-primary-foreground")}><span className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", resolvedTab === item.key ? "bg-primary-foreground/20" : "bg-sidebar-accent")}>{item.icon}</span>{!sidebarCollapsed && <span className="flex-1 text-left text-sm font-medium">{item.label}</span>}</Button>)}</div>
         </nav>
+        {/* Account — identity, then the two things you do from here, as icons. */}
         <div className="p-2">
-          <Popover>
-            <PopoverTrigger asChild><Button variant="ghost" className={cn("h-auto w-full justify-start gap-2 p-1 text-sidebar-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground", sidebarCollapsed && "justify-center")}><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">{currentUser.name.charAt(0)}</span>{!sidebarCollapsed && <span className="min-w-0 flex-1 text-left"><span className="block truncate text-xs font-medium">{currentUser.name}</span><span className="block text-2xs text-sidebar-foreground/60">{teamLabels[currentUser.team] || currentUser.team}</span></span>}</Button></PopoverTrigger>
-            <PopoverContent side="top" align="start" className="w-44 p-1.5"><div className="flex items-center justify-between rounded-md px-2 py-1 text-sm"><span>Theme</span><ThemeToggle /></div><Button variant="ghost" onClick={logout} className="mt-0.5 w-full justify-start gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"><LogOut className="h-4 w-4" />Logout</Button></PopoverContent>
-          </Popover>
+          <div className={cn("flex items-center gap-1 rounded-lg p-1", sidebarCollapsed && "flex-col gap-1.5")}>
+            <span
+              title={`${currentUser.name} — ${teamLabels[currentUser.team] || currentUser.team}`}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+            >
+              {currentUser.name.charAt(0)}
+            </span>
+            {!sidebarCollapsed && (
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-xs font-medium text-sidebar-foreground">{currentUser.name}</span>
+                <span className="block truncate text-2xs text-sidebar-foreground/60">{teamLabels[currentUser.team] || currentUser.team}</span>
+              </span>
+            )}
+            <ThemeToggle className="h-7 w-7 shrink-0 text-sidebar-foreground hover:bg-sidebar-accent/60" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={logout}
+              title="Logout"
+              aria-label="Logout"
+              className="h-7 w-7 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </aside>
 

@@ -41,7 +41,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
@@ -1198,37 +1198,25 @@ export const ManagerDashboard = () => {
           </div>
         </nav>
 
-        {/* Account — the avatar opens everything else: identity, theme and
-            logout, so the sidebar itself stays down to navigation. */}
+        {/* Account — who you are, and the two things you do from here, as icons
+            rather than a menu that hid them one click deep. */}
         <div className="p-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                title={`${currentUser?.name} — ${teamLabels[currentUser?.team ?? ""] || "Manager"}`}
-                aria-label="Account"
-                className={cn(
-                  "flex w-full items-center gap-2 rounded-lg p-1 transition-colors hover:bg-sidebar-accent/60",
-                  sidebarCollapsed && "justify-center",
-                )}
-              >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm">
-                  {currentUser?.name.charAt(0)}
-                </span>
-                {!sidebarCollapsed && (
-                  <span className="min-w-0 flex-1 text-left">
-                    <span className="block truncate text-xs font-medium leading-tight text-sidebar-foreground">{currentUser?.name}</span>
-                    <span className="block text-2xs leading-tight text-sidebar-foreground/60">{teamLabels[currentUser?.team ?? ""] || "Manager"}</span>
-                  </span>
-                )}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="w-44 p-1.5">
-              {/* Workspaces this person has been granted. Their way in — the
-                  grant alone does not move them anywhere. */}
-              {myAccess.length > 0 && (
-                <>
-                  <div className="my-1 h-px bg-border" />
+          <div className={cn("flex items-center gap-1 rounded-lg p-1", sidebarCollapsed && "flex-col gap-1.5")}>
+            {/* Support grants still need somewhere to live; the avatar opens them
+                when there are any, and is plain identity when there are none. */}
+            {myAccess.length > 0 ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    title={`${currentUser?.name} — ${teamLabels[currentUser?.team ?? ""] || "Manager"} · Support access`}
+                    aria-label="Support access"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm ring-offset-2 ring-offset-sidebar-background transition-shadow hover:ring-2 hover:ring-primary/40"
+                  >
+                    {currentUser?.name.charAt(0)}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent side="top" align="start" className="w-52 p-1.5">
                   <p className="px-2 pb-1 text-2xs font-medium text-muted-foreground">Support access</p>
                   {myAccess.map((g) => (
                     <button
@@ -1239,31 +1227,42 @@ export const ManagerDashboard = () => {
                       className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground hover:bg-muted disabled:opacity-50"
                     >
                       <ShieldCheck className="h-4 w-4 shrink-0 text-warning-strong" />
-                      <span className="min-w-0 flex-1 truncate">
-                        {g.tenants?.name || "Workspace"}
-                      </span>
+                      <span className="min-w-0 flex-1 truncate">{g.tenants?.name || "Workspace"}</span>
                       {g.tenant_id === currentUser?.supportTenantId && (
                         <span className="shrink-0 text-2xs text-muted-foreground">in</span>
                       )}
                     </button>
                   ))}
-                </>
-              )}
-              {myAccess.length > 0 && <div className="my-1 h-px bg-border" />}
-              <div className="flex items-center justify-between rounded-md px-2 py-1 text-sm text-foreground">
-                <span>Theme</span>
-                <ThemeToggle />
-              </div>
-              <button
-                type="button"
-                onClick={logout}
-                className="mt-0.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <span
+                title={`${currentUser?.name} — ${teamLabels[currentUser?.team ?? ""] || "Manager"}`}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm"
               >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </button>
-            </PopoverContent>
-          </Popover>
+                {currentUser?.name.charAt(0)}
+              </span>
+            )}
+
+            {!sidebarCollapsed && (
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block truncate text-xs font-medium leading-tight text-sidebar-foreground">{currentUser?.name}</span>
+                <span className="block truncate text-2xs leading-tight text-sidebar-foreground/60">{teamLabels[currentUser?.team ?? ""] || "Manager"}</span>
+              </span>
+            )}
+
+            <ThemeToggle className="h-7 w-7 shrink-0 text-sidebar-foreground hover:bg-sidebar-accent/60" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={logout}
+              title="Logout"
+              aria-label="Logout"
+              className="h-7 w-7 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
       </aside>
