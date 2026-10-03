@@ -645,7 +645,7 @@ const MORE_DEFS: any[] = [
     type: "function",
     function: {
       name: "complete_checklist_item",
-      description: "Mark a checklist item done, or reopen it (done=false). Get item_id from get_project.",
+      description: "Mark a CHECKLIST ITEM — one of the project's standard steps, which counts towards progress — done, or reopen it (done=false). Not for tasks: a task under a checklist item uses update_task_status. Get item_id from get_project.",
       parameters: { type: "object", properties: { item_id: { type: "string" }, done: { type: "boolean" } }, required: ["item_id"] },
     },
   },
@@ -653,7 +653,7 @@ const MORE_DEFS: any[] = [
     type: "function",
     function: {
       name: "set_checklist_due_date",
-      description: "Change a checklist item's due date. Get item_id from get_project.",
+      description: "Change a CHECKLIST ITEM's due date. Not for tasks, which carry their own due date set when the task is added. Get item_id from get_project.",
       parameters: { type: "object", properties: { item_id: { type: "string" }, due_date: { type: "string", description: "YYYY-MM-DD" } }, required: ["item_id", "due_date"] },
     },
   },
@@ -661,7 +661,7 @@ const MORE_DEFS: any[] = [
     type: "function",
     function: {
       name: "add_task",
-      description: "Add a task under a checklist item, optionally assigned to a person. Get checklist_item_id from get_project and assignee_id from list_people.",
+      description: "Add a TASK — an ad-hoc piece of work that sits underneath a checklist item and does not count towards project progress — optionally assigned to a person. This never creates a checklist step; the checklist is the same standard set on every project and is configured in Settings. Get checklist_item_id from get_project and assignee_id from list_people.",
       parameters: {
         type: "object",
         properties: {
@@ -947,7 +947,7 @@ const CHECKLIST_DEFS: any[] = [
     type: "function",
     function: {
       name: "update_task_status",
-      description: "Change a task's status: open, in_progress or done (use done to complete it). Get task_id from get_project.",
+      description: "Change a TASK's status: open, in_progress or done (use done to complete it). Not for checklist items, which use complete_checklist_item. Get task_id from get_project.",
       parameters: {
         type: "object",
         properties: { task_id: { type: "string" }, status: { type: "string", enum: ["open", "in_progress", "done"] } },
@@ -959,7 +959,7 @@ const CHECKLIST_DEFS: any[] = [
     type: "function",
     function: {
       name: "delete_task",
-      description: "Delete a task. Get task_id from get_project.",
+      description: "Delete a TASK. A checklist item cannot be deleted here — the checklist is configured in Settings. Get task_id from get_project.",
       parameters: { type: "object", properties: { task_id: { type: "string" } }, required: ["task_id"] },
     },
   },

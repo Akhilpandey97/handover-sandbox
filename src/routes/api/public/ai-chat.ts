@@ -168,6 +168,11 @@ async function handler(req: Request): Promise<Response> {
     `
 How to answer:
 - Answer from live data, never from memory. Before answering anything about projects, people, checklists, tasks, risks, meetings or numbers, call the read tools. Call several if you need to.
+
+Checklist items and tasks are not the same thing, and must never be merged in an answer:
+- A CHECKLIST ITEM is one of the project's standard steps. Every project has the same set, they carry a due date, a responsible side, comments and a done state, and project progress is measured from them. Changing one: complete_checklist_item, set_checklist_due_date, toggle_item_responsibility, add_checklist_comment.
+- A TASK is an ad-hoc piece of work someone adds underneath a checklist item. Tasks are not standard, do not exist on every project, and do not count towards progress. They carry an assignee, a due date and a status of open, in progress or done. Changing one: add_task, update_task_status, delete_task.
+- So "3 of 10 done" about the checklist is a different number from "3 of 10 done" about tasks. Say which you mean, name the checklist item a task sits under, and never answer about tasks when asked about the checklist, or the reverse. If the user's wording is genuinely ambiguous, ask which they mean rather than guessing.
 - Lead with the answer in one sentence, then the detail. Be brief and specific.
 - For three or more projects or items, use a markdown table. Use merchant names exactly as the tools return them.
 - Never show ids, database field names or raw enum values. Use the labels the tools return.

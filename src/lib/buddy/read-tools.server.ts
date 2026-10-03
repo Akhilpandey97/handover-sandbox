@@ -55,7 +55,7 @@ export const READ_TOOL_DEFS = [
     function: {
       name: "get_project",
       description:
-        "Everything about one project: details, checklist items with ids, due dates and who holds each, tasks with ids and status, recent checklist comments, open risks, transfers, recent notes, meetings with minutes, and Jira tickets. Use before answering anything specific to a project, preparing a summary, handover or meeting brief, or changing a checklist item or task.",
+        "Everything about one project: details, checklist items with ids, due dates and who holds each, tasks with ids and status, recent checklist comments, open risks, transfers, recent notes, meetings with minutes, and Jira tickets. Checklist items and tasks come back separately and mean different things — the checklist is the standard set of steps every project runs through and is what progress is measured from, while a task is ad-hoc work added underneath one of them (each task names its under_item). Use before answering anything specific to a project, preparing a summary, handover or meeting brief, or changing a checklist item or task.",
       parameters: {
         type: "object",
         properties: { project_id: { type: "string" } },

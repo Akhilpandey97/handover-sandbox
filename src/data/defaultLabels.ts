@@ -5,7 +5,7 @@
  */
 
 /**
- * A plural for a renamed label, so renaming "Merchant Name" to "Customer" also
+ * A plural for a renamed label, so renaming "Customer Name" to "Client" also
  * fixes headings like "7 Customers" without a second setting to fill in.
  * English-ish and deliberately simple: the plural label is there to override it.
  */
@@ -45,7 +45,7 @@ export const DEFAULT_LABELS: Record<string, string> = {
 
   // Responsibility labels
   responsibility_internal: "Internal Team",
-  responsibility_external: "Merchant",
+  responsibility_external: "Customer",
   responsibility_neutral: "Neutral",
 
   // Phase labels
@@ -62,9 +62,9 @@ export const DEFAULT_LABELS: Record<string, string> = {
   state_blocked: "Blocked",
 
   // Field labels
-  field_merchant_name: "Merchant Name",
-  // Plural of the customer record, for headings like "Weeks per Merchant".
-  field_merchant_name_plural: "Merchants",
+  field_merchant_name: "Customer Name",
+  // Plural of the customer record, for headings like "Weeks per Customer".
+  field_merchant_name_plural: "Customers",
   field_mid: "MID",
   field_kick_off_date: "Start Date (Kick Off)",
   field_go_live_date: "Go-Live Date",
@@ -91,7 +91,7 @@ export const DEFAULT_LABELS: Record<string, string> = {
   field_mint_notes: "MINT Notes",
   field_current_phase_comment: "Current Phase Comment",
   field_phase2_comment: "Phase 2 Comment",
-  field_contact_email: "Merchant Contact Email",
+  field_contact_email: "Customer Contact Email",
   field_sow_link: "SOW Link",
 
   // Credentials — defaults match what the Edit dialog already showed, so
@@ -112,8 +112,8 @@ export const DEFAULT_LABELS: Record<string, string> = {
   field_prod_config_id: "Production Config ID",
   field_prod_kwikpass_jwe_key: "KwikPass JWE Key (Production)",
   field_mcp_config_id: "MCP Config ID",
-  field_mcp_enabled: "Enable MCP Document for Merchant",
-  field_kp_enabled: "Enable KP for Merchant",
+  field_mcp_enabled: "Enable MCP Document for Customer",
+  field_kp_enabled: "Enable KP for Customer",
   field_kp_prod_jwe_key: "KP Production JWE Key",
   field_kp_sandbox_jwe_key: "KP Sandbox JWE Key",
 

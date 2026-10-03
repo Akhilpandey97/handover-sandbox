@@ -339,7 +339,7 @@ export const EditProjectDialog = ({
                   type="text"
                   value={editedProject.contactEmail || ""}
                   onChange={(e) => updateField("contactEmail", e.target.value)}
-                  placeholder="merchant@example.com, ops@example.com"
+                  placeholder="customer@example.com, ops@example.com"
                 />
                 <p className="text-xs text-muted-foreground">
                   Required. Add multiple emails separated by commas — magic links, notifications, and Gmail lookups will go to all of them.
@@ -542,7 +542,7 @@ export const EditProjectDialog = ({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h3 className="heading-card">FAQ & Help</h3>
-                  <p className="text-xs text-muted-foreground">These FAQs appear in the merchant portal and Help Assistant. Upload accepts a CSV with question and answer columns, or a JSON array.</p>
+                  <p className="text-xs text-muted-foreground">These FAQs appear in the customer portal and Help Assistant. Upload accepts a CSV with question and answer columns, or a JSON array.</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <input
@@ -578,11 +578,11 @@ export const EditProjectDialog = ({
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs font-medium text-muted-foreground">Question</Label>
-                        <Input value={faq.question} onChange={(e) => updateFaqHelp((editedProject.faqHelp ?? []).map((item, i) => i === idx ? { ...item, question: e.target.value } : item))} placeholder="Enter merchant question" />
+                        <Input value={faq.question} onChange={(e) => updateFaqHelp((editedProject.faqHelp ?? []).map((item, i) => i === idx ? { ...item, question: e.target.value } : item))} placeholder="Enter customer question" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs font-medium text-muted-foreground">Answer</Label>
-                        <Textarea value={faq.answer} onChange={(e) => updateFaqHelp((editedProject.faqHelp ?? []).map((item, i) => i === idx ? { ...item, answer: e.target.value } : item))} placeholder="Enter the answer merchants should see" rows={3} />
+                        <Textarea value={faq.answer} onChange={(e) => updateFaqHelp((editedProject.faqHelp ?? []).map((item, i) => i === idx ? { ...item, answer: e.target.value } : item))} placeholder="Enter the answer customers should see" rows={3} />
                       </div>
                     </div>
                   ))}
@@ -626,7 +626,7 @@ export const EditProjectDialog = ({
                       onChange={(e) => updateField("paymentSimulatorLink", e.target.value)}
                       placeholder="https://payment-simulator.example.com/..."
                     />
-                    <p className="text-xs text-muted-foreground">When set, a "Payment Simulator" section appears in the merchant's KwikAssist portal.</p>
+                    <p className="text-xs text-muted-foreground">When set, a "Payment Simulator" section appears in the customer's KwikAssist portal.</p>
                   </div>
                 </div>
               </div>
@@ -699,7 +699,7 @@ export const EditProjectDialog = ({
                   <div className="space-y-2 col-span-2">
                     <Label>{getLabel("field_kp_sandbox_jwe_key")}</Label>
                     <Input value={editedProject.kpSandboxJweKey || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI"} onChange={(e) => updateField("kpSandboxJweKey", e.target.value)} />
-                    <p className="text-xs text-muted-foreground">Default sandbox key is pre-filled for all merchants</p>
+                    <p className="text-xs text-muted-foreground">Default sandbox key is pre-filled for all customers</p>
                   </div>
                 </div>
               </div>
