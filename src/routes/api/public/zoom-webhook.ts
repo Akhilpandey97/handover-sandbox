@@ -17,8 +17,14 @@ import { analyseMeeting } from "./analyse-meeting";
  * check below is what makes it safe.
  *
  * Set the endpoint in the Zoom app's Event Subscriptions and subscribe to
- * "Recording Transcript files have completed". The secret token from that same
+ * "Recording Transcript files have completed" and/or "Meeting summary has
+ * completed" (the AI Companion summary). The secret token from that same
  * screen goes in Settings → Integrations, or in ZOOM_WEBHOOK_SECRET.
+ *
+ * The AI Companion path ("Meeting summary has completed") also requires the
+ * meeting_summary:read scope on your Zoom app. It delivers the summary inline
+ * on the event payload with no separate download step, so it works even when
+ * cloud recording is not enabled.
  */
 
 const json = (body: unknown, status = 200) =>
@@ -38,6 +44,14 @@ interface ZoomEvent {
         file_extension?: string;
         download_url?: string;
       }[];
+      /** Present on meeting.summary_completed — Zoom AI Companion summary text. */
+      summary?: string;
+      /** Structured sections from the AI Companion summary. */
+      summary_details?: {
+        summary?: string;
+        next_steps?: string;
+        keywords?: string;
+      };
     };
   };
 }
@@ -158,6 +172,50 @@ async function handler(req: Request): Promise<Response> {
 
   if (!(await verifySignature(req, rawBody, secrets))) {
     return json({ error: "Invalid signature" }, 401);
+  }
+
+  if (event === "meeting.summary_completed") {
+    // Zoom AI Companion summary — arrives when the host has AI Companion enabled
+    // and the meeting ends. Requires the meeting_summary:read scope on the app.
+    // Subscribe to "Meeting summary has completed" in the Zoom app's Event Subscriptions.
+    try {
+      if (!zoomMeetingId) return json({ error: "No meeting id on the event" }, 400);
+
+      const { data: meeting } = await adminClient()
+        .from("checklist_meetings")
+        .select("id, transcript")
+        .eq("provider", "zoom")
+        .eq("provider_meeting_id", zoomMeetingId)
+        .maybeSingle();
+
+      if (!meeting) return json({ ignored: "meeting not tracked", zoom_meeting_id: zoomMeetingId });
+      if (meeting.transcript) return json({ ignored: "transcript already stored" });
+
+      // Zoom delivers the summary inline on the event payload, so there is
+      // nothing to download. Prefer structured sections when available; fall
+      // back to the flat summary string.
+      const details = object.summary_details;
+      const parts: string[] = [];
+      if (details?.summary) parts.push(details.summary);
+      if (details?.next_steps) parts.push(`Next steps:\n${details.next_steps}`);
+      if (details?.keywords) parts.push(`Keywords: ${details.keywords}`);
+      const summary = parts.length > 0 ? parts.join("\n\n") : (object.summary ?? "");
+
+      if (!summary) return json({ ignored: "summary payload was empty" });
+
+      await recordTranscript(meeting.id, summary, "zoom");
+
+      try {
+        await analyseMeeting(meeting.id, summary);
+      } catch (err) {
+        console.error("zoom-webhook: analysis failed after AI summary", (err as Error).message);
+      }
+
+      return json({ success: true, meeting_id: meeting.id, source: "ai_summary" });
+    } catch (error) {
+      console.error("zoom-webhook summary error:", error);
+      return json({ error: (error as Error).message }, 500);
+    }
   }
 
   if (event !== "recording.transcript_completed") {
