@@ -34,6 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { NotificationCenter } from "./NotificationCenter";
+import { BuddyAvatar } from "./buddy/BuddyAvatar";
 import { ThemeToggle } from "./ThemeToggle";
 import { KanbanBoard } from "./KanbanBoard";
 import { MonthlyGoLiveTracker } from "./MonthlyGoLiveTracker";
@@ -123,7 +124,7 @@ export const TeamDashboard = () => {
     : "dashboard";
   const projectView = routeState.projectView === "golive" ? "golive" : "kanban";
   const navItems: Array<{ key: UserTab; label: string; icon: React.ReactNode }> = [
-    { key: "hi-there", label: "Buddy", icon: <span className="animate-wave text-base leading-none">👋</span> },
+    { key: "hi-there", label: "Buddy", icon: <BuddyAvatar size={16} /> },
     { key: "dashboard", label: "Workbench", icon: <BarChart3 className="h-4 w-4" /> },
     { key: "projects", label: "Projects", icon: <FolderKanban className="h-4 w-4" /> },
   ];

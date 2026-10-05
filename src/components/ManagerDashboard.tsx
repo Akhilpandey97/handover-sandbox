@@ -117,6 +117,7 @@ import {
 import { exportProjectsToCSV } from "@/utils/exportProjects";
 import { exportProjectChecklistCSV, exportTeamOwnerCSV } from "@/utils/reportExportCSV";
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
+import { BuddyAvatar } from "./buddy/BuddyAvatar";
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationCenter } from "./NotificationCenter";
 import { AiChatBot } from "./AiChatBot";
@@ -883,7 +884,7 @@ export const ManagerDashboard = () => {
     tenants: { icon: <Building2 className="h-4 w-4" />, label: "Tenants" },
     archived: { icon: <Archive className="h-4 w-4" />, label: "Archived" },
     golive: { icon: <CalendarDays className="h-4 w-4" />, label: "Go-Live Tracker" },
-    "hi-there": { icon: <span className="animate-wave text-base leading-none">👋</span>, label: "Buddy" },
+    "hi-there": { icon: <BuddyAvatar size={16} />, label: "Buddy" },
   };
 
   const SETTINGS_SUB_CONFIG: Record<string, { label: string; icon: LucideIcon; description: string }> = {

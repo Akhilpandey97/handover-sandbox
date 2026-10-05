@@ -47,7 +47,7 @@ export const MessageView = ({ message, isLast, compact, onRetry, onFeedback, onA
 
   return (
     <div className="flex gap-3">
-      {!compact && <BuddyAvatar size={26} className="mt-0.5" />}
+      {!compact && <BuddyAvatar size={24} className="mt-0.5 text-primary" />}
       <div className="min-w-0 flex-1 space-y-2.5">
         {(steps.length > 0 || (message.streaming && empty)) && (
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-2xs text-muted-foreground">

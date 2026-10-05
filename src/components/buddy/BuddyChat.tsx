@@ -177,7 +177,7 @@ export const BuddyChat = ({ variant, page, onClose }: Props) => {
       {drawer && (
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-3 py-2">
           <div className="flex min-w-0 items-center gap-2.5">
-            <BuddyAvatar size={24} />
+            <BuddyAvatar size={22} className="text-primary" />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground">Buddy</p>
             </div>
