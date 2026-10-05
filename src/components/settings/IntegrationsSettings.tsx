@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Loader2,
   Save,
@@ -23,6 +24,7 @@ import {
   ShieldCheck,
   Video,
   Check,
+  Copy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ApiKeysSettings } from "./ApiKeysSettings";
@@ -113,6 +115,42 @@ const GROUPS: Group[] = [
 ];
 
 const ALL_KEYS = GROUPS.flatMap((g) => g.fields.map((f) => f.key));
+
+/**
+ * The endpoint to paste into Zoom, spelled out.
+ *
+ * Zoom's validation handshake carries no meeting, so the webhook cannot work out
+ * which workspace's secret to sign with unless the URL says so. Asking an admin
+ * to assemble that URL from a workspace id they have never seen is how a setup
+ * fails, so it is built here and copied in one click.
+ */
+const ZoomEndpoint = () => {
+  const { currentUser } = useAuth();
+  const [copied, setCopied] = useState(false);
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const url = `${origin}/api/public/zoom-webhook${currentUser?.tenantId ? `?tenant=${currentUser.tenantId}` : ""}`;
+
+  return (
+    <div className="rounded-md border border-border bg-muted/40 p-2">
+      <p className="text-2xs font-medium text-foreground">Paste this into Zoom as the endpoint URL</p>
+      <p className="mt-0.5 break-all font-mono text-2xs text-muted-foreground">{url}</p>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-1.5 h-6 gap-1 px-2 text-2xs"
+        onClick={() => {
+          navigator.clipboard.writeText(url);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        }}
+      >
+        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+        {copied ? "Copied" : "Copy"}
+      </Button>
+    </div>
+  );
+};
 
 export function IntegrationsSettings() {
   const [values, setValues] = useState<Fields>({});
@@ -310,6 +348,7 @@ export function IntegrationsSettings() {
                       }
                     />
                     {field.help && <p className="text-2xs text-muted-foreground">{field.help}</p>}
+                    {field.key === "zoom_webhook_secret" && <ZoomEndpoint />}
                   </div>
                 ))}
               </div>
