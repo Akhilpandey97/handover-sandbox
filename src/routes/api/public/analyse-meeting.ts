@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { adminClient } from "@/lib/tenant-integrations.server";
-import { requireInternalCaller } from "@/lib/api-auth.server";
+import { authenticateRequest, unauthorized } from "@/lib/api-auth.server";
 import { aiStructured, BACKGROUND_MODEL } from "@/lib/ai-gateway.server";
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -293,8 +293,12 @@ export async function analyseMeeting(
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const denied = await requireInternalCaller(req, corsHeaders);
-  if (denied) return denied;
+  // Being signed in is not the same as owning the meeting. This route writes
+  // with the service role, which ignores RLS, so the tenant has to be checked
+  // here or any signed-in user could paste a transcript onto another
+  // workspace's call and have the minutes posted on their project.
+  const caller = await authenticateRequest(req);
+  if (!caller) return unauthorized(corsHeaders);
 
   try {
     const body = await req.json().catch(() => ({}));
@@ -304,8 +308,23 @@ async function handler(req: Request): Promise<Response> {
     const transcript: string | undefined =
       typeof body.transcript === "string" && body.transcript.trim() ? body.transcript : undefined;
 
+    const supabase = adminClient();
+
+    // Cron runs for every tenant in turn and carries no tenant of its own.
+    if (caller.kind !== "cron") {
+      if (!caller.tenantId) return json({ error: "No workspace for this caller" }, 403);
+      const { data: owned } = await supabase
+        .from("checklist_meetings")
+        .select("id")
+        .eq("id", meetingId)
+        .eq("tenant_id", caller.tenantId)
+        .maybeSingle();
+      // Same answer whether it belongs to someone else or does not exist, so
+      // this cannot be used to discover another workspace's meeting ids.
+      if (!owned) return json({ error: "Meeting not found" }, 404);
+    }
+
     if (transcript) {
-      const supabase = adminClient();
       await supabase
         .from("checklist_meetings")
         .update({

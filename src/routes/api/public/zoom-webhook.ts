@@ -99,16 +99,25 @@ async function handler(req: Request): Promise<Response> {
   const zoomMeetingId = object.id ? String(object.id) : null;
   const secrets = await secretsForMeeting(zoomMeetingId);
 
-  if (secrets.length === 0) {
-    console.error("zoom-webhook: no webhook secret configured");
-    return json({ error: "Zoom webhook secret is not configured" }, 503);
-  }
-
-  // Zoom proves it owns the endpoint by asking us to sign a token with the secret.
+  // Zoom proves it owns the endpoint by asking us to sign a token with the
+  // secret. Answered before the signature check because the validation request
+  // is how the secret gets confirmed in the first place.
   if (event === "endpoint.url_validation") {
+    if (secrets.length === 0) {
+      console.error("zoom-webhook: validation attempted with no webhook secret configured");
+      return json({ error: "Zoom webhook secret is not configured" }, 503);
+    }
     const plainToken = body.payload?.plainToken;
     if (!plainToken) return json({ error: "Missing plainToken" }, 400);
     return json({ plainToken, encryptedToken: await hmacHex(secrets[0], plainToken) });
+  }
+
+  // A missing secret and a wrong signature answer identically. They used to
+  // differ — 503 against 401 — which told an unauthenticated caller whether a
+  // given Zoom meeting id was tracked in this system.
+  if (secrets.length === 0) {
+    console.error("zoom-webhook: no webhook secret configured for this meeting");
+    return json({ error: "Invalid signature" }, 401);
   }
 
   if (!(await verifySignature(req, rawBody, secrets))) {
@@ -168,10 +177,18 @@ async function handler(req: Request): Promise<Response> {
   }
 }
 
+const methodNotAllowed = () =>
+  json({ error: "Method not allowed. Zoom posts to this endpoint." }, 405);
+
 export const Route = createFileRoute("/api/public/zoom-webhook")({
   server: {
     handlers: {
       POST: ({ request }) => handler(request),
+      // Without these a GET fell through to the page handler and answered 200
+      // with HTML, which reads as "endpoint fine" while setting Zoom up.
+      GET: () => methodNotAllowed(),
+      PUT: () => methodNotAllowed(),
+      DELETE: () => methodNotAllowed(),
     },
   },
 });
