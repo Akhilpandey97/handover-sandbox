@@ -43,27 +43,57 @@ interface ZoomEvent {
 }
 
 /**
+ * Which secrets this request could legitimately be signed with.
+ *
  * The tenant is not known until the meeting is found, and the meeting id comes
  * from the unverified body — so the id is used only to choose which secret to
  * check the signature against. Nothing is trusted until that check passes.
+ *
+ * Zoom's validation handshake carries no meeting id, so a workspace secret was
+ * unreachable at exactly the moment it was needed and the endpoint could never
+ * be validated against one. Two routes out of that: `?tenant=` on the endpoint
+ * URL names the workspace outright, and failing that a deployment serving one
+ * configured workspace uses its secret, which is the common case.
  */
-async function secretsForMeeting(zoomMeetingId: string | null): Promise<string[]> {
+async function candidateSecrets(opts: {
+  zoomMeetingId: string | null;
+  tenantId: string | null;
+  /** Validation carries no meeting, so it may fall back to the lone workspace. */
+  allowSoleTenant: boolean;
+}): Promise<string[]> {
   const secrets: string[] = [];
   const platform = process.env["ZOOM_WEBHOOK_SECRET"];
   if (platform) secrets.push(platform);
 
-  if (zoomMeetingId) {
+  const addTenant = async (tenantId: string) => {
+    const { zoom_webhook_secret } = await getTenantIntegrations(tenantId);
+    if (zoom_webhook_secret && !secrets.includes(zoom_webhook_secret)) {
+      secrets.push(zoom_webhook_secret);
+    }
+  };
+
+  if (opts.tenantId) await addTenant(opts.tenantId);
+
+  if (opts.zoomMeetingId) {
     const { data } = await adminClient()
       .from("checklist_meetings")
       .select("tenant_id")
       .eq("provider", "zoom")
-      .eq("provider_meeting_id", zoomMeetingId)
+      .eq("provider_meeting_id", opts.zoomMeetingId)
       .maybeSingle();
-    if (data?.tenant_id) {
-      const { zoom_webhook_secret } = await getTenantIntegrations(data.tenant_id);
-      if (zoom_webhook_secret) secrets.push(zoom_webhook_secret);
-    }
+    if (data?.tenant_id) await addTenant(data.tenant_id);
   }
+
+  if (secrets.length === 0 && opts.allowSoleTenant) {
+    const { data } = await adminClient()
+      .from("tenant_integrations")
+      .select("tenant_id, zoom_webhook_secret")
+      .not("zoom_webhook_secret", "is", null)
+      .limit(2);
+    // Exactly one, or there is no way to know whose secret Zoom is using.
+    if (data?.length === 1 && data[0]?.tenant_id) await addTenant(data[0].tenant_id);
+  }
+
   return secrets;
 }
 
@@ -97,7 +127,13 @@ async function handler(req: Request): Promise<Response> {
   const event: string = body.event || "";
   const object = body.payload?.object || {};
   const zoomMeetingId = object.id ? String(object.id) : null;
-  const secrets = await secretsForMeeting(zoomMeetingId);
+  // Optional, and only ever used to pick which secret to check against.
+  const tenantId = new URL(req.url).searchParams.get("tenant");
+  const secrets = await candidateSecrets({
+    zoomMeetingId,
+    tenantId,
+    allowSoleTenant: event === "endpoint.url_validation",
+  });
 
   // Zoom proves it owns the endpoint by asking us to sign a token with the
   // secret. Answered before the signature check because the validation request

@@ -98,7 +98,7 @@ const GROUPS: Group[] = [
       { key: "zoom_account_id", label: "Zoom Account ID", placeholder: "abc123XYZ", help: "Server-to-server OAuth app" },
       { key: "zoom_client_id", label: "Zoom Client ID", placeholder: "xxxxxxxxxxxxxxxxxxxxxx" },
       { key: "zoom_client_secret", label: "Zoom Client Secret", placeholder: "•••••", secret: true },
-      { key: "zoom_webhook_secret", label: "Zoom Webhook Secret Token", placeholder: "•••••", secret: true, help: "Event Subscriptions → /api/public/zoom-webhook" },
+      { key: "zoom_webhook_secret", label: "Zoom Webhook Secret Token", placeholder: "•••••", secret: true, help: "Save this first, then click Validate in Zoom. Endpoint: /api/public/zoom-webhook" },
       { key: "zoom_user_id", label: "Zoom Host Email / User ID", placeholder: "host@yourcompany.com", help: "Whose account hosts generated meetings. Defaults to the app user." },
       { key: "teams_tenant_id", label: "Microsoft Tenant ID", placeholder: "00000000-0000-0000-0000-000000000000" },
       { key: "teams_client_id", label: "Microsoft Client ID", placeholder: "00000000-0000-0000-0000-000000000000", help: "Graph app with OnlineMeetingTranscript.Read.All" },
