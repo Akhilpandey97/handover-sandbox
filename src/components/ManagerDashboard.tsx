@@ -173,7 +173,7 @@ const SubTabCardGrid = ({
   items: { key: string; label: string; icon: LucideIcon; description: string }[];
   onSelect: (key: string) => void;
 }) => (
-  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+  <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     {items.map(({ key, label, icon: Icon, description }) => (
       <button
         key={key}
