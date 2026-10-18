@@ -1831,12 +1831,10 @@ export const ManagerDashboard = () => {
                 {/* rounded + clipping so the accent bar and header follow the card's corners */}
                 <div className="h-px w-full shrink-0 bg-border" />
                 <div className="min-h-0 flex-1 overflow-auto">
-                  <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
-                    {/* Opaque: the header sits over scrolling rows, and bg-navy/5
-                        is only a 5% tint on its own. */}
-                    <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
-                      <TableRow className="hover:bg-muted/40 border-b">
-                        <TableHead className="w-10 text-foreground">
+                  <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="[&_td]:py-2.5 [&_td]:align-middle">
+                    <TableHeader className="sticky top-0 z-10 bg-muted/40 text-muted-foreground">
+                      <TableRow className="hover:bg-transparent border-b">
+                        <TableHead className="w-10 py-2.5 text-muted-foreground">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
                         </TableHead>
                         {listViewColumns.map(colKey => {
@@ -1857,13 +1855,13 @@ export const ManagerDashboard = () => {
                               onDragOver={(e) => { e.preventDefault(); handleColDragOver(colKey); }}
                               onDragEnd={() => handleColDragEnd(listViewColumns)}
                               aria-sort={isSortable ? (isActive ? (listSortDir === "asc" ? "ascending" : "descending") : "none") : undefined}
-                              className={cn("whitespace-nowrap text-xs tracking-normal select-none text-foreground p-0", draggedCol === colKey && "opacity-40")}
+                              className={cn("whitespace-nowrap text-xs tracking-normal select-none text-muted-foreground p-0", draggedCol === colKey && "opacity-40")}
                             >
                               {isSortable ? (
                                 <button
                                   type="button"
                                   onClick={(e) => { e.stopPropagation(); toggleListSort(colKey); }}
-                                  className={cn("group flex h-full w-full items-center gap-1 px-3 py-2 cursor-grab font-semibold transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset", isActive ? "text-foreground" : "text-muted-foreground")}
+                                  className={cn("group flex h-full w-full items-center gap-1 px-3 py-2.5 cursor-grab font-medium transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset", isActive ? "text-foreground" : "text-muted-foreground")}
                                 >
                                   {label}
                                   {isActive
@@ -1872,12 +1870,12 @@ export const ManagerDashboard = () => {
                                   }
                                 </button>
                               ) : (
-                                <span className="flex h-full w-full items-center px-3 py-2 cursor-grab font-semibold">{label}</span>
+                                <span className="flex h-full w-full items-center px-3 py-2.5 cursor-grab font-medium">{label}</span>
                               )}
                             </TableHead>
                           );
                         })}
-                        {!isGokwikGeneral && <TableHead className="w-32 text-xs tracking-normal">Action</TableHead>}
+                        {!isGokwikGeneral && <TableHead className="w-32 text-xs tracking-normal text-muted-foreground font-medium">Action</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1945,7 +1943,7 @@ export const ManagerDashboard = () => {
                             project.projectState === "live" ? "text-success-strong" :
                             project.projectState === "blocked" ? "text-destructive" : "text-muted-foreground";
                           return (
-                            <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openProjectInNewTab(project.id, "list")}>
+                            <TableRow key={project.id} className="cursor-pointer hover:bg-muted/30 transition-colors border-t border-border/40 first:border-t-0" onClick={() => openProjectInNewTab(project.id, "list")}>
                               <TableCell onClick={(event) => event.stopPropagation()}>
                                 <Checkbox checked={selectedProjects.has(project.id)} onCheckedChange={() => toggleProjectSelection(project.id)} aria-label={`Select ${project.merchantName}`} />
                               </TableCell>

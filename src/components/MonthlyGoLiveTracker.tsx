@@ -527,11 +527,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
             )}
           </div>
 
-          <div className="h-px w-full shrink-0 bg-border" />
             <div className="min-h-0 flex-1 overflow-auto">
-            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
-              <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
-                <TableRow className="hover:bg-muted/40 border-b">
+            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2.5 [&_th]:py-2.5 [&_td]:align-middle">
+              <TableHeader className="sticky top-0 z-10 bg-muted/40 text-muted-foreground">
+                <TableRow className="hover:bg-transparent border-b">
                   <SortableHeader label={getLabel("field_merchant_name")} active={sortField === "merchantName"} dir={sortDir} onSort={() => toggleSort("merchantName")} className="min-w-[180px]" />
                   {visibleColumns.map(key => {
                     const dragProps = {
@@ -549,7 +548,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                     const col = ALL_COLUMNS.find(c => c.key === key);
                     const extraClass = key === "blocker" ? "min-w-[240px] max-w-[340px]" : key === "blocked_on" || key === "deadline" ? "min-w-[100px]" : key === "owner" ? "min-w-[140px]" : "";
                     return (
-                      <TableHead key={key} className={cn("font-semibold whitespace-nowrap text-foreground", extraClass)} {...dragProps}>
+                      <TableHead key={key} className={cn("font-medium whitespace-nowrap text-muted-foreground", extraClass)} {...dragProps}>
                         {col?.label || key}
                       </TableHead>
                     );
@@ -567,7 +566,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                 const isUrl = /^https?:\/\//i.test(blockerText);
                 const stage = stageOf(p.id);
                 return (
-                  <TableRow key={p.id} onClick={() => openProjectInNewTab(p.id, "go-live")} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-destructive/40")}>
+                  <TableRow key={p.id} onClick={() => openProjectInNewTab(p.id, "go-live")} className={cn("cursor-pointer hover:bg-muted/30 transition-colors border-t border-border/40 first:border-t-0", isBlocked && "bg-destructive/40")}>
                     <TableCell className={cn("font-medium whitespace-nowrap", isBlocked && "text-destructive-strong")} title={p.merchant_name}>
                       <button
                         type="button"
