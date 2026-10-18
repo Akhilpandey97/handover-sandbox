@@ -54,7 +54,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronsUpDown,
   BarChart3,
   Clock,
   Download,
@@ -294,6 +296,11 @@ export const ManagerDashboard = () => {
   const [listViewDetailsProject, setListViewDetailsProject] = useState<Project | null>(null);
   const [listSortField, setListSortField] = useState<string>("none");
   const [listSortDir, setListSortDir] = useState<"asc" | "desc">("asc");
+  const SORTABLE_LIST_KEYS = new Set(["merchantName", "arr", "platform", "kickOffDate", "owner", "status", "expectedGoLiveDate"]);
+  const toggleListSort = (key: string) => {
+    if (listSortField === key) setListSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setListSortField(key); setListSortDir("asc"); }
+  };
 
   // Custom field filters (Projects tab + List View)
   const [customFieldFilters, setCustomFieldFilters] = useState<Record<string, string[]>>({});
@@ -1634,47 +1641,6 @@ export const ManagerDashboard = () => {
               {projectToolbarHost ? createPortal(<CardHeader className="w-full border-0 bg-transparent p-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-2 relative">
-                    {/* Sort Dropdown - left side */}
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <ToolbarIconButton icon={<ArrowUpDown className="h-3.5 w-3.5" />} label="Sort" count={listSortField !== "none" ? 1 : 0} />
-                      </PopoverTrigger>
-                      <PopoverContent align="start" className={TOOLBAR_POPOVER.sort}>
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-semibold">Sort by</p>
-                          {listSortField !== "none" && (
-                            <Button variant="ghost" size="sm" onClick={() => { setListSortField("none"); setListSortDir("asc"); }} className="text-xs h-7">Clear</Button>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground font-medium">Field</label>
-                            <Select value={listSortField} onValueChange={setListSortField}>
-                              <SelectTrigger className="w-full"><SelectValue placeholder="None" /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">None</SelectItem>
-                                <SelectItem value="merchantName">Merchant Name</SelectItem>
-                                <SelectItem value="arr">{arrLabel}</SelectItem>
-                                <SelectItem value="platform">Platform</SelectItem>
-                                <SelectItem value="kickOffDate">Start Date</SelectItem>
-                                <SelectItem value="owner">Owner</SelectItem>
-                                <SelectItem value="status">Status</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground font-medium">Direction</label>
-                            <Select value={listSortDir} onValueChange={(v) => setListSortDir(v as "asc" | "desc")}>
-                              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="asc">Ascending</SelectItem>
-                                <SelectItem value="desc">Descending</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
                     {/* Filters - left side */}
                     <Popover>
                       <PopoverTrigger asChild>
@@ -1909,6 +1875,8 @@ export const ManagerDashboard = () => {
                             label = cf?.field_label;
                           }
                           if (!label) return null;
+                          const isSortable = SORTABLE_LIST_KEYS.has(colKey);
+                          const isActive = listSortField === colKey;
                           return (
                             <TableHead
                               key={colKey}
@@ -1916,9 +1884,24 @@ export const ManagerDashboard = () => {
                               onDragStart={() => handleColDragStart(colKey)}
                               onDragOver={(e) => { e.preventDefault(); handleColDragOver(colKey); }}
                               onDragEnd={() => handleColDragEnd(listViewColumns)}
-                              className={cn("whitespace-nowrap text-xs tracking-normal cursor-grab select-none font-semibold text-foreground", draggedCol === colKey && "opacity-40")}
+                              aria-sort={isSortable ? (isActive ? (listSortDir === "asc" ? "ascending" : "descending") : "none") : undefined}
+                              className={cn("whitespace-nowrap text-xs tracking-normal select-none text-foreground p-0", draggedCol === colKey && "opacity-40")}
                             >
-                              {label}
+                              {isSortable ? (
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); toggleListSort(colKey); }}
+                                  className={cn("group flex h-full w-full items-center gap-1 px-3 py-2 cursor-grab font-semibold transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset", isActive ? "text-foreground" : "text-muted-foreground")}
+                                >
+                                  {label}
+                                  {isActive
+                                    ? (listSortDir === "asc" ? <ArrowUp className="h-3 w-3 shrink-0" /> : <ArrowDown className="h-3 w-3 shrink-0" />)
+                                    : <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-50" />
+                                  }
+                                </button>
+                              ) : (
+                                <span className="flex h-full w-full items-center px-3 py-2 cursor-grab font-semibold">{label}</span>
+                              )}
                             </TableHead>
                           );
                         })}

@@ -12,7 +12,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sparkles, RefreshCw, ExternalLink, ArrowUpDown, Filter, ListChecks, X, ChevronDown } from "lucide-react";
+import { Sparkles, RefreshCw, ExternalLink, Filter, ListChecks, X, ChevronDown } from "lucide-react";
+import { SortableHeader } from "@/components/filters/SortableHeader";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { EditProjectDialog } from "./EditProjectDialog";
@@ -196,6 +197,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
   // Sort
   const [sortField, setSortField] = useState<string>("none");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const toggleSort = (field: string) => {
+    if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortField(field); setSortDir("asc"); }
+  };
 
   // Filters
   const [stageFilter, setStageFilter] = useState<string[]>([]);
@@ -381,48 +386,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
   const toolbar = (
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2">
-          {/* Sort */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <ToolbarIconButton icon={<ArrowUpDown className="h-3.5 w-3.5" />} label="Sort" count={sortField !== "none" ? 1 : 0} />
-            </PopoverTrigger>
-            <PopoverContent align="start" className={TOOLBAR_POPOVER.sort}>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Sort By</p>
-                {sortField !== "none" && (
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setSortField("none"); setSortDir("asc"); }}>Clear</Button>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground font-medium">Field</label>
-                  <Select value={sortField} onValueChange={setSortField}>
-                    <SelectTrigger className="w-full"><SelectValue placeholder="None" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="merchantName">Opportunity</SelectItem>
-                      <SelectItem value="arr">{arrLabel}</SelectItem>
-                      <SelectItem value="stage">{stageLabel}</SelectItem>
-                      <SelectItem value="confidence">Confidence</SelectItem>
-                      <SelectItem value="owner">{ownerLabel}</SelectItem>
-                      <SelectItem value="expected">{expectedLabel}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground font-medium">Direction</label>
-                  <Select value={sortDir} onValueChange={(v) => setSortDir(v as "asc" | "desc")}>
-                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="asc">Ascending</SelectItem>
-                      <SelectItem value="desc">Descending</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-
           {/* Filters */}
           <Popover>
             <PopoverTrigger asChild>
@@ -537,16 +500,16 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
             <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
               <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
                 <TableRow className="hover:bg-muted/40 border-b">
-                  <TableHead className="font-semibold whitespace-nowrap min-w-[180px] text-foreground">{getLabel("field_merchant_name")}</TableHead>
-                  {isVisible("arr") && <TableHead className="font-semibold text-right whitespace-nowrap text-foreground">{arrLabel} Cr.</TableHead>}
-                  {isVisible("stage") && <TableHead className="font-semibold whitespace-nowrap text-foreground">{stageLabel}</TableHead>}
+                  <SortableHeader label={getLabel("field_merchant_name")} active={sortField === "merchantName"} dir={sortDir} onSort={() => toggleSort("merchantName")} className="min-w-[180px]" />
+                  {isVisible("arr") && <SortableHeader label={`${arrLabel} Cr.`} active={sortField === "arr"} dir={sortDir} onSort={() => toggleSort("arr")} align="right" className="whitespace-nowrap" />}
+                  {isVisible("stage") && <SortableHeader label={stageLabel} active={sortField === "stage"} dir={sortDir} onSort={() => toggleSort("stage")} className="whitespace-nowrap" />}
                   {isVisible("status") && <TableHead className="font-semibold whitespace-nowrap text-foreground">{stateLabel}</TableHead>}
                   {isVisible("blocker") && <TableHead className="font-semibold min-w-[240px] max-w-[340px] text-foreground">Blocker</TableHead>}
                   {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-foreground">Blocked On</TableHead>}
                   {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-foreground">Deadline</TableHead>}
-                  {isVisible("confidence") && <TableHead className="font-semibold whitespace-nowrap text-foreground">Confidence</TableHead>}
-                  {isVisible("owner") && <TableHead className="font-semibold whitespace-nowrap min-w-[140px] text-foreground">{ownerLabel}</TableHead>}
-                  {isVisible("expected") && <TableHead className="font-semibold whitespace-nowrap text-foreground">{expectedLabel}</TableHead>}
+                  {isVisible("confidence") && <SortableHeader label="Confidence" active={sortField === "confidence"} dir={sortDir} onSort={() => toggleSort("confidence")} className="whitespace-nowrap" />}
+                  {isVisible("owner") && <SortableHeader label={ownerLabel} active={sortField === "owner"} dir={sortDir} onSort={() => toggleSort("owner")} className="whitespace-nowrap min-w-[140px]" />}
+                  {isVisible("expected") && <SortableHeader label={expectedLabel} active={sortField === "expected"} dir={sortDir} onSort={() => toggleSort("expected")} className="whitespace-nowrap" />}
                   {SYSTEM_COLUMNS.map(col => isVisible(col.key) && (
                     <TableHead key={col.key} className="font-semibold whitespace-nowrap text-foreground">{col.label}</TableHead>
                   ))}

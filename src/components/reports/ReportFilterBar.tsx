@@ -4,9 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ArrowUpDown, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { SlidersHorizontal, ChevronDown } from "lucide-react";
 import { projectStateLabels, ProjectState } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import type { useReportFilters } from "@/hooks/useReportFilters";
@@ -35,8 +34,6 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
     expectedGoLiveFrom, setExpectedGoLiveFrom,
     expectedGoLiveTo, setExpectedGoLiveTo,
     expectedGoLiveNone, setExpectedGoLiveNone,
-    sortField, setSortField,
-    sortDir, setSortDir,
     activeFilterCount,
     clearFilters,
     uniquePlatforms,
@@ -46,7 +43,6 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
   } = props;
 
   const { teamLabels, responsibilityLabels, stateLabels } = useLabels();
-  const [sortOpen, setSortOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
   const stateOptions = (Object.keys(projectStateLabels) as ProjectState[]).map(s => ({
@@ -107,67 +103,6 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <span className="text-xs text-muted-foreground">{projectCount} projects</span>
-
-      {/* Sort */}
-      <Collapsible open={sortOpen} onOpenChange={setSortOpen}>
-        <div className="relative">
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5">
-              <ArrowUpDown className="h-3 w-3" />
-              Sort
-              {sortField !== "none" && (
-                <Badge variant="default" className="ml-0.5 h-4 px-1 text-2xs">1</Badge>
-              )}
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="absolute z-30 mt-1 left-0 top-full w-72 bg-card border rounded-lg shadow-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">Sort By</p>
-              {sortField !== "none" && (
-                <Button variant="ghost" size="sm" className="text-xs h-6"
-                  onClick={() => { setSortField("none"); setSortDir("asc"); }}>
-                  Clear
-                </Button>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Field</p>
-                <Select value={sortField} onValueChange={setSortField}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="merchantName">Merchant Name</SelectItem>
-                    <SelectItem value="arr">ARR</SelectItem>
-                    <SelectItem value="platform">Platform</SelectItem>
-                    <SelectItem value="owner">Owner</SelectItem>
-                    <SelectItem value="state">State</SelectItem>
-                    <SelectItem value="kickOffDate">Start Date</SelectItem>
-                    <SelectItem value="expectedGoLiveDate">Expected Go-Live</SelectItem>
-                    <SelectItem value="goLiveDate">Go-Live Date</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Direction</p>
-                <Select value={sortDir} onValueChange={v => setSortDir(v as "asc" | "desc")}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="asc">Ascending</SelectItem>
-                    <SelectItem value="desc">Descending</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex justify-end pt-2 border-t">
-              <CollapsibleTrigger asChild>
-                <Button size="sm" className="text-xs h-7">Done</Button>
-              </CollapsibleTrigger>
-            </div>
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
 
       {/* Filters */}
       <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>

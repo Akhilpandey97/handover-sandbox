@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Save, Trash2, Play, Plus, Clock, Calendar, FileText, X, ChevronRight, ChevronDown, Sigma, GripVertical } from "lucide-react";
 import { useReportFilters } from "@/hooks/useReportFilters";
 import { ReportFilterBar } from "@/components/reports/ReportFilterBar";
+import { SortableHeader } from "@/components/filters/SortableHeader";
 import { ChartView, CHART_META, type ChartRow, type ChartType } from "@/components/charts/ReportChartView";
 import { cn } from "@/lib/utils";
 
@@ -204,6 +205,15 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
 
   const filterState = useReportFilters(projects);
   const { filteredProjects } = filterState;
+  const toggleSort = (field: string) => {
+    if (filterState.sortField === field) filterState.setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { filterState.setSortField(field); filterState.setSortDir("asc"); }
+  };
+  const SORTABLE_REPORT_KEYS: Record<string, string> = {
+    merchantName: "merchantName", arr: "arr", platform: "platform",
+    owner: "owner", projectState: "state", kickOffDate: "kickOffDate",
+    expectedGoLiveDate: "expectedGoLiveDate", goLiveDate: "goLiveDate",
+  };
 
   const [groupByColumn, setGroupByColumn] = useState<string>("none");
 
@@ -540,7 +550,21 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
         <TableRow>
           {selectedColumns.map(key => {
             const col = allColumns.find(c => c.key === key);
-            return <TableHead key={key} className="text-xs whitespace-nowrap">{col?.label || key}</TableHead>;
+            const label = col?.label || key;
+            const sortKey = SORTABLE_REPORT_KEYS[key];
+            if (sortKey) {
+              return (
+                <SortableHeader
+                  key={key}
+                  label={label}
+                  active={filterState.sortField === sortKey}
+                  dir={filterState.sortDir}
+                  onSort={() => toggleSort(sortKey)}
+                  className="whitespace-nowrap"
+                />
+              );
+            }
+            return <TableHead key={key} className="text-xs whitespace-nowrap">{label}</TableHead>;
           })}
         </TableRow>
       </TableHeader>
