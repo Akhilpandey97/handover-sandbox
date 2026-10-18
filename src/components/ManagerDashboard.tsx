@@ -1834,7 +1834,7 @@ export const ManagerDashboard = () => {
                   <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
                     <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
                       <TableRow className="hover:bg-muted/40 border-b">
-                        <TableHead className="w-10 text-foreground">
+                        <TableHead className="w-10 h-auto py-2 text-foreground">
                           <Checkbox checked={allLvFilteredSelected} onCheckedChange={() => toggleSelectAll(lvFilteredProjectIds)} aria-label="Select all visible projects" />
                         </TableHead>
                         {listViewColumns.map(colKey => {
@@ -1875,7 +1875,7 @@ export const ManagerDashboard = () => {
                             </TableHead>
                           );
                         })}
-                        {!isGokwikGeneral && <TableHead className="w-32 text-xs tracking-normal">Action</TableHead>}
+                        {!isGokwikGeneral && <TableHead className="w-32 h-auto py-2 text-xs tracking-normal">Action</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>

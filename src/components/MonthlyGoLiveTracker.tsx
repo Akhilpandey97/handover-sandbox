@@ -548,7 +548,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                     const col = ALL_COLUMNS.find(c => c.key === key);
                     const extraClass = key === "blocker" ? "min-w-[240px] max-w-[340px]" : key === "blocked_on" || key === "deadline" ? "min-w-[100px]" : key === "owner" ? "min-w-[140px]" : "";
                     return (
-                      <TableHead key={key} className={cn("font-semibold whitespace-nowrap text-foreground", extraClass)} {...dragProps}>
+                      <TableHead key={key} className={cn("h-auto py-2 px-3 font-semibold whitespace-nowrap text-foreground", extraClass)} {...dragProps}>
                         {col?.label || key}
                       </TableHead>
                     );
