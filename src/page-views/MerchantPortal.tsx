@@ -1277,34 +1277,38 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         <div className="h-2 bg-muted rounded-full overflow-hidden mb-6 mt-3">
           <div className="h-full rounded-full transition-all duration-700" style={{ width: `${checklist_progress.percent}%`, background: `linear-gradient(90deg, ${BRAND.accent}, ${BRAND.primary})` }} />
         </div>
-        <div className="flex items-start gap-3 overflow-x-auto px-2 pb-2">
+        <div className="flex items-start gap-0 overflow-x-auto px-2 pb-2">
           {stages.map((stage, i) => {
             const isDone = data.checklist[i]?.completed;
             const isCurrent = stage.num === currentStage;
             const isFuture = !isDone && !isCurrent;
+            const showLabel = isCurrent;
             return (
-              <div key={stage.num} className="flex min-w-0 flex-1 items-start">
-                <div className="flex min-w-[110px] flex-1 flex-col items-center">
-                  <div className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                    isFuture && "bg-muted text-muted-foreground border border-border"
-                  )}
-                    style={isDone ? { background: BRAND.green, color: "white" } : isCurrent ? { background: BRAND.accent, color: "white", boxShadow: `0 0 16px ${BRAND.accent}60` } : {}}
-                  >
-                    {isDone ? <CheckCircle2 className="w-5 h-5" /> : stage.num}
+              <div key={stage.num} className="flex min-w-0 flex-1 items-start" style={{ minWidth: showLabel ? 120 : 40 }}>
+                <div className="flex flex-col items-center flex-1">
+                  <div className="flex items-center w-full">
+                    {i > 0 && (
+                      <div className="h-0.5 flex-1" style={{ background: isDone ? BRAND.green : darkMode_bg() }} />
+                    )}
+                    <div className={cn(
+                      "w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                      isFuture && "bg-muted text-muted-foreground border border-border"
+                    )}
+                      style={isDone ? { background: BRAND.green, color: "white" } : isCurrent ? { background: BRAND.accent, color: "white", boxShadow: `0 0 16px ${BRAND.accent}60` } : {}}
+                    >
+                      {isDone ? <CheckCircle2 className="w-4 h-4" /> : stage.num}
+                    </div>
+                    {i < stages.length - 1 && (
+                      <div className="h-0.5 flex-1" style={{ background: data.checklist[i + 1]?.completed ? BRAND.green : darkMode_bg() }} />
+                    )}
                   </div>
-                  <span className={cn(
-                    "mt-2 max-w-[150px] whitespace-normal text-center text-2xs leading-tight",
-                    isFuture && "text-muted-foreground"
+                  {showLabel && (
+                    <span className="mt-1.5 w-[110px] text-center text-2xs leading-tight font-semibold"
+                      style={{ color: BRAND.accent }}>
+                      {stage.label.replace(/^\s*\d+\.\s*/, "")}
+                    </span>
                   )}
-                    style={isDone ? { color: BRAND.green } : isCurrent ? { color: BRAND.accent, fontWeight: 700 } : {}}>
-                    {stage.label.replace(/^\s*\d+\.\s*/, "")}
-                  </span>
                 </div>
-                {i < stages.length - 1 && (
-                  <div className={cn("mt-5 h-0.5 min-w-5 flex-1")}
-                    style={{ background: isDone ? BRAND.green : darkMode_bg() }} />
-                )}
               </div>
             );
           })}
