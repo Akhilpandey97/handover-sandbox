@@ -27,8 +27,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -38,7 +36,6 @@ import {
   Project,
   ProjectState,
   calculateProjectResponsibilityFromChecklist,
-  calculateTimeFromChecklist,
   formatDuration,
   getProjectFunnelStage,
   funnelStageLabels,
@@ -56,20 +53,13 @@ import { WorkspaceTasksPanel } from "@/components/project-workspace/WorkspaceTas
 import { WorkspaceMeetingsPanel } from "@/components/project-workspace/WorkspaceMeetingsPanel";
 import {
   ArrowLeft,
-  CalendarDays,
-  IndianRupee,
-  Layers,
   ArrowRight,
-  ArrowUpRight,
-  CheckCheck,
-  ChevronDown,
-  CircleDot,
-  ExternalLink,
-  FileStack,
-  Globe,
-  Hourglass,
+  CalendarDays,
+  ChevronRight,
+  IndianRupee,
   Link2,
   Mail,
+  MoreHorizontal,
   Pencil,
   Share2,
   UserRound,
@@ -83,7 +73,6 @@ type ActivityKind = "user" | "system" | "handoff" | "milestone";
 
 const TAB_ORDER_KEY = "workspace_tab_order";
 
-/** The saved order, ignoring anything stale and appending tabs added since. */
 const readTabOrder = (): WorkspaceTab[] => {
   const all = tabOptions.map((t) => t.value);
   try {
@@ -105,30 +94,6 @@ interface ProjectWorkspaceProps {
   onNavigate?: (id: string) => void;
 }
 
-interface ActivityEntry {
-  id: string;
-  kind: ActivityKind;
-  title: string;
-  description: string;
-  actor: string;
-  source: string;
-  timestamp: number;
-  timestampLabel: string;
-  dateLabel: string;
-}
-
-interface RiskDriver {
-  label: string;
-  points: number;
-}
-
-interface RiskAssessment {
-  score: number;
-  label: "Low risk" | "Medium risk" | "High risk";
-  tone: string;
-  drivers: RiskDriver[];
-}
-
 const tabOptions: Array<{ value: WorkspaceTab; label: string }> = [
   { value: "checklists", label: "Checklist" },
   { value: "tasks", label: "Tasks" },
@@ -137,266 +102,21 @@ const tabOptions: Array<{ value: WorkspaceTab; label: string }> = [
   { value: "jira", label: "Jira" },
 ];
 
-// Project states use the theme's status tokens, so they read the same as
-// everywhere else in the product and switch with dark mode.
-const stateToneMap: Record<ProjectState, string> = {
-  not_started: "bg-muted text-muted-foreground border-border",
-  on_hold: "bg-warning-soft text-warning-strong border-warning/30",
-  in_progress: "bg-info-soft text-info-strong border-info/30",
-  live: "bg-success-soft text-success-strong border-success/30",
-  blocked: "bg-destructive-soft text-destructive-strong border-destructive/30",
+const stateDotClass: Record<ProjectState, string> = {
+  not_started: "bg-muted-foreground/50",
+  on_hold: "bg-warning",
+  in_progress: "bg-info",
+  live: "bg-success",
+  blocked: "bg-destructive",
 };
 
-const stateSelectToneMap: Record<ProjectState, string> = stateToneMap;
-
-const activityToneMap: Record<ActivityKind, string> = {
-  user: "bg-success",
-  system: "bg-slate-500",
-  handoff: "bg-info",
-  milestone: "bg-warning",
-};
-
-const activityBadgeToneMap: Record<ActivityKind, string> = {
-  user: "bg-success-soft text-success-strong border-success/30",
-  system: "bg-muted text-muted-foreground border-border",
-  handoff: "bg-info-soft text-info-strong border-info/30",
-  milestone: "bg-warning-soft text-warning-strong border-warning/30",
-};
-
-const formatDateTime = (value?: string) => {
-  if (!value) return null;
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return {
-    timestamp: date.getTime(),
-    timestampLabel: new Intl.DateTimeFormat("en-IN", {
-      hour: "numeric",
-      minute: "2-digit",
-    }).format(date),
-    dateLabel: new Intl.DateTimeFormat("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }).format(date),
-  };
-};
-
-const buildActivityFeed = (project: Project): ActivityEntry[] => {
-  const items: ActivityEntry[] = [];
-
-  const pushEvent = (
-    id: string,
-    kind: ActivityKind,
-    title: string,
-    description: string,
-    actor: string,
-    source: string,
-    date?: string,
-  ) => {
-    const parsed = formatDateTime(date);
-    if (!parsed) return;
-
-    items.push({
-      id,
-      kind,
-      title,
-      description,
-      actor,
-      source,
-      timestamp: parsed.timestamp,
-      timestampLabel: parsed.timestampLabel,
-      dateLabel: parsed.dateLabel,
-    });
-  };
-
-  pushEvent(
-    `${project.id}-kickoff`,
-    "milestone",
-    "Kickoff scheduled",
-    `Project workspace opened for ${project.merchantName}.`,
-    "System",
-    "Project milestone",
-    project.dates.kickOffDate,
-  );
-
-  pushEvent(
-    `${project.id}-target`,
-    "milestone",
-    "Target go-live date updated",
-    `Expected go-live is ${project.dates.expectedGoLiveDate || "not set yet"}.`,
-    "System",
-    "Project milestone",
-    project.dates.expectedGoLiveDate,
-  );
-
-  pushEvent(
-    `${project.id}-live`,
-    "milestone",
-    "Project marked live",
-    "Merchant went live successfully.",
-    "System",
-    "Lifecycle milestone",
-    project.dates.goLiveDate,
-  );
-
-  project.transferHistory.forEach((transfer) => {
-    if (transfer.notes?.startsWith("OWNER_CHANGE:")) {
-      const ownerName = transfer.notes.replace("OWNER_CHANGE:", "").trim() || "Unassigned";
-      pushEvent(
-        `owner-change-${transfer.id}`,
-        "user",
-        `Owner changed to ${ownerName}`,
-        `Ownership assignment updated for ${project.merchantName}.`,
-        transfer.transferredBy || "System",
-        "Owner assignment",
-        transfer.transferredAt,
-      );
-      return;
-    }
-
-    pushEvent(
-      `transfer-${transfer.id}`,
-      "handoff",
-      `Transferred from ${transfer.fromTeam} to ${transfer.toTeam}`,
-      transfer.notes || "Project ownership moved to the next team.",
-      transfer.transferredBy || "System",
-      "Team handoff",
-      transfer.transferredAt,
-    );
-
-    pushEvent(
-      `accept-${transfer.id}`,
-      "user",
-      `Transfer accepted by ${transfer.acceptedBy || transfer.toTeam}`,
-      `Project is now active with ${transfer.toTeam}.`,
-      transfer.acceptedBy || "System",
-      "Team handoff",
-      transfer.acceptedAt,
-    );
-  });
-
-  project.responsibilityLog.forEach((entry) => {
-    pushEvent(
-      `project-responsibility-${entry.id}`,
-      "system",
-      `${entry.party} responsibility started`,
-      `Execution moved into the ${entry.phase} phase.`,
-      "System",
-      "Responsibility",
-      entry.startedAt,
-    );
-  });
-
-  project.checklist.forEach((item) => {
-    pushEvent(
-      `checklist-done-${item.id}`,
-      "user",
-      `${item.title} completed`,
-      `Responsibility at completion: ${item.currentResponsibility}.`,
-      item.completedBy || "User",
-      `${item.ownerTeam} checklist`,
-      item.completedAt,
-    );
-
-    pushEvent(
-      `checklist-comment-${item.id}`,
-      "system",
-      `Note added on ${item.title}`,
-      item.comment || "Inline task note captured.",
-      item.commentBy || "System",
-      `${item.ownerTeam} checklist`,
-      item.commentAt,
-    );
-  });
-
-  return items.sort((a, b) => b.timestamp - a.timestamp);
-};
-
-const groupByDate = (items: ActivityEntry[]) =>
-  items.reduce(
-    (acc, item) => {
-      const list = acc[item.dateLabel] || [];
-      list.push(item);
-      acc[item.dateLabel] = list;
-      return acc;
-    },
-    {} as Record<string, ActivityEntry[]>,
-  );
-
-const getLatestProjectTimestamp = (project: Project) => {
-  const candidateDates = [
-    project.dates.goLiveDate,
-    project.dates.expectedGoLiveDate,
-    ...project.transferHistory.map((entry) => entry.acceptedAt || entry.transferredAt),
-    ...project.responsibilityLog.map((entry) => entry.startedAt),
-    ...project.checklist.flatMap((item) => [item.completedAt, item.commentAt]),
-  ].filter(Boolean) as string[];
-
-  return candidateDates
-    .map((value) => new Date(value).getTime())
-    .filter((value) => !Number.isNaN(value))
-    .sort((a, b) => b - a)[0];
-};
-
-/**
- * Adapts the shared risk engine's verdict to the gauge this page already
- * renders. The engine decides high/low; the score and findings drive the
- * display so it stays consistent with the Risks tab.
- */
-const riskAssessmentFromVerdict = (verdict: RiskVerdict | undefined): RiskAssessment => {
-  const findings = verdict?.findings ?? [];
-  const score = verdict?.score ?? 0;
-
-  if (verdict?.level === "high") {
-    return {
-      score,
-      label: "High risk",
-      tone: "bg-destructive-soft text-destructive-strong border-destructive/30",
-      drivers: findings.map((f) => ({ label: f.detail, points: f.magnitude ?? 0 })),
-    };
-  }
-
-  return {
-    score,
-    label: "Low risk",
-    tone: "bg-success-soft text-success-strong border-success/30",
-    drivers: [{ label: "No major delivery or ownership risks detected", points: 0 }],
-  };
-};
-
-const getLastUpdated = (project: Project) => {
-  const latest = getLatestProjectTimestamp(project);
-
-  if (!latest) return "No recent updates";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "numeric",
-    month: "short",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(latest));
-};
-
-const parseAiBullets = (content: string) =>
-  content
-    .split("\n")
-    .map((line) =>
-      line
-        .replace(/^[-*•]\s*/, "")
-        .replace(/\*\*/g, "")
-        .replace(/^Here is the project summary for.*?:/i, "")
-        .trim(),
-    )
-    .filter(Boolean)
-    .slice(0, 4);
-
-/** "11 Sep 2026" — the format the checklist uses, never a raw ISO date. */
+/** "11 Sep 2026" */
 const friendlyDate = (value?: string | null) =>
-  value ? new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
+  value
+    ? new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : "—";
 
-/** "in 22 days", "today", "7 days late" — the part people actually work from. */
+/** "in 22 days", "today", "7 days late" */
 const relativeDay = (value?: string | null): string | undefined => {
   if (!value) return undefined;
   const then = new Date(value);
@@ -409,118 +129,22 @@ const relativeDay = (value?: string | null): string | undefined => {
   return days > 0 ? `in ${days} days` : `${Math.abs(days)} days late`;
 };
 
-/**
- * One fact: muted label, value alongside, and — where the value can be changed —
- * a click that opens the right editor rather than a separate dialog for everything.
- */
-const PanelSection = ({
-  title,
-  defaultOpen = false,
-  children,
-}: {
-  title: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}) => {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <section className="border-b border-border/50 py-2 last:border-b-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 py-1 text-left"
-      >
-        <span className="text-sm font-semibold text-foreground">{title}</span>
-        <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
-      </button>
-      {open ? <div className="pt-1">{children}</div> : null}
-    </section>
-  );
-};
-
-const PanelRow = ({
-  label,
-  value,
-  hint,
-  hintTone = "muted",
-  avatar,
-  icon: Icon,
-  onEdit,
-  children,
-}: {
-  label: string;
-  value?: string;
-  hint?: string;
-  hintTone?: "muted" | "overdue";
-  avatar?: string;
-  icon?: typeof CalendarDays;
-  onEdit?: () => void;
-  /** A control in place of a plain value — the state pill, say. */
-  children?: React.ReactNode;
-}) => {
-  const body = (
-    <>
-      {avatar && (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
-          {avatar.charAt(0).toUpperCase()}
-        </span>
-      )}
-      <span className="min-w-0 break-words" title={value}>{value}</span>
-      {hint && (
-        <span
-          className={cn(
-            "whitespace-nowrap capitalize",
-            hintTone === "overdue" ? "font-medium text-destructive" : "text-muted-foreground",
-          )}
-        >
-          · {hint}
-        </span>
-      )}
-    </>
-  );
-  return (
-    <div className="grid grid-cols-[minmax(88px,42%)_minmax(0,1fr)] items-start gap-2.5 border-b border-border/50 py-1.5 last:border-b-0">
-      {/* A notch under the section headings, so the panel reads quieter than its titles. */}
-      <dt className="flex items-start gap-1.5 text-[12.6px] leading-[1.45] text-foreground">
-        {Icon ? <Icon className="mt-0.5 h-3 w-3 shrink-0" /> : null}
-        <span className="min-w-0 break-words">{label}</span>
-      </dt>
-      <dd className="min-w-0 text-[12.6px] leading-[1.45]">
-        {children ? (
-          children
-        ) : onEdit ? (
-          <button
-            type="button"
-            onClick={onEdit}
-            className="-mx-1.5 flex w-full flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-md px-1.5 py-0.5 text-left font-medium text-foreground hover:bg-muted"
-          >
-            {body}
-          </button>
-        ) : (
-          <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 px-0 font-medium text-foreground">{body}</span>
-        )}
-      </dd>
-    </div>
-  );
-};
-
 export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false, onClose, projectIds, onNavigate }: ProjectWorkspaceProps) => {
   const { projectId: routeProjectId } = useParams<{ projectId?: string }>();
   const projectId = projectIdProp || routeProjectId;
-  const { fields: customFields } = useCustomFields();
-  const { values: customFieldValues } = useCustomFieldValues(projectId);
   const { isAuthenticated, isLoading, currentUser } = useAuth();
-  const {
-    projects,
-    updateProject,
-    deleteProject,
-    transferProject,
-  } = useProjects();
-  const { teamLabels, stateLabels, phaseLabels, responsibilityLabels, getLabel } = useLabels();
+  const { projects, updateProject, deleteProject, transferProject } = useProjects();
+  const { teamLabels, stateLabels } = useLabels();
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("checklists");
+  const [tabOrder, setTabOrder] = useState<WorkspaceTab[]>(() => tabOptions.map((t) => t.value));
+  const [draggingTab, setDraggingTab] = useState<WorkspaceTab | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [sendingMagic, setSendingMagic] = useState(false);
 
-  /** Keep the open tab in the URL, so it can be linked to and the back button works. */
   const openTab = (tab: WorkspaceTab) => {
     setActiveTab(tab);
     if (inModal || typeof window === "undefined") return;
@@ -529,30 +153,19 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     window.history.replaceState({}, "", url);
   };
 
-  // Deep-link support: /projects/:id?tab=&item=&task=&comment=
   const deepLink = useProjectDeepLink();
 
   useEffect(() => {
-    // An item/task/comment target only exists on the checklist tab.
-    // Only tabs that exist: an unknown ?tab= used to render a hidden panel
-    // with nothing marked active.
     const known = tabOptions.some((t) => t.value === deepLink.tab);
     if (known) setActiveTab(deepLink.tab as WorkspaceTab);
     else if (deepLink.item || deepLink.task || deepLink.comment) setActiveTab("checklists");
   }, [deepLink.tab, deepLink.item, deepLink.task, deepLink.comment]);
 
-  // A comment or task target highlights its own row deeper in the tree; only
-  // ring the item itself when it is the target.
   useScrollToAnchor(
     deepLink.item ? `checklist-item-${deepLink.item}` : null,
     !deepLink.comment && !deepLink.task,
   );
-  const [editOpen, setEditOpen] = useState(false);
-  const [showAllFields, setShowAllFields] = useState(false);
-  const [tabOrder, setTabOrder] = useState<WorkspaceTab[]>(() => tabOptions.map((t) => t.value));
-  const [draggingTab, setDraggingTab] = useState<WorkspaceTab | null>(null);
 
-  // localStorage is only there in the browser, so read it after mount.
   useEffect(() => setTabOrder(readTabOrder()), []);
 
   const moveTab = (from: WorkspaceTab, to: WorkspaceTab) => {
@@ -560,76 +173,38 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     setTabOrder((current) => {
       const next = current.filter((v) => v !== from);
       next.splice(next.indexOf(to), 0, from);
-      try {
-        localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(next));
-      } catch { /* private mode */ }
+      try { localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(next)); } catch { /* private mode */ }
       return next;
     });
   };
-  const [assignOpen, setAssignOpen] = useState(false);
-  const [transferOpen, setTransferOpen] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [sendingMagic, setSendingMagic] = useState(false);
+
   const project = projects.find((entry) => entry.id === projectId) ?? null;
-
-  // Same engine as the Risks tab and the at-risk lists, so a project cannot read
-  // as fine here while being flagged elsewhere.
   const { verdicts: riskVerdicts } = useProjectRiskVerdicts();
-
-  const activityFeed = useMemo(() => (project ? buildActivityFeed(project) : []), [project]);
-  const groupedActivity = useMemo(() => groupByDate(activityFeed), [activityFeed]);
-
   const { isLoading: projectsLoading } = useProjects();
   const navigate = useNavigate();
 
-  if (isLoading || projectsLoading) {
-    return <WorkspaceSkeleton inModal={inModal} />;
-  }
-
-  if (!isAuthenticated) {
-    return <LoginScreen />;
-  }
+  if (isLoading || projectsLoading) return <WorkspaceSkeleton inModal={inModal} />;
+  if (!isAuthenticated) return <LoginScreen />;
 
   if (!project) {
     return (
       <div className={cn("flex items-center justify-center bg-background px-6", inModal ? "min-h-full" : "min-h-screen")}>
         <Card className="w-full max-w-xl">
-          <CardHeader>
-            <CardTitle>Project not found</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Project not found</CardTitle></CardHeader>
           <CardContent>
-            <p className="mb-4 text-sm text-muted-foreground">
-              This project could not be found in your current workspace.
-            </p>
-            {inModal ? (
-              <Button onClick={onClose}>Close</Button>
-            ) : (
-              <Button asChild>
-                <Link to="/">Back to dashboard</Link>
-              </Button>
-            )}
+            <p className="mb-4 text-sm text-muted-foreground">This project could not be found in your current workspace.</p>
+            {inModal ? <Button onClick={onClose}>Close</Button> : <Button asChild><Link to="/">Back to dashboard</Link></Button>}
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const completedChecklist = project.checklist.filter((item) => item.completed).length;
-  const pendingOn = calculateProjectResponsibilityFromChecklist(project.checklist);
-  const timeByParty = calculateTimeFromChecklist(project.checklist);
-  const currentTeamChecklist = project.checklist.filter((item) => item.ownerTeam === project.currentOwnerTeam);
-  const allCurrentTeamChecklistCompleted =
-    currentTeamChecklist.length > 0 && currentTeamChecklist.every((item) => item.completed);
-  /**
-   * Who may hand the project on.
-   *
-   * The owning team's own members, plus the roles that work across teams —
-   * managers, admins and super admins. Gating on `team === currentOwnerTeam`
-   * alone locked every one of those out, since their team is their role, so a
-   * super admin could never transfer anything.
-   */
+  // --- Computed project values ---
   const crossTeamRoles = ["manager", "admin", "super_admin", "superadmin"];
   const userTeamSlug = (currentUser?.team || "").toLowerCase();
+  const currentTeamChecklist = project.checklist.filter((item) => item.ownerTeam === project.currentOwnerTeam && !item.isTask);
+  const allCurrentTeamChecklistCompleted = currentTeamChecklist.length > 0 && currentTeamChecklist.every((item) => item.completed);
   const canTransfer =
     (userTeamSlug === project.currentOwnerTeam || crossTeamRoles.includes(userTeamSlug)) &&
     !project.pendingAcceptance &&
@@ -638,7 +213,6 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const isTransferReady = canTransfer && allCurrentTeamChecklistCompleted;
   const canAssignOwner = crossTeamRoles.includes(userTeamSlug);
   const openCurrentTeamItems = currentTeamChecklist.filter((item) => !item.completed).length;
-  /** Say which condition is in the way, rather than one message for all of them. */
   const transferBlockedReason = isTransferReady
     ? null
     : project.pendingAcceptance
@@ -646,120 +220,32 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
       : project.currentPhase === "completed"
         ? "This project is complete"
         : project.currentOwnerTeam === "ms"
-          ? `${teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam} is the last team — there is nobody to transfer to`
+          ? `${teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam} is the last team`
           : !canTransfer
             ? "Only this team, or a manager, can transfer it"
             : `${openCurrentTeamItems} checklist item${openCurrentTeamItems === 1 ? "" : "s"} still open for ${teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam}`;
-  const risk = riskAssessmentFromVerdict(riskVerdicts[project.id]);
-  // Only a firing rule is worth surfacing — "low risk" is the absence of a
-  // signal, and badging it just adds noise to every healthy project.
-  const isAtRisk = risk.label === "High risk";
-  const riskReasons = isAtRisk ? risk.drivers.map((d) => d.label).join("; ") : null;
-  const openTasksCount = project.checklist.length - completedChecklist;
-  const waitingOnLabel = pendingOn === "merchant" ? responsibilityLabels.merchant : teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam;
-  const waitingOnSub = pendingOn === "merchant" ? "External work outstanding" : `${openTasksCount} checklist item${openTasksCount === 1 ? "" : "s"} remaining`;
 
-  /**
-   * The next thing somebody should actually do.
-   *
-   * It used to be the first unticked row in checklist order, which ignored dates, teams
-   * and whether the project was ready to move on — so an overdue item sat behind a row
-   * that happens to be listed first, and a project with nothing left for its own team
-   * still showed a step instead of saying it can be handed on.
-   *
-   * The order now: the owning team's work first, soonest due before undated, overdue
-   * called out. With nothing left for that team, the next step is the handover itself.
-   */
-  const nextStep = (() => {
-    const open = project.checklist.filter((item) => !item.completed);
-    if (open.length === 0) return { label: "All checklist items complete", hint: undefined as string | undefined };
+  const riskVerdict = riskVerdicts[project.id];
+  const isAtRisk = riskVerdict?.level === "high";
 
-    const ownTeam = open.filter((item) => (item.ownerTeam || "").toLowerCase() === project.currentOwnerTeam);
+  // Progress: groups with all items done / total groups
+  const checklistItems = project.checklist.filter((i) => !i.isTask);
+  const groupedForProgress = checklistItems.reduce((acc, item) => {
+    const key = (item.ownerTeam || "").toLowerCase();
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {} as Record<string, typeof checklistItems>);
+  const totalGroups = Object.keys(groupedForProgress).length;
+  const completedGroups = Object.values(groupedForProgress).filter((items) => items.every((i) => i.completed)).length;
+  const progressPct = totalGroups > 0 ? Math.round((completedGroups / totalGroups) * 100) : 0;
 
-    // The owning team is clear; what remains belongs to whoever comes next.
-    if (ownTeam.length === 0) {
-      const nextTeamKey = project.currentOwnerTeam === "mint" ? "integration" : project.currentOwnerTeam === "integration" ? "ms" : null;
-      const nextTeamLabel = nextTeamKey ? teamLabels[nextTeamKey] || nextTeamKey : null;
-      if (nextTeamLabel) {
-        return { label: `Transfer to ${nextTeamLabel}`, hint: undefined };
-      }
-    }
-
-    const pool = ownTeam.length > 0 ? ownTeam : open;
-    const dueTime = (item: (typeof pool)[number]) =>
-      item.dueDate ? new Date(item.dueDate).getTime() : Number.POSITIVE_INFINITY;
-    const pick = [...pool].sort((a, b) => dueTime(a) - dueTime(b))[0];
-
-    const overdue = pick.dueDate ? new Date(pick.dueDate) < new Date() : false;
-    const owner = (pick.ownerTeam || "").toLowerCase();
-    const hint = overdue
-      ? "overdue"
-      : pick.dueDate
-        ? `due ${friendlyDate(pick.dueDate)}`
-        : owner && owner !== project.currentOwnerTeam
-          ? teamLabels[owner] || owner
-          : undefined;
-
-    return { label: pick.title, hint };
-  })();
-  const nextStepLabel = nextStep.label;
-  // Workspace-defined extra fields (Settings → Custom Fields)
-  const customFieldRows: string[][] = customFields
-    .filter((f) => (customFieldValues[f.id] ?? "").length > 0)
-    .map((f) => [
-      f.field_label,
-      f.field_type === "boolean"
-        ? customFieldValues[f.id] === "true"
-          ? "Yes"
-          : "No"
-        : customFieldValues[f.id],
-    ]);
-
-  const noteSections = [
-    ["Current phase", project.notes.currentPhaseComment || "No current phase note added."],
-    ["Project notes", project.notes.projectNotes || "No project notes added."],
-    ["Pre-sales notes", project.notes.mintNotes || "No pre-sales note added."],
-    ["Phase 2 notes", project.notes.phase2Comment || "No phase 2 note added."],
-  ];
-
-  const quickLinks = [
-    project.links.brandUrl ? { label: "Website", href: project.links.brandUrl, icon: Globe } : null,
-    project.links.jiraLink ? { label: "JIRA", href: project.links.jiraLink, icon: ArrowUpRight } : null,
-    project.links.brdLink ? { label: "BRD", href: project.links.brdLink, icon: FileStack } : null,
-    project.links.mintChecklistLink ? { label: "MINT Checklist", href: project.links.mintChecklistLink, icon: CheckCheck } : null,
-    project.links.integrationChecklistLink
-      ? { label: "Integration Checklist", href: project.links.integrationChecklistLink, icon: CheckCheck }
-      : null,
-  ].filter(Boolean) as Array<{ label: string; href: string; icon: typeof Globe }>;
-
-  const actionRecommendations = [
-    !project.assignedOwnerName && currentUser?.team === "manager"
-      ? { label: "Assign owner", sublabel: "Establish clear ownership", onClick: () => setAssignOpen(true) }
-      : null,
-    project.links.jiraLink
-      ? { label: "Open delivery tracker", sublabel: "Review execution tracking", href: project.links.jiraLink }
-      : { label: "Add tracker link", sublabel: "Attach execution artifacts", onClick: () => setEditOpen(true) },
-    openTasksCount > 0
-      ? {
-          label: "Review pending checklist",
-          sublabel: `${openTasksCount} item${openTasksCount === 1 ? "" : "s"} require attention`,
-          onClick: () => setActiveTab("checklists"),
-        }
-      : null,
-    isAtRisk
-      ? { label: "Review activity", sublabel: "Inspect blockers and handoffs", onClick: () => setActiveTab("activity") }
-      : null,
-    canTransfer && isTransferReady
-      ? { label: "Initiate transfer", sublabel: "Ownership can progress", onClick: () => setTransferOpen(true) }
-      : null,
-  ].filter(Boolean) as Array<
-    | { label: string; sublabel: string; onClick: () => void; href?: undefined }
-    | { label: string; sublabel: string; href: string; onClick?: undefined }
-  >;
+  const goLiveText = formatGoLiveDate(project, friendlyDate, "Not set");
+  const goLiveDays = relativeDay(project.dates.expectedGoLiveDate);
 
   const handleSendMagicLink = async () => {
     if (!project.contactEmail) {
-      toast.error(`No ${getLabel("field_contact_email").toLowerCase()} set`, { description: `Add ${getLabel("field_contact_email")} in Edit Project first.` });
+      toast.error("No contact email set", { description: "Add contact email in Edit Project first." });
       return;
     }
     setSendingMagic(true);
@@ -780,14 +266,10 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   };
 
   const handleSaveEdit = (updatedProject: Project) => {
-    // The update hook only toasts on failure, so confirm here — but only once it has landed.
-    updateProject(updatedProject, {
-      onSuccess: () => toast.success("Project updated successfully"),
-    });
+    updateProject(updatedProject, { onSuccess: () => toast.success("Project updated successfully") });
   };
 
   const handleDelete = () => {
-    // The mutation reports its own success/failure.
     deleteProject(project.id);
     setDeleteConfirmOpen(false);
   };
@@ -795,300 +277,161 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const handleTransfer = (assigneeId: string, assigneeName: string, notes: string) => {
     const nextTeamKey = project.currentOwnerTeam === "mint" ? "integration" : "ms";
     const nextTeam = teamLabels[nextTeamKey] || nextTeamKey;
-    const transferNote = notes || `Transferred to ${nextTeam} team`;
-    transferProject(project.id, `${transferNote} (Assigned to: ${assigneeName})`, assigneeId);
+    transferProject(project.id, `${notes || `Transferred to ${nextTeam} team`} (Assigned to: ${assigneeName})`, assigneeId);
   };
 
   const handleStateChange = (newState: ProjectState) => {
-    updateProject(
-      { ...project, projectState: newState },
-      {
-        onSuccess: () => toast.success(`Project state updated to ${projectStateLabels[newState]}`),
-      },
-    );
+    updateProject({ ...project, projectState: newState }, {
+      onSuccess: () => toast.success(`Project state updated to ${projectStateLabels[newState]}`),
+    });
   };
 
   return (
     <div className={cn("flex flex-col overflow-hidden bg-background", inModal ? "h-full rounded-lg border border-border" : "h-screen")}>
-      {/* Unified header */}
-      <div className="shrink-0 border-b border-border bg-card px-5 py-3">
-        <div className="mx-auto flex max-w-[1680px] items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            {inModal ? (
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm font-medium text-muted-foreground hover:bg-accent/60 hover:text-foreground shrink-0"
-              >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Kanban
-              </button>
-            ) : null}
-            <div className="flex items-center gap-2 min-w-0">
-              <h1 className="max-w-[34vw] truncate heading-page text-foreground">{project.merchantName}</h1>
-              <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} className="ml-2" />
-              {riskReasons ? (
-                <span className="hidden max-w-[28vw] truncate text-xs text-destructive-strong md:inline" title={riskReasons}>
-                  {riskReasons}
-                </span>
-              ) : null}
-              {/* Prev/Next navigation inline */}
-              {inModal && projectIds && projectIds.length > 1 && onNavigate && (() => {
-                const currentIndex = projectIds.indexOf(project.id);
-                const hasPrev = currentIndex > 0;
-                const hasNext = currentIndex < projectIds.length - 1;
-                return (
-                  <div className="flex items-center gap-1 ml-2 shrink-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      disabled={!hasPrev}
-                      onClick={() => hasPrev && onNavigate(projectIds[currentIndex - 1])}
-                    >
-                      <ArrowLeft className="h-3.5 w-3.5" />
-                    </Button>
-                    <span className="px-1 text-xs text-muted-foreground tabular-nums">{currentIndex + 1}/{projectIds.length}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 w-7 p-0"
-                      disabled={!hasNext}
-                      onClick={() => hasNext && onNavigate(projectIds[currentIndex + 1])}
-                    >
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
+      <Tabs value={activeTab} onValueChange={(v) => openTab(v as WorkspaceTab)} className="flex flex-col flex-1 overflow-hidden">
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            {inModal ? (
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            ) : null}
-            {/* Customer access — two ways of giving the customer a way in, in one place. */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90">
-                  <Share2 className="h-3.5 w-3.5" />
-                  Customer access
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onSelect={() => void handleSendMagicLink()} disabled={sendingMagic}>
-                  <Mail className="mr-2 h-3.5 w-3.5" />
-                  {sendingMagic ? "Sending…" : "Email a sign-in link"}
-                </DropdownMenuItem>
-                <PortalLinkButton
-                  projectId={project.id}
-                  renderTrigger={(open, isWorking) => (
-                    <DropdownMenuItem
-                      disabled={isWorking}
-                      onSelect={(event) => {
-                        event.preventDefault();
-                        open();
-                      }}
-                    >
-                      <Link2 className="mr-2 h-3.5 w-3.5" />
-                      Copy portal link
-                    </DropdownMenuItem>
-                  )}
-                />
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {currentUser?.team === "manager" ? (
-              <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90" onClick={() => setAssignOpen(true)}>
-                <UserRound className="h-3.5 w-3.5" />
-                Assign owner
-              </Button>
-            ) : null}
-            <Button size="sm" className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90" onClick={() => setEditOpen(true)}>
-              <Pencil className="h-3.5 w-3.5" />
-              Edit project
-            </Button>
-            {/* The one action that moves the project on. */}
-            <Button
-              size="sm"
-              className="h-9 gap-1.5 rounded-md bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90"
-              onClick={() => isTransferReady && setTransferOpen(true)}
-              disabled={!isTransferReady}
-              title={transferBlockedReason || undefined}
-            >
-              <ArrowRight className="h-3.5 w-3.5" />
-              Transfer
-            </Button>
-          </div>
-        </div>
-      </div>
+        {/* ── HEADER ─────────────────────────────────────────────────────── */}
+        <div className="shrink-0 border-b border-border bg-card">
+          <div className="mx-auto max-w-[1680px] px-5">
 
-
-
-
-      {/* Body: the record on the left, the work on the right. Stacks below lg. */}
-      <div className="mx-auto flex min-h-0 w-full max-w-[1680px] flex-1 flex-col bg-white dark:bg-card lg:flex-row">
-        <ScrollArea className="order-1 max-h-[45vh] shrink-0 border-b border-slate-200 bg-white dark:border-border dark:bg-card lg:max-h-none lg:w-[316px] lg:border-b-0 lg:border-r">
-          <div className="p-4">
-            {/* Where the project stands — state and next action lead, as rows like the rest. */}
-            <PanelSection title="Project overview" defaultOpen>
-              <dl className="text-xs">
-                <PanelRow label={getLabel("field_project_state")} icon={CircleDot}>
-                  <Select value={project.projectState} onValueChange={(value) => handleStateChange(value as ProjectState)}>
-                    <SelectTrigger
-                      aria-label={getLabel("field_project_state")}
-                      className={cn(
-                        "h-6 w-auto gap-1.5 rounded-full border-0 px-2.5 text-[12.6px] font-medium shadow-none focus:ring-1",
-                        stateSelectToneMap[project.projectState],
-                      )}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROJECT_STATES.map((state) => (
-                        <SelectItem key={state} value={state}>{stateLabels[state] || projectStateLabels[state]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </PanelRow>
-                <PanelRow label="Waiting on" icon={Hourglass} value={waitingOnLabel} />
-                <PanelRow
-                  label="Next action"
-                  icon={CalendarDays}
-                  value={nextStepLabel}
-                  hint={nextStep.hint || undefined}
-                  hintTone={nextStep.hint === "overdue" ? "overdue" : "muted"}
-                  onEdit={() => openTab("checklists")}
-                />
-                <PanelRow
-                  label={getLabel("field_project_stage")}
-                  icon={Layers}
-                  value={funnelStageLabels[getProjectFunnelStage(project)] || getProjectFunnelStage(project)}
-                />
-                <PanelRow
-                  label={getLabel("field_expected_go_live_date")}
-                  icon={CalendarDays}
-                  value={formatGoLiveDate(project, friendlyDate, "Not set")}
-                  hint={relativeDay(project.dates.expectedGoLiveDate)}
-                  onEdit={() => setEditOpen(true)}
-                />
-                <PanelRow
-                  label={getLabel("field_arr")}
-                  icon={IndianRupee}
-                  value={`₹${formatArrCr(project.arr)}`}
-                  onEdit={() => setEditOpen(true)}
-                />
-              </dl>
-            </PanelSection>
-
-            {/* Who is on it, on both sides. */}
-            <PanelSection title="People">
-              <dl className="text-xs">
-                <PanelRow
-                  label={getLabel("field_assigned_owner")}
-                  icon={UserRound}
-                  value={project.assignedOwnerName || "Unassigned"}
-                  avatar={project.assignedOwnerName || undefined}
-                  onEdit={canAssignOwner ? () => setAssignOpen(true) : undefined}
-                />
-                <PanelRow label={getLabel("field_sales_spoc")} icon={UserRound} value={project.salesSpoc || "—"} onEdit={() => setEditOpen(true)} />
-                <PanelRow
-                  label={getLabel("field_contact_email")}
-                  icon={Mail}
-                  value={project.contactEmail || "—"}
-                  onEdit={() => setEditOpen(true)}
-                />
-              </dl>
-            </PanelSection>
-
-            {/* Everything else, one click away — rows, not another stack of cards. */}
-            <button
-              type="button"
-              onClick={() => setShowAllFields((open) => !open)}
-              className="flex w-full items-center justify-between gap-2 border-b border-border/50 py-3 text-left"
-            >
-              <span className="text-sm font-semibold text-foreground">
-                {showAllFields ? "Fewer details" : "More details"}
-              </span>
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-                  showAllFields && "rotate-180",
-                )}
-              />
-            </button>
-
-            {showAllFields && (
-              <div className="pb-1">
-                {[
-                  // The chips and rows above already carry state, owner, go-live and MRR.
-                  { title: "Ownership", rows: [["Team", teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam], [getLabel("field_sales_spoc"), project.salesSpoc || "—"]] },
-                  { title: "Delivery", rows: [["Checklist", `${completedChecklist} of ${project.checklist.length}`], ["Responsibility", responsibilityLabels[pendingOn] || pendingOn], [getLabel("field_kick_off_date"), friendlyDate(project.dates.kickOffDate)], [getLabel("field_actual_go_live_date"), friendlyDate(project.dates.goLiveDate)], ["Last update", getLastUpdated(project)], [`${responsibilityLabels.gokwik} time`, formatDuration(timeByParty.gokwik)], [`${responsibilityLabels.merchant} time`, formatDuration(timeByParty.merchant)]] },
-                  { title: "Business", rows: [[getLabel("field_platform"), project.platform], [getLabel("field_category"), project.category || "—"], [getLabel("field_txns_per_day"), `${project.txnsPerDay}`], [getLabel("field_aov"), `₹${project.aov.toLocaleString()}`], [getLabel("field_integration_type"), project.integrationType || "—"], [getLabel("field_pg_onboarding"), project.pgOnboarding || "—"]] },
-                  ...(customFieldRows.length ? [{ title: "Custom fields", rows: customFieldRows }] : []),
-                ].map((section) => (
-                  <section key={section.title} className="mt-3">
-                    <p className="mb-1 text-xs font-semibold text-foreground">{section.title}</p>
-                    <dl className="text-xs">
-                      {section.rows
-                        .filter(([, value]) => value && value !== "—")
-                        .map(([label, value]) => <PanelRow key={label} label={label} value={value} />)}
-                    </dl>
-                  </section>
-                ))}
-                {/* Notes and links sit with the rest of the detail. */}
-                <section className="mt-3">
-                  <p className="mb-1 text-xs font-semibold text-foreground">Notes</p>
-                  <div className="space-y-2">
-                    {noteSections
-                      .filter(([, value]) => value && !value.startsWith("No "))
-                      .map(([label, value]) => (
-                        <div key={label}>
-                          <p className="text-xs text-muted-foreground">{label}</p>
-                          <p className="whitespace-pre-line text-sm text-foreground">{value}</p>
-                        </div>
-                      ))}
-                    {noteSections.every(([, value]) => !value || value.startsWith("No ")) && (
-                      <p className="text-xs text-muted-foreground">No notes yet.</p>
-                    )}
-                  </div>
-                </section>
-
-                <section className="mt-3">
-                  <p className="mb-1 text-xs font-semibold text-foreground">Links</p>
-                  {quickLinks.length ? (
-                    <div className="space-y-1">
-                      {quickLinks.map((link) => (
-                        <a
-                          key={link.label}
-                          href={link.href}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-between py-0.5 text-sm text-primary hover:underline"
-                        >
-                          <span>{link.label}</span>
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      ))}
-                    </div>
+            {/* Row 1: breadcrumb + name + actions */}
+            <div className="flex items-start justify-between gap-3 pt-3 pb-1">
+              <div className="min-w-0 flex-1">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                  {inModal ? (
+                    <button type="button" onClick={onClose} className="hover:text-foreground">Projects</button>
                   ) : (
-                    <p className="text-xs text-muted-foreground">No links attached.</p>
+                    <Link to="/projects/list" className="hover:text-foreground">Projects</Link>
                   )}
-                </section>
+                  <ChevronRight className="h-3 w-3" />
+                  <span className="text-foreground/80 truncate max-w-[40vw]">{project.merchantName}</span>
+                </div>
+                {/* Name row */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="heading-page text-foreground truncate max-w-[36vw]">{project.merchantName}</h1>
+                  <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} />
+                  {/* Prev/Next in modal */}
+                  {inModal && projectIds && projectIds.length > 1 && onNavigate && (() => {
+                    const idx = projectIds.indexOf(project.id);
+                    return (
+                      <div className="flex items-center gap-1">
+                        <Button variant="outline" size="sm" className="h-6 w-6 p-0" disabled={idx <= 0} onClick={() => idx > 0 && onNavigate(projectIds[idx - 1])}>
+                          <ArrowLeft className="h-3 w-3" />
+                        </Button>
+                        <span className="text-xs text-muted-foreground tabular-nums">{idx + 1}/{projectIds.length}</span>
+                        <Button variant="outline" size="sm" className="h-6 w-6 p-0" disabled={idx >= projectIds.length - 1} onClick={() => idx < projectIds.length - 1 && onNavigate(projectIds[idx + 1])}>
+                          <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
-            )}
 
-          </div>
+              {/* Right actions */}
+              <div className="flex items-center gap-1.5 shrink-0 pt-4">
+                {inModal && (
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" className="h-8 gap-1.5 bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90">
+                      <Share2 className="h-3.5 w-3.5" />
+                      Customer access
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem onSelect={() => void handleSendMagicLink()} disabled={sendingMagic}>
+                      <Mail className="mr-2 h-3.5 w-3.5" />
+                      {sendingMagic ? "Sending…" : "Email a sign-in link"}
+                    </DropdownMenuItem>
+                    <PortalLinkButton
+                      projectId={project.id}
+                      renderTrigger={(open, isWorking) => (
+                        <DropdownMenuItem disabled={isWorking} onSelect={(e) => { e.preventDefault(); open(); }}>
+                          <Link2 className="mr-2 h-3.5 w-3.5" />
+                          Copy portal link
+                        </DropdownMenuItem>
+                      )}
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button size="sm" className="h-8 gap-1.5 bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90" onClick={() => setEditOpen(true)}>
+                  <Pencil className="h-3.5 w-3.5" />
+                  Edit project
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {canAssignOwner && (
+                      <DropdownMenuItem onSelect={() => setAssignOpen(true)}>
+                        <UserRound className="mr-2 h-3.5 w-3.5" />
+                        Assign owner
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      onSelect={() => isTransferReady && setTransferOpen(true)}
+                      disabled={!isTransferReady}
+                      title={transferBlockedReason || undefined}
+                    >
+                      <ArrowRight className="mr-2 h-3.5 w-3.5" />
+                      Transfer project
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => setDeleteConfirmOpen(true)} className="text-destructive focus:text-destructive">
+                      Delete project
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
 
-        </ScrollArea>
+            {/* Row 2: metadata strip + progress */}
+            <div className="flex items-center gap-x-4 gap-y-0.5 py-1.5 text-sm flex-wrap">
+              {/* State */}
+              <span className="flex items-center gap-1.5">
+                <span className={cn("h-2 w-2 rounded-full", stateDotClass[project.projectState])} />
+                <span className="text-foreground font-medium">{stateLabels?.[project.projectState] || projectStateLabels[project.projectState]}</span>
+              </span>
+              {/* Go-live */}
+              {project.dates.expectedGoLiveDate && (
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  Expected go-live: <span className="text-foreground">{goLiveText}</span>
+                  {goLiveDays && <span className="text-xs text-muted-foreground">({goLiveDays})</span>}
+                </span>
+              )}
+              {/* Revenue */}
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <IndianRupee className="h-3.5 w-3.5" />
+                Revenue: <span className="text-foreground">₹{formatArrCr(project.arr)}</span>
+              </span>
+              {/* Owner */}
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <UserRound className="h-3.5 w-3.5" />
+                Owner: <span className="text-foreground">{project.assignedOwnerName || "Unassigned"}</span>
+              </span>
 
-        {/* The work: checklist, activity, Jira */}
-        <main className="order-2 flex min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-card">
-          <Tabs value={activeTab} onValueChange={(value) => openTab(value as WorkspaceTab)} className="flex flex-1 flex-col overflow-hidden">
-            <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-0 dark:border-border dark:bg-card">
-              <TabsList className="h-auto gap-1 rounded-none bg-transparent p-0">
+              {/* Progress — pushed to the right */}
+              <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Project progress</span>
+                <span className="font-medium text-foreground tabular-nums">{completedGroups}/{totalGroups} stages</span>
+                <div className="w-28 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progressPct}%` }} />
+                </div>
+                <span className="font-medium text-foreground tabular-nums">{progressPct}%</span>
+              </div>
+            </div>
+
+            {/* Row 3: navigation tabs */}
+            <div className="-mb-px">
+              <TabsList className="h-auto gap-0 rounded-none bg-transparent p-0">
                 {tabOrder.map((value) => {
                   const tab = tabOptions.find((t) => t.value === value);
                   if (!tab) return null;
@@ -1099,15 +442,13 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       draggable
                       onDragStart={() => setDraggingTab(tab.value)}
                       onDragEnd={() => setDraggingTab(null)}
-                      onDragOver={(event) => event.preventDefault()}
-                      onDrop={(event) => {
-                        event.preventDefault();
-                        if (draggingTab) moveTab(draggingTab, tab.value);
-                        setDraggingTab(null);
-                      }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => { e.preventDefault(); if (draggingTab) moveTab(draggingTab, tab.value); setDraggingTab(null); }}
                       title="Drag to reorder"
                       className={cn(
-                        "cursor-grab rounded-none border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-foreground/60 active:cursor-grabbing data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:text-muted-foreground dark:data-[state=active]:text-foreground",
+                        "cursor-grab rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-foreground/60 active:cursor-grabbing",
+                        "data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none",
+                        "dark:text-muted-foreground dark:data-[state=active]:text-foreground",
                         draggingTab === tab.value && "opacity-50",
                       )}
                     >
@@ -1117,39 +458,44 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 })}
               </TabsList>
             </div>
+          </div>
+        </div>
 
-            <div className="flex-1 overflow-y-auto bg-background px-4 pb-6 pt-4">
-              <TabsContent value="activity" className="m-0 h-full">
-                <ProjectActivityHistoryPanel projectId={project.id} height="100%" />
-              </TabsContent>
+        {/* ── BODY ──────────────────────────────────────────────────────── */}
+        <div className="flex-1 min-h-0 overflow-hidden bg-background">
+          <TabsContent value="checklists" className="m-0 h-full">
+            <ChecklistDialog
+              project={project}
+              open={true}
+              onOpenChange={() => undefined}
+              variant="inline"
+              onEditProject={() => setEditOpen(true)}
+              onAssignOwner={canAssignOwner ? () => setAssignOpen(true) : undefined}
+            />
+          </TabsContent>
 
-              <TabsContent value="jira" className="m-0 h-full">
-                <div className="h-full rounded-xl border border-border/60 bg-card/80 p-4">
-                  <JiraTicketsSection projectId={project.id} merchantName={project.merchantName} />
-                </div>
-              </TabsContent>
+          <TabsContent value="activity" className="m-0 h-full overflow-y-auto p-4">
+            <ProjectActivityHistoryPanel projectId={project.id} height="100%" />
+          </TabsContent>
 
-
-              <TabsContent value="tasks" className="m-0 h-full">
-                <WorkspaceTasksPanel project={project} />
-              </TabsContent>
-
-              <TabsContent value="meetings" className="m-0 h-full">
-                <WorkspaceMeetingsPanel project={project} />
-              </TabsContent>
-
-              <TabsContent value="checklists" className="m-0 h-full">
-                <div className="h-full">
-                  <ChecklistDialog project={project} open={true} onOpenChange={() => undefined} variant="inline" />
-                </div>
-              </TabsContent>
-
+          <TabsContent value="jira" className="m-0 h-full overflow-y-auto p-4">
+            <div className="h-full rounded-xl border border-border/60 bg-card/80 p-4">
+              <JiraTicketsSection projectId={project.id} merchantName={project.merchantName} />
             </div>
-          </Tabs>
-        </main>
+          </TabsContent>
 
-      </div>
+          <TabsContent value="tasks" className="m-0 h-full overflow-y-auto">
+            <WorkspaceTasksPanel project={project} />
+          </TabsContent>
 
+          <TabsContent value="meetings" className="m-0 h-full overflow-y-auto">
+            <WorkspaceMeetingsPanel project={project} />
+          </TabsContent>
+        </div>
+
+      </Tabs>
+
+      {/* ── DIALOGS ──────────────────────────────────────────────────────── */}
       <EditProjectDialog project={project} open={editOpen} onOpenChange={setEditOpen} onSave={handleSaveEdit} />
       <AssignOwnerDialog project={project} open={assignOpen} onOpenChange={setAssignOpen} />
       <TransferDialog project={project} open={transferOpen} onOpenChange={setTransferOpen} onTransfer={handleTransfer} />
@@ -1175,5 +521,4 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 };
 
 const ProjectWorkspace = () => <ProjectWorkspaceView />;
-
 export default ProjectWorkspace;
