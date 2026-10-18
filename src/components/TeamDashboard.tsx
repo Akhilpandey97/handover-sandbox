@@ -32,7 +32,7 @@ import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+
 import { NotificationCenter } from "./NotificationCenter";
 import { BuddyAvatar } from "./buddy/BuddyAvatar";
 import { ThemeToggle } from "./ThemeToggle";
@@ -279,11 +279,23 @@ export const TeamDashboard = () => {
           <div><p className="text-sm font-semibold text-foreground">Delivery stages</p></div>
           <BarChart3 className="h-4 w-4 text-primary" />
         </div>
-        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
-          {Object.entries(deliveryStageGroups).sort((a, b) => b[1].length - a[1].length).map(([label, list]) => {
-            const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
-            return <button type="button" key={label} onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })} className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-xs"><span className="max-w-[70%] truncate font-medium text-foreground/80">{label}</span><span className="text-2xs font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
-          })}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="flex h-full items-end gap-3">
+            {Object.entries(deliveryStageGroups).sort((a, b) => b[1].length - a[1].length).map(([label, list]) => {
+              const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
+              const barHeight = Math.max(percentage, 4);
+              return (
+                <button type="button" key={label} onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })} className="flex flex-1 min-w-0 flex-col items-center gap-1.5 rounded-md p-1 hover:bg-muted/50">
+                  <span className="text-2xs font-semibold tabular-nums text-foreground">{list.length}</span>
+                  <div className="w-full flex justify-center" style={{ height: "120px" }}>
+                    <div className="w-full max-w-10 rounded-t-sm bg-primary self-end transition-all" style={{ height: `${barHeight}%` }} />
+                  </div>
+                  <span className="text-2xs font-medium text-muted-foreground text-center truncate w-full" title={label}>{label}</span>
+                  <span className="text-2xs text-muted-foreground tabular-nums">{percentage}%</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
     ),
@@ -293,12 +305,24 @@ export const TeamDashboard = () => {
           <div><p className="text-sm font-semibold text-foreground">Delivery health</p></div>
           <Settings className="h-4 w-4 text-primary" />
         </div>
-        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
-          {(Object.keys(projectStateLabels) as ProjectState[]).map((state) => {
-            const list = visibleProjects.filter((project) => project.projectState === state);
-            const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
-            return <button type="button" key={state} onClick={() => setDrillDown({ title: stateLabels[state] || projectStateLabels[state], description: "Project state", projects: list })} className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"><span className="flex justify-between text-xs"><span className="font-medium text-foreground/80">{stateLabels[state] || projectStateLabels[state]}</span><span className="text-2xs font-semibold">{list.length} · {percentage}%</span></span><Progress value={percentage} className="h-1.5" /></button>;
-          })}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          <div className="flex h-full items-end gap-3">
+            {(Object.keys(projectStateLabels) as ProjectState[]).map((state) => {
+              const list = visibleProjects.filter((project) => project.projectState === state);
+              const percentage = totalProjects ? Math.round((list.length / totalProjects) * 100) : 0;
+              const barHeight = Math.max(percentage, 4);
+              return (
+                <button type="button" key={state} onClick={() => setDrillDown({ title: stateLabels[state] || projectStateLabels[state], description: "Project state", projects: list })} className="flex flex-1 min-w-0 flex-col items-center gap-1.5 rounded-md p-1 hover:bg-muted/50">
+                  <span className="text-2xs font-semibold tabular-nums text-foreground">{list.length}</span>
+                  <div className="w-full flex justify-center" style={{ height: "120px" }}>
+                    <div className="w-full max-w-10 rounded-t-sm bg-primary self-end transition-all" style={{ height: `${barHeight}%` }} />
+                  </div>
+                  <span className="text-2xs font-medium text-muted-foreground text-center truncate w-full">{stateLabels[state] || projectStateLabels[state]}</span>
+                  <span className="text-2xs text-muted-foreground tabular-nums">{percentage}%</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
     ),

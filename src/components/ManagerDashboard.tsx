@@ -1522,9 +1522,9 @@ export const ManagerDashboard = () => {
                       </div>
 
                     </div>
-                    <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
+                    <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                        <div className="flex h-full items-end gap-3">
                         {(() => {
-                          // Group projects by next incomplete checklist item title (from current owner team first)
                           const phaseGroups: Record<string, Project[]> = {};
                           displayProjects.forEach(p => {
                             const teamItems = p.checklist.filter(c => c.ownerTeam === p.currentOwnerTeam);
@@ -1536,23 +1536,25 @@ export const ManagerDashboard = () => {
                           return sorted.map(([label, list]) => {
                             const count = list.length;
                             const pct = totalProjects > 0 ? Math.round((count / totalProjects) * 100) : 0;
+                            const barHeight = Math.max(pct, 4);
                             return (
-                              <div
+                              <button
                                 key={label}
-                                role="button"
-                                tabIndex={0}
+                                type="button"
                                 onClick={() => setDrillDown({ title: label, description: "Next pending checklist item", projects: list })}
-                                className="cursor-pointer space-y-1 rounded-md p-1 hover:bg-muted/50"
+                                className="flex flex-1 min-w-0 flex-col items-center gap-1.5 rounded-md p-1 hover:bg-muted/50"
                               >
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="max-w-[70%] truncate font-medium text-foreground/80" title={label}>{label}</span>
-                                  <span className="whitespace-nowrap text-2xs font-semibold text-foreground">{count} · {pct}%</span>
+                                <span className="text-2xs font-semibold tabular-nums text-foreground">{count}</span>
+                                <div className="w-full flex justify-center" style={{ height: "120px" }}>
+                                  <div className="w-full max-w-10 rounded-t-sm bg-primary self-end transition-all" style={{ height: `${barHeight}%` }} />
                                 </div>
-                                <Progress value={pct} className="h-1.5" />
-                              </div>
+                                <span className="text-2xs font-medium text-muted-foreground text-center truncate w-full" title={label}>{label}</span>
+                                <span className="text-2xs text-muted-foreground tabular-nums">{pct}%</span>
+                              </button>
                             );
                           });
                         })()}
+                        </div>
                     </div>
                   </section>
                 ),
@@ -1564,27 +1566,30 @@ export const ManagerDashboard = () => {
                       </div>
 
                     </div>
-                    <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
+                    <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                        <div className="flex h-full items-end gap-3">
                         {(Object.keys(projectStateLabels) as ProjectState[]).map(state => {
                           const stateList = displayProjects.filter(p => p.projectState === state);
                           const count = stateList.length;
                           const pct = totalProjects > 0 ? Math.round((count / totalProjects) * 100) : 0;
+                          const barHeight = Math.max(pct, 4);
                           return (
-                            <div
+                            <button
                               key={state}
-                              role="button"
-                              tabIndex={0}
+                              type="button"
                               onClick={() => setDrillDown({ title: stateLabelsFromCtx[state] || projectStateLabels[state], description: "Project state", projects: stateList })}
-                              className="cursor-pointer space-y-1 rounded-md p-1 hover:bg-muted/50"
+                              className="flex flex-1 min-w-0 flex-col items-center gap-1.5 rounded-md p-1 hover:bg-muted/50"
                             >
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="font-medium text-foreground/80">{stateLabelsFromCtx[state] || projectStateLabels[state]}</span>
-                                <span className="text-2xs font-semibold text-foreground">{count} · {pct}%</span>
+                              <span className="text-2xs font-semibold tabular-nums text-foreground">{count}</span>
+                              <div className="w-full flex justify-center" style={{ height: "120px" }}>
+                                <div className="w-full max-w-10 rounded-t-sm bg-primary self-end transition-all" style={{ height: `${barHeight}%` }} />
                               </div>
-                              <Progress value={pct} className="h-1.5" />
-                            </div>
+                              <span className="text-2xs font-medium text-muted-foreground text-center truncate w-full">{stateLabelsFromCtx[state] || projectStateLabels[state]}</span>
+                              <span className="text-2xs text-muted-foreground tabular-nums">{pct}%</span>
+                            </button>
                           );
                         })}
+                        </div>
                     </div>
                   </section>
                 ),

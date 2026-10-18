@@ -1,7 +1,7 @@
 import { LayoutGrid } from "lucide-react";
 import { Project, getProjectFunnelStage, funnelStageLabels, projectStateLabels } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
-import { Progress } from "@/components/ui/progress";
+
 import { arrToCrore } from "@/lib/arr";
 
 /**
@@ -67,27 +67,33 @@ export const CustomFieldDashlet = ({ title, field, projects, onDrillDown }: Prop
         </div>
         <LayoutGrid className="h-4 w-4 text-primary" />
       </div>
-      <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
         {entries.length === 0 ? (
           <p className="text-xs text-muted-foreground">No projects to group yet.</p>
-        ) : entries.map(([label, list]) => {
-          const pct = projects.length ? Math.round((list.length / projects.length) * 100) : 0;
-          const arr = list.reduce((sum, p) => sum + arrToCrore(p.arr), 0);
-          return (
-            <button
-              key={label}
-              type="button"
-              onClick={() => onDrillDown?.(`${title} · ${label}`, list)}
-              className="block w-full space-y-1 rounded-md p-1 text-left hover:bg-muted/50"
-            >
-              <span className="flex items-center justify-between gap-2 text-xs">
-                <span className="max-w-[60%] truncate font-medium text-foreground/80">{label}</span>
-                <span className="text-2xs font-semibold tabular-nums">{list.length} · {pct}% · {arr % 1 === 0 ? arr.toFixed(0) : arr.toFixed(1)} Cr {arrLabel}</span>
-              </span>
-              <Progress value={pct} className="h-1.5" />
-            </button>
-          );
-        })}
+        ) : (
+          <div className="flex h-full items-end gap-3">
+            {entries.map(([label, list]) => {
+              const pct = projects.length ? Math.round((list.length / projects.length) * 100) : 0;
+              const barHeight = Math.max(pct, 4);
+              const arr = list.reduce((sum, p) => sum + arrToCrore(p.arr), 0);
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => onDrillDown?.(`${title} · ${label}`, list)}
+                  className="flex flex-1 min-w-0 flex-col items-center gap-1.5 rounded-md p-1 hover:bg-muted/50"
+                >
+                  <span className="text-2xs font-semibold tabular-nums text-foreground">{list.length}</span>
+                  <div className="w-full flex justify-center" style={{ height: "120px" }}>
+                    <div className="w-full max-w-10 rounded-t-sm bg-primary self-end transition-all" style={{ height: `${barHeight}%` }} />
+                  </div>
+                  <span className="text-2xs font-medium text-muted-foreground text-center truncate w-full" title={label}>{label}</span>
+                  <span className="text-2xs text-muted-foreground tabular-nums">{pct}%</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );
