@@ -185,7 +185,7 @@ export const MeetingSchedulerDialog = ({
           <p className="truncate text-xs text-muted-foreground">{checklistItemTitle}</p>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh] pr-3">
+        <ScrollArea className="min-h-0 flex-1 pr-3">
           <div className="space-y-3">
             <div className="space-y-3 rounded-lg border border-border p-3">
               <div className="space-y-1.5">
