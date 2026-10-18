@@ -430,8 +430,9 @@ export const RiskDashboard = () => {
               No projects are currently at risk.
             </p>
           ) : (
+            <div className="max-h-[60vh] overflow-y-auto">
             <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
-              <TableHeader className="table-header-tint">
+              <TableHeader className="sticky top-0 z-10 table-header-tint">
                 <TableRow className="hover:bg-muted/40 border-b">
                   <TableHead className="font-semibold text-foreground">{getLabel("field_merchant_name")}</TableHead>
                   <TableHead className="font-semibold text-foreground">Risk</TableHead>
@@ -498,6 +499,7 @@ export const RiskDashboard = () => {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>
