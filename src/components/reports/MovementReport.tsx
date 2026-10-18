@@ -11,7 +11,7 @@ import {
 } from "@/data/projectsData";
 import { useMovementReport, MovementEntry } from "@/hooks/useMovementReport";
 import { useFunnelConfig } from "@/hooks/useFunnelConfig";
-import { FilterPanel, FilterGroup, FilteredEmptyState } from "@/components/filters/FilterPanel";
+import { FilteredEmptyState } from "@/components/filters/FilterPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronDown, RefreshCw, Filter, Mail, ExternalLink, Loader2, Sparkles, CalendarClock, Columns3, Download, Search } from "lucide-react";
+import { ChevronDown, RefreshCw, X, Mail, ExternalLink, Loader2, Sparkles, CalendarClock, Columns3, Download, Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ProjectDialog } from "@/components/ProjectDialog";
@@ -515,51 +515,6 @@ export const MovementReport = ({ timeframe }: Props) => {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <FilterPanel count={activeFilterCount} onClear={resetFilters} align="end">
-              <FilterGroup
-                title="Status"
-                options={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]}
-                selected={statusFilter}
-                onToggle={(v) => toggle(setStatusFilter, v)}
-              />
-              <FilterGroup
-                title="Project Stage"
-                options={funnelOrder.map(st => ({ value: st, label: funnelStageLabels[st] || st }))}
-                selected={funnelFilter}
-                onToggle={(v) => toggle(setFunnelFilter, v)}
-              />
-              <FilterGroup
-                title="Team"
-                options={teams.map(t => ({ value: t, label: teamLabels[t] || t }))}
-                selected={teamFilter}
-                onToggle={(v) => toggle(setTeamFilter, v)}
-              />
-              <FilterGroup
-                title="Project State"
-                options={(Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>).map(st => ({ value: st, label: projectStateLabels[st] }))}
-                selected={stateFilter}
-                onToggle={(v) => toggle(setStateFilter, v)}
-              />
-              <FilterGroup
-                title="Responsibility"
-                options={["gokwik", "merchant", "neutral"].map(r => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) }))}
-                selected={responsibilityFilter}
-                onToggle={(v) => toggle(setResponsibilityFilter, v)}
-              />
-              <FilterGroup
-                title="Platform"
-                options={platforms.map(pl => ({ value: pl, label: pl }))}
-                selected={platformFilter}
-                onToggle={(v) => toggle(setPlatformFilter, v)}
-              />
-              <div className="space-y-1 px-1.5 pb-1 pt-2">
-                <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">ARR Range</p>
-                <div className="flex gap-1.5">
-                  <Input placeholder="Min" type="number" value={arrMin} onChange={(e) => setArrMin(e.target.value)} className="h-7 text-xs" />
-                  <Input placeholder="Max" type="number" value={arrMax} onChange={(e) => setArrMax(e.target.value)} className="h-7 text-xs" />
-                </div>
-              </div>
-            </FilterPanel>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
@@ -607,6 +562,72 @@ export const MovementReport = ({ timeframe }: Props) => {
           </div>
         </div>
       </CardHeader>
+
+      {/* Inline filter strip */}
+      <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
+        {[
+          { label: "Status", values: statusFilter, setter: setStatusFilter, options: [{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }] },
+          { label: "Stage", values: funnelFilter, setter: setFunnelFilter, options: funnelOrder.map(st => ({ value: st, label: funnelStageLabels[st] || st })) },
+          { label: "Team", values: teamFilter, setter: setTeamFilter, options: teams.map(t => ({ value: t, label: teamLabels[t] || t })) },
+          { label: "State", values: stateFilter, setter: setStateFilter, options: (Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>).map(st => ({ value: st, label: projectStateLabels[st] })) },
+          { label: "Responsibility", values: responsibilityFilter, setter: setResponsibilityFilter, options: ["gokwik", "merchant", "neutral"].map(r => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) })) },
+          { label: "Platform", values: platformFilter, setter: setPlatformFilter, options: platforms.map(pl => ({ value: pl, label: pl })) },
+        ].filter(g => g.options.length > 0).map(({ label, values, setter, options }) => (
+          <Popover key={label}>
+            <PopoverTrigger asChild>
+              <button type="button" className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+              )}>
+                {values.length > 0 ? `${label}: ${values.length}` : label}
+                <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-52 p-2">
+              <div className="max-h-48 overflow-y-auto space-y-0.5">
+                {options.map(opt => (
+                  <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                    <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggle(setter, opt.value)} />
+                    <span className="truncate">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+              {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>}
+            </PopoverContent>
+          </Popover>
+        ))}
+
+        {/* ARR range */}
+        <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
+          <span className="whitespace-nowrap">ARR:</span>
+          <input type="number" placeholder="min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+          <span>–</span>
+          <input type="number" placeholder="max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+          <span>Cr</span>
+        </div>
+
+        {/* Active chips */}
+        {[
+          ...statusFilter.map(v => ({ label: v.charAt(0).toUpperCase() + v.slice(1), clear: () => setStatusFilter(p => p.filter(x => x !== v)) })),
+          ...funnelFilter.map(v => ({ label: funnelStageLabels[v as FunnelStage] || v, clear: () => setFunnelFilter(p => p.filter(x => x !== v)) })),
+          ...teamFilter.map(v => ({ label: teamLabels[v] || v, clear: () => setTeamFilter(p => p.filter(x => x !== v)) })),
+          ...stateFilter.map(v => ({ label: projectStateLabels[v as keyof typeof projectStateLabels] || v, clear: () => setStateFilter(p => p.filter(x => x !== v)) })),
+          ...responsibilityFilter.map(v => ({ label: v.charAt(0).toUpperCase() + v.slice(1), clear: () => setResponsibilityFilter(p => p.filter(x => x !== v)) })),
+          ...platformFilter.map(v => ({ label: v, clear: () => setPlatformFilter(p => p.filter(x => x !== v)) })),
+        ].map(({ label, clear }) => (
+          <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30">
+            {label}
+            <button type="button" onClick={clear} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+          </span>
+        ))}
+
+        {activeFilterCount > 0 && (
+          <button type="button" onClick={resetFilters} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <X className="h-2.5 w-2.5" />Clear all
+          </button>
+        )}
+      </div>
+
       {/* Quick filters, as one row above the table. */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border bg-card px-4 py-3">
         <div className="relative min-w-[220px] flex-1">

@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown } from "lucide-react";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Eye, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
 
@@ -387,114 +387,112 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
           </Select>
         </div>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <ToolbarIconButton icon={<Filter className="h-3.5 w-3.5" />} label="Filters" count={activeFilterCount} />
-          </PopoverTrigger>
-          <PopoverContent align="start" collisionPadding={16} className={TOOLBAR_POPOVER.filters} style={TOOLBAR_PANEL_MAX_H}>
-            <div className="flex items-center justify-between px-4 py-2.5 border-b shrink-0">
-              <p className="text-sm font-semibold">Filters</p>
-              {activeFilterCount > 0 && (
-                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={clearAllFilters}>
-                  <X className="h-3 w-3" /> Reset
-                </Button>
-              )}
-            </div>
-            <div className="overflow-y-auto flex-1 min-h-0 p-4 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Team", values: teamFilter, setter: setTeamFilter, options: filterOptions.teams.map(v => ({ value: v, label: labelize(v, "team") })) },
-                  { label: "State", values: stateFilter, setter: setStateFilter, options: filterOptions.states.map(v => ({ value: v, label: labelize(v, "state") })) },
-                  { label: "Platform", values: platformFilter, setter: setPlatformFilter, options: filterOptions.platforms.map(v => ({ value: v, label: v })) },
-                  { label: "Category", values: categoryFilter, setter: setCategoryFilter, options: filterOptions.categories.map(v => ({ value: v, label: v })) },
-                  { label: "Responsibility", values: responsibilityFilter, setter: setResponsibilityFilter, options: filterOptions.responsibilities.map(v => ({ value: v, label: labelize(v, "responsibility") })) },
-                  { label: "CSM", values: csmFilter, setter: setCsmFilter, options: filterOptions.csms.map(v => ({ value: v, label: v })) },
-                  { label: "Owner", values: ownerFilter, setter: setOwnerFilter, options: [{ value: "unassigned", label: "Unassigned" }, ...filterOptions.owners.map(o => ({ value: o.id, label: o.name }))] },
-                ].filter(g => g.options.length > 0).map(({ label, values, setter, options }) => (
-                  <div key={label} className="space-y-1">
-                    <label className="text-xs text-muted-foreground font-medium">{label}</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between h-10 text-sm font-normal">
-                          <span className="truncate">{values.length === 0 ? `All ${label}s` : `${values.length} selected`}</span>
-                          <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2" align="start">
-                        <div className="max-h-48 overflow-y-auto space-y-1">
-                          {options.map(opt => (
-                            <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted cursor-pointer text-sm">
-                              <Checkbox
-                                checked={values.includes(opt.value)}
-                                onCheckedChange={() => toggle(setter, opt.value)}
-                              />
-                              <span className="truncate">{opt.label}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {values.length > 0 && (
-                          <Button variant="ghost" size="sm" className="w-full mt-1 text-xs" onClick={() => setter([])}>Clear</Button>
-                        )}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                ))}
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground font-medium">{labels.getLabel("field_arr")} Range (Cr)</label>
-                  <div className="flex gap-1">
-                    <Input type="number" placeholder="Min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-full h-9 text-xs" />
-                    <Input type="number" placeholder="Max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-full h-9 text-xs" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground font-medium">Go-Live %</label>
-                  <div className="flex gap-1">
-                    <Input type="number" min={0} max={100} placeholder="Min %" value={goLiveMin} onChange={e => setGoLiveMin(e.target.value)} className="w-full h-9 text-xs" />
-                    <Input type="number" min={0} max={100} placeholder="Max %" value={goLiveMax} onChange={e => setGoLiveMax(e.target.value)} className="w-full h-9 text-xs" />
-                  </div>
-                  <label className="flex items-center gap-2 mt-1 cursor-pointer">
-                    <input type="checkbox" checked={goLiveInProgressOnly} onChange={e => setGoLiveInProgressOnly(e.target.checked)} className="h-3.5 w-3.5" />
-                    <span className="text-xs text-muted-foreground">In progress only (exclude 0% &amp; 100%)</span>
-                  </label>
-                  <label className="flex items-center gap-2 mt-1 cursor-pointer">
-                    <input type="checkbox" checked={needsAttentionOnly} onChange={e => setNeedsAttentionOnly(e.target.checked)} className="h-3.5 w-3.5" />
-                    <span className="text-xs text-muted-foreground">Needs attention only</span>
-                  </label>
-                </div>
-              </div>
-              <div className="pt-2 border-t space-y-1.5">
-                <p className="text-xs font-semibold text-muted-foreground tracking-normal">Project Stage</p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1.5">
-                  {(["sales","pre_integration","under_integration","live","none"] as const).map(stage => (
-                    <label key={stage} className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={funnelStageFilter.includes(stage)}
-                        onChange={() => toggleFunnel(stage)}
-                        className="h-3.5 w-3.5"
-                      />
-                      <span className="text-xs text-muted-foreground">{funnelStageLabels[stage]}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-
-
-        {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={clearAllFilters}>
-            <X className="h-3.5 w-3.5" /> Clear
-          </Button>
-        )}
 
       </div>
   );
 
+  const allActiveChips = [
+    ...teamFilter.map(v => ({ label: labelize(v, "team"), clear: () => setTeamFilter(p => p.filter(x => x !== v)) })),
+    ...stateFilter.map(v => ({ label: labelize(v, "state"), clear: () => setStateFilter(p => p.filter(x => x !== v)) })),
+    ...platformFilter.map(v => ({ label: v, clear: () => setPlatformFilter(p => p.filter(x => x !== v)) })),
+    ...categoryFilter.map(v => ({ label: v, clear: () => setCategoryFilter(p => p.filter(x => x !== v)) })),
+    ...responsibilityFilter.map(v => ({ label: labelize(v, "responsibility"), clear: () => setResponsibilityFilter(p => p.filter(x => x !== v)) })),
+    ...csmFilter.map(v => ({ label: v, clear: () => setCsmFilter(p => p.filter(x => x !== v)) })),
+    ...ownerFilter.map(v => ({ label: v === "unassigned" ? "Unassigned" : filterOptions.owners.find(o => o.id === v)?.name || v, clear: () => setOwnerFilter(p => p.filter(x => x !== v)) })),
+    ...funnelStageFilter.map(v => ({ label: funnelStageLabels[v as FunnelStage] || v, clear: () => setFunnelStageFilter(p => p.filter(x => x !== v)) })),
+  ];
+
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
+    <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
+
+      {/* Inline filter strip */}
+      <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5 rounded-lg border bg-muted/20">
+        {/* At Risk toggle */}
+        <button
+          type="button"
+          onClick={() => setNeedsAttentionOnly(v => !v)}
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+            needsAttentionOnly ? "bg-destructive/10 text-destructive border-destructive/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+          )}
+        >
+          <Eye className="h-3 w-3" />At Risk
+          {needsAttentionOnly && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={e => { e.stopPropagation(); setNeedsAttentionOnly(false); }} />}
+        </button>
+
+        {/* In Progress only toggle */}
+        <button
+          type="button"
+          onClick={() => setGoLiveInProgressOnly(v => !v)}
+          className={cn(
+            "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+            goLiveInProgressOnly ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+          )}
+        >
+          In Progress
+          {goLiveInProgressOnly && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={e => { e.stopPropagation(); setGoLiveInProgressOnly(false); }} />}
+        </button>
+
+        {/* Categorical multi-select pill popovers */}
+        {[
+          { label: "Team", values: teamFilter, setter: setTeamFilter, options: filterOptions.teams.map(v => ({ value: v, label: labelize(v, "team") })) },
+          { label: "State", values: stateFilter, setter: setStateFilter, options: filterOptions.states.map(v => ({ value: v, label: labelize(v, "state") })) },
+          { label: "Stage", values: funnelStageFilter, setter: setFunnelStageFilter, options: (["sales","pre_integration","under_integration","live","none"] as FunnelStage[]).map(s => ({ value: s, label: funnelStageLabels[s] })) },
+          { label: "Platform", values: platformFilter, setter: setPlatformFilter, options: filterOptions.platforms.map(v => ({ value: v, label: v })) },
+          { label: "Category", values: categoryFilter, setter: setCategoryFilter, options: filterOptions.categories.map(v => ({ value: v, label: v })) },
+          { label: "Responsibility", values: responsibilityFilter, setter: setResponsibilityFilter, options: filterOptions.responsibilities.map(v => ({ value: v, label: labelize(v, "responsibility") })) },
+          { label: "CSM", values: csmFilter, setter: setCsmFilter, options: filterOptions.csms.map(v => ({ value: v, label: v })) },
+          { label: "Owner", values: ownerFilter, setter: setOwnerFilter, options: [{ value: "unassigned", label: "Unassigned" }, ...filterOptions.owners.map(o => ({ value: o.id, label: o.name }))] },
+        ].filter(g => g.options.length > 0).map(({ label, values, setter, options }) => (
+          <Popover key={label}>
+            <PopoverTrigger asChild>
+              <button type="button" className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+              )}>
+                {values.length > 0 ? `${label}: ${values.length}` : label}
+                <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-52 p-2">
+              <div className="max-h-48 overflow-y-auto space-y-0.5">
+                {options.map(opt => (
+                  <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                    <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggle(setter, opt.value)} />
+                    <span className="truncate">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+              {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>}
+            </PopoverContent>
+          </Popover>
+        ))}
+
+        {/* ARR range */}
+        <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
+          <span className="whitespace-nowrap">ARR:</span>
+          <input type="number" placeholder="min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+          <span>–</span>
+          <input type="number" placeholder="max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+          <span>Cr</span>
+        </div>
+
+        {/* Active value chips */}
+        {allActiveChips.map(({ label, clear }) => (
+          <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30">
+            {label}
+            <button type="button" onClick={clear} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+          </span>
+        ))}
+
+        {hasFilters && (
+          <button type="button" onClick={clearAllFilters} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <X className="h-2.5 w-2.5" />Clear all
+          </button>
+        )}
+      </div>
+
       {/* Board */}
       <div className="flex gap-3 w-full flex-1 min-h-0 overflow-x-auto pb-2">
         {columns.map((col) => (

@@ -1,13 +1,10 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { SlidersHorizontal, ChevronDown } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { projectStateLabels, ProjectState } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
+import { cn } from "@/lib/utils";
 import type { useReportFilters } from "@/hooks/useReportFilters";
 
 type FilterState = ReturnType<typeof useReportFilters>;
@@ -43,7 +40,6 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
   } = props;
 
   const { teamLabels, responsibilityLabels, stateLabels } = useLabels();
-  const [filterOpen, setFilterOpen] = useState(false);
 
   const stateOptions = (Object.keys(projectStateLabels) as ProjectState[]).map(s => ({
     value: s,
@@ -100,136 +96,103 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
     },
   ];
 
+  const allChips = [
+    ...teamFilter.map(v => ({ label: teamLabels?.[v as keyof typeof teamLabels] || v, clear: () => setTeamFilter(p => p.filter(x => x !== v)) })),
+    ...ownerFilter.map(v => ({ label: v === "unassigned" ? "Unassigned" : uniqueOwners.find(o => o.id === v)?.name || v, clear: () => setOwnerFilter(p => p.filter(x => x !== v)) })),
+    ...stateFilter.map(v => ({ label: stateLabels?.[v as ProjectState] || projectStateLabels[v as ProjectState] || v, clear: () => setStateFilter(p => p.filter(x => x !== v)) })),
+    ...platformFilter.map(v => ({ label: v, clear: () => setPlatformFilter(p => p.filter(x => x !== v)) })),
+    ...categoryFilter.map(v => ({ label: v, clear: () => setCategoryFilter(p => p.filter(x => x !== v)) })),
+    ...responsibilityFilter.map(v => ({ label: responsibilityLabels?.[v as keyof typeof responsibilityLabels] || v, clear: () => setResponsibilityFilter(p => p.filter(x => x !== v)) })),
+  ];
+
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-xs text-muted-foreground">{projectCount} projects</span>
+    <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
+      <span className="text-2xs text-muted-foreground whitespace-nowrap">{projectCount} projects</span>
 
-      {/* Filters */}
-      <Collapsible open={filterOpen} onOpenChange={setFilterOpen}>
-        <div className="relative">
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5">
-              <SlidersHorizontal className="h-3 w-3" />
-              Filters
-              {activeFilterCount > 0 && (
-                <Badge variant="default" className="ml-0.5 h-4 px-1 text-2xs">{activeFilterCount}</Badge>
-              )}
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="absolute z-30 mt-1 left-0 top-full w-[580px] bg-card border rounded-lg shadow-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold">Filters</p>
-              {activeFilterCount > 0 && (
-                <Button variant="ghost" size="sm" className="text-xs h-6" onClick={clearFilters}>
-                  Clear All
-                </Button>
-              )}
-            </div>
-
-            {/* Multi-select filters */}
-            <div className="grid grid-cols-2 gap-3">
-              {filterGroups.map(({ label, values, setter, options }) => (
-                <div key={label} className="space-y-1">
-                  <p className="text-xs text-muted-foreground font-medium">{label}</p>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between h-8 text-xs font-normal">
-                        <span className="truncate">
-                          {values.length === 0 ? `All ${label}s` : `${values.length} selected`}
-                        </span>
-                        <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-52 p-2" align="start">
-                      <div className="max-h-44 overflow-y-auto space-y-0.5">
-                        {options.map(opt => (
-                          <label
-                            key={opt.value}
-                            className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs"
-                          >
-                            <Checkbox
-                              checked={values.includes(opt.value)}
-                              onCheckedChange={() => toggleFilter(setter, opt.value)}
-                              className="h-3.5 w-3.5"
-                            />
-                            <span className="truncate">{opt.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      {values.length > 0 && (
-                        <Button
-                          variant="ghost" size="sm"
-                          className="w-full mt-1 text-xs h-7"
-                          onClick={() => setter([])}
-                        >
-                          Clear
-                        </Button>
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                </div>
+      {filterGroups.filter(g => g.options.length > 0).map(({ label, values, setter, options }) => (
+        <Popover key={label}>
+          <PopoverTrigger asChild>
+            <button type="button" className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+              values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+            )}>
+              {values.length > 0 ? `${label}: ${values.length}` : label}
+              <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-52 p-2">
+            <div className="max-h-48 overflow-y-auto space-y-0.5">
+              {options.map(opt => (
+                <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                  <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleFilter(setter, opt.value)} />
+                  <span className="truncate">{opt.label}</span>
+                </label>
               ))}
+            </div>
+            {values.length > 0 && (
+              <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>
+            )}
+          </PopoverContent>
+        </Popover>
+      ))}
 
-              {/* ARR Range */}
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground font-medium">ARR Range (Cr)</p>
-                <div className="flex gap-1">
-                  <Input type="number" placeholder="Min" value={arrMin}
-                    onChange={e => setArrMin(e.target.value)} className="h-8 text-xs" />
-                  <Input type="number" placeholder="Max" value={arrMax}
-                    onChange={e => setArrMax(e.target.value)} className="h-8 text-xs" />
-                </div>
-              </div>
-            </div>
+      {/* ARR range */}
+      <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
+        <span className="whitespace-nowrap">ARR:</span>
+        <input type="number" placeholder="min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+        <span>–</span>
+        <input type="number" placeholder="max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+        <span>Cr</span>
+      </div>
 
-            {/* Date ranges */}
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t">
-              <div className="space-y-1 border rounded-md p-2">
-                <p className="text-xs text-muted-foreground font-medium">Start Date</p>
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                  <Input type="date" value={kickOffFrom} onChange={e => setKickOffFrom(e.target.value)}
-                    className="h-7 text-xs px-1.5 min-w-0" />
-                  <span className="text-xs text-muted-foreground">–</span>
-                  <Input type="date" value={kickOffTo} onChange={e => setKickOffTo(e.target.value)}
-                    className="h-7 text-xs px-1.5 min-w-0" />
-                </div>
-              </div>
-              <div className="space-y-1 border rounded-md p-2">
-                <p className="text-xs text-muted-foreground font-medium">Go-Live Date</p>
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                  <Input type="date" value={goLiveFrom} onChange={e => setGoLiveFrom(e.target.value)}
-                    className="h-7 text-xs px-1.5 min-w-0" />
-                  <span className="text-xs text-muted-foreground">–</span>
-                  <Input type="date" value={goLiveTo} onChange={e => setGoLiveTo(e.target.value)}
-                    className="h-7 text-xs px-1.5 min-w-0" />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-1 border rounded-md p-2">
-              <p className="text-xs text-muted-foreground font-medium">Expected Go-Live</p>
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                <Input type="date" value={expectedGoLiveFrom} onChange={e => setExpectedGoLiveFrom(e.target.value)}
-                  className="h-7 text-xs px-1.5 min-w-0" />
-                <span className="text-xs text-muted-foreground">–</span>
-                <Input type="date" value={expectedGoLiveTo} onChange={e => setExpectedGoLiveTo(e.target.value)}
-                  className="h-7 text-xs px-1.5 min-w-0" />
-              </div>
-              <label className="flex items-center gap-2 mt-1.5 cursor-pointer">
-                <Checkbox checked={expectedGoLiveNone} onCheckedChange={v => setExpectedGoLiveNone(!!v)}
-                  className="h-3.5 w-3.5" />
-                <span className="text-xs text-muted-foreground">None (not set)</span>
-              </label>
-            </div>
+      {/* Date ranges */}
+      <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
+        <span className="whitespace-nowrap">Start:</span>
+        <input type="date" value={kickOffFrom} onChange={e => setKickOffFrom(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground w-[6.5rem]" />
+        <span>–</span>
+        <input type="date" value={kickOffTo} onChange={e => setKickOffTo(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground w-[6.5rem]" />
+      </div>
 
-            <div className="flex justify-end pt-2 border-t">
-              <CollapsibleTrigger asChild>
-                <Button size="sm" className="text-xs h-7">Done</Button>
-              </CollapsibleTrigger>
-            </div>
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
+      <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
+        <span className="whitespace-nowrap">Go-Live:</span>
+        <input type="date" value={goLiveFrom} onChange={e => setGoLiveFrom(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground w-[6.5rem]" />
+        <span>–</span>
+        <input type="date" value={goLiveTo} onChange={e => setGoLiveTo(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground w-[6.5rem]" />
+      </div>
+
+      <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
+        <span className="whitespace-nowrap">Exp. Go-Live:</span>
+        <input type="date" value={expectedGoLiveFrom} onChange={e => setExpectedGoLiveFrom(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground w-[6.5rem]" />
+        <span>–</span>
+        <input type="date" value={expectedGoLiveTo} onChange={e => setExpectedGoLiveTo(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground w-[6.5rem]" />
+      </div>
+
+      {/* None (not set) toggle for expected go-live */}
+      <button
+        type="button"
+        onClick={() => setExpectedGoLiveNone(v => !v)}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+          expectedGoLiveNone ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+        )}
+      >
+        No Exp. Go-Live
+        {expectedGoLiveNone && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={e => { e.stopPropagation(); setExpectedGoLiveNone(false); }} />}
+      </button>
+
+      {/* Active chips */}
+      {allChips.map(({ label, clear }) => (
+        <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30">
+          {label}
+          <button type="button" onClick={clear} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+        </span>
+      ))}
+
+      {activeFilterCount > 0 && (
+        <button type="button" onClick={clearFilters} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <X className="h-2.5 w-2.5" />Clear all
+        </button>
+      )}
     </div>
   );
 };

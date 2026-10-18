@@ -4,7 +4,10 @@ import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useUrlFilters } from "@/hooks/useUrlFilters";
-import { FilterPanel, FilterGroup, FilteredEmptyState } from "@/components/filters/FilterPanel";
+import { FilteredEmptyState } from "@/components/filters/FilterPanel";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ChevronDown } from "lucide-react";
 import { SortableHeader } from "@/components/filters/SortableHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +30,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useLabels } from "@/contexts/LabelsContext";
 import { GoLiveDate } from "./GoLiveDate";
 import { arrCroreValue } from "@/lib/arr";
-import { fmtDate } from "@/lib/utils";
+import { fmtDate, cn } from "@/lib/utils";
 
 /** Empty array = no filter; the URL stays clean until something is chosen. */
 const RISK_FILTER_DEFAULTS = {
@@ -216,26 +219,34 @@ export const RiskDashboard = () => {
     <div className="mx-auto max-w-[1500px] space-y-4">
       {/* Filters + Add */}
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2.5 shadow-sm">
-        <FilterPanel count={activeCount} onClear={clear}>
-          <FilterGroup
-            title="Category"
-            options={CATEGORIES.map(c => ({ value: c.value, label: c.label }))}
-            selected={categories}
-            onToggle={(v) => toggleValue("category", v)}
-          />
-          <FilterGroup
-            title="Severity"
-            options={SEVERITIES.map(sv => ({ value: sv.value, label: sv.label }))}
-            selected={severities}
-            onToggle={(v) => toggleValue("severity", v)}
-          />
-          <FilterGroup
-            title="Status"
-            options={STATUSES.map(st => ({ value: st.value, label: st.label }))}
-            selected={statuses}
-            onToggle={(v) => toggleValue("status", v)}
-          />
-        </FilterPanel>
+        {[
+          { label: "Category", values: categories, key: "category" as const, options: CATEGORIES.map(c => ({ value: c.value, label: c.label })) },
+          { label: "Severity", values: severities, key: "severity" as const, options: SEVERITIES.map(sv => ({ value: sv.value, label: sv.label })) },
+          { label: "Status", values: statuses, key: "status" as const, options: STATUSES.map(st => ({ value: st.value, label: st.label })) },
+        ].map(({ label, values, key, options }) => (
+          <Popover key={label}>
+            <PopoverTrigger asChild>
+              <button type="button" className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+              )}>
+                {values.length > 0 ? `${label}: ${values.length}` : label}
+                <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-52 p-2">
+              <div className="max-h-48 overflow-y-auto space-y-0.5">
+                {options.map(opt => (
+                  <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                    <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleValue(key, opt.value)} />
+                    <span className="truncate">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+              {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setValue(key, [])}>Clear</Button>}
+            </PopoverContent>
+          </Popover>
+        ))}
 
         {/* What is on, as removable chips, so a filtered table explains itself
             without opening the panel. */}

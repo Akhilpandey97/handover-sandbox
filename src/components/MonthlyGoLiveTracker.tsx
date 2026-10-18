@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Sparkles, RefreshCw, ExternalLink, Filter, ListChecks, X, ChevronDown } from "lucide-react";
+import { Sparkles, RefreshCw, ExternalLink, Eye, ListChecks, X, ChevronDown } from "lucide-react";
 import { SortableHeader } from "@/components/filters/SortableHeader";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -404,74 +404,6 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
   const toolbar = (
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-2">
-          {/* Filters */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <ToolbarIconButton icon={<Filter className="h-3.5 w-3.5" />} label="Filters" count={activeFilterCount} />
-            </PopoverTrigger>
-            <PopoverContent align="start" collisionPadding={16} className={TOOLBAR_POPOVER.filters} style={TOOLBAR_PANEL_MAX_H}>
-              <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
-                <p className="text-xs font-semibold">Filters</p>
-                {activeFilterCount > 0 && (
-                  <Button variant="ghost" size="sm" className="h-6 text-2xs gap-1" onClick={clearFilters}><X className="h-3 w-3" /> Reset</Button>
-                )}
-              </div>
-              <div className="overflow-y-auto flex-1 min-h-0 p-3 space-y-2.5">
-              <label className="flex items-center gap-2 cursor-pointer border-b pb-2">
-                <Checkbox checked={needsAttentionOnly} onCheckedChange={v => setNeedsAttentionOnly(!!v)} className="h-3.5 w-3.5" />
-                <span className="text-xs text-muted-foreground">Needs attention only</span>
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: stageLabel, values: stageFilter, setter: setStageFilter, options: stageOptions.map(s => ({ value: s, label: funnelStageLabels[s] || s })) },
-                  { label: stateLabel, values: stateFilter, setter: setStateFilter, options: Object.keys(projectStateLabels).map(s => ({ value: s, label: projectStateLabels[s as keyof typeof projectStateLabels] })) },
-                  { label: "Confidence", values: confidenceFilter, setter: setConfidenceFilter, options: ["High", "Medium", "Low"].map(c => ({ value: c, label: c })) },
-                ].map(({ label, values, setter, options }) => (
-                  <div key={label} className="space-y-1">
-                    <label className="text-xs text-muted-foreground font-medium">{label}</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between h-8 text-xs font-normal">
-                          <span className="truncate">{values.length === 0 ? `All` : `${values.length} selected`}</span>
-                          <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2" align="start">
-                        <div className="max-h-48 overflow-y-auto space-y-1">
-                          {options.map(opt => (
-                            <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted cursor-pointer text-sm">
-                              <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleValue(setter, opt.value)} />
-                              <span className="truncate">{opt.label}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {values.length > 0 && (
-                          <Button variant="ghost" size="sm" className="w-full mt-1 text-xs" onClick={() => setter([])}>Clear</Button>
-                        )}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                ))}
-                <div className="space-y-1">
-                  <label className="text-xs text-muted-foreground font-medium">{arrLabel} Range (Cr)</label>
-                  <div className="flex gap-1">
-                    <Input type="number" placeholder="Min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-full h-9 text-xs" />
-                    <Input type="number" placeholder="Max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-full h-9 text-xs" />
-                  </div>
-                </div>
-                <div className="space-y-1 col-span-2">
-                  <label className="text-xs text-muted-foreground font-medium">{expectedLabel} Range</label>
-                  <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                    <Input type="date" value={expectedFrom} onChange={e => setExpectedFrom(e.target.value)} className="h-9 text-xs min-w-0" />
-                    <span className="text-xs text-muted-foreground px-1">to</span>
-                    <Input type="date" value={expectedTo} onChange={e => setExpectedTo(e.target.value)} className="h-9 text-xs min-w-0" />
-                  </div>
-                </div>
-              </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-
           {/* Select Columns */}
           <Popover>
             <PopoverTrigger asChild>
@@ -513,7 +445,89 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       <Card className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
         <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-            <div className="h-px w-full shrink-0 bg-border" />
+
+          {/* Inline filter strip */}
+          <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
+            {/* At Risk toggle */}
+            <button
+              type="button"
+              onClick={() => setNeedsAttentionOnly(v => !v)}
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                needsAttentionOnly ? "bg-destructive/10 text-destructive border-destructive/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+              )}
+            >
+              <Eye className="h-3 w-3" />At Risk
+              {needsAttentionOnly && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={e => { e.stopPropagation(); setNeedsAttentionOnly(false); }} />}
+            </button>
+
+            {/* Categorical pill popovers */}
+            {[
+              { label: stageLabel, values: stageFilter, setter: setStageFilter, options: stageOptions.map(s => ({ value: s, label: funnelStageLabels[s] || s })) },
+              { label: stateLabel, values: stateFilter, setter: setStateFilter, options: Object.keys(projectStateLabels).map(s => ({ value: s, label: projectStateLabels[s as keyof typeof projectStateLabels] })) },
+              { label: "Confidence", values: confidenceFilter, setter: setConfidenceFilter, options: ["High", "Medium", "Low"].map(c => ({ value: c, label: c })) },
+            ].map(({ label, values, setter, options }) => (
+              <Popover key={label}>
+                <PopoverTrigger asChild>
+                  <button type="button" className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                    values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+                  )}>
+                    {values.length > 0 ? `${label}: ${values.length}` : label}
+                    <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-52 p-2">
+                  <div className="max-h-48 overflow-y-auto space-y-0.5">
+                    {options.map(opt => (
+                      <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                        <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleValue(setter, opt.value)} />
+                        <span className="truncate">{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>}
+                </PopoverContent>
+              </Popover>
+            ))}
+
+            {/* ARR range */}
+            <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
+              <span className="whitespace-nowrap">{arrLabel}:</span>
+              <input type="number" placeholder="min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+              <span>–</span>
+              <input type="number" placeholder="max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+              <span>Cr</span>
+            </div>
+
+            {/* Expected date range */}
+            <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
+              <span className="whitespace-nowrap">{expectedLabel}:</span>
+              <input type="date" value={expectedFrom} onChange={e => setExpectedFrom(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground" />
+              <span>–</span>
+              <input type="date" value={expectedTo} onChange={e => setExpectedTo(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground" />
+            </div>
+
+            {/* Active chips */}
+            {[
+              ...stageFilter.map(v => ({ label: funnelStageLabels[v as keyof typeof funnelStageLabels] || v, clear: () => setStageFilter(p => p.filter(x => x !== v)) })),
+              ...stateFilter.map(v => ({ label: projectStateLabels[v as keyof typeof projectStateLabels] || v, clear: () => setStateFilter(p => p.filter(x => x !== v)) })),
+              ...confidenceFilter.map(v => ({ label: v, clear: () => setConfidenceFilter(p => p.filter(x => x !== v)) })),
+            ].map(({ label, clear }) => (
+              <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30">
+                {label}
+                <button type="button" onClick={clear} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+              </span>
+            ))}
+
+            {activeFilterCount > 0 && (
+              <button type="button" onClick={clearFilters} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                <X className="h-2.5 w-2.5" />Clear all
+              </button>
+            )}
+          </div>
+
+          <div className="h-px w-full shrink-0 bg-border" />
             <div className="min-h-0 flex-1 overflow-auto">
             <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
               <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">

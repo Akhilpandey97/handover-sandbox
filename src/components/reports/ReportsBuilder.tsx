@@ -824,7 +824,6 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
                     </Badge>
                   )}
                 </CardTitle>
-                <ReportFilterBar {...filterState} projectCount={filteredProjects.length} />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-1.5">
@@ -932,6 +931,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
               )}
             </div>
           </CardHeader>
+          <ReportFilterBar {...filterState} projectCount={filteredProjects.length} />
           <CardContent className="p-0">
             {view === "table" ? (
               <div className="max-h-[70vh] overflow-auto">
