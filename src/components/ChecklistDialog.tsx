@@ -534,7 +534,7 @@ export const ChecklistDialog = ({
     <div className="flex h-full min-h-0 overflow-hidden">
 
       {/* ── Column A: Groups sidebar ──────────────────────────────── */}
-      <div className="w-52 shrink-0 border-r border-border/60 flex flex-col overflow-hidden bg-card">
+      <div className="w-52 shrink-0 border-r border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
         {/* Sidebar header */}
         <div className="shrink-0 border-b border-border/50 px-3 py-3">
           <div className="flex items-center justify-between mb-2">
@@ -780,58 +780,66 @@ export const ChecklistDialog = ({
                       <tr>
                         <td colSpan={6} className="px-4 py-3 border-b border-border/30">
                           <div className="space-y-3">
-                            {/* Responsibility toggle */}
-                            <div className="flex items-center gap-3">
-                              <span className="text-xs text-muted-foreground">Waiting on:</span>
-                              <ToggleGroup
-                                type="single"
-                                value={item.currentResponsibility}
-                                onValueChange={(v) => handleResponsibilityChange(item.id, v)}
-                                disabled={item.completed || !canEdit}
-                                className="gap-0 border rounded-lg overflow-hidden"
-                              >
-                                <ToggleGroupItem value="gokwik" className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white">
-                                  <Building2 className="h-3 w-3 mr-1" />{responsibilityLabels.gokwik}
-                                </ToggleGroupItem>
-                                <ToggleGroupItem value="neutral" className="text-xs px-2.5 py-1 h-7 rounded-none border-x data-[state=on]:bg-muted">
-                                  <Minus className="h-3 w-3" />
-                                </ToggleGroupItem>
-                                <ToggleGroupItem value="merchant" className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground">
-                                  <Users className="h-3 w-3 mr-1" />{responsibilityLabels.merchant}
-                                </ToggleGroupItem>
-                              </ToggleGroup>
+                            {/* Row 1: Responsibility + Due date + Time stats — all inline */}
+                            <div className="flex items-center gap-4 flex-wrap">
+                              <div className="flex items-center gap-2">
+                                <TooltipProvider><Tooltip><TooltipTrigger asChild>
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1 cursor-default">Waiting on <span className="text-muted-foreground/60 text-2xs">ⓘ</span></span>
+                                </TooltipTrigger><TooltipContent>Who is currently responsible for this task</TooltipContent></Tooltip></TooltipProvider>
+                                <ToggleGroup
+                                  type="single"
+                                  value={item.currentResponsibility}
+                                  onValueChange={(v) => handleResponsibilityChange(item.id, v)}
+                                  disabled={item.completed || !canEdit}
+                                  className="gap-0 border rounded-lg overflow-hidden"
+                                >
+                                  <ToggleGroupItem value="gokwik" className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white">
+                                    <Building2 className="h-3 w-3 mr-1" />{responsibilityLabels.gokwik}
+                                  </ToggleGroupItem>
+                                  <ToggleGroupItem value="neutral" className="text-xs px-2.5 py-1 h-7 rounded-none border-x data-[state=on]:bg-muted">
+                                    <Minus className="h-3 w-3" />
+                                  </ToggleGroupItem>
+                                  <ToggleGroupItem value="merchant" className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground">
+                                    <Users className="h-3 w-3 mr-1" />{responsibilityLabels.merchant}
+                                  </ToggleGroupItem>
+                                </ToggleGroup>
+                              </div>
+
+                              <span className="h-4 w-px bg-border/60 hidden sm:block" />
+
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">Due date</span>
+                                {canEdit && !item.completed ? (
+                                  <Input
+                                    type="date"
+                                    defaultValue={item.dueDate || ""}
+                                    className="h-7 w-36 text-xs px-2 border-border/60"
+                                    onChange={async (e) => {
+                                      const nd = e.target.value || null;
+                                      await supabase.from("checklist_items").update({ due_date: nd }).eq("id", item.id);
+                                      queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="text-xs font-medium text-foreground">{item.dueDate ? shortDate(item.dueDate) : "—"}</span>
+                                )}
+                              </div>
+
+                              <span className="h-4 w-px bg-border/60 hidden sm:block" />
+
+                              {(() => {
+                                const ts = calculateTimeByParty(item.responsibilityLog);
+                                return (
+                                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5 text-primary" />{responsibilityLabels.gokwik}: <span className="font-semibold text-foreground">{formatDuration(ts.gokwik)}</span></span>
+                                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5 text-warning-strong" />{responsibilityLabels.merchant}: <span className="font-semibold text-foreground">{formatDuration(ts.merchant)}</span></span>
+                                  </div>
+                                );
+                              })()}
                             </div>
 
-                            {/* Due date editor */}
-                            {canEdit && !item.completed && (
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">Due date:</span>
-                                <Input
-                                  type="date"
-                                  defaultValue={item.dueDate || ""}
-                                  className="h-6 w-32 text-xs px-1"
-                                  onChange={async (e) => {
-                                    const nd = e.target.value || null;
-                                    await supabase.from("checklist_items").update({ due_date: nd }).eq("id", item.id);
-                                    queryClient.invalidateQueries({ queryKey: ["projects"] });
-                                  }}
-                                />
-                              </div>
-                            )}
-
-                            {/* Time stats */}
-                            {(() => {
-                              const ts = calculateTimeByParty(item.responsibilityLog);
-                              return (
-                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                  <span className="flex items-center gap-1"><Building2 className="h-3 w-3 text-primary" />{responsibilityLabels.gokwik}: {formatDuration(ts.gokwik)}</span>
-                                  <span className="flex items-center gap-1"><Users className="h-3 w-3 text-warning-strong" />{responsibilityLabels.merchant}: {formatDuration(ts.merchant)}</span>
-                                </div>
-                              );
-                            })()}
-
-                            {/* Comment thread */}
+                            {/* Row 2: Comment thread */}
                             <ChecklistCommentThread
                               checklistItemId={item.id}
                               checklistItemTitle={item.title}
@@ -840,7 +848,7 @@ export const ChecklistDialog = ({
                               focusSignal={commentPrompt?.itemId === item.id ? commentPrompt.at : undefined}
                             />
 
-                            {/* Sub-tasks */}
+                            {/* Sub-tasks (only if any exist) */}
                             {(() => {
                               const itemTasks = allTasks.filter(t => t.checklist_item_id === item.id);
                               if (itemTasks.length === 0) return null;
@@ -896,7 +904,7 @@ export const ChecklistDialog = ({
       </div>
 
       {/* ── Column C: Project details panel ───────────────────────── */}
-      <div className="w-64 shrink-0 border-l border-border/60 flex flex-col overflow-hidden bg-card">
+      <div className="w-64 shrink-0 border-l border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
         <Tabs value={detailsTab} onValueChange={(v) => setDetailsTab(v as typeof detailsTab)} className="flex flex-1 flex-col overflow-hidden">
           <TabsList className="shrink-0 rounded-none border-b border-border/50 bg-transparent px-1 justify-start gap-0 h-auto">
             <TabsTrigger value="details" className="rounded-none border-b-2 border-transparent px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
