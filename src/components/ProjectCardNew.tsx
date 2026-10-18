@@ -96,7 +96,7 @@ const defaultPhaseConfig = {
     bg: "bg-card dark:bg-[hsl(222,18%,16%)]", 
     border: "border-gray-200/60 dark:border-gray-700/50",
     badge: "bg-gray-500 hover:bg-gray-600",
-    accent: "text-gray-600 dark:text-gray-400"
+    accent: "text-foreground/70 dark:text-foreground/60"
   },
 };
 
@@ -383,7 +383,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-600 hover:bg-info-soft hover:text-info-strong dark:text-slate-300"
+                    className="h-9 w-9 text-foreground/70 hover:bg-info-soft hover:text-info-strong dark:text-foreground/60"
                     onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
                     title="View details"
                     aria-label="View details"
@@ -393,7 +393,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-600 hover:bg-info-soft hover:text-info-strong dark:text-slate-300"
+                    className="h-9 w-9 text-foreground/70 hover:bg-info-soft hover:text-info-strong dark:text-foreground/60"
                     onClick={() => setChecklistOpen(true)}
                     title="Open checklist"
                     aria-label="Open checklist"
@@ -403,7 +403,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-600 hover:bg-info-soft hover:text-info-strong dark:text-slate-300"
+                    className="h-9 w-9 text-foreground/70 hover:bg-info-soft hover:text-info-strong dark:text-foreground/60"
                     onClick={() => setEditOpen(true)}
                     title="Edit project"
                     aria-label="Edit project"
@@ -413,7 +413,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-9 w-9 text-slate-600 hover:bg-info-soft hover:text-info-strong dark:text-slate-300"
+                    className="h-9 w-9 text-foreground/70 hover:bg-info-soft hover:text-info-strong dark:text-foreground/60"
                     onClick={() => setActivityHistoryOpen(true)}
                     title="Activity history"
                     aria-label="Activity history"

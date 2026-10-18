@@ -150,13 +150,13 @@
 
 :root {
   --background: 205 38% 98%;
-  --foreground: 212 55% 15%;
+  --foreground: 0 0% 8%;
 
   --card: 0 0% 100%;
-  --card-foreground: 212 55% 15%;
+  --card-foreground: 0 0% 8%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 212 55% 15%;
+  --popover-foreground: 0 0% 8%;
 
   /* Ocean Deep */
   --primary: 212 100% 49%;
@@ -166,14 +166,13 @@
   --primary-soft: 212 100% 96%;
 
   --secondary: 200 32% 95%;
-  --secondary-foreground: 206 55% 20%;
+  --secondary-foreground: 0 0% 12%;
 
   --muted: 200 28% 96%;
-  /* 40% lightness: 5.2:1 on muted, 5.7:1 on cards (was 45%, which failed on muted). */
-  --muted-foreground: 205 18% 40%;
+  --muted-foreground: 0 0% 28%;
 
   --accent: 190 45% 93%;
-  --accent-foreground: 200 60% 20%;
+  --accent-foreground: 0 0% 10%;
   --accent-soft: 190 48% 95%;
 
   --brand: 190 56% 40%;
@@ -206,7 +205,7 @@
   --pending-strong: 202 78% 32%;
 
   --teal: 177 42% 55%;
-  --teal-foreground: 212 55% 15%;
+  --teal-foreground: 0 0% 8%;
 
   --border: 202 24% 86%;
   --input: 202 24% 86%;

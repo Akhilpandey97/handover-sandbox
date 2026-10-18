@@ -1107,7 +1107,7 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       }}
                       title="Drag to reorder"
                       className={cn(
-                        "cursor-grab rounded-none border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-slate-500 active:cursor-grabbing data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-slate-950 data-[state=active]:shadow-none dark:text-muted-foreground dark:data-[state=active]:text-foreground",
+                        "cursor-grab rounded-none border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-foreground/60 active:cursor-grabbing data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none dark:text-muted-foreground dark:data-[state=active]:text-foreground",
                         draggingTab === tab.value && "opacity-50",
                       )}
                     >
