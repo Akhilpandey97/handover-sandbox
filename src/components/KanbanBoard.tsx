@@ -300,6 +300,14 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
     if (groupField === "funnelStage") {
       return entries.sort((a, b) => FUNNEL_ORDER.indexOf(a.key as FunnelStage) - FUNNEL_ORDER.indexOf(b.key as FunnelStage));
     }
+    if (groupField === "projectState") {
+      const STATE_COL_ORDER = ["not_started", "in_progress", "on_hold", "blocked", "live"];
+      return entries.sort((a, b) => {
+        const ai = STATE_COL_ORDER.indexOf(a.key);
+        const bi = STATE_COL_ORDER.indexOf(b.key);
+        return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+      });
+    }
     return entries.sort((a, b) => a.label.localeCompare(b.label));
   }, [filteredProjects, groupField, labels, customValuesMap, liveThisYearOnly, columnOrder]);
 

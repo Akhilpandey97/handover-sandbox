@@ -137,7 +137,7 @@ import { formatGoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { toast } from "sonner";
 import { fetchAiInsights } from "@/utils/aiInsights";
-import { cn, greeting } from "@/lib/utils";
+import { cn, greeting, fmtDate } from "@/lib/utils";
 
 // Report components
 import { ExecutiveDashboard } from "./reports/ExecutiveDashboard";
@@ -167,30 +167,54 @@ import { openProjectInNewTab } from "@/lib/open-project";
 const SubTabCardGrid = ({
   items,
   onSelect,
+  groups,
 }: {
   items: { key: string; label: string; icon: LucideIcon; description: string }[];
   onSelect: (key: string) => void;
-}) => (
-  <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-    {items.map(({ key, label, icon: Icon, description }) => (
-      <button
-        key={key}
-        type="button"
-        onClick={() => onSelect(key)}
-        className="group flex h-full flex-col rounded-lg border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-primary">
-            <Icon className="h-4 w-4" />
-          </span>
-          <span className="portal-heading truncate text-sm">{label}</span>
-          <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-        </div>
-        <p className="mt-2 line-clamp-2 text-2xs leading-4 text-muted-foreground">{description}</p>
-      </button>
-    ))}
-  </div>
-);
+  groups?: { label: string; keys: string[] }[];
+}) => {
+  const renderCard = ({ key, label, icon: Icon, description }: typeof items[0]) => (
+    <button
+      key={key}
+      type="button"
+      onClick={() => onSelect(key)}
+      className="group flex h-full flex-col rounded-lg border border-border bg-card p-3 text-left shadow-sm transition-all hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-primary">
+          <Icon className="h-4 w-4" />
+        </span>
+        <span className="portal-heading truncate text-sm">{label}</span>
+        <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+      </div>
+      <p className="mt-2 line-clamp-2 text-2xs leading-4 text-muted-foreground">{description}</p>
+    </button>
+  );
+  if (groups) {
+    const itemMap = Object.fromEntries(items.map(i => [i.key, i]));
+    return (
+      <div className="space-y-5">
+        {groups.map(g => {
+          const groupItems = g.keys.map(k => itemMap[k]).filter(Boolean);
+          if (!groupItems.length) return null;
+          return (
+            <div key={g.label}>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{g.label}</p>
+              <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {groupItems.map(renderCard)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  return (
+    <div className="grid auto-rows-fr gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {items.map(renderCard)}
+    </div>
+  );
+};
 
 const ALL_NAV_ITEMS = [
   "dashboard",
@@ -364,7 +388,7 @@ export const ManagerDashboard = () => {
     } catch { return ["merchantName", "platform", "category", "merchantState", "mintComment", "liveDate", "recentComments", "status"]; }
   });
   const [listViewPage, setListViewPage] = useState(1);
-  const [listViewPageSize, setListViewPageSize] = useState(10);
+  const [listViewPageSize, setListViewPageSize] = useState(25);
 
   // Nav visibility from labels
   const getNavVisibility = (): Record<string, boolean> => {
@@ -1263,7 +1287,7 @@ export const ManagerDashboard = () => {
               onClick={logout}
               title="Logout"
               aria-label="Logout"
-              className="h-7 w-7 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="h-7 w-7 shrink-0 text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -1371,7 +1395,7 @@ export const ManagerDashboard = () => {
                       key: "all",
                       label: "All projects",
                       value: totalProjects,
-                      sub: `Pipeline ${arrLabel}: ${totalArr.toFixed(2)} Cr`,
+                      sub: `Pipeline ${arrLabel}: ${totalArr % 1 === 0 ? totalArr.toFixed(0) : totalArr.toFixed(1)} Cr`,
                       icon: FolderKanban,
                       tone: "bg-muted text-foreground/70",
                       onClick: () => setDrillDown({ title: "All projects", projects: displayProjects }),
@@ -1384,7 +1408,7 @@ export const ManagerDashboard = () => {
                         key,
                         label: state === "in_progress" ? "In Progress" : label,
                         value: list.length,
-                        sub: `${arrLabel}: ${list.reduce((s, p) => s + arrToCrore(p.arr), 0).toFixed(2)} Cr`,
+                        sub: `${arrLabel}: ${(v => v % 1 === 0 ? v.toFixed(0) : v.toFixed(1))(list.reduce((s, p) => s + arrToCrore(p.arr), 0))} Cr`,
                         icon,
                         tone,
                         onClick: () => setDrillDown({ title: label, description: "Project state", projects: list }),
@@ -1580,7 +1604,7 @@ export const ManagerDashboard = () => {
                 workload: "Team workload",
                 tat: "TAT",
                 attention: "Attention required",
-                egl: "Projects at risk of missing EGL",
+                egl: "Projects at risk of missing Go-Live",
                 stages: "Delivery stages",
                 health: "Delivery health",
                 ...Object.fromEntries(customDashlets.map((c) => [c.id, c.title])),
@@ -2348,6 +2372,12 @@ export const ManagerDashboard = () => {
                   )
                   .map(([key, cfg]) => ({ key, ...cfg }))}
                 onSelect={(key) => navigate({ to: pathForTab("settings", { settingsSubTab: key }) })}
+                groups={[
+                  { label: "Workspace", keys: ["general", "colours", "navigation", "users"] },
+                  { label: "Data model", keys: ["fields", "custom-fields", "funnel", "checklist", "checklist-forms"] },
+                  { label: "Process & automation", keys: ["workflows", "risk-rules", "buddy", "slack-alerts"] },
+                  { label: "Integrations & data", keys: ["email", "integrations", "pivot-table", "activity-log"] },
+                ]}
               />
             ) : ADMIN_ONLY_SETTINGS.includes(settingsSubTab) && !perms.canManageUsers ? (
               <NoAccessCard />
@@ -2508,7 +2538,7 @@ export const ManagerDashboard = () => {
                               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                 <span>{arrLabel}: {formatArrCr(project.arr)}</span>
                                 {project.assignedOwnerName && <span>Owner: {project.assignedOwnerName}</span>}
-                                {project.archivedAt && <span>Archived: {new Date(project.archivedAt).toLocaleDateString()}</span>}
+                                {project.archivedAt && <span>Archived: {fmtDate(project.archivedAt)}</span>}
                               </div>
                             </div>
                             <div className="flex items-center gap-2 ml-4 shrink-0">

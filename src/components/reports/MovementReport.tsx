@@ -85,7 +85,7 @@ const buildSummary = (entries: MovementEntry[], maxParts = 3): string => {
 const COLUMN_KEYS: { key: string; label: string }[] = [
   { key: "status", label: "Status" },
   { key: "arr", label: "ARR" },
-  { key: "egl", label: "EGL" },
+  { key: "egl", label: "Exp. Go-Live" },
   { key: "owner", label: "Owner" },
   { key: "progress", label: "Progress" },
   { key: "updated", label: "Last Update" },
@@ -669,7 +669,7 @@ export const MovementReport = ({ timeframe }: Props) => {
                   <th scope="col" className="w-[24%] px-3 py-2.5 text-left font-medium">Project / Merchant</th>
                   {showCol("status") && <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">Status</th>}
                   {showCol("arr") && <th scope="col" className="w-[12%] px-3 py-2.5 text-left font-medium">ARR</th>}
-                  {showCol("egl") && <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">EGL</th>}
+                  {showCol("egl") && <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">Exp. Go-Live</th>}
                   {showCol("owner") && <th scope="col" className="w-[15%] px-3 py-2.5 text-left font-medium">Owner</th>}
                   {showCol("progress") && <th scope="col" className="w-[13%] px-3 py-2.5 text-left font-medium">Progress</th>}
                   {showCol("updated") && <th scope="col" className="w-[12%] px-3 py-2.5 text-left font-medium">Last Update</th>}

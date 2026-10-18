@@ -48,7 +48,7 @@ const formatRelative = (iso: string | null) => {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 30) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 };
 
 const statusClasses = (cat: string | null, status: string | null) => {

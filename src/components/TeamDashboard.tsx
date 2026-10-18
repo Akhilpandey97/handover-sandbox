@@ -320,7 +320,7 @@ export const TeamDashboard = () => {
     incoming: "Incoming projects",
     tat: "TAT",
     attention: "Attention required",
-    egl: "Projects at risk of missing EGL",
+    egl: "Projects at risk of missing Go-Live",
     stages: "Delivery stages",
     health: "Delivery health",
     ...Object.fromEntries(customDashlets.map((c) => [c.id, c.title])),

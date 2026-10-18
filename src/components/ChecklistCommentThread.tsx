@@ -326,7 +326,7 @@ const CommentBubble = ({
       <div className="flex items-center gap-1 text-muted-foreground mb-1">
         <span className="font-medium text-foreground">{comment.user_name}</span>
         <span>•</span>
-        <span>{new Date(comment.created_at).toLocaleDateString()}</span>
+        <span>{new Date(comment.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
         <span>{new Date(comment.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
       </div>
       <p className="text-foreground whitespace-pre-wrap">

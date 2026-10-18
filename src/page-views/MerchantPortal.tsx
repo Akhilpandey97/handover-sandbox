@@ -125,8 +125,9 @@ function buildStagesFromChecklist(checklist: PortalData["checklist"]): { num: nu
 
 function formatArr(arr: number | null): string {
   if (!arr) return "—";
-  if (arr >= 10000000) return `${(arr / 10000000).toFixed(2)} Cr`;
-  if (arr >= 100000) return `${(arr / 100000).toFixed(2)} L`;
+  const fmt = (n: number) => n % 1 === 0 ? n.toFixed(0) : n.toFixed(1);
+  if (arr >= 10000000) return `${fmt(arr / 10000000)} Cr`;
+  if (arr >= 100000) return `${fmt(arr / 100000)} L`;
   return arr.toLocaleString("en-IN");
 }
 
@@ -936,7 +937,7 @@ export default function MerchantPortal() {
                     <span className="block truncate text-xs font-medium text-sidebar-foreground">{item.title}</span>
                     {item.due_date && (
                       <span className={cn("block text-2xs", overdue ? "text-destructive" : "text-sidebar-foreground/60")}>
-                        Due {new Date(item.due_date).toLocaleDateString()}{overdue ? " · overdue" : ""}
+                        Due {new Date(item.due_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}{overdue ? " · overdue" : ""}
                       </span>
                     )}
                   </button>

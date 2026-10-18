@@ -29,7 +29,7 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
     <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">Projects at Risk of Missing EGL</p>
+          <p className="text-sm font-semibold text-foreground">Projects at Risk of Missing Go-Live</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5">

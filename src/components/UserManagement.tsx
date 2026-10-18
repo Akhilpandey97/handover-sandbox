@@ -363,7 +363,7 @@ export const UserManagement = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {user.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
+                    {user.created_at ? new Date(user.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "N/A"}
                   </TableCell>
                   <TableCell>
                     {user.last_login 

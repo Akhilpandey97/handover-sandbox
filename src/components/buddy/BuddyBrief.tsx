@@ -146,11 +146,11 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
         <div className="min-w-0">
           <p className="text-2xs opacity-75">{dateLabel} · {data.scope_label}</p>
           <p className="heading-card mt-0.5">
-            {`Good ${greeting()}, ${data.first_name}. ${headline}`}
+            {`${data.first_name} — ${headline}`}
           </p>
           {data.portfolio && (
             <p className="mt-0.5 text-2xs opacity-75">
-              Pipeline {getLabel("field_arr")} {data.portfolio.arr_cr.toFixed(2)} Cr
+              Pipeline {getLabel("field_arr")} {data.portfolio.arr_cr % 1 === 0 ? data.portfolio.arr_cr.toFixed(0) : data.portfolio.arr_cr.toFixed(1)} Cr
               {data.portfolio.awaiting_acceptance > 0 && ` · ${data.portfolio.awaiting_acceptance} handover${data.portfolio.awaiting_acceptance === 1 ? "" : "s"} waiting to be accepted`}
             </p>
           )}

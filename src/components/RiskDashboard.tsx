@@ -27,6 +27,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useLabels } from "@/contexts/LabelsContext";
 import { GoLiveDate } from "./GoLiveDate";
 import { arrCroreValue } from "@/lib/arr";
+import { fmtDate } from "@/lib/utils";
 
 /** Empty array = no filter; the URL stays clean until something is chosen. */
 const RISK_FILTER_DEFAULTS = {
@@ -354,7 +355,7 @@ export const RiskDashboard = () => {
                       {sla === "warning" && <Badge className="bg-warning-soft text-warning-strong text-2xs">Due soon</Badge>}
                       {sla === "ok" && risk.mitigation_due_at && (
                         <span className="text-xs text-muted-foreground">
-                          {new Date(risk.mitigation_due_at).toLocaleDateString()}
+                          {fmtDate(risk.mitigation_due_at)}
                         </span>
                       )}
                     </TableCell>
@@ -405,11 +406,11 @@ export const RiskDashboard = () => {
             <div>
               <CardTitle className="portal-heading flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-primary" />
-                At Risk
+                Auto-flagged
                 <Badge variant="secondary" className="text-xs">{atRiskProjects.length}</Badge>
               </CardTitle>
               <CardDescription>
-                Evaluated from Settings → Risk Rules. A project is High Risk when any enabled rule matches.
+                Automatically flagged by Risk Rules (Settings → Risk Rules). High risk when any enabled rule matches.
               </CardDescription>
             </div>
             <Button
