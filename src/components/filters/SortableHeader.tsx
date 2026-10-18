@@ -31,7 +31,7 @@ export const SortableHeader = ({
       onClick={onSort}
       title={`Sort by ${label}${active ? (dir === "asc" ? ", ascending" : ", descending") : ""}`}
       className={cn(
-        "group flex h-full w-full items-center gap-1 px-4 py-3 text-left font-semibold transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+        "group flex h-full w-full items-center gap-1 px-3 py-2 text-left font-semibold transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
         align === "right" && "justify-end",
         active ? "text-foreground" : "text-muted-foreground",
       )}
