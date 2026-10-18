@@ -27,7 +27,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -36,7 +35,6 @@ import { ChecklistFormDialog } from "@/components/ChecklistFormDialog";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { ChecklistItemMeetings } from "@/components/ChecklistItemMeetings";
-import { ProjectActivityHistoryPanel } from "@/components/ProjectActivityHistoryPanel";
 import { useChecklistTasks, useAddChecklistTask, useUpdateChecklistTask, useDeleteChecklistTask } from "@/hooks/useChecklistTasks";
 import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
 import { formatArrCr } from "@/lib/arr";
@@ -79,8 +77,6 @@ const STATE_TONE: Record<string, string> = {
   blocked: "bg-destructive-soft text-destructive-strong",
 };
 
-type StatusFilterValue = "all" | "todo" | "in_progress" | "completed" | "overdue";
-
 const getItemStatus = (item: ProjectChecklist): ItemStatus => {
   if (item.completed) return "completed";
   const now = new Date();
@@ -88,13 +84,6 @@ const getItemStatus = (item: ProjectChecklist): ItemStatus => {
   if (item.currentResponsibility !== "neutral") return "in_progress";
   if (item.dueDate && new Date(item.dueDate) >= now) return "upcoming";
   return "todo";
-};
-
-const matchesFilter = (item: ProjectChecklist, filter: StatusFilterValue): boolean => {
-  if (filter === "all") return true;
-  const status = getItemStatus(item);
-  if (filter === "todo") return status === "todo" || status === "upcoming";
-  return status === filter;
 };
 
 const StatusBadge = ({ status }: { status: ItemStatus }) => {
@@ -215,8 +204,7 @@ export const ChecklistDialog = ({
   // ── Inline-specific state ──
   const [groupBy, setGroupBy] = useState<"teams" | "stages">("teams");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
-  const [detailsTab, setDetailsTab] = useState<"details" | "people" | "activity">("details");
+  const [detailsTab, setDetailsTab] = useState<"details" | "people">("details");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   const formsByChecklistTemplateId = useMemo(() => {
@@ -334,21 +322,8 @@ export const ChecklistDialog = ({
     return project.assignedOwnerName || getTeamLabel(item.ownerTeam || "");
   };
 
-  const filteredItems = useMemo(() => {
-    const items = selectedGroupData?.items || [];
-    return items.filter(item => matchesFilter(item, statusFilter));
-  }, [selectedGroupData, statusFilter]);
+  const filteredItems = useMemo(() => selectedGroupData?.items || [], [selectedGroupData]);
 
-  const filterCounts = useMemo(() => {
-    const items = selectedGroupData?.items || [];
-    return {
-      all: items.length,
-      todo: items.filter(i => { const s = getItemStatus(i); return s === "todo" || s === "upcoming"; }).length,
-      in_progress: items.filter(i => getItemStatus(i) === "in_progress").length,
-      completed: items.filter(i => i.completed).length,
-      overdue: items.filter(i => getItemStatus(i) === "overdue").length,
-    };
-  }, [selectedGroupData]);
 
   // Next action for the right panel
   const nextStep = useMemo(() => {
@@ -367,14 +342,6 @@ export const ChecklistDialog = ({
     return { label: pick.title, hint: overdue ? "Overdue" : pick.dueDate ? `due ${shortDate(pick.dueDate)}` : undefined };
   }, [project]);
 
-  // ── FILTER PILLS CONFIG ──
-  const filterPills: Array<{ value: StatusFilterValue; label: string; count: number; highlight?: boolean }> = [
-    { value: "all", label: "All", count: filterCounts.all },
-    { value: "todo", label: "To do", count: filterCounts.todo },
-    { value: "in_progress", label: "In progress", count: filterCounts.in_progress },
-    { value: "completed", label: "Completed", count: filterCounts.completed },
-    { value: "overdue", label: "Overdue", count: filterCounts.overdue, highlight: filterCounts.overdue > 0 },
-  ];
 
   // ── Shared sub-dialogs JSX ──
   const subDialogs = (
@@ -578,7 +545,7 @@ export const ChecklistDialog = ({
           <ToggleGroup
             type="single"
             value={groupBy}
-            onValueChange={(v) => { if (v) { setGroupBy(v as "teams" | "stages"); setSelectedGroup(null); setStatusFilter("all"); } }}
+            onValueChange={(v) => { if (v) { setGroupBy(v as "teams" | "stages"); setSelectedGroup(null); } }}
             className="w-full"
           >
             <ToggleGroupItem value="stages" className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
@@ -604,7 +571,7 @@ export const ChecklistDialog = ({
                 <button
                   key={group.key}
                   type="button"
-                  onClick={() => { setSelectedGroup(group.key); setStatusFilter("all"); }}
+                  onClick={() => setSelectedGroup(group.key)}
                   className={cn(
                     "w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors border-l-2",
                     isSelected
@@ -676,36 +643,6 @@ export const ChecklistDialog = ({
           </div>
         </div>
 
-        {/* Filter pills */}
-        <div className="shrink-0 border-b border-border/30 px-4 py-2 flex items-center gap-1.5 overflow-x-auto">
-          {filterPills.map((pill) => (
-            <button
-              key={pill.value}
-              type="button"
-              onClick={() => setStatusFilter(pill.value)}
-              className={cn(
-                "px-2.5 py-1 text-xs rounded-full border whitespace-nowrap transition-colors",
-                statusFilter === pill.value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : pill.highlight && statusFilter !== pill.value
-                    ? "border-destructive/40 text-destructive bg-destructive/5"
-                    : "border-border text-muted-foreground hover:bg-muted",
-              )}
-            >
-              {pill.label} ({pill.count})
-            </button>
-          ))}
-          <span className="flex-1" />
-          <Select value="all">
-            <SelectTrigger className="h-7 w-28 text-xs border-border">
-              <SelectValue placeholder="Assignee" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All assignees</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Task table */}
         <ScrollArea className="flex-1 min-h-0">
           <table className="w-full text-sm">
@@ -734,9 +671,10 @@ export const ChecklistDialog = ({
                   <Fragment key={item.id}>
                     <tr
                       id={`checklist-item-${item.id}`}
+                      onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
                       className={cn(
-                        "group border-b border-border/30 transition-colors scroll-mt-24",
-                        item.completed ? "bg-success/3" : "hover:bg-muted/30",
+                        "group border-b border-border/30 transition-colors scroll-mt-24 cursor-pointer",
+                        isExpanded ? "bg-muted/10" : "hover:bg-muted/10",
                       )}
                     >
                       {/* Row number */}
@@ -745,12 +683,14 @@ export const ChecklistDialog = ({
                       {/* Checkbox + Title */}
                       <td className="px-3 py-2.5 align-middle">
                         <div className="flex items-center gap-2.5">
-                          <Checkbox
-                            checked={item.completed}
-                            onCheckedChange={(checked) => { if (canEdit) updateChecklist(project.id, item.id, checked as boolean); }}
-                            disabled={!canEdit}
-                            className="h-4 w-4 shrink-0"
-                          />
+                          <span onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={item.completed}
+                              onCheckedChange={(checked) => { if (canEdit) updateChecklist(project.id, item.id, checked as boolean); }}
+                              disabled={!canEdit}
+                              className="h-4 w-4 shrink-0"
+                            />
+                          </span>
                           <span className={cn("font-medium", item.completed && "line-through text-muted-foreground")}>{item.title}</span>
                           {taskCount > 0 && (
                             <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
@@ -789,7 +729,7 @@ export const ChecklistDialog = ({
 
                       {/* Actions */}
                       <td className="px-3 py-2.5 align-middle">
-                        <div className="flex items-center gap-0.5">
+                        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
                             onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
@@ -838,7 +778,7 @@ export const ChecklistDialog = ({
                     {/* Expanded detail row */}
                     {isExpanded && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-3 bg-muted/20 border-b border-border/30">
+                        <td colSpan={6} className="px-4 py-3 border-b border-border/30">
                           <div className="space-y-3">
                             {/* Responsibility toggle */}
                             <div className="flex items-center gap-3">
@@ -964,9 +904,6 @@ export const ChecklistDialog = ({
             </TabsTrigger>
             <TabsTrigger value="people" className="rounded-none border-b-2 border-transparent px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
               People
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="rounded-none border-b-2 border-transparent px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
-              Activity
             </TabsTrigger>
           </TabsList>
 
@@ -1118,10 +1055,6 @@ export const ChecklistDialog = ({
               </dl>
             </TabsContent>
 
-            {/* Activity tab */}
-            <TabsContent value="activity" className="m-0 h-full min-h-[300px]">
-              <ProjectActivityHistoryPanel projectId={project.id} height="100%" />
-            </TabsContent>
           </ScrollArea>
         </Tabs>
       </div>
