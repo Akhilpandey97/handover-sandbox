@@ -612,7 +612,7 @@ export const ChecklistDialog = ({
       </div>
 
       {/* ── Column B: Task table ─────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white dark:bg-background">
         {/* Stage header */}
         <div className="shrink-0 border-b border-border/50 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
@@ -646,7 +646,7 @@ export const ChecklistDialog = ({
         {/* Task table */}
         <ScrollArea className="flex-1 min-h-0">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-background">
+            <thead className="sticky top-0 z-10 bg-white dark:bg-background">
               <tr className="border-b border-border/50">
                 <th className="w-10 text-left px-3 py-2 text-xs font-medium text-muted-foreground">#</th>
                 <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">Task</th>
@@ -853,7 +853,7 @@ export const ChecklistDialog = ({
                               const itemTasks = allTasks.filter(t => t.checklist_item_id === item.id);
                               if (itemTasks.length === 0) return null;
                               return (
-                                <div className="rounded-lg border border-border/50 bg-card p-2">
+                                <div className="rounded-lg border border-border/50 bg-white dark:bg-background p-2">
                                   <div className="flex items-center gap-2 mb-1.5 px-1">
                                     <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
                                     <span className="text-xs font-semibold text-muted-foreground">Tasks</span>
