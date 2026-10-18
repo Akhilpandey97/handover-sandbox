@@ -111,7 +111,6 @@ import {
   LayoutDashboard,
   FileStack,
   Wrench,
-  FlaskConical,
   Eye,
   CalendarRange,
   type LucideIcon,
@@ -151,7 +150,6 @@ import { TATDashlet } from "./TATDashlet";
 import { ReportsBuilder } from "./reports/ReportsBuilder";
 import { ReportScheduler } from "./reports/ReportScheduler";
 import { PivotTableSettings } from "./settings/PivotTableSettings";
-import { SandboxTesting } from "./reports/SandboxTesting";
 import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
@@ -919,7 +917,6 @@ export const ManagerDashboard = () => {
     builder: { label: "Report Builder", icon: Wrench, description: "Build a report from the fields you care about." },
     scheduler: { label: "Scheduler", icon: Clock, description: "Send a report on a schedule, to whoever needs it." },
     "pivot-table": { label: "Pivot Table", icon: Table2, description: "Slice projects by any two dimensions." },
-    sandbox: { label: "Sandbox Testing", icon: FlaskConical, description: "Try a report against sample data before you trust it." },
     "portal-visits": { label: "Portal Visits", icon: Eye, description: "Who opened the merchant portal, and what they looked at." },
     "daily-report": { label: "Daily Report", icon: CalendarDays, description: "What moved yesterday, in one page." },
     "weekly-report": { label: "Weekly Report", icon: CalendarRange, description: "The week's movement, wins and slippage." },
@@ -2354,11 +2351,6 @@ export const ManagerDashboard = () => {
                   {/* Sub-tab: Pivot Table */}
                   {reportSubTab === "pivot-table" && (
                     <PivotTableSettings projects={displayProjects} customFields={customFields} customValuesMap={customValuesMap} />
-                  )}
-
-                  {/* Sub-tab: Sandbox Testing */}
-                  {reportSubTab === "sandbox" && (
-                    <SandboxTesting />
                   )}
 
                   {reportSubTab === "portal-visits" && (
