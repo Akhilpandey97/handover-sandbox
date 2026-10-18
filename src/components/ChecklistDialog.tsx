@@ -575,7 +575,7 @@ export const ChecklistDialog = ({
                   className={cn(
                     "w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors border-l-2",
                     isSelected
-                      ? "bg-primary/8 border-primary"
+                      ? "border-primary"
                       : "border-transparent hover:bg-muted/50",
                   )}
                 >
@@ -674,7 +674,7 @@ export const ChecklistDialog = ({
                       onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
                       className={cn(
                         "group border-b border-border/30 transition-colors scroll-mt-24 cursor-pointer",
-                        isExpanded ? "bg-muted/10" : "hover:bg-muted/10",
+                        "hover:bg-muted/10",
                       )}
                     >
                       {/* Row number */}
