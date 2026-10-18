@@ -1922,7 +1922,7 @@ export const ManagerDashboard = () => {
                             </TableHead>
                           );
                         })}
-                        {!isGokwikGeneral && <TableHead className="w-20 text-xs tracking-normal text-sidebar-foreground">Action</TableHead>}
+                        {!isGokwikGeneral && <TableHead className="w-32 text-xs tracking-normal">Action</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
