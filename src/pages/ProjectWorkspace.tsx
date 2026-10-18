@@ -481,7 +481,7 @@ const PanelRow = ({
   return (
     <div className="grid grid-cols-[minmax(88px,42%)_minmax(0,1fr)] items-start gap-2.5 border-b border-border/50 py-1.5 last:border-b-0">
       {/* A notch under the section headings, so the panel reads quieter than its titles. */}
-      <dt className="flex items-start gap-1.5 text-[12.6px] leading-[1.45] text-muted-foreground">
+      <dt className="flex items-start gap-1.5 text-[12.6px] leading-[1.45] text-foreground">
         {Icon ? <Icon className="mt-0.5 h-3 w-3 shrink-0" /> : null}
         <span className="min-w-0 break-words">{label}</span>
       </dt>
