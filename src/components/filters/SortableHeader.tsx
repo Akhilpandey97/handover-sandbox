@@ -23,7 +23,7 @@ export const SortableHeader = ({
 } & Omit<React.ThHTMLAttributes<HTMLTableCellElement>, "aria-sort">) => (
   <TableHead
     aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
-    className={cn("p-0", className)}
+    className={cn("h-auto p-0", className)}
     {...thProps}
   >
     <button

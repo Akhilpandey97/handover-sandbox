@@ -528,7 +528,7 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
           </div>
           <div className="h-px w-full shrink-0 bg-border" />
             <div className="min-h-0 flex-1 overflow-auto">
-            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_th]:py-2 [&_td]:align-middle">
+            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_td]:align-middle">
               <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
                 <TableRow className="hover:bg-muted/40 border-b">
                   <SortableHeader label={getLabel("field_merchant_name")} active={sortField === "merchantName"} dir={sortDir} onSort={() => toggleSort("merchantName")} className="min-w-[180px]" />
