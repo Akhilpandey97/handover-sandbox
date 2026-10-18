@@ -1,19 +1,10 @@
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { TableHead } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import type React from "react";
 
 export type SortDir = "asc" | "desc";
 
-/**
- * A column header you can sort by.
- *
- * Sortable headers across the product were a `<th>` with an onClick and a
- * permanently two-way arrow: not reachable by keyboard, no focus ring, nothing
- * announced to a screen reader, and no way to tell which column was actually
- * sorting. This is a real button, it sets `aria-sort`, and the arrow points the
- * way the column is ordered — the neutral glyph only appears on hover, for the
- * columns that could sort but aren't.
- */
 export const SortableHeader = ({
   label,
   active,
@@ -21,6 +12,7 @@ export const SortableHeader = ({
   onSort,
   align = "left",
   className,
+  ...thProps
 }: {
   label: string;
   active: boolean;
@@ -28,10 +20,11 @@ export const SortableHeader = ({
   onSort: () => void;
   align?: "left" | "right";
   className?: string;
-}) => (
+} & Omit<React.ThHTMLAttributes<HTMLTableCellElement>, "aria-sort">) => (
   <TableHead
     aria-sort={active ? (dir === "asc" ? "ascending" : "descending") : "none"}
     className={cn("p-0", className)}
+    {...thProps}
   >
     <button
       type="button"

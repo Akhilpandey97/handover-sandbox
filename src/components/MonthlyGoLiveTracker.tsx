@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
@@ -201,6 +201,24 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
     if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortField(field); setSortDir("asc"); }
   };
+
+  // Column drag-to-reorder
+  const [draggedCol, setDraggedCol] = useState<string | null>(null);
+  const handleColDragStart = (key: string) => setDraggedCol(key);
+  const handleColDragOver = (key: string) => {
+    if (!draggedCol || draggedCol === key) return;
+    setVisibleColumns(prev => {
+      const next = [...prev];
+      const from = next.indexOf(draggedCol);
+      const to = next.indexOf(key);
+      if (from === -1 || to === -1) return prev;
+      next.splice(from, 1);
+      next.splice(to, 0, draggedCol);
+      try { window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+  const handleColDragEnd = () => setDraggedCol(null);
 
   // Filters
   const [stageFilter, setStageFilter] = useState<string[]>([]);
@@ -501,21 +519,27 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
               <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
                 <TableRow className="hover:bg-muted/40 border-b">
                   <SortableHeader label={getLabel("field_merchant_name")} active={sortField === "merchantName"} dir={sortDir} onSort={() => toggleSort("merchantName")} className="min-w-[180px]" />
-                  {isVisible("arr") && <SortableHeader label={`${arrLabel} Cr.`} active={sortField === "arr"} dir={sortDir} onSort={() => toggleSort("arr")} align="right" className="whitespace-nowrap" />}
-                  {isVisible("stage") && <SortableHeader label={stageLabel} active={sortField === "stage"} dir={sortDir} onSort={() => toggleSort("stage")} className="whitespace-nowrap" />}
-                  {isVisible("status") && <TableHead className="font-semibold whitespace-nowrap text-foreground">{stateLabel}</TableHead>}
-                  {isVisible("blocker") && <TableHead className="font-semibold min-w-[240px] max-w-[340px] text-foreground">Blocker</TableHead>}
-                  {isVisible("blocked_on") && <TableHead className="font-semibold min-w-[120px] text-foreground">Blocked On</TableHead>}
-                  {isVisible("deadline") && <TableHead className="font-semibold min-w-[100px] text-foreground">Deadline</TableHead>}
-                  {isVisible("confidence") && <SortableHeader label="Confidence" active={sortField === "confidence"} dir={sortDir} onSort={() => toggleSort("confidence")} className="whitespace-nowrap" />}
-                  {isVisible("owner") && <SortableHeader label={ownerLabel} active={sortField === "owner"} dir={sortDir} onSort={() => toggleSort("owner")} className="whitespace-nowrap min-w-[140px]" />}
-                  {isVisible("expected") && <SortableHeader label={expectedLabel} active={sortField === "expected"} dir={sortDir} onSort={() => toggleSort("expected")} className="whitespace-nowrap" />}
-                  {SYSTEM_COLUMNS.map(col => isVisible(col.key) && (
-                    <TableHead key={col.key} className="font-semibold whitespace-nowrap text-foreground">{col.label}</TableHead>
-                  ))}
-                  {customFields.map(cf => isVisible(`custom_field_${cf.id}`) && (
-                    <TableHead key={cf.id} className="font-semibold whitespace-nowrap text-foreground">{cf.field_label}</TableHead>
-                  ))}
+                  {visibleColumns.map(key => {
+                    const dragProps = {
+                      draggable: true,
+                      onDragStart: () => handleColDragStart(key),
+                      onDragOver: (e: React.DragEvent) => { e.preventDefault(); handleColDragOver(key); },
+                      onDragEnd: handleColDragEnd,
+                      style: { cursor: "grab", opacity: draggedCol === key ? 0.5 : 1 } as React.CSSProperties,
+                    };
+                    const SORTABLE = { arr: "arr", stage: "stage", confidence: "confidence", owner: "owner", expected: "expected" } as Record<string, string>;
+                    if (SORTABLE[key]) {
+                      const col = ALL_COLUMNS.find(c => c.key === key);
+                      return <SortableHeader key={key} label={col?.label || key} active={sortField === SORTABLE[key]} dir={sortDir} onSort={() => toggleSort(SORTABLE[key])} align={key === "arr" ? "right" : "left"} className="whitespace-nowrap" {...dragProps} />;
+                    }
+                    const col = ALL_COLUMNS.find(c => c.key === key);
+                    const extraClass = key === "blocker" ? "min-w-[240px] max-w-[340px]" : key === "blocked_on" || key === "deadline" ? "min-w-[100px]" : key === "owner" ? "min-w-[140px]" : "";
+                    return (
+                      <TableHead key={key} className={cn("font-semibold whitespace-nowrap text-foreground", extraClass)} {...dragProps}>
+                        {col?.label || key}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
               </TableHeader>
             <TableBody>
@@ -540,111 +564,108 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
                       </button>
                       <RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} className="ml-1.5 align-middle" />
                     </TableCell>
-                    {isVisible("arr") && <TableCell className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>}
-                    {isVisible("stage") && (
-                      <TableCell className="whitespace-nowrap">
-                        <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", STAGE_BADGE[stage] || "bg-navy text-navy-foreground")}>{funnelStageLabels[stage] || "—"}</span>
-                      </TableCell>
-                    )}
-                    {isVisible("status") && (
-                      <TableCell className="whitespace-nowrap">
-                        {projectStateLabels[p.project_state as keyof typeof projectStateLabels] || "—"}
-                      </TableCell>
-                    )}
-                    {isVisible("blocker") && (
-                    <TableCell className="align-top max-w-[340px]">
-                      {isUrl ? (
-                        <a href={blockerText.split(" ")[0]} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline break-all">
-                          <span>{blockerText.split(" — ")[0].replace(/^https?:\/\/[^/]+\/browse\//, "")}</span>
-                          <ExternalLink className="h-3 w-3 shrink-0" />
-                        </a>
-                      ) : (
-                        <textarea
-                          value={blockerText}
-                          // Grow to fit on mount too, not only while typing —
-                          // otherwise saved text loads clipped to a single row.
-                          ref={el => { if (el) { el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; } }}
-                          onChange={e => {
-                            setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), blocker: e.target.value } }));
-                            e.currentTarget.style.height = "auto";
-                            e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
-                          }}
-                          onBlur={e => updateInsight(p.id, "blocker", e.target.value)}
-                          onClick={e => e.stopPropagation()}
-                          className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
-                          placeholder="—"
-                          rows={1}
-                        />
-                      )}
-                    </TableCell>
-                    )}
-                    {isVisible("blocked_on") && (
-                    <TableCell className="align-top">
-                      <textarea
-                        value={i?.blocked_on || ""}
-                        onChange={e => {
-                          setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), blocked_on: e.target.value } }));
-                          e.currentTarget.style.height = "auto";
-                          e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
-                        }}
-                        onBlur={e => updateInsight(p.id, "blocked_on", e.target.value)}
-                        onClick={e => e.stopPropagation()}
-                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
-                        placeholder="—"
-                        rows={1}
-                      />
-                    </TableCell>
-                    )}
-                    {isVisible("deadline") && (
-                    <TableCell className="align-top">
-                      <textarea
-                        value={i?.deadline || ""}
-                        onChange={e => {
-                          setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), deadline: e.target.value } }));
-                          e.currentTarget.style.height = "auto";
-                          e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
-                        }}
-                        onBlur={e => updateInsight(p.id, "deadline", e.target.value)}
-                        onClick={e => e.stopPropagation()}
-                        className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
-                        placeholder="—"
-                        rows={1}
-                      />
-                    </TableCell>
-                    )}
-                    {isVisible("confidence") && (
-                    <TableCell className="whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                      <Select value={conf} onValueChange={v => updateInsight(p.id, "confidence", v)}>
-                        <SelectTrigger className={cn("h-7 border-0 bg-transparent w-[100px] px-2", conf && CONF_BADGE[conf], conf && "rounded-md font-medium")}><SelectValue placeholder="—" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="High">High</SelectItem>
-                          <SelectItem value="Medium">Medium</SelectItem>
-                          <SelectItem value="Low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    )}
-                    {isVisible("owner") && (
-                    <TableCell className="whitespace-nowrap" title={owners[p.assigned_owner || ""] || ""}>
-                      <div className="max-w-[160px] truncate">{owners[p.assigned_owner || ""] || "—"}</div>
-                    </TableCell>
-                    )}
-                    {isVisible("expected") && (
-                      <TableCell className="whitespace-nowrap tabular-nums">
-                        {dateLabel(p.expected_go_live_date)}
-                        {fullProjects.find(fp => fp.id === p.id)?.dates?.expectedGoLiveDateIsDerived && (
-                          <span className="ml-1 text-2xs text-muted-foreground" title="Estimated from the latest checklist due date — no go-live date has been set on this project">est.</span>
-                        )}
-                      </TableCell>
-                    )}
-                    {SYSTEM_COLUMNS.map(col => isVisible(col.key) && (
-                      <TableCell key={col.key} className="whitespace-nowrap">{systemValue(p.id, col.key)}</TableCell>
-                    ))}
-                    {customFields.map(cf => isVisible(`custom_field_${cf.id}`) && (
-                      <TableCell key={cf.id} className="whitespace-nowrap">
-                        {customValuesMap[p.id]?.[cf.id] || "—"}
-                      </TableCell>
-                    ))}
+                    {visibleColumns.map(key => {
+                      switch (key) {
+                        case "arr": return <TableCell key="arr" className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>;
+                        case "stage": return (
+                          <TableCell key="stage" className="whitespace-nowrap">
+                            <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", STAGE_BADGE[stage] || "bg-navy text-navy-foreground")}>{funnelStageLabels[stage] || "—"}</span>
+                          </TableCell>
+                        );
+                        case "status": return <TableCell key="status" className="whitespace-nowrap">{projectStateLabels[p.project_state as keyof typeof projectStateLabels] || "—"}</TableCell>;
+                        case "blocker": return (
+                          <TableCell key="blocker" className="align-top max-w-[340px]">
+                            {isUrl ? (
+                              <a href={blockerText.split(" ")[0]} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline break-all">
+                                <span>{blockerText.split(" — ")[0].replace(/^https?:\/\/[^/]+\/browse\//, "")}</span>
+                                <ExternalLink className="h-3 w-3 shrink-0" />
+                              </a>
+                            ) : (
+                              <textarea
+                                value={blockerText}
+                                ref={el => { if (el) { el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; } }}
+                                onChange={e => {
+                                  setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), blocker: e.target.value } }));
+                                  e.currentTarget.style.height = "auto";
+                                  e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
+                                }}
+                                onBlur={e => updateInsight(p.id, "blocker", e.target.value)}
+                                onClick={e => e.stopPropagation()}
+                                className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
+                                placeholder="—"
+                                rows={1}
+                              />
+                            )}
+                          </TableCell>
+                        );
+                        case "blocked_on": return (
+                          <TableCell key="blocked_on" className="align-top">
+                            <textarea
+                              value={i?.blocked_on || ""}
+                              onChange={e => {
+                                setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), blocked_on: e.target.value } }));
+                                e.currentTarget.style.height = "auto";
+                                e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
+                              }}
+                              onBlur={e => updateInsight(p.id, "blocked_on", e.target.value)}
+                              onClick={e => e.stopPropagation()}
+                              className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
+                              placeholder="—"
+                              rows={1}
+                            />
+                          </TableCell>
+                        );
+                        case "deadline": return (
+                          <TableCell key="deadline" className="align-top">
+                            <textarea
+                              value={i?.deadline || ""}
+                              onChange={e => {
+                                setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), deadline: e.target.value } }));
+                                e.currentTarget.style.height = "auto";
+                                e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
+                              }}
+                              onBlur={e => updateInsight(p.id, "deadline", e.target.value)}
+                              onClick={e => e.stopPropagation()}
+                              className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
+                              placeholder="—"
+                              rows={1}
+                            />
+                          </TableCell>
+                        );
+                        case "confidence": return (
+                          <TableCell key="confidence" className="whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                            <Select value={conf} onValueChange={v => updateInsight(p.id, "confidence", v)}>
+                              <SelectTrigger className={cn("h-7 border-0 bg-transparent w-[100px] px-2", conf && CONF_BADGE[conf], conf && "rounded-md font-medium")}><SelectValue placeholder="—" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="High">High</SelectItem>
+                                <SelectItem value="Medium">Medium</SelectItem>
+                                <SelectItem value="Low">Low</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        );
+                        case "owner": return (
+                          <TableCell key="owner" className="whitespace-nowrap" title={owners[p.assigned_owner || ""] || ""}>
+                            <div className="max-w-[160px] truncate">{owners[p.assigned_owner || ""] || "—"}</div>
+                          </TableCell>
+                        );
+                        case "expected": return (
+                          <TableCell key="expected" className="whitespace-nowrap tabular-nums">
+                            {dateLabel(p.expected_go_live_date)}
+                            {fullProjects.find(fp => fp.id === p.id)?.dates?.expectedGoLiveDateIsDerived && (
+                              <span className="ml-1 text-2xs text-muted-foreground" title="Estimated from the latest checklist due date — no go-live date has been set on this project">est.</span>
+                            )}
+                          </TableCell>
+                        );
+                        default: {
+                          if (key.startsWith("custom_field_")) {
+                            const cfId = key.replace("custom_field_", "");
+                            return <TableCell key={key} className="whitespace-nowrap">{customValuesMap[p.id]?.[cfId] || "—"}</TableCell>;
+                          }
+                          return <TableCell key={key} className="whitespace-nowrap">{systemValue(p.id, key)}</TableCell>;
+                        }
+                      }
+                    })}
                   </TableRow>
                 );
               })}

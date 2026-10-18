@@ -26,7 +26,7 @@ import { CSVUploadDialog } from "./CSVUploadDialog";
 import { AddProjectDialog } from "./AddProjectDialog";
 import { AssignOwnerDialog } from "./AssignOwnerDialog";
 import { EditProjectDialog } from "./EditProjectDialog";
-import { Project, calculateTimeByParty, calculateTimeFromChecklist, formatDuration, projectStateLabels, ProjectState, ProjectPhase, isProjectUnderIntegration, getProjectFunnelStage, funnelStageLabels, FunnelStage } from "@/data/projectsData";
+import { Project, calculateTimeByParty, calculateTimeFromChecklist, formatDuration, projectStateLabels, projectStateColors, ProjectState, ProjectPhase, isProjectUnderIntegration, getProjectFunnelStage, funnelStageLabels, FunnelStage } from "@/data/projectsData";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectCardNew } from "./ProjectCardNew";
 import { ProjectListDialog } from "@/components/ProjectListDialog";
@@ -1638,142 +1638,6 @@ export const ManagerDashboard = () => {
               {projectToolbarHost ? createPortal(<CardHeader className="w-full border-0 bg-transparent p-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-2 relative">
-                    {/* Filters - left side */}
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <ToolbarIconButton icon={<Filter className="h-3.5 w-3.5" />} label="Filters" count={[lvTeamFilter.length > 0, lvOwnerFilter.length > 0, lvPhaseFilter.length > 0, lvStateFilter.length > 0, lvKickOffFrom, lvKickOffTo, lvGoLiveFrom, lvGoLiveTo, lvNeedsAttentionOnly].filter(Boolean).length} />
-                      </PopoverTrigger>
-                      <PopoverContent align="start" collisionPadding={16} className={TOOLBAR_POPOVER.filters} style={TOOLBAR_PANEL_MAX_H}>
-                        <div className="flex items-center justify-between px-3 py-2 border-b shrink-0">
-                          <p className="text-xs font-semibold">Filters</p>
-                          {lvHasActiveFilters && (
-                            <Button variant="ghost" size="sm" onClick={clearLvFilters} className="h-6 text-2xs gap-1"><X className="h-3 w-3" /> Reset</Button>
-                          )}
-                        </div>
-                        <div className="overflow-y-auto flex-1 min-h-0 p-3 space-y-2.5">
-                        <label className="flex items-center gap-2 cursor-pointer border-b pb-2">
-                          <input
-                            type="checkbox"
-                            checked={lvNeedsAttentionOnly}
-                            onChange={(e) => setLvNeedsAttentionOnly(e.target.checked)}
-                            className="h-3.5 w-3.5"
-                          />
-                          <span className="text-xs text-muted-foreground">Needs attention only</span>
-                        </label>
-                        <div className="grid grid-cols-2 gap-3">
-                          {[
-                            { label: "Team", values: lvTeamFilter, setter: setLvTeamFilter, options: [{ value: "mint", label: teamLabels.mint }, { value: "integration", label: teamLabels.integration }, { value: "ms", label: teamLabels.ms }] },
-                            { label: "Owner", values: lvOwnerFilter, setter: setLvOwnerFilter, options: [{ value: "unassigned", label: "None (Unassigned)" }, ...lvFilteredOwners.map(o => ({ value: o.id, label: o.name }))] },
-                            { label: "State", values: lvStateFilter, setter: setLvStateFilter, options: (Object.keys(projectStateLabels) as ProjectState[]).map(s => ({ value: s, label: stateLabelsFromCtx[s] || projectStateLabels[s] })) },
-                            { label: "Platform", values: lvPlatformFilter, setter: setLvPlatformFilter, options: uniquePlatforms.map(p => ({ value: p, label: p })) },
-                            { label: "Category", values: lvCategoryFilter, setter: setLvCategoryFilter, options: uniqueCategories.map(c => ({ value: c, label: c })) },
-                            { label: "Responsibility", values: lvResponsibilityFilter, setter: setLvResponsibilityFilter, options: [{ value: "gokwik", label: responsibilityLabels.gokwik }, { value: "merchant", label: responsibilityLabels.merchant }, { value: "neutral", label: "Neutral" }] },
-                            { label: "Project Stage", values: lvFunnelStageFilter, setter: setLvFunnelStageFilter, options: (["sales","pre_integration","under_integration","live","none"] as FunnelStage[]).map(s => ({ value: s, label: funnelStageLabels[s] })) },
-                          ].map(({ label, values, setter, options }) => (
-                            <div key={label} className="space-y-1">
-                              <label className="text-xs text-muted-foreground font-medium">{label}</label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button variant="outline" className="w-full justify-between h-10 text-sm font-normal">
-                                    <span className="truncate">{values.length === 0 ? `All ${label}s` : `${values.length} selected`}</span>
-                                    <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-56 p-2" align="start">
-                                  <div className="max-h-48 overflow-y-auto">
-                                    <div className="space-y-1">
-                                      {options.map(opt => (
-                                        <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted cursor-pointer text-sm">
-                                          <Checkbox
-                                            checked={values.includes(opt.value)}
-                                            onCheckedChange={() => toggleFilterValue(setter, opt.value)}
-                                          />
-                                          <span className="truncate">{opt.label}</span>
-                                        </label>
-                                      ))}
-                                    </div>
-                                  </div>
-                                  {values.length > 0 && (
-                                    <Button variant="ghost" size="sm" className="w-full mt-1 text-xs" onClick={() => setter([])}>Clear</Button>
-                                  )}
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-                          ))}
-                          <div className="space-y-1">
-                            <label className="text-xs text-muted-foreground font-medium">{arrLabel} Range (Cr)</label>
-                            <div className="flex gap-1">
-                              <Input type="number" placeholder="Min" value={lvArrMin} onChange={e => setLvArrMin(e.target.value)} className="w-full h-9 text-xs" />
-                              <Input type="number" placeholder="Max" value={lvArrMax} onChange={e => setLvArrMax(e.target.value)} className="w-full h-9 text-xs" />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 pt-2 border-t">
-                          <div className="space-y-1 border rounded-md p-3 overflow-hidden">
-                            <label className="text-xs text-muted-foreground font-medium">Start Date Range</label>
-                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                              <Input type="date" value={lvKickOffFrom} onChange={e => setLvKickOffFrom(e.target.value)} className="h-9 text-xs min-w-0" />
-                              <span className="text-xs text-muted-foreground px-1">to</span>
-                              <Input type="date" value={lvKickOffTo} onChange={e => setLvKickOffTo(e.target.value)} className="h-9 text-xs min-w-0" />
-                            </div>
-                          </div>
-                          <div className="space-y-1 border rounded-md p-3 overflow-hidden">
-                            <label className="text-xs text-muted-foreground font-medium">Go-Live Date Range</label>
-                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1">
-                              <Input type="date" value={lvGoLiveFrom} onChange={e => setLvGoLiveFrom(e.target.value)} className="h-9 text-xs min-w-0" />
-                              <span className="text-xs text-muted-foreground px-1">to</span>
-                              <Input type="date" value={lvGoLiveTo} onChange={e => setLvGoLiveTo(e.target.value)} className="h-9 text-xs min-w-0" />
-                            </div>
-                          </div>
-                        </div>
-                        {customFields.length > 0 && (
-                          <div className="pt-2 border-t space-y-2">
-                            <p className="text-xs font-semibold text-muted-foreground tracking-normal">Custom Fields</p>
-                            <div className="grid grid-cols-2 gap-3">
-                              {customFields.map(cf => {
-                                const vals = lvCustomFieldFilters[cf.id] || [];
-                                const setVals = (next: string[]) => setLvCustomFieldFilters(prev => ({ ...prev, [cf.id]: next }));
-                                const presentValues = Array.from(new Set(
-                                  Object.values(customValuesMap).map(m => m?.[cf.id]).filter(Boolean) as string[]
-                                )).sort();
-                                const opts = (cf.field_type === "select" && cf.options.length > 0 ? cf.options : presentValues);
-                                return (
-                                  <div key={cf.id} className="space-y-1">
-                                    <label className="text-xs text-muted-foreground font-medium">{cf.field_label}</label>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-between h-10 text-sm font-normal">
-                                          <span className="truncate">{vals.length === 0 ? `All` : `${vals.length} selected`}</span>
-                                          <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
-                                        </Button>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-56 p-2" align="start">
-                                        <div className="max-h-48 overflow-y-auto space-y-1">
-                                          {opts.length === 0 && <p className="text-xs text-muted-foreground px-2 py-1">No values yet</p>}
-                                          {opts.map(opt => (
-                                            <label key={opt} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted cursor-pointer text-sm">
-                                              <Checkbox
-                                                checked={vals.includes(opt)}
-                                                onCheckedChange={() => setVals(vals.includes(opt) ? vals.filter(v => v !== opt) : [...vals, opt])}
-                                              />
-                                              <span className="truncate">{opt}</span>
-                                            </label>
-                                          ))}
-                                        </div>
-                                        {vals.length > 0 && (
-                                          <Button variant="ghost" size="sm" className="w-full mt-1 text-xs" onClick={() => setVals([])}>Clear</Button>
-                                        )}
-                                      </PopoverContent>
-                                    </Popover>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
                   </div>
                   <div className="flex items-center gap-2">
                     {selectedProjects.size > 0 && (
@@ -1853,6 +1717,93 @@ export const ManagerDashboard = () => {
                 </div>
               </CardHeader>, projectToolbarHost) : null}
               <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+                {/* Inline filter command bar */}
+                <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
+                  {/* Needs Attention toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setLvNeedsAttentionOnly(v => !v)}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                      lvNeedsAttentionOnly
+                        ? "bg-destructive/10 text-destructive border-destructive/30"
+                        : "bg-background text-muted-foreground border-border hover:bg-muted"
+                    )}
+                  >
+                    <Eye className="h-3 w-3" />
+                    At Risk
+                    {lvNeedsAttentionOnly && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={(e) => { e.stopPropagation(); setLvNeedsAttentionOnly(false); }} />}
+                  </button>
+
+                  {/* Multi-value filter pills */}
+                  {[
+                    { label: "Team", values: lvTeamFilter, setter: setLvTeamFilter, options: [{ value: "mint", label: teamLabels.mint }, { value: "integration", label: teamLabels.integration }, { value: "ms", label: teamLabels.ms }] },
+                    { label: "State", values: lvStateFilter, setter: setLvStateFilter, options: (Object.keys(projectStateLabels) as ProjectState[]).map(s => ({ value: s, label: stateLabelsFromCtx[s] || projectStateLabels[s] })) },
+                    { label: "Owner", values: lvOwnerFilter, setter: setLvOwnerFilter, options: [{ value: "unassigned", label: "Unassigned" }, ...lvFilteredOwners.map(o => ({ value: o.id, label: o.name }))] },
+                    { label: "Platform", values: lvPlatformFilter, setter: setLvPlatformFilter, options: uniquePlatforms.map(p => ({ value: p, label: p })) },
+                    { label: "Category", values: lvCategoryFilter, setter: setLvCategoryFilter, options: uniqueCategories.map(c => ({ value: c, label: c })) },
+                    { label: "Responsibility", values: lvResponsibilityFilter, setter: setLvResponsibilityFilter, options: [{ value: "gokwik", label: responsibilityLabels.gokwik }, { value: "merchant", label: responsibilityLabels.merchant }, { value: "neutral", label: "Neutral" }] },
+                    { label: "Stage", values: lvFunnelStageFilter, setter: setLvFunnelStageFilter, options: (["sales","pre_integration","under_integration","live","none"] as FunnelStage[]).map(s => ({ value: s, label: funnelStageLabels[s] })) },
+                  ].map(({ label, values, setter, options }) => (
+                    <Popover key={label}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                            values.length > 0
+                              ? "bg-primary/10 text-primary border-primary/30"
+                              : "bg-background text-muted-foreground border-border hover:bg-muted"
+                          )}
+                        >
+                          {values.length > 0 ? `${label}: ${values.length}` : label}
+                          <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-52 p-2">
+                        <div className="max-h-48 overflow-y-auto space-y-0.5">
+                          {options.map(opt => (
+                            <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                              <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleFilterValue(setter, opt.value)} />
+                              <span className="truncate">{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                        {values.length > 0 && (
+                          <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>
+                        )}
+                      </PopoverContent>
+                    </Popover>
+                  ))}
+
+                  {/* Active filter pills for currently-set values */}
+                  {lvNeedsAttentionOnly && null /* handled above */}
+                  {[
+                    ...lvTeamFilter.map(v => ({ label: teamLabels[v as keyof typeof teamLabels] || v, clear: () => setLvTeamFilter(p => p.filter(x => x !== v)) })),
+                    ...lvStateFilter.map(v => ({ label: stateLabelsFromCtx[v as ProjectState] || projectStateLabels[v as ProjectState] || v, clear: () => setLvStateFilter(p => p.filter(x => x !== v)) })),
+                    ...lvOwnerFilter.map(v => ({ label: allProfiles.find(o => o.id === v)?.name || v, clear: () => setLvOwnerFilter(p => p.filter(x => x !== v)) })),
+                    ...lvPlatformFilter.map(v => ({ label: v, clear: () => setLvPlatformFilter(p => p.filter(x => x !== v)) })),
+                    ...lvCategoryFilter.map(v => ({ label: v, clear: () => setLvCategoryFilter(p => p.filter(x => x !== v)) })),
+                    ...lvResponsibilityFilter.map(v => ({ label: responsibilityLabels[v as keyof typeof responsibilityLabels] || v, clear: () => setLvResponsibilityFilter(p => p.filter(x => x !== v)) })),
+                    ...lvFunnelStageFilter.map(v => ({ label: funnelStageLabels[v as FunnelStage] || v, clear: () => setLvFunnelStageFilter(p => p.filter(x => x !== v)) })),
+                  ].map(({ label, clear }) => (
+                    <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30">
+                      {label}
+                      <button type="button" onClick={clear} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+                    </span>
+                  ))}
+
+                  {lvHasActiveFilters && (
+                    <button
+                      type="button"
+                      onClick={clearLvFilters}
+                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                      Clear all
+                    </button>
+                  )}
+                </div>
                 {/* rounded + clipping so the accent bar and header follow the card's corners */}
                 <div className="h-px w-full shrink-0 bg-border" />
                 <div className="min-h-0 flex-1 overflow-auto">
@@ -1997,10 +1948,15 @@ export const ManagerDashboard = () => {
                                     ) : (
                                     <div onClick={(e) => e.stopPropagation()}>
                                       <Select value={project.projectState} onValueChange={(v) => updateProject({ ...project, projectState: v as any })}>
-                                        <SelectTrigger className="h-7 text-xs w-[120px] border-none p-0 shadow-none"><SelectValue /></SelectTrigger>
+                                        <SelectTrigger className={cn("h-7 text-xs w-[130px] border-none shadow-none rounded-full px-2.5 font-medium", projectStateColors[project.projectState as ProjectState] || "text-muted-foreground")}><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                          {(Object.keys(projectStateLabels) as any[]).map(s => (
-                                            <SelectItem key={s} value={s}>{stateLabelsFromCtx[s] || projectStateLabels[s]}</SelectItem>
+                                          {(Object.keys(projectStateLabels) as ProjectState[]).map(s => (
+                                            <SelectItem key={s} value={s}>
+                                              <span className="flex items-center gap-2">
+                                                <span className={cn("h-2 w-2 rounded-full shrink-0", projectStateColors[s]?.includes("bg-") ? projectStateColors[s].split(" ")[0] : "bg-muted")} />
+                                                {stateLabelsFromCtx[s] || projectStateLabels[s]}
+                                              </span>
+                                            </SelectItem>
                                           ))}
                                         </SelectContent>
                                       </Select>
