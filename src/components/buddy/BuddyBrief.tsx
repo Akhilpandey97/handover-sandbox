@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Download, Sparkles, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { apiAuthHeaders } from "@/lib/api-invoke";
 import { logActivity } from "@/hooks/useActivityLogs";
 import { cn } from "@/lib/utils";
@@ -64,6 +65,7 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { getLabel } = useLabels();
+  const { isSuperAdmin, isTenantAdmin } = usePermissions();
   const today = new Date().toISOString().slice(0, 10);
   const dismissKey = `buddy:brief-dismissed:${currentUser?.id}:${today}`;
   const [dismissed, setDismissed] = useState(false);
@@ -87,7 +89,7 @@ export const DailyBrief = ({ onPick }: { onPick: (prompt: string, draft?: boolea
   if (isLoading) return <div className="h-40 animate-pulse rounded-xl border border-border bg-muted/40" aria-label="Loading today's brief" />;
 
   const setupNudge =
-    data?.setup && data.setup.set_up < data.setup.total ? (
+    (isSuperAdmin || isTenantAdmin) && data?.setup && data.setup.set_up < data.setup.total ? (
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary-soft px-4 py-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">Set up this workspace</p>

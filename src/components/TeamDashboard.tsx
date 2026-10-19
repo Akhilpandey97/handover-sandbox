@@ -1,15 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   AlertCircle,
+  ArrowDown,
+  ArrowUp,
   BarChart3,
   CalendarDays,
   Check,
   CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
   CircleDashed,
+  Eye,
   FolderKanban,
   GripVertical,
   List,
+  ListChecks,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
@@ -23,7 +32,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
-import { type Project, type ProjectState, getProjectFunnelStage, projectStateLabels } from "@/data/projectsData";
+import { type Project, type ProjectState, type FunnelStage, getProjectFunnelStage, projectStateLabels, funnelStageLabels } from "@/data/projectsData";
 import { getActiveFunnelStages } from "@/data/funnelConfig";
 import { formatGoLiveDate } from "./GoLiveDate";
 import { arrToCrore } from "@/lib/arr";
@@ -34,8 +43,13 @@ import { useDashletOrder } from "@/hooks/useDashletOrder";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { openProjectInNewTab } from "@/lib/open-project";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { RiskBadge } from "./RiskBadge";
 
 import { NotificationCenter } from "./NotificationCenter";
 import { BuddyAvatar } from "./buddy/BuddyAvatar";
@@ -83,6 +97,63 @@ export const TeamDashboard = () => {
     onDragOver,
     onDragEnd,
   } = useDashletOrder(["kpi", "incoming", "tat", "attention", "egl", "stages", "health"], "user_dashboard_dashlet_order");
+
+  // ── List view state ──────────────────────────────────────────────
+  const LIST_VIEW_COLUMNS = [
+    { key: "merchantName", label: getLabel("field_merchant_name") },
+    { key: "mid", label: getLabel("field_mid") },
+    { key: "platform", label: getLabel("field_platform") },
+    { key: "category", label: getLabel("field_category") },
+    { key: "status", label: "Status" },
+    { key: "projectStage", label: getLabel("field_project_stage") },
+    { key: "arr", label: getLabel("field_arr") },
+    { key: "expectedGoLiveDate", label: getLabel("field_expected_go_live_date") },
+    { key: "kickOffDate", label: getLabel("field_kick_off_date") },
+    { key: "goLiveDate", label: getLabel("field_go_live_date") },
+    { key: "integrationType", label: getLabel("field_integration_type") },
+    { key: "goLivePercent", label: getLabel("field_go_live_percent") },
+    { key: "mintNotes", label: getLabel("field_mint_notes") },
+    { key: "projectNotes", label: getLabel("field_project_notes") },
+  ];
+  const SORTABLE_LIST_KEYS = new Set(["merchantName", "arr", "platform", "kickOffDate", "status", "expectedGoLiveDate"]);
+  const [listViewColumns, setListViewColumns] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("user_listview_columns");
+      return saved ? (JSON.parse(saved) as string[]).filter((c) => c !== "needsAttention") : ["merchantName", "platform", "status", "projectStage", "expectedGoLiveDate", "arr"];
+    } catch { return ["merchantName", "platform", "status", "projectStage", "expectedGoLiveDate", "arr"]; }
+  });
+  const [listSortField, setListSortField] = useState<string>("none");
+  const [listSortDir, setListSortDir] = useState<"asc" | "desc">("asc");
+  const toggleListSort = (key: string) => {
+    if (listSortField === key) setListSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setListSortField(key); setListSortDir("asc"); }
+  };
+  const [listViewPage, setListViewPage] = useState(1);
+  const [listViewPageSize, setListViewPageSize] = useState(25);
+  const [lvNeedsAttentionOnly, setLvNeedsAttentionOnly] = useState(false);
+  const [lvStateFilter, setLvStateFilter] = useState<string[]>([]);
+  const [lvFunnelStageFilter, setLvFunnelStageFilter] = useState<string[]>([]);
+  const [draggedCol, setDraggedCol] = useState<string | null>(null);
+  const handleColDragStart = (col: string) => setDraggedCol(col);
+  const handleColDragOver = (targetCol: string) => {
+    if (!draggedCol || draggedCol === targetCol) return;
+    setListViewColumns((prev: string[]) => {
+      const newCols = [...prev];
+      const fromIdx = newCols.indexOf(draggedCol);
+      if (fromIdx < 0) return prev;
+      newCols.splice(fromIdx, 1);
+      const toIdx = newCols.indexOf(targetCol);
+      newCols.splice(toIdx, 0, draggedCol);
+      return newCols;
+    });
+  };
+  const handleColDragEnd = (cols: string[]) => {
+    setDraggedCol(null);
+    localStorage.setItem("user_listview_columns", JSON.stringify(cols));
+  };
+  const toggleFilterValue = (setter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
+    setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
+  };
 
   const userProjects = useMemo(
     () => projects.filter((project) => project.assignedOwner === currentUser?.id && !project.archived),
@@ -392,60 +463,223 @@ export const TeamDashboard = () => {
             </div>}
             {resolvedTab === "projects" && projectView === "kanban" && <div className="flex min-h-0 flex-1 flex-col"><KanbanBoard projectsOverride={visibleProjects} toolbarContainer={projectToolbarHost} searchQuery={searchQuery} /></div>}
             {resolvedTab === "projects" && projectView === "golive" && <div className="flex min-h-0 flex-1 flex-col"><MonthlyGoLiveTracker projectsOverride={visibleProjects} toolbarContainer={projectToolbarHost} searchQuery={searchQuery} /></div>}
-            {resolvedTab === "projects" && projectView === "list" && <div className="flex min-h-0 flex-1 flex-col">
-              <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-card shadow-sm overflow-hidden">
-                <ScrollArea className="flex-1 min-h-0">
-                  <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
-                    <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
-                      <TableRow className="hover:bg-muted/40 border-b">
-                        <TableHead className="font-semibold text-foreground">Project</TableHead>
-                        <TableHead className="font-semibold text-foreground">Stage</TableHead>
-                        <TableHead className="font-semibold text-foreground">State</TableHead>
-                        <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_expected_go_live_date")}</TableHead>
-                        <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_arr")}</TableHead>
-                        <TableHead className="font-semibold text-foreground">Health</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {visibleProjects.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-sm">No projects to display.</TableCell>
-                        </TableRow>
-                      ) : visibleProjects.map((project) => {
-                        const stageId = getProjectFunnelStage(project);
-                        const stageLabel = getActiveFunnelStages().find((s) => s.id === stageId)?.label || "—";
-                        const verdict = verdicts[project.id];
-                        return (
-                          <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openProjectInNewTab(project.id)}>
-                            <TableCell className="font-medium text-xs">{project.merchantName}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{stageLabel}</TableCell>
-                            <TableCell className="text-xs">
-                              <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                                project.projectState === "in_progress" ? "bg-warning/15 text-warning-strong" :
-                                project.projectState === "live" ? "bg-success/15 text-success-strong" :
-                                project.projectState === "blocked" ? "bg-destructive/15 text-destructive" :
-                                "bg-muted text-muted-foreground"
-                              )}>
-                                {stateLabels[project.projectState] || projectStateLabels[project.projectState]}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatGoLiveDate(project)}</TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{arrToCrore(project.arr).toFixed(2)} Cr</TableCell>
-                            <TableCell className="text-xs">
-                              {verdict?.level === "high" ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-medium text-destructive"><AlertCircle className="h-3 w-3" />At Risk</span>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">OK</span>
-                              )}
-                            </TableCell>
+            {resolvedTab === "projects" && projectView === "list" && (() => {
+              const lvFilteredProjects = visibleProjects.filter((p) => {
+                const matchesState = lvStateFilter.length === 0 || lvStateFilter.includes(p.projectState);
+                const matchesStage = lvFunnelStageFilter.length === 0 || lvFunnelStageFilter.includes(getProjectFunnelStage(p));
+                const matchesAttention = !lvNeedsAttentionOnly || verdicts[p.id]?.level === "high";
+                return matchesState && matchesStage && matchesAttention;
+              });
+              const lvHasActiveFilters = lvStateFilter.length > 0 || lvFunnelStageFilter.length > 0 || lvNeedsAttentionOnly;
+              const clearLvFilters = () => { setLvStateFilter([]); setLvFunnelStageFilter([]); setLvNeedsAttentionOnly(false); };
+              const getColValue = (project: Project, key: string): string => {
+                switch (key) {
+                  case "merchantName": return project.merchantName;
+                  case "mid": return project.mid;
+                  case "platform": return project.platform || "—";
+                  case "category": return project.category || "—";
+                  case "status": return stateLabels[project.projectState] || projectStateLabels[project.projectState];
+                  case "projectStage": return funnelStageLabels[getProjectFunnelStage(project)] || "—";
+                  case "arr": return `${project.arr}`;
+                  case "expectedGoLiveDate": return formatGoLiveDate(project);
+                  case "kickOffDate": return project.dates.kickOffDate;
+                  case "goLiveDate": return project.dates.goLiveDate || project.dates.expectedGoLiveDate || "—";
+                  case "integrationType": return project.integrationType || "—";
+                  case "goLivePercent": return `${project.goLivePercent || 0}%`;
+                  case "mintNotes": return project.notes?.mintNotes || "—";
+                  case "projectNotes": return project.notes?.projectNotes || "—";
+                  default: return "—";
+                }
+              };
+              const statusColor = (s: string) =>
+                s === "in_progress" ? "text-warning-strong" : s === "live" ? "text-success-strong" : s === "blocked" ? "text-destructive" : "text-muted-foreground";
+              return (
+              <div className="flex min-h-0 flex-1 flex-col">
+                <Card className="flex min-h-0 flex-1 flex-col overflow-hidden shadow-sm border-border">
+                  {/* Toolbar via portal */}
+                  {projectToolbarHost ? createPortal(<div className="flex flex-wrap items-center gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs"><ListChecks className="h-3.5 w-3.5" />Columns</Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2" align="end" side="bottom">
+                        <p className="text-xs font-semibold text-muted-foreground mb-2 tracking-normal">Visible Columns</p>
+                        <div className="space-y-1 max-h-[300px] overflow-auto">
+                          {LIST_VIEW_COLUMNS.map(col => {
+                            const active = listViewColumns.includes(col.key);
+                            return (
+                              <label key={col.key} className="flex items-center gap-2 py-1.5 px-1 cursor-pointer text-sm hover:bg-muted/50 rounded">
+                                <Checkbox checked={active} onCheckedChange={() => {
+                                  const newCols = active ? listViewColumns.filter(c => c !== col.key) : [...listViewColumns, col.key];
+                                  setListViewColumns(newCols);
+                                  localStorage.setItem("user_listview_columns", JSON.stringify(newCols));
+                                }} className="h-4 w-4" />
+                                {col.label}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <Select value={String(listViewPageSize)} onValueChange={(v) => { setListViewPageSize(Number(v)); setListViewPage(1); }}>
+                      <SelectTrigger className="w-[100px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10 / Page</SelectItem>
+                        <SelectItem value="25">25 / Page</SelectItem>
+                        <SelectItem value="50">50 / Page</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>, projectToolbarHost) : null}
+                  <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+                    {/* Filter bar */}
+                    <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
+                      <button
+                        type="button"
+                        onClick={() => setLvNeedsAttentionOnly(v => !v)}
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                          lvNeedsAttentionOnly
+                            ? "bg-destructive/10 text-destructive border-destructive/30"
+                            : "bg-background text-muted-foreground border-border hover:bg-muted"
+                        )}
+                      >
+                        <Eye className="h-3 w-3" />At Risk
+                        {lvNeedsAttentionOnly && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={(e) => { e.stopPropagation(); setLvNeedsAttentionOnly(false); }} />}
+                      </button>
+                      {[
+                        { label: "State", values: lvStateFilter, setter: setLvStateFilter, options: (Object.keys(projectStateLabels) as ProjectState[]).map(s => ({ value: s, label: stateLabels[s] || projectStateLabels[s] })) },
+                        { label: "Stage", values: lvFunnelStageFilter, setter: setLvFunnelStageFilter, options: (["sales","pre_integration","under_integration","live","none"] as FunnelStage[]).map(s => ({ value: s, label: funnelStageLabels[s] })) },
+                      ].map(({ label, values, setter, options }) => (
+                        <Popover key={label}>
+                          <PopoverTrigger asChild>
+                            <button type="button" className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border", values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted")}>
+                              {values.length > 0 ? `${label}: ${values.length}` : label}
+                              <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent align="start" className="w-52 p-2">
+                            <div className="max-h-48 overflow-y-auto space-y-0.5">
+                              {options.map(opt => (
+                                <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
+                                  <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleFilterValue(setter, opt.value)} />
+                                  <span className="truncate">{opt.label}</span>
+                                </label>
+                              ))}
+                            </div>
+                            {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>}
+                          </PopoverContent>
+                        </Popover>
+                      ))}
+                      {lvHasActiveFilters && (
+                        <button type="button" onClick={clearLvFilters} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors">
+                          <X className="h-2.5 w-2.5" />Clear all
+                        </button>
+                      )}
+                    </div>
+                    <div className="h-px w-full shrink-0 bg-border" />
+                    <div className="min-h-0 flex-1 overflow-auto">
+                      <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
+                        <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
+                          <TableRow className="hover:bg-muted/40 border-b">
+                            {listViewColumns.map(colKey => {
+                              const col = LIST_VIEW_COLUMNS.find(c => c.key === colKey);
+                              if (!col) return null;
+                              const isSortable = SORTABLE_LIST_KEYS.has(colKey);
+                              const isActive = listSortField === colKey;
+                              return (
+                                <TableHead
+                                  key={colKey}
+                                  draggable
+                                  onDragStart={() => handleColDragStart(colKey)}
+                                  onDragOver={(e) => { e.preventDefault(); handleColDragOver(colKey); }}
+                                  onDragEnd={() => handleColDragEnd(listViewColumns)}
+                                  className={cn("whitespace-nowrap text-xs tracking-normal select-none text-foreground p-0", draggedCol === colKey && "opacity-40")}
+                                >
+                                  {isSortable ? (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); toggleListSort(colKey); }}
+                                      className={cn("group flex h-full w-full items-center gap-1 px-3 py-2 cursor-grab font-semibold transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset", isActive ? "text-foreground" : "text-muted-foreground")}
+                                    >
+                                      {col.label}
+                                      {isActive
+                                        ? (listSortDir === "asc" ? <ArrowUp className="h-3 w-3 shrink-0" /> : <ArrowDown className="h-3 w-3 shrink-0" />)
+                                        : <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-50" />
+                                      }
+                                    </button>
+                                  ) : (
+                                    <span className="flex h-full w-full items-center px-3 py-2 cursor-grab font-semibold">{col.label}</span>
+                                  )}
+                                </TableHead>
+                              );
+                            })}
                           </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-              </div>
-            </div>}
+                        </TableHeader>
+                        <TableBody>
+                          {(() => {
+                            let sorted = [...lvFilteredProjects];
+                            if (listSortField !== "none") {
+                              sorted.sort((a, b) => {
+                                let va = "", vb = "";
+                                switch (listSortField) {
+                                  case "merchantName": va = a.merchantName; vb = b.merchantName; break;
+                                  case "arr": return listSortDir === "asc" ? a.arr - b.arr : b.arr - a.arr;
+                                  case "platform": va = a.platform || ""; vb = b.platform || ""; break;
+                                  case "kickOffDate": va = a.dates.kickOffDate; vb = b.dates.kickOffDate; break;
+                                  case "expectedGoLiveDate": va = a.dates.expectedGoLiveDate || ""; vb = b.dates.expectedGoLiveDate || ""; break;
+                                  case "status": va = a.projectState; vb = b.projectState; break;
+                                }
+                                return listSortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+                              });
+                            }
+                            const paged = sorted.slice((listViewPage - 1) * listViewPageSize, listViewPage * listViewPageSize);
+                            return paged.length === 0 ? (
+                              <TableRow><TableCell colSpan={listViewColumns.length} className="text-center py-8 text-muted-foreground text-sm">No projects to display.</TableCell></TableRow>
+                            ) : paged.map(project => (
+                              <TableRow key={project.id} className="group cursor-pointer hover:bg-muted/50" onClick={() => openProjectInNewTab(project.id)}>
+                                {listViewColumns.map(colKey => (
+                                  <TableCell key={colKey} className={cn("text-xs", colKey === "status" && statusColor(project.projectState), colKey === "merchantName" && "font-medium")}>
+                                    {colKey === "merchantName" ? (
+                                      <span className="inline-flex items-center gap-1.5">
+                                        {getColValue(project, colKey)}
+                                        <RiskBadge projectId={project.id} verdict={verdicts[project.id]} />
+                                      </span>
+                                    ) : colKey === "arr" ? (
+                                      `${arrToCrore(project.arr).toFixed(2)} Cr`
+                                    ) : ["mintNotes", "projectNotes"].includes(colKey) ? (
+                                      <span className="truncate block max-w-[200px]" title={getColValue(project, colKey)}>{getColValue(project, colKey)}</span>
+                                    ) : (
+                                      getColValue(project, colKey)
+                                    )}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ));
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    {lvFilteredProjects.length > listViewPageSize && (
+                      <div className="flex items-center justify-between px-4 py-3 border-t">
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm" disabled={listViewPage <= 1} onClick={() => setListViewPage(p => p - 1)} className="h-8 w-8 p-0">
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          {Array.from({ length: Math.ceil(lvFilteredProjects.length / listViewPageSize) }, (_, i) => i + 1).slice(0, 5).map(page => (
+                            <Button key={page} variant={listViewPage === page ? "default" : "outline"} size="sm" onClick={() => setListViewPage(page)} className="h-8 w-8 p-0 text-xs">
+                              {page}
+                            </Button>
+                          ))}
+                          <Button variant="outline" size="sm" disabled={listViewPage >= Math.ceil(lvFilteredProjects.length / listViewPageSize)} onClick={() => setListViewPage(p => p + 1)} className="h-8 w-8 p-0">
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>);
+            })()}
             {resolvedTab === "hi-there" && <div className="flex min-h-0 flex-1 flex-col"><AiChatBot /></div>}
           </div>
         </div>
