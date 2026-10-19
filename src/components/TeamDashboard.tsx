@@ -9,6 +9,7 @@ import {
   CircleDashed,
   FolderKanban,
   GripVertical,
+  List,
   LogOut,
   PanelLeftClose,
   PanelLeftOpen,
@@ -32,6 +33,9 @@ import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { openProjectInNewTab } from "@/lib/open-project";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { NotificationCenter } from "./NotificationCenter";
 import { BuddyAvatar } from "./buddy/BuddyAvatar";
@@ -109,7 +113,6 @@ export const TeamDashboard = () => {
   useEffect(() => {
     // Everyone starts in Buddy.
     if (pathname === "/") navigate({ to: "/hi-there", replace: true });
-    if (pathname === "/projects/list") navigate({ to: "/projects/kanban", replace: true });
   }, [pathname, navigate]);
 
   if (!currentUser) return null;
@@ -122,7 +125,7 @@ export const TeamDashboard = () => {
   const resolvedTab: UserTab = routeState.tab === "projects" || routeState.tab === "hi-there"
     ? routeState.tab
     : "dashboard";
-  const projectView = routeState.projectView === "golive" ? "golive" : "kanban";
+  const projectView = routeState.projectView === "golive" ? "golive" : routeState.projectView === "list" ? "list" : "kanban";
   const navItems: Array<{ key: UserTab; label: string; icon: React.ReactNode }> = [
     { key: "hi-there", label: "Buddy", icon: <BuddyAvatar size={16} /> },
     { key: "dashboard", label: "Workbench", icon: <BarChart3 className="h-4 w-4" /> },
@@ -227,40 +230,22 @@ export const TeamDashboard = () => {
                         <span>· {getLabel("field_expected_go_live_date")}: {formatGoLiveDate(project)}</span>
                       </p>
                     </div>
-                    {/* One slide with two ends. The thumb rests in the middle while the
-                        decision is open and runs to whichever end you reach for, so the
-                        control reads as a switch rather than a pair of buttons. */}
-                    <div
-                      role="radiogroup"
-                      aria-label={`Accept or reject ${project.merchantName}`}
-                      className="relative flex h-7 w-[4.5rem] shrink-0 items-center rounded-full border border-border bg-muted p-0.5"
-                    >
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={false}
-                        title={`Reject ${project.merchantName}`}
-                        aria-label={`Reject ${project.merchantName}`}
-                        onClick={() => setRejectTarget(project)}
-                        className="peer/reject relative z-10 flex h-6 flex-1 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-destructive focus-visible:text-destructive focus:outline-none"
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 gap-1 px-2.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); setRejectTarget(project); }}
                       >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={false}
-                        title={`Accept ${project.merchantName}`}
-                        aria-label={`Accept ${project.merchantName}`}
-                        onClick={() => acceptProject(project.id)}
-                        className="peer/accept relative z-10 flex h-6 flex-1 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-success-strong focus-visible:text-success-strong focus:outline-none"
+                        <X className="h-3 w-3" />Reject
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 gap-1 px-2.5 text-xs bg-success text-white hover:bg-success/90"
+                        onClick={(e) => { e.stopPropagation(); acceptProject(project.id); }}
                       >
-                        <Check className="h-3.5 w-3.5" />
-                      </button>
-                      <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute top-0.5 h-6 w-[calc(50%-2px)] rounded-full bg-background shadow-sm transition-all duration-200 left-1/2 -translate-x-1/2 peer-hover/reject:left-[2px] peer-hover/reject:translate-x-0 peer-focus-visible/reject:left-[2px] peer-focus-visible/reject:translate-x-0 peer-hover/accept:left-auto peer-hover/accept:right-[2px] peer-hover/accept:translate-x-0 peer-focus-visible/accept:left-auto peer-focus-visible/accept:right-[2px] peer-focus-visible/accept:translate-x-0"
-                      />
+                        <Check className="h-3 w-3" />Accept
+                      </Button>
                     </div>
                   </div>
                 );
@@ -398,7 +383,7 @@ export const TeamDashboard = () => {
       <main className="flex min-w-0 flex-1 flex-col">
         <div className={cn("min-h-0 flex-1 app-shell-surface", (resolvedTab === "projects" || resolvedTab === "hi-there") ? "flex flex-col overflow-hidden" : "overflow-auto")}>
           <div className={cn("p-4 sm:p-6", (resolvedTab === "projects" || resolvedTab === "hi-there") && "flex min-h-0 flex-1 flex-col")}>
-            {resolvedTab === "projects" && <div className="mb-3 flex shrink-0 flex-wrap items-center justify-center gap-2"><div className="flex items-center gap-1" role="tablist" aria-label="Project views">{[{ value: "kanban", label: "Kanban", icon: GripVertical }, { value: "golive", label: "Go-Live Tracker", icon: CalendarDays }].map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" size="sm" role="tab" aria-selected={projectView === value} onClick={() => navigate({ to: projectViewPath(value as "kanban" | "golive") })} className={cn("h-8 gap-1.5 text-xs", projectView === value && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground")}><Icon className="h-3.5 w-3.5" />{label}</Button>)}</div><div ref={setProjectToolbarHost} className="flex flex-wrap items-center gap-2" /></div>}
+            {resolvedTab === "projects" && <div className="mb-3 flex shrink-0 flex-wrap items-center justify-center gap-2"><div className="flex items-center gap-1" role="tablist" aria-label="Project views">{[{ value: "kanban", label: "Kanban", icon: GripVertical }, { value: "list", label: "List", icon: List }, { value: "golive", label: "Go-Live Tracker", icon: CalendarDays }].map(({ value, label, icon: Icon }) => <Button key={value} variant="ghost" size="sm" role="tab" aria-selected={projectView === value} onClick={() => navigate({ to: projectViewPath(value as "kanban" | "list" | "golive") })} className={cn("h-8 gap-1.5 text-xs", projectView === value && "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground")}><Icon className="h-3.5 w-3.5" />{label}</Button>)}</div><div ref={setProjectToolbarHost} className="flex flex-wrap items-center gap-2" /></div>}
             {resolvedTab === "dashboard" && <div className="mx-auto max-w-[1500px]">
               <div className="mb-4 flex items-end justify-between gap-4"><div><h1 className="heading-page text-foreground">{greeting()}, {currentUser.name} — here are your actions for today</h1></div><DashletBuilder items={builderItems} hidden={hidden} onToggle={toggleHidden} custom={customDashlets} onAddCustom={addCustom} onRemoveCustom={removeCustom} /></div>
               <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">{visibleOrder.map((id) => dashlets[id] ? <DashletSlot key={id} className={id === "kpi" ? "row-span-1 lg:col-span-2" : "lg:col-span-1"} isDragging={dragging === id} onDragStart={() => onDragStart(id)} onDragOver={() => onDragOver(id)} onDragEnd={onDragEnd}>{dashlets[id]}</DashletSlot> : null)}</div>
@@ -407,6 +392,60 @@ export const TeamDashboard = () => {
             </div>}
             {resolvedTab === "projects" && projectView === "kanban" && <div className="flex min-h-0 flex-1 flex-col"><KanbanBoard projectsOverride={visibleProjects} toolbarContainer={projectToolbarHost} searchQuery={searchQuery} /></div>}
             {resolvedTab === "projects" && projectView === "golive" && <div className="flex min-h-0 flex-1 flex-col"><MonthlyGoLiveTracker projectsOverride={visibleProjects} toolbarContainer={projectToolbarHost} searchQuery={searchQuery} /></div>}
+            {resolvedTab === "projects" && projectView === "list" && <div className="flex min-h-0 flex-1 flex-col">
+              <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-border bg-card shadow-sm overflow-hidden">
+                <ScrollArea className="flex-1 min-h-0">
+                  <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
+                    <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
+                      <TableRow className="hover:bg-muted/40 border-b">
+                        <TableHead className="font-semibold text-foreground">Project</TableHead>
+                        <TableHead className="font-semibold text-foreground">Stage</TableHead>
+                        <TableHead className="font-semibold text-foreground">State</TableHead>
+                        <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_expected_go_live_date")}</TableHead>
+                        <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_arr")}</TableHead>
+                        <TableHead className="font-semibold text-foreground">Health</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {visibleProjects.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-sm">No projects to display.</TableCell>
+                        </TableRow>
+                      ) : visibleProjects.map((project) => {
+                        const stageId = getProjectFunnelStage(project);
+                        const stageLabel = getActiveFunnelStages().find((s) => s.id === stageId)?.label || "—";
+                        const verdict = verdicts[project.id];
+                        return (
+                          <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openProjectInNewTab(project.id)}>
+                            <TableCell className="font-medium text-xs">{project.merchantName}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{stageLabel}</TableCell>
+                            <TableCell className="text-xs">
+                              <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                                project.projectState === "in_progress" ? "bg-warning/15 text-warning-strong" :
+                                project.projectState === "live" ? "bg-success/15 text-success-strong" :
+                                project.projectState === "blocked" ? "bg-destructive/15 text-destructive" :
+                                "bg-muted text-muted-foreground"
+                              )}>
+                                {stateLabels[project.projectState] || projectStateLabels[project.projectState]}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{formatGoLiveDate(project)}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground">{arrToCrore(project.arr).toFixed(2)} Cr</TableCell>
+                            <TableCell className="text-xs">
+                              {verdict?.level === "high" ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-medium text-destructive"><AlertCircle className="h-3 w-3" />At Risk</span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">OK</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </div>
+            </div>}
             {resolvedTab === "hi-there" && <div className="flex min-h-0 flex-1 flex-col"><AiChatBot /></div>}
           </div>
         </div>
