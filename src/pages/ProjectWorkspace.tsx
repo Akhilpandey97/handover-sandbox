@@ -474,8 +474,8 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             />
           </TabsContent>
 
-          <TabsContent value="activity" className="m-0 h-full overflow-y-auto p-4">
-            <ProjectActivityHistoryPanel projectId={project.id} height="100%" />
+          <TabsContent value="activity" className="m-0 h-full">
+            <ProjectActivityHistoryPanel projectId={project.id} />
           </TabsContent>
 
           <TabsContent value="jira" className="m-0 h-full overflow-y-auto p-4">
@@ -484,11 +484,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             </div>
           </TabsContent>
 
-          <TabsContent value="tasks" className="m-0 h-full overflow-y-auto">
+          <TabsContent value="tasks" className="m-0 h-full">
             <WorkspaceTasksPanel project={project} />
           </TabsContent>
 
-          <TabsContent value="meetings" className="m-0 h-full overflow-y-auto">
+          <TabsContent value="meetings" className="m-0 h-full">
             <WorkspaceMeetingsPanel project={project} />
           </TabsContent>
         </div>
