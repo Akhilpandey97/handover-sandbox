@@ -91,7 +91,7 @@ export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { proje
                   onClick={() => openProjectInNewTab(project.id)}
                 >
                   <TableCell className="font-medium text-xs">{project.merchantName}</TableCell>
-                  <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
+                  <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
                     <GoLiveDate project={project} />
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground align-top">
