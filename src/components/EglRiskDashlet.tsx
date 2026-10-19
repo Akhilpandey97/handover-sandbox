@@ -90,7 +90,7 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => openProjectInNewTab(project.id)}
                 >
-                  <TableCell className="font-medium text-sm">{project.merchantName}</TableCell>
+                  <TableCell className="font-medium text-xs">{project.merchantName}</TableCell>
                   <TableCell className="text-sm whitespace-nowrap">
                     <GoLiveDate project={project} />
                     {verdict.daysRemaining < 0 && (
