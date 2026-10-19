@@ -537,11 +537,6 @@ export const ChecklistDialog = ({
       <div className="w-52 shrink-0 border-r border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
         {/* Sidebar header */}
         <div className="shrink-0 border-b border-border/50 px-3 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-foreground">
-              {groupBy === "stages" ? "Project stages" : "Teams"}
-            </span>
-          </div>
           <ToggleGroup
             type="single"
             value={groupBy}
