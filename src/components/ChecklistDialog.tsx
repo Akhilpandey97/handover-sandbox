@@ -646,14 +646,14 @@ export const ChecklistDialog = ({
         {/* Task table */}
         <ScrollArea className="flex-1 min-h-0">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-white dark:bg-background">
+            <thead className="sticky top-0 z-10 bg-muted/40">
               <tr className="border-b border-border/50">
-                <th className="w-10 text-left px-3 py-2 text-xs font-medium text-muted-foreground">#</th>
-                <th className="text-left px-3 py-2 text-xs font-medium text-muted-foreground">Task</th>
-                <th className="w-28 text-left px-3 py-2 text-xs font-medium text-muted-foreground">Due date</th>
-                <th className="w-36 text-left px-3 py-2 text-xs font-medium text-muted-foreground">Assignee</th>
-                <th className="w-24 text-left px-3 py-2 text-xs font-medium text-muted-foreground">Status</th>
-                <th className="w-24 text-left px-3 py-2 text-xs font-medium text-muted-foreground">Actions</th>
+                <th className="w-10 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">#</th>
+                <th className="text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Checklist</th>
+                <th className="w-28 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Due date</th>
+                <th className="w-36 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Assignee</th>
+                <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Status</th>
+                <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -888,18 +888,6 @@ export const ChecklistDialog = ({
             </tbody>
           </table>
 
-          {/* Add new task row */}
-          <button
-            type="button"
-            className="w-full flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground hover:bg-muted/30 border-t border-border/30"
-            onClick={() => {
-              const first = selectedGroupData?.items?.[0];
-              if (first) setTaskDialogState({ open: true, checklistItemId: first.id, checklistItemTitle: first.title });
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add new task
-          </button>
         </ScrollArea>
       </div>
 
