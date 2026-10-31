@@ -17,8 +17,8 @@ async function handler(req: Request): Promise<Response> {
   if (denied) return denied;
 
   try {
-    const supabaseUrl = process.env['SUPABASE_URL']!;
-    const supabaseKey = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+    const supabaseUrl = process.env["SUPABASE_URL"]!;
+    const supabaseKey = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const now = new Date().toISOString().split("T")[0];
@@ -39,11 +39,18 @@ async function handler(req: Request): Promise<Response> {
     }
 
     // Group by project
-    const projectMap = new Map<string, { projectId: string; tenantId: string; items: typeof overdueItems }>();
+    const projectMap = new Map<
+      string,
+      { projectId: string; tenantId: string; items: typeof overdueItems }
+    >();
     for (const item of overdueItems) {
       const key = item.project_id;
       if (!projectMap.has(key)) {
-        projectMap.set(key, { projectId: item.project_id, tenantId: item.tenant_id || "", items: [] });
+        projectMap.set(key, {
+          projectId: item.project_id,
+          tenantId: item.tenant_id || "",
+          items: [],
+        });
       }
       projectMap.get(key)!.items.push(item);
     }
@@ -82,14 +89,14 @@ async function handler(req: Request): Promise<Response> {
         .eq("tenant_id", project.tenant_id);
 
       if (managerRoles) {
-        const managerIds = managerRoles.map(r => r.user_id);
+        const managerIds = managerRoles.map((r) => r.user_id);
         if (managerIds.length > 0) {
           const { data: managerProfiles } = await supabase
             .from("profiles")
             .select("email, name")
             .in("id", managerIds);
-          managerProfiles?.forEach(mp => {
-            if (!recipients.find(r => r.email === mp.email)) {
+          managerProfiles?.forEach((mp) => {
+            if (!recipients.find((r) => r.email === mp.email)) {
               recipients.push({ email: mp.email, name: mp.name });
             }
           });
@@ -97,7 +104,7 @@ async function handler(req: Request): Promise<Response> {
       }
 
       // Send notification to each recipient
-      const itemList = group.items.map(i => `• ${i.title} (due: ${i.due_date})`).join("\n");
+      const itemList = group.items.map((i) => `• ${i.title} (due: ${i.due_date})`).join("\n");
 
       for (const recipient of recipients) {
         try {
@@ -118,8 +125,10 @@ async function handler(req: Request): Promise<Response> {
     }
 
     return new Response(
-      JSON.stringify({ message: `Processed ${overdueItems.length} overdue items, sent ${emailsSent} notifications` }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        message: `Processed ${overdueItems.length} overdue items, sent ${emailsSent} notifications`,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error in check-overdue-tasks:", error);

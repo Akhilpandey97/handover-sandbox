@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+} from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
@@ -9,13 +13,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-
-const ALLOWED_OWNERS = [
-  "ankit@gokwik.co",
-  "rohit.singh@gokwik.co",
-  "deepak.sharma@gokwik.co",
-];
-
+const ALLOWED_OWNERS = ["ankit@gokwik.co", "rohit.singh@gokwik.co", "deepak.sharma@gokwik.co"];
 
 function b64url(s: string): string {
   const bytes = new TextEncoder().encode(s);
@@ -36,18 +34,20 @@ async function handler(req: Request): Promise<Response> {
     const { id, owner_email } = await req.json();
     if (!id || !owner_email) {
       return new Response(JSON.stringify({ error: "id and owner_email are required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!ALLOWED_OWNERS.includes(owner_email)) {
       return new Response(JSON.stringify({ error: "Invalid owner" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const supabase = createClient(
-      process.env['SUPABASE_URL']!,
-      process.env['SUPABASE_SERVICE_ROLE_KEY']!,
+      process.env["SUPABASE_URL"]!,
+      process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
     );
 
     const { data: row, error: rowErr } = await supabase
@@ -58,12 +58,13 @@ async function handler(req: Request): Promise<Response> {
 
     if (rowErr || !row) {
       return new Response(JSON.stringify({ error: "Merchant not found" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const creds = await getTenantIntegrations(await tenantIdFromRequest(req));
-      const gHeaders = await gmailHeaders(creds);
+    const gHeaders = await gmailHeaders(creds);
 
     // Fetch original message to get thread + headers
     const msgRes = await fetch(
@@ -73,7 +74,8 @@ async function handler(req: Request): Promise<Response> {
     if (!msgRes.ok) {
       const t = await msgRes.text();
       return new Response(JSON.stringify({ error: "Failed to fetch email", details: t }), {
-        status: msgRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: msgRes.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const msg = await msgRes.json();
@@ -105,17 +107,17 @@ async function handler(req: Request): Promise<Response> {
     addAddresses(cc);
     const replyCcParts = Array.from(ccSet).join(", ");
 
-
     // Gmail renders "+email@domain" as an @mention chip for Workspace users
-    const ownerName = owner_email.split("@")[0].replace(/\./g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const ownerName = owner_email
+      .split("@")[0]
+      .replace(/\./g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
     const mentionHtml = `<a href="mailto:${owner_email}">+${ownerName}</a>`;
     const bodyHtml = `<div dir="ltr">Hi Team,<br><br>${mentionHtml} (${owner_email}) will lead the integration.<br><br>Thanks.</div>`;
     const bodyText = `Hi Team,\r\n\r\n+${ownerName} (${owner_email}) will lead the integration.\r\n\r\nThanks.`;
 
     const boundary = `bnd_${crypto.randomUUID().replace(/-/g, "")}`;
-    const headerLines: string[] = [
-      `To: ${replyTo}`,
-    ];
+    const headerLines: string[] = [`To: ${replyTo}`];
     if (replyCcParts) headerLines.push(`Cc: ${replyCcParts}`);
     headerLines.push(`Subject: ${subject}`);
     if (msgId) {
@@ -126,17 +128,19 @@ async function handler(req: Request): Promise<Response> {
     headerLines.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
 
     const rfc2822Lines =
-      headerLines.join("\r\n") + "\r\n\r\n" +
+      headerLines.join("\r\n") +
+      "\r\n\r\n" +
       `--${boundary}\r\n` +
       `Content-Type: text/plain; charset="UTF-8"\r\n` +
       `Content-Transfer-Encoding: 7bit\r\n\r\n` +
-      bodyText + "\r\n\r\n" +
+      bodyText +
+      "\r\n\r\n" +
       `--${boundary}\r\n` +
       `Content-Type: text/html; charset="UTF-8"\r\n` +
       `Content-Transfer-Encoding: 7bit\r\n\r\n` +
-      bodyHtml + "\r\n\r\n" +
+      bodyHtml +
+      "\r\n\r\n" +
       `--${boundary}--\r\n`;
-
 
     const sendRes = await fetch(`${GMAIL_API}/users/me/messages/send`, {
       method: "POST",
@@ -146,7 +150,8 @@ async function handler(req: Request): Promise<Response> {
     if (!sendRes.ok) {
       const t = await sendRes.text();
       return new Response(JSON.stringify({ error: "Failed to send reply", details: t }), {
-        status: sendRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: sendRes.status,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -155,12 +160,19 @@ async function handler(req: Request): Promise<Response> {
       .update({ assigned_owner_email: owner_email, status: "reviewed" })
       .eq("id", id);
 
-    return new Response(JSON.stringify({ success: true, message: `Assigned to ${owner_email} and replied on thread.` }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: `Assigned to ${owner_email} and replied on thread.`,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (e: any) {
     return new Response(JSON.stringify({ error: e.message || String(e) }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 }

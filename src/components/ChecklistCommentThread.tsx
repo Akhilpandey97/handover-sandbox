@@ -42,7 +42,11 @@ function renderMentions(text: string, knownNames: string[]) {
     const mention = twoWord.has(whole.slice(1).toLowerCase()) ? whole : firstWordOnly;
 
     if (match.index > last) out.push(<span key={`t${last}`}>{text.slice(last, match.index)}</span>);
-    out.push(<span key={`m${match.index}`} className="font-semibold text-primary">{mention}</span>);
+    out.push(
+      <span key={`m${match.index}`} className="font-semibold text-primary">
+        {mention}
+      </span>,
+    );
     last = match.index + mention.length;
     pattern.lastIndex = last;
   }
@@ -108,7 +112,10 @@ export const ChecklistCommentThread = ({
   };
 
   const insertMention = (name: string) => {
-    const next = commentText.replace(/(?:^|\s)@([\w.\- ]{0,30})$/, (m) => `${m.startsWith("@") ? "" : " "}@${name} `);
+    const next = commentText.replace(
+      /(?:^|\s)@([\w.\- ]{0,30})$/,
+      (m) => `${m.startsWith("@") ? "" : " "}@${name} `,
+    );
     setCommentText(next);
     setMentionQuery(null);
     textareaRef.current?.focus();
@@ -154,7 +161,7 @@ export const ChecklistCommentThread = ({
           setMentionQuery(null);
           setIsExpanded(true);
         },
-      }
+      },
     );
   };
 
@@ -194,22 +201,24 @@ export const ChecklistCommentThread = ({
           className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2"
         >
           <MessageSquare className="h-3 w-3" />
-          <span className="font-medium">{commentCount} comment{commentCount !== 1 ? "s" : ""}</span>
-          {isExpanded ? (
-            <ChevronUp className="h-3 w-3" />
-          ) : (
-            <ChevronDown className="h-3 w-3" />
-          )}
+          <span className="font-medium">
+            {commentCount} comment{commentCount !== 1 ? "s" : ""}
+          </span>
+          {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </button>
       )}
-
 
       {/* Expanded comment list */}
       {isExpanded && commentCount > 0 && (
         <ScrollArea className="mb-3 max-h-[240px] overflow-y-auto">
           <div className="space-y-2 pr-2">
             {comments.map((c) => (
-              <CommentBubble key={c.id} comment={c} currentUserId={currentUser?.id} knownNames={knownNames} />
+              <CommentBubble
+                key={c.id}
+                comment={c}
+                currentUserId={currentUser?.id}
+                knownNames={knownNames}
+              />
             ))}
           </div>
         </ScrollArea>
@@ -326,8 +335,19 @@ const CommentBubble = ({
       <div className="flex items-center gap-1 text-muted-foreground mb-1">
         <span className="font-medium text-foreground">{comment.user_name}</span>
         <span>•</span>
-        <span>{new Date(comment.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
-        <span>{new Date(comment.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+        <span>
+          {new Date(comment.created_at).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}
+        </span>
+        <span>
+          {new Date(comment.created_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
       </div>
       <p className="text-foreground whitespace-pre-wrap">
         {renderMentions(comment.comment, knownNames)}

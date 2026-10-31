@@ -1,6 +1,7 @@
 import type { Project } from "@/data/projectsData";
 
-export type FunnelMatchType = "project_state" | "all_completed" | "any_completed" | "none_completed";
+export type FunnelMatchType =
+  "project_state" | "all_completed" | "any_completed" | "none_completed";
 
 export interface FunnelStageRule {
   id: string;

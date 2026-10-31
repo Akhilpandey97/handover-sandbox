@@ -52,11 +52,26 @@ const GROUPS: Group[] = [
     icon: Mail,
     description: "Outbound notifications, scheduled reports and merchant portal magic links.",
     fields: [
-      { key: "resend_api_key", label: "Resend API Key", placeholder: "re_xxxxxxxxxxxxxxxxxxxxxxxx", secret: true, help: "resend.com → API Keys" },
-      { key: "from_email", label: "From Address", placeholder: "updates@notifications.yourdomain.com" },
+      {
+        key: "resend_api_key",
+        label: "Resend API Key",
+        placeholder: "re_xxxxxxxxxxxxxxxxxxxxxxxx",
+        secret: true,
+        help: "resend.com → API Keys",
+      },
+      {
+        key: "from_email",
+        label: "From Address",
+        placeholder: "updates@notifications.yourdomain.com",
+      },
       { key: "from_name", label: "From Name", placeholder: "MINT Updates" },
       { key: "reply_to", label: "Reply-To", placeholder: "onboarding@yourdomain.com" },
-      { key: "app_base_url", label: "App Base URL", placeholder: "https://handover-sandbox-production.up.railway.app", help: "Used to build links inside emails" },
+      {
+        key: "app_base_url",
+        label: "App Base URL",
+        placeholder: "https://handover-sandbox-production.up.railway.app",
+        help: "Used to build links inside emails",
+      },
     ],
   },
   {
@@ -64,10 +79,30 @@ const GROUPS: Group[] = [
     icon: Inbox,
     description: "Reads the shared mailbox to auto-create projects and sync project email threads.",
     fields: [
-      { key: "google_oauth_client_id", label: "Google OAuth Client ID", placeholder: "...apps.googleusercontent.com", help: "Google Cloud → Credentials. Shared with Meet and Calendar." },
-      { key: "google_oauth_client_secret", label: "Google OAuth Client Secret", placeholder: "•••••", secret: true },
-      { key: "google_mail_refresh_token", label: "Gmail Refresh Token", placeholder: "•••••", secret: true, help: "Scopes: gmail.readonly, and gmail.send to reply on handover threads" },
-      { key: "gmail_monitor_address", label: "Mailbox to Monitor", placeholder: "integration@yourdomain.com" },
+      {
+        key: "google_oauth_client_id",
+        label: "Google OAuth Client ID",
+        placeholder: "...apps.googleusercontent.com",
+        help: "Google Cloud → Credentials. Shared with Meet and Calendar.",
+      },
+      {
+        key: "google_oauth_client_secret",
+        label: "Google OAuth Client Secret",
+        placeholder: "•••••",
+        secret: true,
+      },
+      {
+        key: "google_mail_refresh_token",
+        label: "Gmail Refresh Token",
+        placeholder: "•••••",
+        secret: true,
+        help: "Scopes: gmail.readonly, and gmail.send to reply on handover threads",
+      },
+      {
+        key: "gmail_monitor_address",
+        label: "Mailbox to Monitor",
+        placeholder: "integration@yourdomain.com",
+      },
     ],
   },
   {
@@ -75,10 +110,25 @@ const GROUPS: Group[] = [
     icon: Bug,
     description: "Pulls tickets for each project and powers the merchant portal ticket view.",
     fields: [
-      { key: "jira_base_url", label: "Jira Base URL", placeholder: "https://yourcompany.atlassian.net" },
+      {
+        key: "jira_base_url",
+        label: "Jira Base URL",
+        placeholder: "https://yourcompany.atlassian.net",
+      },
       { key: "jira_email", label: "Jira Account Email", placeholder: "automation@yourdomain.com" },
-      { key: "jira_api_token", label: "Jira API Token", placeholder: "ATATT3xFfGF0...", secret: true, help: "id.atlassian.com → API tokens" },
-      { key: "jira_project_key", label: "Default Project Key", placeholder: "ONB", help: "Used when creating tickets from a project" },
+      {
+        key: "jira_api_token",
+        label: "Jira API Token",
+        placeholder: "ATATT3xFfGF0...",
+        secret: true,
+        help: "id.atlassian.com → API tokens",
+      },
+      {
+        key: "jira_project_key",
+        label: "Default Project Key",
+        placeholder: "ONB",
+        help: "Used when creating tickets from a project",
+      },
     ],
   },
   {
@@ -86,8 +136,18 @@ const GROUPS: Group[] = [
     icon: Bell,
     description: "Stuck-merchant digests and workflow alerts.",
     fields: [
-      { key: "slack_webhook_url", label: "Incoming Webhook URL", placeholder: "https://hooks.slack.com/services/T000/B000/XXXX", secret: true },
-      { key: "slack_bot_token", label: "Bot Token (optional)", placeholder: "xoxb-...", secret: true },
+      {
+        key: "slack_webhook_url",
+        label: "Incoming Webhook URL",
+        placeholder: "https://hooks.slack.com/services/T000/B000/XXXX",
+        secret: true,
+      },
+      {
+        key: "slack_bot_token",
+        label: "Bot Token (optional)",
+        placeholder: "xoxb-...",
+        secret: true,
+      },
       { key: "slack_channel", label: "Default Channel", placeholder: "#merchant-onboarding" },
     ],
   },
@@ -97,19 +157,80 @@ const GROUPS: Group[] = [
     description:
       "Creates the join link automatically when a meeting is scheduled, and pulls the transcript afterwards so Meeting AI can post the minutes.",
     fields: [
-      { key: "zoom_account_id", label: "Zoom Account ID", placeholder: "abc123XYZ", help: "Server-to-server OAuth app" },
+      {
+        key: "zoom_account_id",
+        label: "Zoom Account ID",
+        placeholder: "abc123XYZ",
+        help: "Server-to-server OAuth app",
+      },
       { key: "zoom_client_id", label: "Zoom Client ID", placeholder: "xxxxxxxxxxxxxxxxxxxxxx" },
-      { key: "zoom_client_secret", label: "Zoom Client Secret", placeholder: "•••••", secret: true },
-      { key: "zoom_webhook_secret", label: "Zoom Webhook Secret Token", placeholder: "•••••", secret: true, help: "Save this first, then click Validate in Zoom. Endpoint: /api/public/zoom-webhook" },
-      { key: "zoom_user_id", label: "Zoom Host Email / User ID", placeholder: "host@yourcompany.com", help: "Whose account hosts generated meetings. Defaults to the app user." },
-      { key: "teams_tenant_id", label: "Microsoft Tenant ID", placeholder: "00000000-0000-0000-0000-000000000000" },
-      { key: "teams_client_id", label: "Microsoft Client ID", placeholder: "00000000-0000-0000-0000-000000000000", help: "Graph app with OnlineMeetingTranscript.Read.All" },
-      { key: "teams_client_secret", label: "Microsoft Client Secret", placeholder: "•••••", secret: true },
-      { key: "teams_organizer_user_id", label: "Teams Organiser User ID", placeholder: "00000000-0000-0000-0000-000000000000", help: "Required to create Teams links automatically" },
-      { key: "google_oauth_client_id", label: "Google OAuth Client ID", placeholder: "...apps.googleusercontent.com" },
-      { key: "google_oauth_client_secret", label: "Google OAuth Client Secret", placeholder: "•••••", secret: true },
-      { key: "google_meet_refresh_token", label: "Google Meet Refresh Token", placeholder: "•••••", secret: true, help: "Scope: meetings.space.readonly" },
-      { key: "google_calendar_refresh_token", label: "Google Calendar Refresh Token", placeholder: "•••••", secret: true, help: "Scope: calendar.events — needed to create Meet links" },
+      {
+        key: "zoom_client_secret",
+        label: "Zoom Client Secret",
+        placeholder: "•••••",
+        secret: true,
+      },
+      {
+        key: "zoom_webhook_secret",
+        label: "Zoom Webhook Secret Token",
+        placeholder: "•••••",
+        secret: true,
+        help: "Save this first, then click Validate in Zoom. Endpoint: /api/public/zoom-webhook",
+      },
+      {
+        key: "zoom_user_id",
+        label: "Zoom Host Email / User ID",
+        placeholder: "host@yourcompany.com",
+        help: "Whose account hosts generated meetings. Defaults to the app user.",
+      },
+      {
+        key: "teams_tenant_id",
+        label: "Microsoft Tenant ID",
+        placeholder: "00000000-0000-0000-0000-000000000000",
+      },
+      {
+        key: "teams_client_id",
+        label: "Microsoft Client ID",
+        placeholder: "00000000-0000-0000-0000-000000000000",
+        help: "Graph app with OnlineMeetingTranscript.Read.All",
+      },
+      {
+        key: "teams_client_secret",
+        label: "Microsoft Client Secret",
+        placeholder: "•••••",
+        secret: true,
+      },
+      {
+        key: "teams_organizer_user_id",
+        label: "Teams Organiser User ID",
+        placeholder: "00000000-0000-0000-0000-000000000000",
+        help: "Required to create Teams links automatically",
+      },
+      {
+        key: "google_oauth_client_id",
+        label: "Google OAuth Client ID",
+        placeholder: "...apps.googleusercontent.com",
+      },
+      {
+        key: "google_oauth_client_secret",
+        label: "Google OAuth Client Secret",
+        placeholder: "•••••",
+        secret: true,
+      },
+      {
+        key: "google_meet_refresh_token",
+        label: "Google Meet Refresh Token",
+        placeholder: "•••••",
+        secret: true,
+        help: "Scope: meetings.space.readonly",
+      },
+      {
+        key: "google_calendar_refresh_token",
+        label: "Google Calendar Refresh Token",
+        placeholder: "•••••",
+        secret: true,
+        help: "Scope: calendar.events — needed to create Meet links",
+      },
     ],
   },
 ];
@@ -132,7 +253,9 @@ const ZoomEndpoint = () => {
 
   return (
     <div className="rounded-md border border-border bg-muted/40 p-2">
-      <p className="text-2xs font-medium text-foreground">Paste this into Zoom as the endpoint URL</p>
+      <p className="text-2xs font-medium text-foreground">
+        Paste this into Zoom as the endpoint URL
+      </p>
       <p className="mt-0.5 break-all font-mono text-2xs text-muted-foreground">{url}</p>
       <Button
         type="button"
@@ -193,7 +316,6 @@ export function IntegrationsSettings() {
         setLoading(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const dirty = ALL_KEYS.some((k) => (values[k] ?? "") !== (initial[k] ?? ""));
@@ -231,7 +353,8 @@ export function IntegrationsSettings() {
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="portal-heading flex items-center gap-2">
-            <KeyRound className="h-4 w-4 text-primary" />Integrations
+            <KeyRound className="h-4 w-4 text-primary" />
+            Integrations
           </CardTitle>
           <CardDescription>
             Only workspace admins and managers can view or change integration credentials.
@@ -258,8 +381,17 @@ export function IntegrationsSettings() {
           </div>
         </div>
         {dirty && (
-          <Button onClick={save} disabled={saving} size="sm" className="h-8 shrink-0 gap-1.5 text-xs">
-            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+          <Button
+            onClick={save}
+            disabled={saving}
+            size="sm"
+            className="h-8 shrink-0 gap-1.5 text-xs"
+          >
+            {saving ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="h-3.5 w-3.5" />
+            )}
             Save changes
           </Button>
         )}
@@ -354,11 +486,25 @@ export function IntegrationsSettings() {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setOpenGroup(null)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => setOpenGroup(null)}
+                >
                   Close
                 </Button>
-                <Button onClick={save} disabled={!dirty || saving} size="sm" className="h-8 gap-1.5 text-xs">
-                  {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                <Button
+                  onClick={save}
+                  disabled={!dirty || saving}
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs"
+                >
+                  {saving ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
                   Save
                 </Button>
               </DialogFooter>

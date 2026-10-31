@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { createDefaultProject, Project, ProjectLinks, ProjectDates, ProjectNotes } from "@/data/projectsData";
+import {
+  createDefaultProject,
+  Project,
+  ProjectLinks,
+  ProjectDates,
+  ProjectNotes,
+} from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
 import { CustomFieldsForm } from "./CustomFieldsRenderer";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,11 +33,7 @@ interface AddProjectDialogProps {
   onSave: (project: Project) => void;
 }
 
-export const AddProjectDialog = ({
-  open,
-  onOpenChange,
-  onSave,
-}: AddProjectDialogProps) => {
+export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialogProps) => {
   const { getLabel } = useLabels();
   const { fields: customFields } = useCustomFields();
   const { saveValues } = useCustomFieldValues(undefined);
@@ -103,7 +99,7 @@ export const AddProjectDialog = ({
   };
 
   const handleCustomFieldChange = (fieldId: string, value: string) => {
-    setCustomDraft(prev => ({ ...prev, [fieldId]: value }));
+    setCustomDraft((prev) => ({ ...prev, [fieldId]: value }));
   };
 
   return (
@@ -120,7 +116,9 @@ export const AddProjectDialog = ({
 
         <ScrollArea className="min-h-0 flex-1 px-6 py-4">
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className={`grid w-full mb-4 ${customFields.length > 0 ? 'grid-cols-5' : 'grid-cols-4'}`}>
+            <TabsList
+              className={`grid w-full mb-4 ${customFields.length > 0 ? "grid-cols-5" : "grid-cols-4"}`}
+            >
               <TabsTrigger value="info" className="gap-1 text-xs">
                 <Building2 className="h-3 w-3" />
                 Info
@@ -148,7 +146,12 @@ export const AddProjectDialog = ({
             <TabsContent value="info" className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="merchantName" className="text-xs font-medium text-muted-foreground">{getLabel("field_merchant_name")} *</Label>
+                  <Label
+                    htmlFor="merchantName"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_merchant_name")} *
+                  </Label>
                   <Input
                     id="merchantName"
                     value={project.merchantName}
@@ -157,7 +160,9 @@ export const AddProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="mid" className="text-xs font-medium text-muted-foreground">{getLabel("field_mid")} *</Label>
+                  <Label htmlFor="mid" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_mid")} *
+                  </Label>
                   <Input
                     id="mid"
                     value={project.mid}
@@ -168,7 +173,9 @@ export const AddProjectDialog = ({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="contactEmail" className="text-xs font-medium text-muted-foreground">{getLabel("field_contact_email")} *</Label>
+                <Label htmlFor="contactEmail" className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_contact_email")} *
+                </Label>
                 <Input
                   id="contactEmail"
                   type="text"
@@ -177,13 +184,16 @@ export const AddProjectDialog = ({
                   placeholder="merchant@example.com, ops@example.com"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Required. Add multiple emails separated by commas — magic links, notifications, and Gmail lookups will go to all of them.
+                  Required. Add multiple emails separated by commas — magic links, notifications,
+                  and Gmail lookups will go to all of them.
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="platform" className="text-xs font-medium text-muted-foreground">{getLabel("field_platform")}</Label>
+                  <Label htmlFor="platform" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_platform")}
+                  </Label>
                   <Select
                     value={project.platform}
                     onValueChange={(v) => updateField("platform", v)}
@@ -193,13 +203,17 @@ export const AddProjectDialog = ({
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
                       {PLATFORM_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="category" className="text-xs font-medium text-muted-foreground">{getLabel("field_category")}</Label>
+                  <Label htmlFor="category" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_category")}
+                  </Label>
                   <Input
                     id="category"
                     value={project.category}
@@ -211,7 +225,9 @@ export const AddProjectDialog = ({
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="arr" className="text-xs font-medium text-muted-foreground">{getLabel("field_arr")}</Label>
+                  <Label htmlFor="arr" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_arr")}
+                  </Label>
                   <Input
                     id="arr"
                     type="number"
@@ -221,7 +237,9 @@ export const AddProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="txnsPerDay" className="text-xs font-medium text-muted-foreground">{getLabel("field_txns_per_day")}</Label>
+                  <Label htmlFor="txnsPerDay" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_txns_per_day")}
+                  </Label>
                   <Input
                     id="txnsPerDay"
                     type="number"
@@ -230,7 +248,9 @@ export const AddProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="aov" className="text-xs font-medium text-muted-foreground">{getLabel("field_aov")}</Label>
+                  <Label htmlFor="aov" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_aov")}
+                  </Label>
                   <Input
                     id="aov"
                     type="number"
@@ -242,7 +262,9 @@ export const AddProjectDialog = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="salesSpoc" className="text-xs font-medium text-muted-foreground">{getLabel("field_sales_spoc")}</Label>
+                  <Label htmlFor="salesSpoc" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_sales_spoc")}
+                  </Label>
                   <Input
                     id="salesSpoc"
                     value={project.salesSpoc}
@@ -251,7 +273,12 @@ export const AddProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="integrationType" className="text-xs font-medium text-muted-foreground">{getLabel("field_integration_type")}</Label>
+                  <Label
+                    htmlFor="integrationType"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_integration_type")}
+                  </Label>
                   <Select
                     value={project.integrationType}
                     onValueChange={(v) => updateField("integrationType", v)}
@@ -261,7 +288,9 @@ export const AddProjectDialog = ({
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
                       {INTEGRATION_TYPE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -270,7 +299,12 @@ export const AddProjectDialog = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="pgOnboarding" className="text-xs font-medium text-muted-foreground">{getLabel("field_pg_onboarding")}</Label>
+                  <Label
+                    htmlFor="pgOnboarding"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_pg_onboarding")}
+                  </Label>
                   <Input
                     id="pgOnboarding"
                     value={project.pgOnboarding}
@@ -279,7 +313,12 @@ export const AddProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="goLivePercent" className="text-xs font-medium text-muted-foreground">{getLabel("field_go_live_percent")}</Label>
+                  <Label
+                    htmlFor="goLivePercent"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_go_live_percent")}
+                  </Label>
                   <Input
                     id="goLivePercent"
                     type="number"
@@ -291,12 +330,13 @@ export const AddProjectDialog = ({
                   />
                 </div>
               </div>
-
             </TabsContent>
 
             <TabsContent value="links" className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="brandUrl" className="text-xs font-medium text-muted-foreground">{getLabel("field_brand_url")}</Label>
+                <Label htmlFor="brandUrl" className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_brand_url")}
+                </Label>
                 <Input
                   id="brandUrl"
                   type="url"
@@ -306,7 +346,9 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="jiraLink" className="text-xs font-medium text-muted-foreground">{getLabel("field_jira_link")}</Label>
+                <Label htmlFor="jiraLink" className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_jira_link")}
+                </Label>
                 <Input
                   id="jiraLink"
                   type="url"
@@ -316,7 +358,9 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="brdLink" className="text-xs font-medium text-muted-foreground">{getLabel("field_brd_link")}</Label>
+                <Label htmlFor="brdLink" className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_brd_link")}
+                </Label>
                 <Input
                   id="brdLink"
                   type="url"
@@ -326,7 +370,12 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="mintChecklistLink" className="text-xs font-medium text-muted-foreground">{getLabel("field_mint_checklist_link")}</Label>
+                <Label
+                  htmlFor="mintChecklistLink"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_mint_checklist_link")}
+                </Label>
                 <Input
                   id="mintChecklistLink"
                   type="url"
@@ -336,7 +385,12 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="integrationChecklistLink" className="text-xs font-medium text-muted-foreground">{getLabel("field_integration_checklist_link")}</Label>
+                <Label
+                  htmlFor="integrationChecklistLink"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_integration_checklist_link")}
+                </Label>
                 <Input
                   id="integrationChecklistLink"
                   type="url"
@@ -346,7 +400,9 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="sowLink" className="text-xs font-medium text-muted-foreground">{getLabel("field_sow_link")}</Label>
+                <Label htmlFor="sowLink" className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_sow_link")}
+                </Label>
                 <Input
                   id="sowLink"
                   type="url"
@@ -359,7 +415,9 @@ export const AddProjectDialog = ({
 
             <TabsContent value="dates" className="space-y-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_kick_off_date")}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_kick_off_date")}
+                </Label>
                 <DatePickerField
                   value={project.dates.kickOffDate}
                   onChange={(v) => updateDates("kickOffDate", v)}
@@ -367,7 +425,9 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_expected_go_live_date")}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_expected_go_live_date")}
+                </Label>
                 <DatePickerField
                   value={project.dates.expectedGoLiveDate || ""}
                   onChange={(v) => updateDates("expectedGoLiveDate", v)}
@@ -375,7 +435,9 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_actual_go_live_date")}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_actual_go_live_date")}
+                </Label>
                 <DatePickerField
                   value={project.dates.goLiveDate || ""}
                   onChange={(v) => updateDates("goLiveDate", v)}
@@ -386,7 +448,9 @@ export const AddProjectDialog = ({
 
             <TabsContent value="notes" className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="mintNotes" className="text-xs font-medium text-muted-foreground">{getLabel("field_mint_notes")}</Label>
+                <Label htmlFor="mintNotes" className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_mint_notes")}
+                </Label>
                 <Textarea
                   id="mintNotes"
                   value={project.notes.mintNotes || ""}
@@ -396,7 +460,9 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="projectNotes" className="text-xs font-medium text-muted-foreground">{getLabel("field_project_notes")}</Label>
+                <Label htmlFor="projectNotes" className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_project_notes")}
+                </Label>
                 <Textarea
                   id="projectNotes"
                   value={project.notes.projectNotes || ""}
@@ -406,7 +472,12 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="currentPhaseComment" className="text-xs font-medium text-muted-foreground">{getLabel("field_current_phase_comment")}</Label>
+                <Label
+                  htmlFor="currentPhaseComment"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_current_phase_comment")}
+                </Label>
                 <Textarea
                   id="currentPhaseComment"
                   value={project.notes.currentPhaseComment || ""}
@@ -416,7 +487,12 @@ export const AddProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="phase2Comment" className="text-xs font-medium text-muted-foreground">{getLabel("field_phase2_comment")}</Label>
+                <Label
+                  htmlFor="phase2Comment"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_phase2_comment")}
+                </Label>
                 <Textarea
                   id="phase2Comment"
                   value={project.notes.phase2Comment || ""}
@@ -443,7 +519,14 @@ export const AddProjectDialog = ({
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!project.merchantName.trim() || !project.mid.trim() || !emailsValid(project.contactEmail || "")}>
+          <Button
+            onClick={handleSave}
+            disabled={
+              !project.merchantName.trim() ||
+              !project.mid.trim() ||
+              !emailsValid(project.contactEmail || "")
+            }
+          >
             Add Project
           </Button>
         </SheetFooter>

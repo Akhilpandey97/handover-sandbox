@@ -36,9 +36,13 @@ export const WorkspaceMetricCard = ({
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          {eyebrow ? <p className="text-2xs font-semibold tracking-widest text-primary">{eyebrow}</p> : null}
+          {eyebrow ? (
+            <p className="text-2xs font-semibold tracking-widest text-primary">{eyebrow}</p>
+          ) : null}
           <p className="text-2xs font-semibold tracking-widest text-muted-foreground">{label}</p>
-          <p className="text-lg font-semibold tracking-[-0.03em] text-foreground sm:text-xl">{value || "—"}</p>
+          <p className="text-lg font-semibold tracking-[-0.03em] text-foreground sm:text-xl">
+            {value || "—"}
+          </p>
         </div>
         {icon ? (
           <div

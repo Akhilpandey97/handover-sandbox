@@ -24,7 +24,11 @@ const LABELS: Record<string, string> = {
 export const Route = createFileRoute("/_dash/settings/$subTab")({
   beforeLoad: ({ params }) => {
     if (!(SETTINGS_SUB_TABS as readonly string[]).includes(params.subTab)) {
-      throw redirect({ to: "/settings/$subTab", params: { subTab: DEFAULT_SETTINGS_SUB_TAB }, replace: true });
+      throw redirect({
+        to: "/settings/$subTab",
+        params: { subTab: DEFAULT_SETTINGS_SUB_TAB },
+        replace: true,
+      });
     }
   },
   head: ({ params }) => {

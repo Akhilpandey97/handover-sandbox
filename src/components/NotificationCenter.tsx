@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useNotifications, useMarkNotificationRead, type AppNotification } from "@/hooks/useNotifications";
+import {
+  useNotifications,
+  useMarkNotificationRead,
+  type AppNotification,
+} from "@/hooks/useNotifications";
 import { useProjects } from "@/contexts/ProjectContext";
 import { cn } from "@/lib/utils";
 
@@ -84,7 +88,13 @@ export const NotificationCenter = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="right" align="start" sideOffset={12} collisionPadding={12} className="w-[440px] p-0">
+      <PopoverContent
+        side="right"
+        align="start"
+        sideOffset={12}
+        collisionPadding={12}
+        className="w-[440px] p-0"
+      >
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <p className="text-base font-semibold">Notifications</p>
@@ -105,7 +115,9 @@ export const NotificationCenter = () => {
 
         <ScrollArea className="max-h-[520px] overflow-y-auto">
           {notifications.length === 0 ? (
-            <p className="px-5 py-12 text-center text-sm text-muted-foreground">You're all caught up.</p>
+            <p className="px-5 py-12 text-center text-sm text-muted-foreground">
+              You're all caught up.
+            </p>
           ) : (
             <div className="divide-y divide-border/60">
               {grouped.map((project) => (
@@ -130,7 +142,9 @@ export const NotificationCenter = () => {
                         <span className="mt-0.5 shrink-0 text-primary">{typeIcon(n.type)}</span>
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-2">
-                            <span className="truncate text-sm font-semibold text-foreground">{n.title}</span>
+                            <span className="truncate text-sm font-semibold text-foreground">
+                              {n.title}
+                            </span>
                             {!n.read_at && <Badge className="h-4 px-1.5 text-2xs">New</Badge>}
                           </span>
                           {n.checklist_item_title && (
@@ -140,7 +154,9 @@ export const NotificationCenter = () => {
                             </span>
                           )}
                           {n.body && (
-                            <span className="mt-0.5 block line-clamp-1 text-xs text-muted-foreground">{n.body}</span>
+                            <span className="mt-0.5 block line-clamp-1 text-xs text-muted-foreground">
+                              {n.body}
+                            </span>
                           )}
                           <span className="mt-0.5 block text-2xs text-muted-foreground">
                             {n.actor_name ? `${n.actor_name} · ` : ""}

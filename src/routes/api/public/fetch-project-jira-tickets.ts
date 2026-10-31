@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+} from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -14,42 +18,56 @@ function adfToText(node: any): string {
   if (typeof node === "string") return node;
   if (node.type === "text" && typeof node.text === "string") return node.text;
   const children = Array.isArray(node.content) ? node.content : [];
-  const sep = ["paragraph", "heading", "bulletList", "orderedList", "listItem", "codeBlock"].includes(node.type) ? "\n" : "";
+  const sep = [
+    "paragraph",
+    "heading",
+    "bulletList",
+    "orderedList",
+    "listItem",
+    "codeBlock",
+  ].includes(node.type)
+    ? "\n"
+    : "";
   return children.map(adfToText).join("") + sep;
 }
 
 function arr(v: any): string[] {
   if (!Array.isArray(v)) return [];
-  return v.map((x: any) => (typeof x === "string" ? x : x?.name ?? x?.value ?? "")).filter(Boolean);
+  return v
+    .map((x: any) => (typeof x === "string" ? x : (x?.name ?? x?.value ?? "")))
+    .filter(Boolean);
 }
 
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const SUPABASE_URL = process.env['SUPABASE_URL']!;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-    const __body0 = await req.clone().json().catch(() => ({} as any));
+    const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+    const __body0 = await req
+      .clone()
+      .json()
+      .catch(() => ({}) as any);
     const creds = await getTenantIntegrations(await tenantIdFromRequest(req, __body0.tenant_id));
     const JIRA_BASE_URL = (creds.jira_base_url || "").replace(/\/+$/, "");
     const JIRA_EMAIL = creds.jira_email;
     const JIRA_API_TOKEN = creds.jira_api_token;
 
     if (!JIRA_BASE_URL || !JIRA_EMAIL || !JIRA_API_TOKEN) {
-      return new Response(
-        JSON.stringify({ error: "Jira credentials not configured." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Jira credentials not configured." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const body = await req.json().catch(() => ({}));
     const { project_id, tenant_id } = body;
 
     if (!project_id || !tenant_id) {
-      return new Response(
-        JSON.stringify({ error: "project_id and tenant_id are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "project_id and tenant_id are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -62,10 +80,10 @@ async function handler(req: Request): Promise<Response> {
       .single();
 
     if (projectError || !project) {
-      return new Response(
-        JSON.stringify({ error: "Project not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Project not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const merchantName = (project.merchant_name || "").trim().replace(/"/g, '\\"');
@@ -86,7 +104,7 @@ async function handler(req: Request): Promise<Response> {
     if (jqlClauses.length === 0) {
       return new Response(
         JSON.stringify({ tickets: [], message: "No merchant_name or valid MID to search." }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -94,12 +112,31 @@ async function handler(req: Request): Promise<Response> {
     const auth = btoa(`${JIRA_EMAIL}:${JIRA_API_TOKEN}`);
 
     const fields = [
-      "summary","status","priority","issuetype","resolution",
-      "assignee","reporter","creator","project",
-      "created","updated","duedate","resolutiondate",
-      "labels","components","fixVersions","versions",
-      "description","environment",
-      "parent","subtasks","comment","attachment","watches","votes",
+      "summary",
+      "status",
+      "priority",
+      "issuetype",
+      "resolution",
+      "assignee",
+      "reporter",
+      "creator",
+      "project",
+      "created",
+      "updated",
+      "duedate",
+      "resolutiondate",
+      "labels",
+      "components",
+      "fixVersions",
+      "versions",
+      "description",
+      "environment",
+      "parent",
+      "subtasks",
+      "comment",
+      "attachment",
+      "watches",
+      "votes",
       "customfield_10016", // story points (common)
       "customfield_10020", // sprint (common)
       "customfield_10014", // epic link (common)
@@ -128,7 +165,7 @@ async function handler(req: Request): Promise<Response> {
       console.error("Jira API error:", jiraRes.status, errText);
       return new Response(
         JSON.stringify({ error: `Jira API error (${jiraRes.status}): ${errText.slice(0, 500)}` }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -140,8 +177,11 @@ async function handler(req: Request): Promise<Response> {
       const f = issue.fields || {};
       const sprintField = f.customfield_10020;
       const sprintName = Array.isArray(sprintField)
-        ? sprintField.map((s: any) => s?.name).filter(Boolean).join(", ")
-        : (sprintField?.name || null);
+        ? sprintField
+            .map((s: any) => s?.name)
+            .filter(Boolean)
+            .join(", ")
+        : sprintField?.name || null;
 
       return {
         project_id,
@@ -179,7 +219,8 @@ async function handler(req: Request): Promise<Response> {
         epic_name: null,
         parent_key: f.parent?.key || null,
         subtask_count: Array.isArray(f.subtasks) ? f.subtasks.length : 0,
-        comment_count: f.comment?.total ?? (Array.isArray(f.comment?.comments) ? f.comment.comments.length : 0),
+        comment_count:
+          f.comment?.total ?? (Array.isArray(f.comment?.comments) ? f.comment.comments.length : 0),
         attachment_count: Array.isArray(f.attachment) ? f.attachment.length : 0,
         watchers_count: f.watches?.watchCount ?? 0,
         votes: f.votes?.votes ?? 0,
@@ -205,14 +246,14 @@ async function handler(req: Request): Promise<Response> {
         total: records.length,
         message: `Fetched ${records.length} Jira ticket(s)`,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error in fetch-project-jira-tickets:", error);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 }
 

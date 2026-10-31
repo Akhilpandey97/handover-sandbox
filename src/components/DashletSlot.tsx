@@ -27,8 +27,15 @@ export const DashletSlot = ({
   children: ReactNode;
 }) => (
   <div
-    onDragOver={(e) => { e.preventDefault(); onDragOver(); }}
-    className={cn("group relative h-full transition-opacity", isDragging && "opacity-50", className)}
+    onDragOver={(e) => {
+      e.preventDefault();
+      onDragOver();
+    }}
+    className={cn(
+      "group relative h-full transition-opacity",
+      isDragging && "opacity-50",
+      className,
+    )}
   >
     <button
       type="button"

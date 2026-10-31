@@ -6,14 +6,14 @@
 
 Renameable in Settings → Field Labels (26 labels, saved per workspace):
 
-| Group | Fields |
-|---|---|
-| Identity | Merchant Name, MID, Category, Platform, Integration Type, Brand URL |
-| Commercial | ARR, Txns/Day, AOV, PG Onboarding, Go-Live % |
-| People | Sales SPOC, Assigned Owner |
-| Dates | Start Date (Kick Off), Expected Go-Live Date, Actual Go-Live Date |
-| Links | JIRA Link, BRD Link, MINT Checklist Link, Integration Checklist Link |
-| Notes | Project Notes, MINT Notes, Current Phase Comment, Phase 2 Comment |
+| Group      | Fields                                                               |
+| ---------- | -------------------------------------------------------------------- |
+| Identity   | Merchant Name, MID, Category, Platform, Integration Type, Brand URL  |
+| Commercial | ARR, Txns/Day, AOV, PG Onboarding, Go-Live %                         |
+| People     | Sales SPOC, Assigned Owner                                           |
+| Dates      | Start Date (Kick Off), Expected Go-Live Date, Actual Go-Live Date    |
+| Links      | JIRA Link, BRD Link, MINT Checklist Link, Integration Checklist Link |
+| Notes      | Project Notes, MINT Notes, Current Phase Comment, Phase 2 Comment    |
 
 Also renameable elsewhere in Settings: team names (Team Management), project
 states and stage names (Project Stages / Workflow), responsibility parties

@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+} from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
@@ -10,10 +14,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-
-
 const PLATFORMS = ["Aasaan", "Zoho", "Shoppachino", "Shoopy", "Zen Zen", "Tradexa"] as const;
-type Platform = typeof PLATFORMS[number];
+type Platform = (typeof PLATFORMS)[number];
 
 const PLATFORM_MATCHERS: { key: string; value: Platform }[] = [
   { key: "aasaan", value: "Aasaan" },
@@ -163,7 +165,10 @@ function parseEmailTable(html: string): Record<string, string> {
   const rowRegex = /<tr[^>]*>\s*<td[^>]*>(.*?)<\/td>\s*<td[^>]*>(.*?)<\/td>\s*<\/tr>/gis;
   let m;
   while ((m = rowRegex.exec(html)) !== null) {
-    const key = m[1].replace(/<[^>]*>/g, "").replace(/\s*:\s*$/, "").trim();
+    const key = m[1]
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s*:\s*$/, "")
+      .trim();
     const value = m[2].replace(/<[^>]*>/g, "").trim();
     if (key) fields[key] = value;
   }
@@ -177,8 +182,8 @@ async function handler(req: Request): Promise<Response> {
   if (denied) return denied;
 
   try {
-    const SUPABASE_URL = process.env['SUPABASE_URL']!;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+    const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const body = await req.json().catch(() => ({}));
@@ -212,8 +217,10 @@ async function handler(req: Request): Promise<Response> {
     const searchData = await searchRes.json();
     if (!searchRes.ok || searchData.error) {
       return new Response(
-        JSON.stringify({ error: `Gmail API error: ${searchData?.error?.message || JSON.stringify(searchData)}` }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `Gmail API error: ${searchData?.error?.message || JSON.stringify(searchData)}`,
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -230,10 +237,17 @@ async function handler(req: Request): Promise<Response> {
       .select("id, merchant_name, platform, gmail_message_id, gmail_thread_id")
       .eq("tenant_id", tenantId);
 
-    const existingMsg = new Set((existing || []).map((e: any) => e.gmail_message_id).filter(Boolean));
-    const existingThread = new Set((existing || []).map((e: any) => e.gmail_thread_id).filter(Boolean));
+    const existingMsg = new Set(
+      (existing || []).map((e: any) => e.gmail_message_id).filter(Boolean),
+    );
+    const existingThread = new Set(
+      (existing || []).map((e: any) => e.gmail_thread_id).filter(Boolean),
+    );
     const existingName = new Set(
-      (existing || []).map((e: any) => `${(e.merchant_name || "").toLowerCase().trim()}|${(e.platform || "").toLowerCase()}`)
+      (existing || []).map(
+        (e: any) =>
+          `${(e.merchant_name || "").toLowerCase().trim()}|${(e.platform || "").toLowerCase()}`,
+      ),
     );
     const seenThisRun = new Set<string>();
 
@@ -242,15 +256,15 @@ async function handler(req: Request): Promise<Response> {
       new Set(
         Object.values(PLATFORM_TEAM)
           .flatMap((t) => [t.owner, t.csm])
-          .filter((e): e is string => !!e)
-      )
+          .filter((e): e is string => !!e),
+      ),
     );
     const { data: teamProfiles } = await supabase
       .from("profiles")
       .select("id, email")
       .in("email", teamEmails);
     const profileByEmail = new Map<string, string>(
-      (teamProfiles || []).map((p: any) => [String(p.email).toLowerCase(), p.id])
+      (teamProfiles || []).map((p: any) => [String(p.email).toLowerCase(), p.id]),
     );
     const assignmentFor = (p: Platform) => {
       const t = PLATFORM_TEAM[p];
@@ -268,7 +282,9 @@ async function handler(req: Request): Promise<Response> {
       try {
         if (existingMsg.has(msg.id) || existingThread.has(msg.threadId)) continue;
 
-        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, { headers });
+        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, {
+          headers,
+        });
         const msgData = await msgRes.json();
         if (!msgRes.ok || msgData.error) continue;
 
@@ -277,18 +293,23 @@ async function handler(req: Request): Promise<Response> {
         if (!/handover to csm/i.test(subject)) continue;
 
         const { html, text } = collectBodies(msgData.payload);
-        const bodyText = (text && text.trim().length > 40 ? text : htmlToText(html)) || htmlToText(html);
+        const bodyText =
+          (text && text.trim().length > 40 ? text : htmlToText(html)) || htmlToText(html);
 
         // Brand + platform: prefer body, fall back to subject "… | [Platform] | [Brand]"
         let brand = cleanBrand(pickLabel(bodyText, "Brand Name"));
         let platformRaw = pickLabel(bodyText, "Platform");
         const subjParts = subject.split("|").map((s) => s.trim());
         if (!brand && subjParts.length >= 3) brand = cleanBrand(subjParts[2]);
-        if (!platformRaw && subjParts.length >= 2) platformRaw = subjParts[1].replace(/[\[\]]/g, "");
+        if (!platformRaw && subjParts.length >= 2)
+          platformRaw = subjParts[1].replace(/[\[\]]/g, "");
 
         const platform = toPlatform(platformRaw) || toPlatform(subjParts[1] || "");
         if (!brand || !platform) {
-          skipped.push({ subject, reason: `Unrecognised brand/platform (${brand} / ${platformRaw})` });
+          skipped.push({
+            subject,
+            reason: `Unrecognised brand/platform (${brand} / ${platformRaw})`,
+          });
           continue;
         }
 
@@ -300,7 +321,8 @@ async function handler(req: Request): Promise<Response> {
         seenThisRun.add(nameKey);
 
         const website = pickLabel(bodyText, "Website");
-        const goLiveDate = parseDate(pickLabel(bodyText, "Go-Live Date")) || new Date().toISOString().split("T")[0];
+        const goLiveDate =
+          parseDate(pickLabel(bodyText, "Go-Live Date")) || new Date().toISOString().split("T")[0];
         const mid = pickLabel(bodyText, "MID");
         const paymentGateway = pickLabel(bodyText, "Payment Gateway");
         const features = pickLabel(bodyText, "Other Features Enabled");
@@ -321,17 +343,21 @@ async function handler(req: Request): Promise<Response> {
           const nboQuery = `subject:("New Brand On Board") "${brand}"`;
           const nboRes = await fetch(
             `${GMAIL_API}/users/me/messages?q=${encodeURIComponent(nboQuery)}&maxResults=5`,
-            { headers }
+            { headers },
           );
           const nboData = await nboRes.json();
           const nboMsg = (nboData.messages || [])[0];
           if (nboMsg) {
-            const nboFullRes = await fetch(`${GMAIL_API}/users/me/messages/${nboMsg.id}?format=full`, { headers });
+            const nboFullRes = await fetch(
+              `${GMAIL_API}/users/me/messages/${nboMsg.id}?format=full`,
+              { headers },
+            );
             const nboFull = await nboFullRes.json();
             const nboBodies = collectBodies(nboFull.payload);
             const fields = parseEmailTable(nboBodies.html);
             const pick = (...keys: string[]) => {
-              for (const k of keys) if (fields[k] && String(fields[k]).trim()) return String(fields[k]).trim();
+              for (const k of keys)
+                if (fields[k] && String(fields[k]).trim()) return String(fields[k]).trim();
               return "";
             };
             const arrRaw = parseNum(pick("Expected ARR"));
@@ -353,14 +379,19 @@ async function handler(req: Request): Promise<Response> {
         const brandEmail = merchantEmail || nboEmail;
         const brandPocEmails = brandEmail ? [brandEmail] : [];
         const platformPocEmails = Array.from(
-          new Set([...(PLATFORM_DEFAULT_CC[platform] || []), ...(platformPocEmail ? [platformPocEmail] : [])])
+          new Set([
+            ...(PLATFORM_DEFAULT_CC[platform] || []),
+            ...(platformPocEmail ? [platformPocEmail] : []),
+          ]),
         );
 
         const notesLines = [
           mid ? `MID: ${mid}` : "",
           paymentGateway ? `Payment Gateway: ${paymentGateway}` : "",
           features ? `Features: ${features}` : "",
-          platformPocName ? `Platform POC: ${platformPocName}${platformPocEmail ? ` (${platformPocEmail})` : ""}` : "",
+          platformPocName
+            ? `Platform POC: ${platformPocName}${platformPocEmail ? ` (${platformPocEmail})` : ""}`
+            : "",
           pending ? `Pending: ${pending}` : "",
           "Auto-created from Handover to CSM email",
         ].filter(Boolean);
@@ -436,7 +467,14 @@ async function handler(req: Request): Promise<Response> {
           emailError = "No brand POC email found in emails";
         }
 
-        created.push({ id: inserted.id, brand, platform, go_live_date: goLiveDate, emailSent, emailError });
+        created.push({
+          id: inserted.id,
+          brand,
+          platform,
+          go_live_date: goLiveDate,
+          emailSent,
+          emailError,
+        });
       } catch (err) {
         console.error("Error processing handover message:", err);
       }
@@ -449,7 +487,7 @@ async function handler(req: Request): Promise<Response> {
         created,
         skipped,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("poll-platform-golive-emails error:", error);

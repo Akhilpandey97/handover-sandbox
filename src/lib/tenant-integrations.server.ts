@@ -97,11 +97,9 @@ function envFallbacks(): TenantIntegrations {
 }
 
 export function adminClient() {
-  return createClient(
-    process.env["SUPABASE_URL"]!,
-    process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  );
+  return createClient(process.env["SUPABASE_URL"]!, process.env["SUPABASE_SERVICE_ROLE_KEY"]!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 const cache = new Map<string, { at: number; value: TenantIntegrations }>();
@@ -212,4 +210,3 @@ export async function tenantIdFromRequest(
 
   return caller.tenantId ?? null;
 }
-

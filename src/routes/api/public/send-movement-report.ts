@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+  resendFrom,
+  resendReplyTo,
+} from "@/lib/tenant-integrations.server";
 import { requireInternalCaller } from "@/lib/api-auth.server";
 
 const corsHeaders = {
@@ -46,10 +52,13 @@ async function handler(req: Request): Promise<Response> {
       throw new Error(result.message || "Failed to send email");
     }
 
-    return new Response(JSON.stringify({ success: true, id: result.id, recipients: recipients.length }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ success: true, id: result.id, recipients: recipients.length }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("send-movement-report error:", error);
     return new Response(JSON.stringify({ error: (error as Error).message }), {

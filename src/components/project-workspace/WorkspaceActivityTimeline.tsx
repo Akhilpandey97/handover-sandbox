@@ -1,8 +1,5 @@
 import { useMemo } from "react";
-import {
-  Project,
-  projectStateLabels,
-} from "@/data/projectsData";
+import { Project, projectStateLabels } from "@/data/projectsData";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -60,7 +57,9 @@ export const WorkspaceActivityTimeline = ({ project }: WorkspaceActivityTimeline
   const events = useMemo(() => {
     const timeline: ActivityEntry[] = [];
 
-    const addEvent = (entry: Omit<ActivityEntry, "timestamp" | "timestampLabel"> & { date?: string }) => {
+    const addEvent = (
+      entry: Omit<ActivityEntry, "timestamp" | "timestampLabel"> & { date?: string },
+    ) => {
       const parsed = formatTimestamp(entry.date);
       if (!parsed) return;
 
@@ -259,9 +258,12 @@ export const WorkspaceActivityTimeline = ({ project }: WorkspaceActivityTimeline
         <div className="flex flex-1 items-center justify-center px-6 py-12 text-center">
           <div className="max-w-sm space-y-2">
             <MessageSquareText className="mx-auto h-8 w-8 text-muted-foreground" />
-            <p className="text-sm font-semibold text-foreground">No activity has been captured yet.</p>
+            <p className="text-sm font-semibold text-foreground">
+              No activity has been captured yet.
+            </p>
             <p className="text-sm leading-6 text-muted-foreground">
-              User actions, handoffs, checklist progress, and system milestones will appear here automatically.
+              User actions, handoffs, checklist progress, and system milestones will appear here
+              automatically.
             </p>
           </div>
         </div>
@@ -300,22 +302,35 @@ export const WorkspaceActivityTimeline = ({ project }: WorkspaceActivityTimeline
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-semibold tracking-[-0.02em] text-foreground">{event.title}</p>
-                        <Badge variant={event.kind === "user" ? "secondary" : "outline"} className="text-2xs font-semibold tracking-widest">
+                        <p className="text-sm font-semibold tracking-[-0.02em] text-foreground">
+                          {event.title}
+                        </p>
+                        <Badge
+                          variant={event.kind === "user" ? "secondary" : "outline"}
+                          className="text-2xs font-semibold tracking-widest"
+                        >
                           {getKindLabel(event.kind)}
                         </Badge>
                       </div>
-                      <p className="text-xs font-medium tracking-widest text-muted-foreground">{event.source}</p>
+                      <p className="text-xs font-medium tracking-widest text-muted-foreground">
+                        {event.source}
+                      </p>
                     </div>
 
                     <div className="shrink-0 text-right">
-                      <p className="text-xs font-medium text-muted-foreground">{event.timestampLabel}</p>
-                      <p className="mt-1 text-xs font-semibold text-foreground">{event.actor || "System"}</p>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {event.timestampLabel}
+                      </p>
+                      <p className="mt-1 text-xs font-semibold text-foreground">
+                        {event.actor || "System"}
+                      </p>
                     </div>
                   </div>
 
                   {event.description ? (
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground">{event.description}</p>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      {event.description}
+                    </p>
                   ) : null}
                 </div>
               </div>

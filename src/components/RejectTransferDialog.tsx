@@ -60,7 +60,13 @@ export const RejectTransferDialog = ({
           </DialogTitle>
           <DialogDescription>
             Reject <strong>{project.merchantName}</strong>
-            {previousTeam ? <> and send it back to <strong>{teamLabels[previousTeam]}</strong></> : null} for corrections.
+            {previousTeam ? (
+              <>
+                {" "}
+                and send it back to <strong>{teamLabels[previousTeam]}</strong>
+              </>
+            ) : null}{" "}
+            for corrections.
           </DialogDescription>
         </DialogHeader>
 
@@ -81,11 +87,7 @@ export const RejectTransferDialog = ({
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleReject}
-            disabled={!reason.trim()}
-          >
+          <Button variant="destructive" onClick={handleReject} disabled={!reason.trim()}>
             <XCircle className="h-4 w-4 mr-2" />
             Reject & Send Back
           </Button>

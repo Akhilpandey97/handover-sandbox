@@ -93,7 +93,9 @@ export async function getTenantBranding(
       ((teamRows || []) as Array<{ slug: string; name: string }>).map((t) => [t.slug, t.name]),
     );
 
-    const saved = Object.fromEntries([...byKey].map(([k, v]) => [k, (v || "").trim()]).filter(([, v]) => v));
+    const saved = Object.fromEntries(
+      [...byKey].map(([k, v]) => [k, (v || "").trim()]).filter(([, v]) => v),
+    );
     const derived = withDerivedLabels({ ...DEFAULT_LABELS, ...saved });
     const label = (key: string) => derived[key] || DEFAULT_LABELS[key] || key;
     const value: TenantBranding = {

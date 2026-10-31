@@ -18,27 +18,30 @@ async function handler(req: Request): Promise<Response> {
 
   try {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-    const summary = String(body['summary'] || "").trim();
-    const description = String(body['description'] || "").trim();
-    const issueType = String(body['issue_type'] || "Task").trim() || "Task";
-    const priority = String(body['priority'] || "").trim();
-    const projectKeyInput = String(body['project_key'] || "").trim();
+    const summary = String(body["summary"] || "").trim();
+    const description = String(body["description"] || "").trim();
+    const issueType = String(body["issue_type"] || "Task").trim() || "Task";
+    const priority = String(body["priority"] || "").trim();
+    const projectKeyInput = String(body["project_key"] || "").trim();
 
     if (!summary) return json({ error: "Summary is required" }, 400);
 
     const creds = await getTenantIntegrations(
-      await tenantIdFromRequest(req, body['tenant_id'] as string | undefined),
+      await tenantIdFromRequest(req, body["tenant_id"] as string | undefined),
     );
     const baseUrl = (creds.jira_base_url || "").replace(/\/+$/, "");
     const email = creds.jira_email;
     const token = creds.jira_api_token;
-    const projectKey = projectKeyInput || (creds as Record<string, any>)['jira_project_key'] || "";
+    const projectKey = projectKeyInput || (creds as Record<string, any>)["jira_project_key"] || "";
 
     if (!baseUrl || !email || !token) {
       return json({ error: "Jira credentials are not configured for this workspace." }, 400);
     }
     if (!projectKey) {
-      return json({ error: "No Jira project key. Set one in Settings → Integrations or enter it here." }, 400);
+      return json(
+        { error: "No Jira project key. Set one in Settings → Integrations or enter it here." },
+        400,
+      );
     }
 
     const auth = btoa(`${email}:${token}`);
@@ -48,13 +51,13 @@ async function handler(req: Request): Promise<Response> {
       issuetype: { name: issueType },
     };
     if (description) {
-      fields['description'] = {
+      fields["description"] = {
         type: "doc",
         version: 1,
         content: [{ type: "paragraph", content: [{ type: "text", text: description }] }],
       };
     }
-    if (priority) fields['priority'] = { name: priority };
+    if (priority) fields["priority"] = { name: priority };
 
     const res = await fetch(`${baseUrl}/rest/api/3/issue`, {
       method: "POST",

@@ -1,9 +1,21 @@
 import { useMemo, useState } from "react";
-import { Project, calculateTimeFromChecklist, formatDuration, projectStateLabels } from "@/data/projectsData";
+import {
+  Project,
+  calculateTimeFromChecklist,
+  formatDuration,
+  projectStateLabels,
+} from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -23,27 +35,33 @@ export const TacticalLists = ({ projects }: Props) => {
   // At Risk Watchlist — same verdict as the Risks tab and the project workspace.
   const { verdicts } = useProjectRiskVerdicts();
   const atRiskProjects = useMemo(
-    () => projects
-      .filter(p => verdicts[p.id]?.level === "high")
-      .map(p => {
-        const verdict = verdicts[p.id]!;
-        const daysOverdue = Math.max(0, ...verdict.findings.map(f => f.magnitude ?? 0));
-        return { ...p, daysOverdue, riskReason: describeVerdict(verdict), riskScore: verdict.score };
-      })
-      .sort((a, b) => b.riskScore - a.riskScore),
+    () =>
+      projects
+        .filter((p) => verdicts[p.id]?.level === "high")
+        .map((p) => {
+          const verdict = verdicts[p.id]!;
+          const daysOverdue = Math.max(0, ...verdict.findings.map((f) => f.magnitude ?? 0));
+          return {
+            ...p,
+            daysOverdue,
+            riskReason: describeVerdict(verdict),
+            riskScore: verdict.score,
+          };
+        })
+        .sort((a, b) => b.riskScore - a.riskScore),
     [projects, verdicts],
   );
 
   // Task Completion Leaderboard
   const leaderboard = useMemo(() => {
     return projects
-      .filter(p => p.projectState !== "live" && p.currentPhase !== "completed")
-      .map(p => {
-        const mintTasks = p.checklist.filter(c => c.ownerTeam === "mint");
-        const intTasks = p.checklist.filter(c => c.ownerTeam === "integration");
-        const mintDone = mintTasks.filter(c => c.completed).length;
-        const intDone = intTasks.filter(c => c.completed).length;
-        const totalDone = p.checklist.filter(c => c.completed).length;
+      .filter((p) => p.projectState !== "live" && p.currentPhase !== "completed")
+      .map((p) => {
+        const mintTasks = p.checklist.filter((c) => c.ownerTeam === "mint");
+        const intTasks = p.checklist.filter((c) => c.ownerTeam === "integration");
+        const mintDone = mintTasks.filter((c) => c.completed).length;
+        const intDone = intTasks.filter((c) => c.completed).length;
+        const totalDone = p.checklist.filter((c) => c.completed).length;
         const total = p.checklist.length;
         const pct = total > 0 ? Math.round((totalDone / total) * 100) : 0;
 
@@ -62,12 +80,13 @@ export const TacticalLists = ({ projects }: Props) => {
       .sort((a, b) => b.pct - a.pct);
   }, [projects]);
 
-
   return (
     <div className="space-y-6">
-
       {/* At Risk Watchlist */}
-      <Collapsible open={expandedSection === "atrisk"} onOpenChange={() => setExpandedSection(expandedSection === "atrisk" ? null : "atrisk")}>
+      <Collapsible
+        open={expandedSection === "atrisk"}
+        onOpenChange={() => setExpandedSection(expandedSection === "atrisk" ? null : "atrisk")}
+      >
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
@@ -76,12 +95,21 @@ export const TacticalLists = ({ projects }: Props) => {
                   <AlertCircle className="h-4 w-4 text-destructive-strong" />
                   "At Risk" Watchlist
                   {atRiskProjects.length > 0 && (
-                    <Badge variant="destructive" className="text-xs">{atRiskProjects.length} overdue</Badge>
+                    <Badge variant="destructive" className="text-xs">
+                      {atRiskProjects.length} overdue
+                    </Badge>
                   )}
                 </CardTitle>
-                {expandedSection === "atrisk" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expandedSection === "atrisk" ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </div>
-              <CardDescription>Projects where {getLabel("field_expected_go_live_date")} has passed but are not yet Live — immediate escalation list</CardDescription>
+              <CardDescription>
+                Projects where {getLabel("field_expected_go_live_date")} has passed but are not yet
+                Live — immediate escalation list
+              </CardDescription>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -105,14 +133,16 @@ export const TacticalLists = ({ projects }: Props) => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {atRiskProjects.map(p => (
+                    {atRiskProjects.map((p) => (
                       <TableRow key={p.id} className="bg-destructive/50">
                         <TableCell className="font-medium">{p.merchantName}</TableCell>
                         <TableCell>{p.dates.expectedGoLiveDate}</TableCell>
                         <TableCell>
                           <Badge variant="destructive">{p.daysOverdue}d overdue</Badge>
                         </TableCell>
-                        <TableCell>{stateLabels[p.projectState] || projectStateLabels[p.projectState]}</TableCell>
+                        <TableCell>
+                          {stateLabels[p.projectState] || projectStateLabels[p.projectState]}
+                        </TableCell>
                         <TableCell>{p.assignedOwnerName || "Unassigned"}</TableCell>
                         <TableCell>{arrCroreValue(p.arr)}</TableCell>
                       </TableRow>
@@ -126,7 +156,12 @@ export const TacticalLists = ({ projects }: Props) => {
       </Collapsible>
 
       {/* Task Completion Leaderboard */}
-      <Collapsible open={expandedSection === "leaderboard"} onOpenChange={() => setExpandedSection(expandedSection === "leaderboard" ? null : "leaderboard")}>
+      <Collapsible
+        open={expandedSection === "leaderboard"}
+        onOpenChange={() =>
+          setExpandedSection(expandedSection === "leaderboard" ? null : "leaderboard")
+        }
+      >
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
@@ -135,9 +170,16 @@ export const TacticalLists = ({ projects }: Props) => {
                   <Trophy className="h-4 w-4 text-warning-strong" />
                   Task Completion Leaderboard
                 </CardTitle>
-                {expandedSection === "leaderboard" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expandedSection === "leaderboard" ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </div>
-              <CardDescription>{teamLabels.mint} & {teamLabels.integration} task completion — how close each project is to the next phase</CardDescription>
+              <CardDescription>
+                {teamLabels.mint} & {teamLabels.integration} task completion — how close each
+                project is to the next phase
+              </CardDescription>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -154,7 +196,7 @@ export const TacticalLists = ({ projects }: Props) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {leaderboard.map(p => (
+                  {leaderboard.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.name}</TableCell>
                       <TableCell>{p.owner}</TableCell>

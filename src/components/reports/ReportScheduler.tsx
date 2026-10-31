@@ -9,14 +9,44 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import {
-  Calendar, Clock, Mail, CheckCircle2, XCircle, AlertTriangle,
-  RefreshCw, Trash2, Loader2, Send, History, Pencil, X
+  Calendar,
+  Clock,
+  Mail,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  Trash2,
+  Loader2,
+  Send,
+  History,
+  Pencil,
+  X,
 } from "lucide-react";
 
 interface SavedReport {
@@ -39,11 +69,27 @@ interface ReportExecution {
 }
 
 const STATUS_CONFIG: Record<string, { icon: React.ReactNode; color: string; label: string }> = {
-  success: { icon: <CheckCircle2 className="h-3.5 w-3.5" />, color: "text-success-strong", label: "Sent" },
+  success: {
+    icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+    color: "text-success-strong",
+    label: "Sent",
+  },
   failed: { icon: <XCircle className="h-3.5 w-3.5" />, color: "text-destructive", label: "Failed" },
-  partial: { icon: <AlertTriangle className="h-3.5 w-3.5" />, color: "text-warning-strong", label: "Partial" },
-  sending: { icon: <Loader2 className="h-3.5 w-3.5 animate-spin" />, color: "text-info-strong", label: "Sending" },
-  pending: { icon: <Clock className="h-3.5 w-3.5" />, color: "text-muted-foreground", label: "Pending" },
+  partial: {
+    icon: <AlertTriangle className="h-3.5 w-3.5" />,
+    color: "text-warning-strong",
+    label: "Partial",
+  },
+  sending: {
+    icon: <Loader2 className="h-3.5 w-3.5 animate-spin" />,
+    color: "text-info-strong",
+    label: "Sending",
+  },
+  pending: {
+    icon: <Clock className="h-3.5 w-3.5" />,
+    color: "text-muted-foreground",
+    label: "Pending",
+  },
 };
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -80,27 +126,49 @@ export const ReportScheduler = () => {
     setLoading(true);
     const tenantId = tenantScope(currentUser?.tenantId);
     const [reportsRes, execRes] = await Promise.all([
-      supabase.from("saved_reports").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
-      supabase.from("report_executions").select("*").eq("tenant_id", tenantId).order("triggered_at", { ascending: false }).limit(100),
+      supabase
+        .from("saved_reports")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("report_executions")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("triggered_at", { ascending: false })
+        .limit(100),
     ]);
     if (reportsRes.data) {
-      setReports(reportsRes.data.map((r: any) => ({
-        id: r.id, name: r.name, columns: r.columns || [],
-        schedule: r.schedule || "none", recipients: r.recipients || [],
-      })));
+      setReports(
+        reportsRes.data.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          columns: r.columns || [],
+          schedule: r.schedule || "none",
+          recipients: r.recipients || [],
+        })),
+      );
     }
     if (execRes.data) {
-      setExecutions(execRes.data.map((e: any) => ({
-        id: e.id, report_id: e.report_id, triggered_at: e.triggered_at,
-        status: e.status, recipients: e.recipients || [],
-        error_message: e.error_message, email_count: e.email_count,
-        completed_at: e.completed_at,
-      })));
+      setExecutions(
+        execRes.data.map((e: any) => ({
+          id: e.id,
+          report_id: e.report_id,
+          triggered_at: e.triggered_at,
+          status: e.status,
+          recipients: e.recipients || [],
+          error_message: e.error_message,
+          email_count: e.email_count,
+          completed_at: e.completed_at,
+        })),
+      );
     }
     setLoading(false);
   }, [currentUser?.tenantId]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const openEditDialog = (report: SavedReport) => {
     setEditReport(report);
@@ -118,7 +186,10 @@ export const ReportScheduler = () => {
     } else {
       const parts = report.schedule.split("@");
       if (parts.length === 2) {
-        const days = parts[0].split(",").map(d => d.trim()).filter(Boolean);
+        const days = parts[0]
+          .split(",")
+          .map((d) => d.trim())
+          .filter(Boolean);
         setEditScheduleType("weekly");
         setEditDays(days);
         setEditTime(parts[1]);
@@ -144,8 +215,8 @@ export const ReportScheduler = () => {
 
     const recipients = editRecipients
       .split(",")
-      .map(e => e.trim())
-      .filter(e => e.includes("@"));
+      .map((e) => e.trim())
+      .filter((e) => e.includes("@"));
 
     const { error } = await supabase
       .from("saved_reports")
@@ -191,18 +262,19 @@ export const ReportScheduler = () => {
 
   const handleDeleteExecution = async (execId: string) => {
     await supabase.from("report_executions").delete().eq("id", execId);
-    setExecutions(prev => prev.filter(e => e.id !== execId));
+    setExecutions((prev) => prev.filter((e) => e.id !== execId));
   };
 
   // FIX: Show reports that have a schedule set (not "none"), regardless of recipients
-  const scheduledReports = reports.filter(r => r.schedule && r.schedule !== "none");
-  const unscheduledReports = reports.filter(r => !r.schedule || r.schedule === "none");
+  const scheduledReports = reports.filter((r) => r.schedule && r.schedule !== "none");
+  const unscheduledReports = reports.filter((r) => !r.schedule || r.schedule === "none");
 
   const filteredExecutions = selectedReport
-    ? executions.filter(e => e.report_id === selectedReport)
+    ? executions.filter((e) => e.report_id === selectedReport)
     : executions;
 
-  const getReportName = (reportId: string) => reports.find(r => r.id === reportId)?.name || "Unknown";
+  const getReportName = (reportId: string) =>
+    reports.find((r) => r.id === reportId)?.name || "Unknown";
 
   if (loading) {
     return (
@@ -234,12 +306,17 @@ export const ReportScheduler = () => {
             </p>
           ) : (
             <div className="space-y-2">
-              {scheduledReports.map(report => {
-                const lastExec = executions.find(e => e.report_id === report.id);
-                const statusCfg = lastExec ? STATUS_CONFIG[lastExec.status] || STATUS_CONFIG.pending : null;
+              {scheduledReports.map((report) => {
+                const lastExec = executions.find((e) => e.report_id === report.id);
+                const statusCfg = lastExec
+                  ? STATUS_CONFIG[lastExec.status] || STATUS_CONFIG.pending
+                  : null;
                 const hasRecipients = report.recipients.length > 0;
                 return (
-                  <div key={report.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors">
+                  <div
+                    key={report.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors"
+                  >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm truncate">{report.name}</span>
@@ -248,7 +325,10 @@ export const ReportScheduler = () => {
                           {parseSchedule(report.schedule)}
                         </Badge>
                         {!hasRecipients && (
-                          <Badge variant="outline" className="text-2xs px-1.5 py-0 text-warning-strong border-warning/30">
+                          <Badge
+                            variant="outline"
+                            className="text-2xs px-1.5 py-0 text-warning-strong border-warning/30"
+                          >
                             No recipients
                           </Badge>
                         )}
@@ -298,7 +378,9 @@ export const ReportScheduler = () => {
                         size="sm"
                         variant={selectedReport === report.id ? "default" : "ghost"}
                         className="h-7 text-xs gap-1"
-                        onClick={() => setSelectedReport(prev => prev === report.id ? null : report.id)}
+                        onClick={() =>
+                          setSelectedReport((prev) => (prev === report.id ? null : report.id))
+                        }
                       >
                         <History className="h-3 w-3" /> History
                       </Button>
@@ -322,13 +404,21 @@ export const ReportScheduler = () => {
           </CardHeader>
           <CardContent className="px-4 pb-3 pt-0">
             <div className="flex flex-wrap gap-2">
-              {unscheduledReports.map(report => (
-                <div key={report.id} className="flex items-center gap-2 border rounded-lg px-3 py-2 bg-muted/20">
+              {unscheduledReports.map((report) => (
+                <div
+                  key={report.id}
+                  className="flex items-center gap-2 border rounded-lg px-3 py-2 bg-muted/20"
+                >
                   <span className="text-sm">{report.name}</span>
                   <Badge variant="outline" className="text-2xs px-1.5 py-0">
                     {report.columns.length} cols
                   </Badge>
-                  <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={() => openEditDialog(report)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-1.5"
+                    onClick={() => openEditDialog(report)}
+                  >
                     <Pencil className="h-3 w-3" />
                   </Button>
                 </div>
@@ -348,17 +438,26 @@ export const ReportScheduler = () => {
               {selectedReport && (
                 <Badge variant="outline" className="text-2xs gap-1">
                   {getReportName(selectedReport)}
-                  <button onClick={() => setSelectedReport(null)} className="hover:text-destructive ml-0.5">✕</button>
+                  <button
+                    onClick={() => setSelectedReport(null)}
+                    className="hover:text-destructive ml-0.5"
+                  >
+                    ✕
+                  </button>
                 </Badge>
               )}
             </CardTitle>
-            <span className="text-xs text-muted-foreground">{filteredExecutions.length} records</span>
+            <span className="text-xs text-muted-foreground">
+              {filteredExecutions.length} records
+            </span>
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="max-h-[50vh]">
             {filteredExecutions.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-8 text-center">No execution history yet.</p>
+              <p className="text-sm text-muted-foreground py-8 text-center">
+                No execution history yet.
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -373,14 +472,21 @@ export const ReportScheduler = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredExecutions.map(exec => {
+                  {filteredExecutions.map((exec) => {
                     const statusCfg = STATUS_CONFIG[exec.status] || STATUS_CONFIG.pending;
-                    const duration = exec.completed_at && exec.triggered_at
-                      ? Math.round((new Date(exec.completed_at).getTime() - new Date(exec.triggered_at).getTime()) / 1000)
-                      : null;
+                    const duration =
+                      exec.completed_at && exec.triggered_at
+                        ? Math.round(
+                            (new Date(exec.completed_at).getTime() -
+                              new Date(exec.triggered_at).getTime()) /
+                              1000,
+                          )
+                        : null;
                     return (
                       <TableRow key={exec.id}>
-                        <TableCell className="text-xs font-medium">{getReportName(exec.report_id)}</TableCell>
+                        <TableCell className="text-xs font-medium">
+                          {getReportName(exec.report_id)}
+                        </TableCell>
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(exec.triggered_at).toLocaleString()}
                         </TableCell>
@@ -399,7 +505,12 @@ export const ReportScheduler = () => {
                           {exec.error_message || "—"}
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteExecution(exec.id)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => handleDeleteExecution(exec.id)}
+                          >
                             <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
                           </Button>
                         </TableCell>
@@ -422,8 +533,13 @@ export const ReportScheduler = () => {
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Schedule Type</Label>
-              <Select value={editScheduleType} onValueChange={(v: "none" | "daily" | "weekly") => setEditScheduleType(v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={editScheduleType}
+                onValueChange={(v: "none" | "daily" | "weekly") => setEditScheduleType(v)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No Schedule</SelectItem>
                   <SelectItem value="daily">Daily</SelectItem>
@@ -436,16 +552,18 @@ export const ReportScheduler = () => {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Days</Label>
                 <div className="flex flex-wrap gap-2">
-                  {DAYS.map(day => (
+                  {DAYS.map((day) => (
                     <Button
                       key={day}
                       type="button"
                       size="sm"
                       variant={editDays.includes(day) ? "default" : "outline"}
                       className="h-7 text-xs px-3"
-                      onClick={() => setEditDays(prev =>
-                        prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-                      )}
+                      onClick={() =>
+                        setEditDays((prev) =>
+                          prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day],
+                        )
+                      }
                     >
                       {day}
                     </Button>
@@ -457,7 +575,7 @@ export const ReportScheduler = () => {
             {editScheduleType !== "none" && (
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Time</Label>
-                <Input type="time" value={editTime} onChange={e => setEditTime(e.target.value)} />
+                <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
               </div>
             )}
 
@@ -465,13 +583,15 @@ export const ReportScheduler = () => {
               <Label className="text-sm font-medium">Recipients (comma-separated emails)</Label>
               <Input
                 value={editRecipients}
-                onChange={e => setEditRecipients(e.target.value)}
+                onChange={(e) => setEditRecipients(e.target.value)}
                 placeholder="email1@example.com, email2@example.com"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleSaveEdit} disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
               Save Changes

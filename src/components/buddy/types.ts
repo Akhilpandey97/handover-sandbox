@@ -24,7 +24,8 @@ export interface ActionPreview {
   email?: { to: string[]; cc?: string[]; subject: string; body: string };
 }
 
-export type ActionStatus = "previewing" | "pending" | "executing" | "done" | "failed" | "cancelled" | "undone";
+export type ActionStatus =
+  "previewing" | "pending" | "executing" | "done" | "failed" | "cancelled" | "undone";
 
 export interface ActionResult {
   message: string;
@@ -44,7 +45,17 @@ export interface BuddyAction {
   result?: ActionResult;
 }
 
-export type ChartType = "column" | "bar" | "line" | "area" | "pie" | "donut" | "stacked" | "grouped" | "multiline" | "table";
+export type ChartType =
+  | "column"
+  | "bar"
+  | "line"
+  | "area"
+  | "pie"
+  | "donut"
+  | "stacked"
+  | "grouped"
+  | "multiline"
+  | "table";
 
 /** Headline numbers, a chart and its table, built by Buddy from a question. */
 export interface BuddyReport {
@@ -53,7 +64,12 @@ export interface BuddyReport {
   stats?: { label: string; value: string }[];
   columns: { key: string; label: string; numeric?: boolean }[];
   rows: Record<string, string | number | null>[];
-  chart?: { type: ChartType; x: string; series: { key: string; label: string }[]; valueLabel: string };
+  chart?: {
+    type: ChartType;
+    x: string;
+    series: { key: string; label: string }[];
+    valueLabel: string;
+  };
   /** Chart forms that fit this data, offered in the switcher. */
   charts?: ChartType[];
   /** Reports-builder column keys, when it can be saved to Reports. */
@@ -108,7 +124,13 @@ export interface Thread {
 }
 
 export const ACTION_ROLES = new Set(["manager", "admin", "super_admin", "superadmin"]);
-export const PORTFOLIO_ROLES = new Set(["manager", "admin", "super_admin", "superadmin", "gokwik_general"]);
+export const PORTFOLIO_ROLES = new Set([
+  "manager",
+  "admin",
+  "super_admin",
+  "superadmin",
+  "gokwik_general",
+]);
 
 export const newId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto

@@ -41,7 +41,8 @@ export type Workflow = {
   trigger_count: number | null;
 };
 
-const WORKFLOW_COLS = "id, tenant_id, name, trigger_type, trigger_config, action_type, action_config, trigger_count";
+const WORKFLOW_COLS =
+  "id, tenant_id, name, trigger_type, trigger_config, action_type, action_config, trigger_count";
 
 /** Does this rule apply to this queued event? */
 export function matches(wf: Workflow, ev: WorkflowEvent): boolean {
@@ -51,8 +52,14 @@ export function matches(wf: Workflow, ev: WorkflowEvent): boolean {
     if (typeof cfg.event_name !== "string" || cfg.event_name !== ev.event_name) return false;
     // "Checklist step completed" can be narrowed to one step, matched the way
     // project stages match step names: case-insensitive, contains.
-    if (ev.event_name === "checklist_completed" && typeof cfg.checklist_title === "string" && cfg.checklist_title.trim()) {
-      const title = String((ev.new_row as Record<string, unknown> | null)?.title ?? "").toLowerCase();
+    if (
+      ev.event_name === "checklist_completed" &&
+      typeof cfg.checklist_title === "string" &&
+      cfg.checklist_title.trim()
+    ) {
+      const title = String(
+        (ev.new_row as Record<string, unknown> | null)?.title ?? "",
+      ).toLowerCase();
       return title.includes(cfg.checklist_title.trim().toLowerCase());
     }
     return true;
@@ -68,7 +75,12 @@ export function matches(wf: Workflow, ev: WorkflowEvent): boolean {
     const before = (ev.old_row as Record<string, unknown>)[field];
     const after = (ev.new_row as Record<string, unknown>)?.[field];
     if (before === after) return false;
-    if (typeof cfg.from_value === "string" && cfg.from_value !== "" && String(before ?? "") !== cfg.from_value) return false;
+    if (
+      typeof cfg.from_value === "string" &&
+      cfg.from_value !== "" &&
+      String(before ?? "") !== cfg.from_value
+    )
+      return false;
     if (typeof cfg.to_value === "string" && cfg.to_value !== "") {
       return String(after ?? "") === cfg.to_value;
     }
@@ -79,7 +91,13 @@ export function matches(wf: Workflow, ev: WorkflowEvent): boolean {
   return false;
 }
 
-async function runAction(req: Request, supabase: Db, wf: Workflow, projectId: string, tenantId: string | null): Promise<string> {
+async function runAction(
+  req: Request,
+  supabase: Db,
+  wf: Workflow,
+  projectId: string,
+  tenantId: string | null,
+): Promise<string> {
   const cfg = wf.action_config || {};
 
   if (wf.action_type === "assign_owner") {
@@ -220,15 +238,26 @@ async function fire(
   return status === "success";
 }
 
-async function activeWorkflows(supabase: Db, tenantId: string | null, triggerType: string): Promise<Workflow[]> {
-  let q = supabase.from("ai_workflows").select(WORKFLOW_COLS).eq("is_active", true).eq("trigger_type", triggerType);
+async function activeWorkflows(
+  supabase: Db,
+  tenantId: string | null,
+  triggerType: string,
+): Promise<Workflow[]> {
+  let q = supabase
+    .from("ai_workflows")
+    .select(WORKFLOW_COLS)
+    .eq("is_active", true)
+    .eq("trigger_type", triggerType);
   if (tenantId) q = q.eq("tenant_id", tenantId);
   const { data } = await q;
   return (data || []) as Workflow[];
 }
 
 /** Drain queued project and checklist events. */
-export async function drainQueue(req: Request, tenantId: string | null): Promise<{ processed: number; fired: number }> {
+export async function drainQueue(
+  req: Request,
+  tenantId: string | null,
+): Promise<{ processed: number; fired: number }> {
   const supabase = adminClient();
   let q = supabase
     .from("workflow_events")
@@ -243,7 +272,11 @@ export async function drainQueue(req: Request, tenantId: string | null): Promise
   const pending = (events || []) as WorkflowEvent[];
   if (pending.length === 0) return { processed: 0, fired: 0 };
 
-  let wq = supabase.from("ai_workflows").select(WORKFLOW_COLS).eq("is_active", true).in("trigger_type", ["event", "field_change"]);
+  let wq = supabase
+    .from("ai_workflows")
+    .select(WORKFLOW_COLS)
+    .eq("is_active", true)
+    .in("trigger_type", ["event", "field_change"]);
   if (tenantId) wq = wq.eq("tenant_id", tenantId);
   const { data: wfRows } = await wq;
   const workflows = (wfRows || []) as Workflow[];
@@ -253,15 +286,27 @@ export async function drainQueue(req: Request, tenantId: string | null): Promise
     try {
       for (const wf of workflows) {
         if (wf.tenant_id !== ev.tenant_id || !matches(wf, ev)) continue;
-        if (await fire(req, supabase, wf, ev.project_id, ev.tenant_id, { eventId: ev.id, label: ev.event_name })) fired += 1;
+        if (
+          await fire(req, supabase, wf, ev.project_id, ev.tenant_id, {
+            eventId: ev.id,
+            label: ev.event_name,
+          })
+        )
+          fired += 1;
       }
-      await supabase.from("workflow_events").update({ processed_at: new Date().toISOString() }).eq("id", ev.id);
+      await supabase
+        .from("workflow_events")
+        .update({ processed_at: new Date().toISOString() })
+        .eq("id", ev.id);
     } catch (err) {
       // Mark it processed with the error rather than leaving it to be retried
       // forever at the head of the queue.
       await supabase
         .from("workflow_events")
-        .update({ processed_at: new Date().toISOString(), error: (err as Error).message.slice(0, 300) })
+        .update({
+          processed_at: new Date().toISOString(),
+          error: (err as Error).message.slice(0, 300),
+        })
         .eq("id", ev.id);
     }
   }
@@ -269,7 +314,12 @@ export async function drainQueue(req: Request, tenantId: string | null): Promise
 }
 
 /** Latest run time per project for one workflow, since a given moment. */
-async function lastRuns(supabase: Db, workflowId: string, projectIds: string[], sinceIso: string): Promise<Map<string, number>> {
+async function lastRuns(
+  supabase: Db,
+  workflowId: string,
+  projectIds: string[],
+  sinceIso: string,
+): Promise<Map<string, number>> {
   const map = new Map<string, number>();
   for (let i = 0; i < projectIds.length; i += 200) {
     const { data } = await supabase
@@ -291,7 +341,10 @@ async function lastRuns(supabase: Db, workflowId: string, projectIds: string[], 
  *                     interval (hourly/daily/weekly) while the project stays there
  *   go-live passed    once per expected go-live date; moving the date re-arms it
  */
-export async function runScheduledPass(req: Request, tenantId: string | null): Promise<{ fired: number }> {
+export async function runScheduledPass(
+  req: Request,
+  tenantId: string | null,
+): Promise<{ fired: number }> {
   const supabase = adminClient();
   const now = Date.now();
   const today = new Date(now).toISOString().slice(0, 10);
@@ -310,9 +363,16 @@ export async function runScheduledPass(req: Request, tenantId: string | null): P
       .select("id, project_state, created_at")
       .eq("tenant_id", wf.tenant_id)
       .eq("archived", false);
-    pq = typeof cfg.project_state === "string" && cfg.project_state ? pq.eq("project_state", cfg.project_state) : pq.neq("project_state", "live");
+    pq =
+      typeof cfg.project_state === "string" && cfg.project_state
+        ? pq.eq("project_state", cfg.project_state)
+        : pq.neq("project_state", "live");
     const { data: projectRows } = await pq.limit(2000);
-    const projects = (projectRows || []) as { id: string; project_state: string; created_at: string }[];
+    const projects = (projectRows || []) as {
+      id: string;
+      project_state: string;
+      created_at: string;
+    }[];
     if (projects.length === 0) continue;
     const ids = projects.map((p) => p.id);
 
@@ -326,7 +386,10 @@ export async function runScheduledPass(req: Request, tenantId: string | null): P
         .in("project_id", ids.slice(i, i + 200))
         .in("event_name", ["project_state_changed", "project_created"]);
       for (const e of (data || []) as { project_id: string; created_at: string }[]) {
-        enteredAt.set(e.project_id, Math.max(enteredAt.get(e.project_id) || 0, new Date(e.created_at).getTime()));
+        enteredAt.set(
+          e.project_id,
+          Math.max(enteredAt.get(e.project_id) || 0, new Date(e.created_at).getTime()),
+        );
       }
     }
 
@@ -357,12 +420,22 @@ export async function runScheduledPass(req: Request, tenantId: string | null): P
       .limit(2000);
     const projects = (projectRows || []) as { id: string; expected_go_live_date: string }[];
     if (projects.length === 0) continue;
-    const earliest = projects.reduce((min, p) => (p.expected_go_live_date < min ? p.expected_go_live_date : min), today);
-    const runs = await lastRuns(supabase, wf.id, projects.map((p) => p.id), `${earliest}T00:00:00Z`);
+    const earliest = projects.reduce(
+      (min, p) => (p.expected_go_live_date < min ? p.expected_go_live_date : min),
+      today,
+    );
+    const runs = await lastRuns(
+      supabase,
+      wf.id,
+      projects.map((p) => p.id),
+      `${earliest}T00:00:00Z`,
+    );
     for (const p of projects) {
       if (fired >= PASS_LIMIT) break;
-      if ((runs.get(p.id) || 0) >= new Date(`${p.expected_go_live_date}T00:00:00Z`).getTime()) continue;
-      if (await fire(req, supabase, wf, p.id, wf.tenant_id, { label: "go_live_date_passed" })) fired += 1;
+      if ((runs.get(p.id) || 0) >= new Date(`${p.expected_go_live_date}T00:00:00Z`).getTime())
+        continue;
+      if (await fire(req, supabase, wf, p.id, wf.tenant_id, { label: "go_live_date_passed" }))
+        fired += 1;
     }
   }
 
@@ -396,10 +469,19 @@ export async function runWorkflowOnProjects(
   projectIds: string[],
 ): Promise<{ ran: number; failed: number; skipped: number }> {
   const supabase = adminClient();
-  const { data: wfRow } = await supabase.from("ai_workflows").select(WORKFLOW_COLS).eq("id", workflowId).eq("tenant_id", tenantId).maybeSingle();
+  const { data: wfRow } = await supabase
+    .from("ai_workflows")
+    .select(WORKFLOW_COLS)
+    .eq("id", workflowId)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
   if (!wfRow) throw new Error("That workflow isn't in this workspace.");
   const wf = wfRow as Workflow;
-  const { data: rows } = await supabase.from("projects").select("id").eq("tenant_id", tenantId).in("id", projectIds);
+  const { data: rows } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .in("id", projectIds);
   const valid = ((rows || []) as { id: string }[]).map((r) => r.id);
   let ran = 0;
   let failed = 0;

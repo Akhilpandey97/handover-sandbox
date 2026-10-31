@@ -1,5 +1,9 @@
 import { DEFAULT_LABELS } from "@/data/defaultLabels";
-import { INTEGRATION_FIELDS, SECRET_FIELDS, type TenantIntegrations } from "@/lib/tenant-integrations.server";
+import {
+  INTEGRATION_FIELDS,
+  SECRET_FIELDS,
+  type TenantIntegrations,
+} from "@/lib/tenant-integrations.server";
 
 /**
  * Everything a workspace can configure, described once.
@@ -58,7 +62,8 @@ export const AREAS: AreaDef[] = [
   {
     id: "branding",
     title: "Organisation & branding",
-    purpose: "What the team and merchants see: the organisation name in emails, the portal and Buddy's answers.",
+    purpose:
+      "What the team and merchants see: the organisation name in emails, the portal and Buddy's answers.",
     role: "admin",
     ask: "Ask for organisation name, dashboard title and subtitle, and a logo link (https URL to an image; or they can upload in Settings → General).",
     actions: ["update_workspace_settings"],
@@ -74,7 +79,8 @@ export const AREAS: AreaDef[] = [
   {
     id: "teams",
     title: "Teams & handoffs",
-    purpose: "Who works on a project and in what order. Handoffs always go stage 1 → stage 2 → stage 3.",
+    purpose:
+      "Who works on a project and in what order. Handoffs always go stage 1 → stage 2 → stage 3.",
     role: "manager",
     ask: "Ask for the name and colour of the stage 1, 2 and 3 teams, and any extra teams that own checklist steps but don't receive handoffs.",
     actions: ["manage_teams"],
@@ -90,7 +96,8 @@ export const AREAS: AreaDef[] = [
   {
     id: "terminology",
     title: "Terminology",
-    purpose: "Rename fields, project states, phases and the responsibility parties to match how the company talks.",
+    purpose:
+      "Rename fields, project states, phases and the responsibility parties to match how the company talks.",
     role: "manager",
     ask: "Ask about core field names, project states, phases and responsibility parties together. Offer link, notes and credential labels only if they want more.",
     actions: ["update_workspace_settings"],
@@ -98,7 +105,8 @@ export const AREAS: AreaDef[] = [
   {
     id: "checklists",
     title: "Checklists",
-    purpose: "The steps each team completes on every project; the standard duration sets each step's due date (kick-off + days).",
+    purpose:
+      "The steps each team completes on every project; the standard duration sets each step's due date (kick-off + days).",
     role: "manager",
     ask: "For each team, show the current steps with durations and ask which to add, rename, reorder, re-time or remove. Accept a pasted list like 'Kick-off call – 2 days'.",
     actions: ["manage_checklist_steps"],
@@ -106,7 +114,8 @@ export const AREAS: AreaDef[] = [
   {
     id: "forms",
     title: "Checklist forms",
-    purpose: "Structured questions attached to checklist steps. A form whose name contains BRD is the one 'Send BRD form' sends.",
+    purpose:
+      "Structured questions attached to checklist steps. A form whose name contains BRD is the one 'Send BRD form' sends.",
     role: "manager",
     ask: "Ask for form names, their questions (section, question, answer type, options, required) and which steps show each form.",
     actions: ["manage_checklist_forms"],
@@ -122,7 +131,8 @@ export const AREAS: AreaDef[] = [
   {
     id: "stages",
     title: "Project stages",
-    purpose: "How projects are grouped on the Kanban board, TAT report and portal roadmap. Rules use checklist step names, so set checklists first.",
+    purpose:
+      "How projects are grouped on the Kanban board, TAT report and portal roadmap. Rules use checklist step names, so set checklists first.",
     role: "manager",
     ask: "Show the current stages in order with their rules, and ask for the stages they want and what puts a project in each.",
     actions: ["set_project_stages"],
@@ -130,7 +140,8 @@ export const AREAS: AreaDef[] = [
   {
     id: "risk_rules",
     title: "Risk rules",
-    purpose: "What puts a project in Needs attention, and what makes an upcoming go-live look at risk.",
+    purpose:
+      "What puts a project in Needs attention, and what makes an upcoming go-live look at risk.",
     role: "manager",
     ask: "Show each attention rule (on/off, days, severity) and each go-live risk signal (on/off, stall days, states) and ask what to change.",
     actions: ["set_risk_rules"],
@@ -181,7 +192,13 @@ export const AREA_BY_ID = new Map(AREAS.map((a) => [a.id, a]));
 
 // ── Key/value settings stored in app_settings ─────────────────────────────
 
-const text = (key: string, label: string, area: AreaId, role: Role = "manager", extra: Partial<SettingDef> = {}): SettingDef => ({
+const text = (
+  key: string,
+  label: string,
+  area: AreaId,
+  role: Role = "manager",
+  extra: Partial<SettingDef> = {},
+): SettingDef => ({
   key,
   label,
   area,
@@ -290,7 +307,14 @@ export const SETTINGS: SettingDef[] = [
   text("org_name", "Organisation name", "branding", "admin"),
   text("app_title", "Dashboard title", "branding", "admin"),
   text("app_subtitle", "Dashboard subtitle", "branding", "admin"),
-  { key: "org_logo_url", label: "Logo link", area: "branding", kind: "url", role: "admin", help: "An https link to an image" },
+  {
+    key: "org_logo_url",
+    label: "Logo link",
+    area: "branding",
+    kind: "url",
+    role: "admin",
+    help: "An https link to an image",
+  },
 
   ...CORE_FIELD_LABELS.map(([k, l]) => text(k, `${l} label`, "terminology")),
   text("state_not_started", "State: not started", "terminology"),
@@ -305,20 +329,73 @@ export const SETTINGS: SettingDef[] = [
   text("responsibility_internal", "Your side of the work", "terminology"),
   text("responsibility_external", "The merchant's side", "terminology"),
   text("responsibility_neutral", "Neither side", "terminology"),
-  ...LINK_LABELS.map(([k, l]) => text(k, `${l} label`, "terminology", "manager", { advanced: true })),
-  ...NOTE_LABELS.map(([k, l]) => text(k, `${l} label`, "terminology", "manager", { advanced: true })),
-  ...CREDENTIAL_LABELS.map(([k, l]) => text(k, `${l} label`, "terminology", "manager", { advanced: true })),
+  ...LINK_LABELS.map(([k, l]) =>
+    text(k, `${l} label`, "terminology", "manager", { advanced: true }),
+  ),
+  ...NOTE_LABELS.map(([k, l]) =>
+    text(k, `${l} label`, "terminology", "manager", { advanced: true }),
+  ),
+  ...CREDENTIAL_LABELS.map(([k, l]) =>
+    text(k, `${l} label`, "terminology", "manager", { advanced: true }),
+  ),
 
-  { key: "email_monitor_address", label: "Handover email sender", area: "email_intake", kind: "email", role: "manager", help: "Emails from this address become projects" },
-  { key: "email_subject_keywords", label: "Subject keywords", area: "email_intake", kind: "keywords", role: "manager", help: "Comma-separated" },
+  {
+    key: "email_monitor_address",
+    label: "Handover email sender",
+    area: "email_intake",
+    kind: "email",
+    role: "manager",
+    help: "Emails from this address become projects",
+  },
+  {
+    key: "email_subject_keywords",
+    label: "Subject keywords",
+    area: "email_intake",
+    kind: "keywords",
+    role: "manager",
+    help: "Comma-separated",
+  },
 
-  { key: "slack_alerts_enabled", label: "Send the Slack digest", area: "alerts", kind: "bool", role: "manager" },
-  { key: "slack_channel_email", label: "Slack channel email", area: "alerts", kind: "email", role: "manager" },
+  {
+    key: "slack_alerts_enabled",
+    label: "Send the Slack digest",
+    area: "alerts",
+    kind: "bool",
+    role: "manager",
+  },
+  {
+    key: "slack_channel_email",
+    label: "Slack channel email",
+    area: "alerts",
+    kind: "email",
+    role: "manager",
+  },
   text("slack_alert_tag", "Tag that marks a step as waiting on the merchant", "alerts"),
-  { key: "slack_alert_hours", label: "Hours before an item is included", area: "alerts", kind: "number", role: "manager", min: 1, max: 720 },
+  {
+    key: "slack_alert_hours",
+    label: "Hours before an item is included",
+    area: "alerts",
+    kind: "number",
+    role: "manager",
+    min: 1,
+    max: 720,
+  },
 
-  ...COLOR_LABELS.map(([k, l]): SettingDef => ({ key: k, label: `Colour: ${l}`, area: "look_and_buddy", kind: "color", role: "manager", advanced: true })),
-  ...NAV_TABS.map(({ key, label }): SettingDef => ({ key: `nav:${key}`, label: `Show the ${label} tab`, area: "look_and_buddy", kind: "bool", role: "manager" })),
+  ...COLOR_LABELS.map(([k, l]): SettingDef => ({
+    key: k,
+    label: `Colour: ${l}`,
+    area: "look_and_buddy",
+    kind: "color",
+    role: "manager",
+    advanced: true,
+  })),
+  ...NAV_TABS.map(({ key, label }): SettingDef => ({
+    key: `nav:${key}`,
+    label: `Show the ${label} tab`,
+    area: "look_and_buddy",
+    kind: "bool",
+    role: "manager",
+  })),
 ];
 
 export const SETTING_BY_KEY = new Map(SETTINGS.map((s) => [s.key, s]));
@@ -342,8 +419,16 @@ export const settingDefault = (key: string): string => {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Validate and normalise a value for a setting, or return why it can't be saved. */
-export function normaliseSetting(def: SettingDef, raw: unknown): { value: string } | { error: string } {
-  const s = raw === null || raw === undefined ? "" : typeof raw === "boolean" ? String(raw) : String(raw).trim();
+export function normaliseSetting(
+  def: SettingDef,
+  raw: unknown,
+): { value: string } | { error: string } {
+  const s =
+    raw === null || raw === undefined
+      ? ""
+      : typeof raw === "boolean"
+        ? String(raw)
+        : String(raw).trim();
   switch (def.kind) {
     case "bool": {
       const v = s.toLowerCase();
@@ -354,24 +439,35 @@ export function normaliseSetting(def: SettingDef, raw: unknown): { value: string
     case "number": {
       const n = Number(s);
       if (s === "" || !Number.isFinite(n)) return { error: `${def.label} must be a number.` };
-      if (def.min !== undefined && n < def.min) return { error: `${def.label} must be at least ${def.min}.` };
-      if (def.max !== undefined && n > def.max) return { error: `${def.label} must be at most ${def.max}.` };
+      if (def.min !== undefined && n < def.min)
+        return { error: `${def.label} must be at least ${def.min}.` };
+      if (def.max !== undefined && n > def.max)
+        return { error: `${def.label} must be at most ${def.max}.` };
       return { value: String(Math.round(n)) };
     }
     case "color":
-      if (!/^#[0-9a-fA-F]{6}$/.test(s)) return { error: `${def.label} must be a hex colour like #255A87.` };
+      if (!/^#[0-9a-fA-F]{6}$/.test(s))
+        return { error: `${def.label} must be a hex colour like #255A87.` };
       return { value: s.toLowerCase() };
     case "email":
       if (s !== "" && !EMAIL_RE.test(s)) return { error: `${def.label} must be an email address.` };
       return { value: s.toLowerCase() };
     case "url":
-      if (s !== "" && !/^https:\/\/\S+$/.test(s)) return { error: `${def.label} must be an https link.` };
+      if (s !== "" && !/^https:\/\/\S+$/.test(s))
+        return { error: `${def.label} must be an https link.` };
       return { value: s };
     case "keywords":
-      return { value: s.split(",").map((k) => k.trim()).filter(Boolean).join(", ") };
+      return {
+        value: s
+          .split(",")
+          .map((k) => k.trim())
+          .filter(Boolean)
+          .join(", "),
+      };
     default:
       if (s.length > 200) return { error: `${def.label} must be 200 characters or fewer.` };
-      if (s === "") return { error: `${def.label} can't be empty. Say "reset" to go back to the default.` };
+      if (s === "")
+        return { error: `${def.label} can't be empty. Say "reset" to go back to the default.` };
       return { value: s };
   }
 }
@@ -387,33 +483,195 @@ export interface IntegrationDef {
 }
 
 export const INTEGRATIONS: IntegrationDef[] = [
-  { key: "resend_api_key", label: "Resend API key", group: "Email sending", area: "email_sending", kind: "text" },
-  { key: "from_email", label: "From address", group: "Email sending", area: "email_sending", kind: "email" },
-  { key: "from_name", label: "From name", group: "Email sending", area: "email_sending", kind: "text" },
-  { key: "reply_to", label: "Reply-to", group: "Email sending", area: "email_sending", kind: "email" },
-  { key: "app_base_url", label: "App link used in emails", group: "Email sending", area: "email_sending", kind: "url" },
-  { key: "google_mail_api_key", label: "Gmail connector key", group: "Gmail", area: "email_intake", kind: "text" },
-  { key: "gmail_monitor_address", label: "Mailbox to watch", group: "Gmail", area: "email_intake", kind: "email" },
-  { key: "jira_base_url", label: "Jira site URL", group: "Jira", area: "integrations", kind: "url" },
-  { key: "jira_email", label: "Jira account email", group: "Jira", area: "integrations", kind: "email" },
-  { key: "jira_api_token", label: "Jira API token", group: "Jira", area: "integrations", kind: "text" },
-  { key: "jira_project_key", label: "Jira default project key", group: "Jira", area: "integrations", kind: "text" },
-  { key: "slack_webhook_url", label: "Slack incoming webhook URL", group: "Slack", area: "integrations", kind: "url" },
-  { key: "slack_bot_token", label: "Slack bot token", group: "Slack", area: "integrations", kind: "text" },
-  { key: "slack_channel", label: "Slack default channel", group: "Slack", area: "integrations", kind: "text" },
-  { key: "zoom_account_id", label: "Zoom account ID", group: "Zoom", area: "integrations", kind: "text" },
-  { key: "zoom_client_id", label: "Zoom client ID", group: "Zoom", area: "integrations", kind: "text" },
-  { key: "zoom_client_secret", label: "Zoom client secret", group: "Zoom", area: "integrations", kind: "text" },
-  { key: "zoom_webhook_secret", label: "Zoom webhook secret token", group: "Zoom", area: "integrations", kind: "text" },
-  { key: "zoom_user_id", label: "Zoom host email or user ID", group: "Zoom", area: "integrations", kind: "text" },
-  { key: "teams_tenant_id", label: "Microsoft tenant ID", group: "Microsoft Teams", area: "integrations", kind: "text" },
-  { key: "teams_client_id", label: "Microsoft client ID", group: "Microsoft Teams", area: "integrations", kind: "text" },
-  { key: "teams_client_secret", label: "Microsoft client secret", group: "Microsoft Teams", area: "integrations", kind: "text" },
-  { key: "teams_organizer_user_id", label: "Teams organiser user ID", group: "Microsoft Teams", area: "integrations", kind: "text" },
-  { key: "google_oauth_client_id", label: "Google OAuth client ID", group: "Google Meet", area: "integrations", kind: "text" },
-  { key: "google_oauth_client_secret", label: "Google OAuth client secret", group: "Google Meet", area: "integrations", kind: "text" },
-  { key: "google_meet_refresh_token", label: "Google Meet refresh token", group: "Google Meet", area: "integrations", kind: "text" },
-  { key: "google_calendar_refresh_token", label: "Google Calendar refresh token", group: "Google Meet", area: "integrations", kind: "text" },
+  {
+    key: "resend_api_key",
+    label: "Resend API key",
+    group: "Email sending",
+    area: "email_sending",
+    kind: "text",
+  },
+  {
+    key: "from_email",
+    label: "From address",
+    group: "Email sending",
+    area: "email_sending",
+    kind: "email",
+  },
+  {
+    key: "from_name",
+    label: "From name",
+    group: "Email sending",
+    area: "email_sending",
+    kind: "text",
+  },
+  {
+    key: "reply_to",
+    label: "Reply-to",
+    group: "Email sending",
+    area: "email_sending",
+    kind: "email",
+  },
+  {
+    key: "app_base_url",
+    label: "App link used in emails",
+    group: "Email sending",
+    area: "email_sending",
+    kind: "url",
+  },
+  {
+    key: "google_mail_api_key",
+    label: "Gmail connector key",
+    group: "Gmail",
+    area: "email_intake",
+    kind: "text",
+  },
+  {
+    key: "gmail_monitor_address",
+    label: "Mailbox to watch",
+    group: "Gmail",
+    area: "email_intake",
+    kind: "email",
+  },
+  {
+    key: "jira_base_url",
+    label: "Jira site URL",
+    group: "Jira",
+    area: "integrations",
+    kind: "url",
+  },
+  {
+    key: "jira_email",
+    label: "Jira account email",
+    group: "Jira",
+    area: "integrations",
+    kind: "email",
+  },
+  {
+    key: "jira_api_token",
+    label: "Jira API token",
+    group: "Jira",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "jira_project_key",
+    label: "Jira default project key",
+    group: "Jira",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "slack_webhook_url",
+    label: "Slack incoming webhook URL",
+    group: "Slack",
+    area: "integrations",
+    kind: "url",
+  },
+  {
+    key: "slack_bot_token",
+    label: "Slack bot token",
+    group: "Slack",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "slack_channel",
+    label: "Slack default channel",
+    group: "Slack",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "zoom_account_id",
+    label: "Zoom account ID",
+    group: "Zoom",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "zoom_client_id",
+    label: "Zoom client ID",
+    group: "Zoom",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "zoom_client_secret",
+    label: "Zoom client secret",
+    group: "Zoom",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "zoom_webhook_secret",
+    label: "Zoom webhook secret token",
+    group: "Zoom",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "zoom_user_id",
+    label: "Zoom host email or user ID",
+    group: "Zoom",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "teams_tenant_id",
+    label: "Microsoft tenant ID",
+    group: "Microsoft Teams",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "teams_client_id",
+    label: "Microsoft client ID",
+    group: "Microsoft Teams",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "teams_client_secret",
+    label: "Microsoft client secret",
+    group: "Microsoft Teams",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "teams_organizer_user_id",
+    label: "Teams organiser user ID",
+    group: "Microsoft Teams",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "google_oauth_client_id",
+    label: "Google OAuth client ID",
+    group: "Google Meet",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "google_oauth_client_secret",
+    label: "Google OAuth client secret",
+    group: "Google Meet",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "google_meet_refresh_token",
+    label: "Google Meet refresh token",
+    group: "Google Meet",
+    area: "integrations",
+    kind: "text",
+  },
+  {
+    key: "google_calendar_refresh_token",
+    label: "Google Calendar refresh token",
+    group: "Google Meet",
+    area: "integrations",
+    kind: "text",
+  },
 ];
 
 export const INTEGRATION_BY_KEY = new Map(INTEGRATIONS.map((i) => [i.key as string, i]));
@@ -421,7 +679,8 @@ export const isSecretIntegration = (key: string) => (SECRET_FIELDS as string[]).
 
 // Every stored integration column is described above; keep it that way.
 for (const field of INTEGRATION_FIELDS) {
-  if (!INTEGRATION_BY_KEY.has(field)) console.warn(`setup-catalog: integration field ${field} has no description`);
+  if (!INTEGRATION_BY_KEY.has(field))
+    console.warn(`setup-catalog: integration field ${field} has no description`);
 }
 
 /** Show a secret without revealing it. */

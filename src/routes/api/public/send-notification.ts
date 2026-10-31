@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+  resendFrom,
+  resendReplyTo,
+} from "@/lib/tenant-integrations.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { projectUrl } from "@/lib/app-links.server";
 
@@ -8,7 +14,8 @@ import { requireInternalCaller } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 async function handler(req: Request): Promise<Response> {
@@ -20,7 +27,22 @@ async function handler(req: Request): Promise<Response> {
   if (denied) return denied;
 
   try {
-    const { type, recipientEmail, recipientName, projectName, fromTeam, toTeam, notes, assignedBy, projectId, checklistItemId, taskId, commentId, cc, tenantId } = await req.json();
+    const {
+      type,
+      recipientEmail,
+      recipientName,
+      projectName,
+      fromTeam,
+      toTeam,
+      notes,
+      assignedBy,
+      projectId,
+      checklistItemId,
+      taskId,
+      commentId,
+      cc,
+      tenantId,
+    } = await req.json();
 
     // tenantId lets server-to-server callers (which have no user JWT) still get
     // the right tenant's branding and base URL.
@@ -30,7 +52,11 @@ async function handler(req: Request): Promise<Response> {
     const { brandColor } = await getTenantBranding(resolvedTenantId);
     const RESEND_API_KEY = requireCred(creds, "resend_api_key", "Resend email");
 
-    const link = projectUrl(creds, projectId, { item: checklistItemId, task: taskId, comment: commentId });
+    const link = projectUrl(creds, projectId, {
+      item: checklistItemId,
+      task: taskId,
+      comment: commentId,
+    });
     const viewProjectBtn = link
       ? `<div style="margin-top: 20px; text-align: center;">
            <a href="${link}" style="display: inline-block; background: ${brandColor}; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600;">View Project →</a>
@@ -52,7 +78,7 @@ async function handler(req: Request): Promise<Response> {
             <p style="margin: 0 0 16px;">You have been assigned to a new project:</p>
             <div style="background: white; border: 1px solid #d5e0e6; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
               <h2 style="margin: 0 0 8px; color: #11263b; font-size: 18px;">${projectName}</h2>
-              ${assignedBy ? `<p style="margin: 0; color: #546978; font-size: 14px;">Assigned by: ${assignedBy}</p>` : ''}
+              ${assignedBy ? `<p style="margin: 0; color: #546978; font-size: 14px;">Assigned by: ${assignedBy}</p>` : ""}
             </div>
             ${viewProjectBtn || `<p style="margin: 0; color: #546978; font-size: 14px;">Please log in to your dashboard to review and accept the project.</p>`}
           </div>
@@ -71,7 +97,7 @@ async function handler(req: Request): Promise<Response> {
             <div style="background: white; border: 1px solid #d5e0e6; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
               <h2 style="margin: 0 0 8px; color: #11263b; font-size: 18px;">${projectName}</h2>
               <p style="margin: 0 0 4px; color: #546978; font-size: 14px;">From: <strong>${fromTeam}</strong> → To: <strong>${toTeam}</strong></p>
-              ${notes ? `<p style="margin: 8px 0 0; color: #546978; font-size: 14px;">Notes: ${notes}</p>` : ''}
+              ${notes ? `<p style="margin: 8px 0 0; color: #546978; font-size: 14px;">Notes: ${notes}</p>` : ""}
             </div>
             ${viewProjectBtn || `<p style="margin: 0; color: #546978; font-size: 14px;">Please log in to your dashboard to accept this project.</p>`}
           </div>
@@ -90,7 +116,7 @@ async function handler(req: Request): Promise<Response> {
             <div style="background: white; border: 1px solid #f3c4c4; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
               <h2 style="margin: 0 0 8px; color: #11263b; font-size: 18px;">${projectName}</h2>
               <p style="margin: 0 0 4px; color: #546978; font-size: 14px;">From: <strong>${fromTeam}</strong> → Back to: <strong>${toTeam}</strong></p>
-              ${notes ? `<p style="margin: 8px 0 0; color: #ad1f1f; font-size: 14px; font-weight: 600;">Reason: ${notes}</p>` : ''}
+              ${notes ? `<p style="margin: 8px 0 0; color: #ad1f1f; font-size: 14px; font-weight: 600;">Reason: ${notes}</p>` : ""}
             </div>
             ${viewProjectBtn || `<p style="margin: 0; color: #546978; font-size: 14px;">Please address the issues and re-transfer the project.</p>`}
           </div>
@@ -117,7 +143,7 @@ async function handler(req: Request): Promise<Response> {
     });
 
     const result = await emailResponse.json();
-    
+
     if (!emailResponse.ok) {
       console.error("Resend error:", result);
       throw new Error(result.message || "Failed to send email");

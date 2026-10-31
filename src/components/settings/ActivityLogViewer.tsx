@@ -3,19 +3,51 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useActivityLogs, ActivityLog } from "@/hooks/useActivityLogs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilteredEmptyState } from "@/components/filters/FilterPanel";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Activity, Search, Filter, ChevronDown, ChevronRight, Bot, User, Settings, CheckCircle2, XCircle, Loader2, RefreshCw, X } from "lucide-react";
+import {
+  Activity,
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronRight,
+  Bot,
+  User,
+  Settings,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  RefreshCw,
+  X,
+} from "lucide-react";
 import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 
 const ACTION_TYPE_CONFIG: Record<string, { icon: typeof Bot; label: string; color: string }> = {
-  ai: { icon: Bot, label: "AI", color: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400" },
-  user: { icon: User, label: "User", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400" },
-  system: { icon: Settings, label: "System", color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300" },
+  ai: {
+    icon: Bot,
+    label: "AI",
+    color: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400",
+  },
+  user: {
+    icon: User,
+    label: "User",
+    color: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+  },
+  system: {
+    icon: Settings,
+    label: "System",
+    color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+  },
 };
 
 const CATEGORY_OPTIONS = [
@@ -37,8 +69,18 @@ export const ActivityLogViewer = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const activeFilters = [search.trim() !== "", typeFilter !== "all", categoryFilter !== "all", statusFilter !== "all"].filter(Boolean).length;
-  const clearFilters = () => { setSearch(""); setTypeFilter("all"); setCategoryFilter("all"); setStatusFilter("all"); };
+  const activeFilters = [
+    search.trim() !== "",
+    typeFilter !== "all",
+    categoryFilter !== "all",
+    statusFilter !== "all",
+  ].filter(Boolean).length;
+  const clearFilters = () => {
+    setSearch("");
+    setTypeFilter("all");
+    setCategoryFilter("all");
+    setStatusFilter("all");
+  };
 
   const filtered = logs.filter((log) => {
     if (typeFilter !== "all" && log.action_type !== typeFilter) return false;
@@ -61,16 +103,20 @@ export const ActivityLogViewer = () => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />Activity Log
+              <Activity className="h-5 w-5" />
+              Activity Log
             </CardTitle>
-            <CardDescription>All system, user, and AI activities with full API call details</CardDescription>
+            <CardDescription>
+              All system, user, and AI activities with full API call details
+            </CardDescription>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => queryClient.invalidateQueries({ queryKey: ["activity_logs"] })}
           >
-            <RefreshCw className="h-4 w-4 mr-1" />Refresh
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Refresh
           </Button>
         </div>
       </CardHeader>
@@ -103,7 +149,9 @@ export const ActivityLogViewer = () => {
             </SelectTrigger>
             <SelectContent>
               {CATEGORY_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -118,7 +166,12 @@ export const ActivityLogViewer = () => {
             </SelectContent>
           </Select>
           {activeFilters > 0 && (
-            <Button variant="ghost" size="sm" className="h-9 gap-1 px-2 text-xs" onClick={clearFilters}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 gap-1 px-2 text-xs"
+              onClick={clearFilters}
+            >
               <X className="h-3 w-3" />
               Clear
               <span className="ml-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-2xs font-semibold leading-none text-primary-foreground">
@@ -131,8 +184,10 @@ export const ActivityLogViewer = () => {
         {/* Stats bar */}
         <div className="flex gap-4 text-xs text-muted-foreground border-b pb-2">
           <span>Total: {filtered.length}</span>
-          <span>Success: {filtered.filter(l => l.status === "success").length}</span>
-          <span className="text-destructive">Failed: {filtered.filter(l => l.status === "failed").length}</span>
+          <span>Success: {filtered.filter((l) => l.status === "success").length}</span>
+          <span className="text-destructive">
+            Failed: {filtered.filter((l) => l.status === "failed").length}
+          </span>
         </div>
 
         {/* Log entries */}
@@ -185,7 +240,8 @@ const LogEntry = ({ log }: { log: ActivityLog }) => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <Badge className={`text-2xs px-1.5 py-0 ${config.color}`}>
-                <Icon className="h-3 w-3 mr-1" />{config.label}
+                <Icon className="h-3 w-3 mr-1" />
+                {config.label}
               </Badge>
               <Badge variant="outline" className="text-2xs px-1.5 py-0">
                 {log.category}
@@ -211,7 +267,9 @@ const LogEntry = ({ log }: { log: ActivityLog }) => {
       {hasMetadata && (
         <CollapsibleContent>
           <div className="ml-10 mr-4 mb-2 p-3 rounded-md bg-muted/50 border">
-            <p className="text-2xs font-medium text-muted-foreground mb-1">Full Details (API Payload)</p>
+            <p className="text-2xs font-medium text-muted-foreground mb-1">
+              Full Details (API Payload)
+            </p>
             <pre className="text-xs whitespace-pre-wrap font-mono max-h-[300px] overflow-auto">
               {JSON.stringify(log.metadata, null, 2)}
             </pre>

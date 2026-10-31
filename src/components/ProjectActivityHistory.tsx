@@ -1,11 +1,6 @@
 import { useState, useMemo } from "react";
 import { useProjectActivityHistory, ActivityEntry } from "@/hooks/useProjectActivityHistory";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -47,40 +42,64 @@ const CATEGORY_FILTERS = [
 
 const getCategoryIcon = (category: string) => {
   switch (category) {
-    case "project": return FileText;
-    case "checklist": return CheckSquare;
-    case "transfer": return ArrowLeftRight;
-    case "comment": return MessageSquare;
-    case "risk": return ShieldAlert;
-    case "email": return Mail;
-    case "jira": return Ticket;
-    default: return Activity;
+    case "project":
+      return FileText;
+    case "checklist":
+      return CheckSquare;
+    case "transfer":
+      return ArrowLeftRight;
+    case "comment":
+      return MessageSquare;
+    case "risk":
+      return ShieldAlert;
+    case "email":
+      return Mail;
+    case "jira":
+      return Ticket;
+    default:
+      return Activity;
   }
 };
 
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case "project": return "bg-info-soft text-info-strong";
-    case "checklist": return "bg-success-soft text-success-strong";
-    case "transfer": return "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300";
-    case "comment": return "bg-warning-soft text-warning-strong";
-    case "risk": return "bg-destructive-soft text-destructive-strong";
-    case "email": return "bg-info-soft text-info-strong";
-    case "jira": return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300";
-    default: return "bg-muted text-muted-foreground";
+    case "project":
+      return "bg-info-soft text-info-strong";
+    case "checklist":
+      return "bg-success-soft text-success-strong";
+    case "transfer":
+      return "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300";
+    case "comment":
+      return "bg-warning-soft text-warning-strong";
+    case "risk":
+      return "bg-destructive-soft text-destructive-strong";
+    case "email":
+      return "bg-info-soft text-info-strong";
+    case "jira":
+      return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300";
+    default:
+      return "bg-muted text-muted-foreground";
   }
 };
 
 const getTimelineColor = (category: string) => {
   switch (category) {
-    case "project": return "bg-info";
-    case "checklist": return "bg-success";
-    case "transfer": return "bg-purple-500";
-    case "comment": return "bg-warning";
-    case "risk": return "bg-destructive";
-    case "email": return "bg-info";
-    case "jira": return "bg-indigo-500";
-    default: return "bg-muted-foreground";
+    case "project":
+      return "bg-info";
+    case "checklist":
+      return "bg-success";
+    case "transfer":
+      return "bg-purple-500";
+    case "comment":
+      return "bg-warning";
+    case "risk":
+      return "bg-destructive";
+    case "email":
+      return "bg-info";
+    case "jira":
+      return "bg-indigo-500";
+    default:
+      return "bg-muted-foreground";
   }
 };
 
@@ -103,8 +122,7 @@ export const ProjectActivityHistory = ({
       const q = search.toLowerCase();
       result = result.filter(
         (e) =>
-          e.description.toLowerCase().includes(q) ||
-          (e.userName || "").toLowerCase().includes(q)
+          e.description.toLowerCase().includes(q) || (e.userName || "").toLowerCase().includes(q),
       );
     }
     return result;
@@ -180,7 +198,9 @@ export const ProjectActivityHistory = ({
               <Activity className="h-10 w-10 mx-auto mb-3 opacity-30" />
               <p className="text-sm font-medium">No activity found</p>
               <p className="text-xs mt-1">
-                {activeFilter !== "all" ? "Try a different filter" : "Activity will appear here as changes are made"}
+                {activeFilter !== "all"
+                  ? "Try a different filter"
+                  : "Activity will appear here as changes are made"}
               </p>
             </div>
           ) : (
@@ -209,7 +229,9 @@ export const ProjectActivityHistory = ({
 
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start gap-2">
-                                <div className={`shrink-0 h-7 w-7 rounded-md flex items-center justify-center ${getCategoryColor(entry.category)}`}>
+                                <div
+                                  className={`shrink-0 h-7 w-7 rounded-md flex items-center justify-center ${getCategoryColor(entry.category)}`}
+                                >
                                   <Icon className="h-3.5 w-3.5" />
                                 </div>
 
@@ -219,24 +241,42 @@ export const ProjectActivityHistory = ({
                                   </p>
 
                                   {/* Render field-level changes */}
-                                  {entry.metadata?.changes && Array.isArray(entry.metadata.changes) && entry.metadata.changes.length > 0 && (
-                                    <div className="mt-1.5 space-y-0.5">
-                                      {entry.metadata.changes.map((c: { field: string; from: string; to: string }, ci: number) => (
-                                        <div key={ci} className="flex items-center gap-1.5 text-2xs">
-                                          <span className="font-medium text-muted-foreground">{c.field}:</span>
-                                          {c.from && (
-                                            <span className="line-through text-destructive-strong/70 max-w-[120px] truncate" title={c.from}>
-                                              {c.from}
-                                            </span>
-                                          )}
-                                          <ArrowRight className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
-                                          <span className="text-success-strong max-w-[200px] truncate" title={c.to}>
-                                            {c.to || "—"}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
+                                  {entry.metadata?.changes &&
+                                    Array.isArray(entry.metadata.changes) &&
+                                    entry.metadata.changes.length > 0 && (
+                                      <div className="mt-1.5 space-y-0.5">
+                                        {entry.metadata.changes.map(
+                                          (
+                                            c: { field: string; from: string; to: string },
+                                            ci: number,
+                                          ) => (
+                                            <div
+                                              key={ci}
+                                              className="flex items-center gap-1.5 text-2xs"
+                                            >
+                                              <span className="font-medium text-muted-foreground">
+                                                {c.field}:
+                                              </span>
+                                              {c.from && (
+                                                <span
+                                                  className="line-through text-destructive-strong/70 max-w-[120px] truncate"
+                                                  title={c.from}
+                                                >
+                                                  {c.from}
+                                                </span>
+                                              )}
+                                              <ArrowRight className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
+                                              <span
+                                                className="text-success-strong max-w-[200px] truncate"
+                                                title={c.to}
+                                              >
+                                                {c.to || "—"}
+                                              </span>
+                                            </div>
+                                          ),
+                                        )}
+                                      </div>
+                                    )}
 
                                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                                     {entry.userName && (
@@ -249,10 +289,17 @@ export const ProjectActivityHistory = ({
                                       <Clock className="h-3 w-3" />
                                       {format(new Date(entry.timestamp), "h:mm a")}
                                       <span className="opacity-60">
-                                        ({formatDistanceToNow(new Date(entry.timestamp), { addSuffix: true })})
+                                        (
+                                        {formatDistanceToNow(new Date(entry.timestamp), {
+                                          addSuffix: true,
+                                        })}
+                                        )
                                       </span>
                                     </span>
-                                    <Badge variant="outline" className="text-2xs px-1.5 py-0 h-4 capitalize">
+                                    <Badge
+                                      variant="outline"
+                                      className="text-2xs px-1.5 py-0 h-4 capitalize"
+                                    >
                                       {entry.category}
                                     </Badge>
                                   </div>

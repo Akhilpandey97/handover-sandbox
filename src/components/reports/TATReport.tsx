@@ -2,7 +2,15 @@ import { useMemo, useState } from "react";
 import { Project } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -55,7 +63,10 @@ const monthKey = (d: string) => {
 };
 const monthLabel = (key: string) => {
   const [y, m] = key.split("-");
-  return new Date(Number(y), Number(m) - 1, 1).toLocaleString("en-US", { month: "long", year: "numeric" });
+  return new Date(Number(y), Number(m) - 1, 1).toLocaleString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
 };
 const quarterKey = (d: string) => {
   const dt = new Date(d);
@@ -80,10 +91,25 @@ const downloadCSV = (csv: string, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-const CORE_INTEG_TITLES = ["requirement gathering", "api walkthrough", "api build & sdk integration", "api validation"];
+const CORE_INTEG_TITLES = [
+  "requirement gathering",
+  "api walkthrough",
+  "api build & sdk integration",
+  "api validation",
+];
 // Post pre-integration stage breakdown (shown when Under-Integ is expanded)
-const UNDER_STAGE_TITLES = ["under integration", "sandbox testing", "production testing", "go-live"];
-const UNDER_STAGE_LABELS = ["Under Integration", "Sandbox Testing", "Production Testing", "Go-Live"];
+const UNDER_STAGE_TITLES = [
+  "under integration",
+  "sandbox testing",
+  "production testing",
+  "go-live",
+];
+const UNDER_STAGE_LABELS = [
+  "Under Integration",
+  "Sandbox Testing",
+  "Production Testing",
+  "Go-Live",
+];
 
 interface Row {
   id: string;
@@ -112,7 +138,6 @@ interface Group {
   avgUnderBreakdown: number[];
 }
 
-
 export const TATReport = ({ projects }: Props) => {
   const { getLabel } = useLabels();
   const [granularity, setGranularity] = useState<Granularity>("monthly");
@@ -120,21 +145,23 @@ export const TATReport = ({ projects }: Props) => {
   const [expandUnder, setExpandUnder] = useState(false);
 
   const findItem = (p: Project, needle: string) =>
-    p.checklist.find(c => !c.isTask && c.title.toLowerCase().includes(needle));
+    p.checklist.find((c) => !c.isTask && c.title.toLowerCase().includes(needle));
 
   const computeFunnel = (p: Project, kick: string, live: string) => {
     const feas = findItem(p, "feasibility analysis");
     const salesEnd = feas?.completed ? feas.completedAt : undefined;
-    const coreItems = CORE_INTEG_TITLES.map(t => findItem(p, t));
-    const allCoreDone = coreItems.every(i => i && i.completed && i.completedAt);
+    const coreItems = CORE_INTEG_TITLES.map((t) => findItem(p, t));
+    const allCoreDone = coreItems.every((i) => i && i.completed && i.completedAt);
     const preEndMs = allCoreDone
-      ? coreItems.map(i => new Date(i!.completedAt!).getTime()).reduce((a, b) => Math.max(a, b), 0)
+      ? coreItems
+          .map((i) => new Date(i!.completedAt!).getTime())
+          .reduce((a, b) => Math.max(a, b), 0)
       : undefined;
     const preEndIso = preEndMs ? new Date(preEndMs).toISOString() : undefined;
 
     // Under-integration breakdown by post-pre-integration stages
     let prevIso: string | undefined = preEndIso;
-    const underBreakdown: (number | null)[] = UNDER_STAGE_TITLES.map(title => {
+    const underBreakdown: (number | null)[] = UNDER_STAGE_TITLES.map((title) => {
       const item = findItem(p, title);
       if (!prevIso || !item || !item.completed || !item.completedAt) return null;
       const doneAt = item.completedAt;
@@ -153,7 +180,7 @@ export const TATReport = ({ projects }: Props) => {
 
   const groups = useMemo<Group[]>(() => {
     const map = new Map<string, Group>();
-    projects.forEach(p => {
+    projects.forEach((p) => {
       const kick = p.dates.kickOffDate;
       const live = p.dates.goLiveDate;
       if (!kick || !live) return;
@@ -170,7 +197,18 @@ export const TATReport = ({ projects }: Props) => {
         netDays: networkDays(kick, live),
         ...funnel,
       };
-      const g = map.get(key) || { key, label, rows: [], totalArr: 0, avgTat: 0, avgNet: 0, avgSales: 0, avgPre: 0, avgUnder: 0, avgUnderBreakdown: [0, 0, 0, 0] };
+      const g = map.get(key) || {
+        key,
+        label,
+        rows: [],
+        totalArr: 0,
+        avgTat: 0,
+        avgNet: 0,
+        avgSales: 0,
+        avgPre: 0,
+        avgUnder: 0,
+        avgUnderBreakdown: [0, 0, 0, 0],
+      };
       g.rows.push(row);
       map.set(key, g);
     });
@@ -179,22 +217,34 @@ export const TATReport = ({ projects }: Props) => {
       return v.length ? v.reduce((s, x) => s + x, 0) / v.length : 0;
     };
     return Array.from(map.values())
-      .map(g => {
+      .map((g) => {
         const n = g.rows.length;
         const totalArr = g.rows.reduce((s, r) => s + r.arr, 0);
         const avgTat = n ? g.rows.reduce((s, r) => s + r.tat, 0) / n : 0;
         const avgNet = n ? g.rows.reduce((s, r) => s + r.netDays, 0) / n : 0;
-        const avgSales = avgOf(g.rows.map(r => r.salesDays));
-        const avgPre = avgOf(g.rows.map(r => r.preDays));
-        const avgUnder = avgOf(g.rows.map(r => r.underDays));
-        const avgUnderBreakdown = UNDER_STAGE_TITLES.map((_, i) => avgOf(g.rows.map(r => r.underBreakdown[i])));
-        return { ...g, totalArr, avgTat, avgNet, avgSales, avgPre, avgUnder, avgUnderBreakdown, rows: g.rows.sort((a, b) => b.tat - a.tat) };
+        const avgSales = avgOf(g.rows.map((r) => r.salesDays));
+        const avgPre = avgOf(g.rows.map((r) => r.preDays));
+        const avgUnder = avgOf(g.rows.map((r) => r.underDays));
+        const avgUnderBreakdown = UNDER_STAGE_TITLES.map((_, i) =>
+          avgOf(g.rows.map((r) => r.underBreakdown[i])),
+        );
+        return {
+          ...g,
+          totalArr,
+          avgTat,
+          avgNet,
+          avgSales,
+          avgPre,
+          avgUnder,
+          avgUnderBreakdown,
+          rows: g.rows.sort((a, b) => b.tat - a.tat),
+        };
       })
       .sort((a, b) => b.key.localeCompare(a.key));
   }, [projects, granularity]);
 
   const overall = useMemo(() => {
-    const rows = groups.flatMap(g => g.rows);
+    const rows = groups.flatMap((g) => g.rows);
     const n = rows.length;
     return {
       count: n,
@@ -204,38 +254,71 @@ export const TATReport = ({ projects }: Props) => {
     };
   }, [groups]);
 
-
-
   const exportCSV = () => {
     const headers = [
       granularity === "monthly" ? "Month" : "Quarter",
-      "#", getLabel("field_merchant_name"), `${getLabel("field_arr")} (Cr)`, "Kickoff Date", "Actual Go-Live Date",
-      "TAT (Go-live - Kickoff)", "TAT (Network days)",
-      "Sales (days)", "Pre-Integ (days)", "Under-Integ (days)",
-      ...(expandUnder ? UNDER_STAGE_LABELS.map(l => `${l} (days)`) : []),
+      "#",
+      getLabel("field_merchant_name"),
+      `${getLabel("field_arr")} (Cr)`,
+      "Kickoff Date",
+      "Actual Go-Live Date",
+      "TAT (Go-live - Kickoff)",
+      "TAT (Network days)",
+      "Sales (days)",
+      "Pre-Integ (days)",
+      "Under-Integ (days)",
+      ...(expandUnder ? UNDER_STAGE_LABELS.map((l) => `${l} (days)`) : []),
       "Total (days)",
     ];
     const lines = [headers.join(",")];
-    groups.forEach(g => {
+    groups.forEach((g) => {
       g.rows.forEach((r, i) => {
-        lines.push([
-          g.label, i + 1, r.merchant, r.arr, r.kickOff, r.goLive, r.tat, r.netDays,
-          r.salesDays ?? "", r.preDays ?? "", r.underDays ?? "",
-          ...(expandUnder ? r.underBreakdown.map(v => v ?? "") : []),
-          r.netDays,
-        ].map(escapeCSV).join(","));
+        lines.push(
+          [
+            g.label,
+            i + 1,
+            r.merchant,
+            r.arr,
+            r.kickOff,
+            r.goLive,
+            r.tat,
+            r.netDays,
+            r.salesDays ?? "",
+            r.preDays ?? "",
+            r.underDays ?? "",
+            ...(expandUnder ? r.underBreakdown.map((v) => v ?? "") : []),
+            r.netDays,
+          ]
+            .map(escapeCSV)
+            .join(","),
+        );
       });
-      lines.push([g.label, "Total", "", g.totalArr.toFixed(3), "", "Average TAT",
-        g.avgTat.toFixed(2), g.avgNet.toFixed(2),
-        g.avgSales.toFixed(2), g.avgPre.toFixed(2), g.avgUnder.toFixed(2),
-        ...(expandUnder ? g.avgUnderBreakdown.map(v => v.toFixed(2)) : []),
-        g.avgNet.toFixed(2),
-      ].map(escapeCSV).join(","));
+      lines.push(
+        [
+          g.label,
+          "Total",
+          "",
+          g.totalArr.toFixed(3),
+          "",
+          "Average TAT",
+          g.avgTat.toFixed(2),
+          g.avgNet.toFixed(2),
+          g.avgSales.toFixed(2),
+          g.avgPre.toFixed(2),
+          g.avgUnder.toFixed(2),
+          ...(expandUnder ? g.avgUnderBreakdown.map((v) => v.toFixed(2)) : []),
+          g.avgNet.toFixed(2),
+        ]
+          .map(escapeCSV)
+          .join(","),
+      );
       lines.push("");
     });
-    downloadCSV(lines.join("\n"), `tat-report-${granularity}-${new Date().toISOString().split("T")[0]}.csv`);
+    downloadCSV(
+      lines.join("\n"),
+      `tat-report-${granularity}-${new Date().toISOString().split("T")[0]}.csv`,
+    );
   };
-
 
   return (
     <div className="space-y-6">
@@ -248,18 +331,29 @@ export const TATReport = ({ projects }: Props) => {
                 TAT Report
               </CardTitle>
               <CardDescription>
-                Turn-around time from {getLabel("field_kick_off_date")} to Actual Go-Live, grouped by {granularity === "monthly" ? "month" : "quarter"}.
+                Turn-around time from {getLabel("field_kick_off_date")} to Actual Go-Live, grouped
+                by {granularity === "monthly" ? "month" : "quarter"}.
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <ToggleGroup type="single" value={granularity} onValueChange={(v) => v && setGranularity(v as Granularity)} size="sm">
+              <ToggleGroup
+                type="single"
+                value={granularity}
+                onValueChange={(v) => v && setGranularity(v as Granularity)}
+                size="sm"
+              >
                 <ToggleGroupItem value="monthly">Monthly</ToggleGroupItem>
                 <ToggleGroupItem value="quarterly">Quarterly</ToggleGroupItem>
               </ToggleGroup>
               <Button size="sm" variant="outline" onClick={exportCSV} className="gap-2">
                 <Download className="h-3 w-3" /> Export CSV
               </Button>
-              <Button size="sm" variant="default" onClick={() => setScheduleOpen(true)} className="gap-2">
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => setScheduleOpen(true)}
+                className="gap-2"
+              >
                 <CalendarClock className="h-3 w-3" /> Save & Schedule
               </Button>
             </div>
@@ -268,7 +362,9 @@ export const TATReport = ({ projects }: Props) => {
         <CardContent className="pt-0">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div className="rounded-md border p-3">
-              <div className="text-xs text-muted-foreground">Live {getLabel("field_merchant_name_plural")}</div>
+              <div className="text-xs text-muted-foreground">
+                Live {getLabel("field_merchant_name_plural")}
+              </div>
               <div className="text-lg font-semibold">{overall.count}</div>
             </div>
             <div className="rounded-md border p-3">
@@ -290,11 +386,12 @@ export const TATReport = ({ projects }: Props) => {
       {groups.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            No projects with both {getLabel("field_kick_off_date")} and Actual Go-Live dates available.
+            No projects with both {getLabel("field_kick_off_date")} and Actual Go-Live dates
+            available.
           </CardContent>
         </Card>
       ) : (
-        groups.map(g => (
+        groups.map((g) => (
           <Card key={g.key}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -317,21 +414,30 @@ export const TATReport = ({ projects }: Props) => {
                     <TableHead>Actual Go-Live</TableHead>
                     <TableHead className="text-right">TAT (Go-live − Kickoff)</TableHead>
                     <TableHead className="text-right">TAT (Network days)</TableHead>
-                    <TableHead className="text-right text-purple-700 dark:text-purple-300">Sales</TableHead>
+                    <TableHead className="text-right text-purple-700 dark:text-purple-300">
+                      Sales
+                    </TableHead>
                     <TableHead className="text-right text-pending-strong">Pre-Integ</TableHead>
                     <TableHead
                       className="text-right text-warning-strong cursor-pointer select-none hover:underline"
-                      onClick={() => setExpandUnder(v => !v)}
+                      onClick={() => setExpandUnder((v) => !v)}
                       title="Click to expand checklist-level TAT"
                     >
                       <span className="inline-flex items-center gap-1 justify-end">
-                        {expandUnder ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                        {expandUnder ? (
+                          <ChevronDown className="h-3 w-3" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3" />
+                        )}
                         Under-Integ
                       </span>
                     </TableHead>
-                    {expandUnder && UNDER_STAGE_LABELS.map(lbl => (
-                      <TableHead key={lbl} className="text-right text-warning-strong text-xs">{lbl}</TableHead>
-                    ))}
+                    {expandUnder &&
+                      UNDER_STAGE_LABELS.map((lbl) => (
+                        <TableHead key={lbl} className="text-right text-warning-strong text-xs">
+                          {lbl}
+                        </TableHead>
+                      ))}
                     <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -345,36 +451,63 @@ export const TATReport = ({ projects }: Props) => {
                       <TableCell>{r.goLive}</TableCell>
                       <TableCell className="text-right font-semibold">{r.tat}</TableCell>
                       <TableCell className="text-right">{r.netDays}</TableCell>
-                      <TableCell className="text-right">{r.salesDays ?? <span className="text-muted-foreground">—</span>}</TableCell>
-                      <TableCell className="text-right">{r.preDays ?? <span className="text-muted-foreground">—</span>}</TableCell>
-                      <TableCell className="text-right">{r.underDays ?? <span className="text-muted-foreground">—</span>}</TableCell>
-                      {expandUnder && r.underBreakdown.map((v, idx) => (
-                        <TableCell key={idx} className="text-right text-xs">
-                          {v ?? <span className="text-muted-foreground">—</span>}
-                        </TableCell>
-                      ))}
+                      <TableCell className="text-right">
+                        {r.salesDays ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {r.preDays ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {r.underDays ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      {expandUnder &&
+                        r.underBreakdown.map((v, idx) => (
+                          <TableCell key={idx} className="text-right text-xs">
+                            {v ?? <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                        ))}
                       <TableCell className="text-right font-semibold">{r.netDays}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={2} className="font-semibold">Total</TableCell>
-                    <TableCell className="text-right font-semibold">{g.totalArr.toFixed(3)}</TableCell>
-                    <TableCell colSpan={2} className="text-right font-semibold">Average TAT</TableCell>
-                    <TableCell className="text-right font-semibold">{g.avgTat.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-semibold">{g.avgNet.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-semibold">{g.avgSales.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-semibold">{g.avgPre.toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-semibold">{g.avgUnder.toFixed(2)}</TableCell>
-                    {expandUnder && g.avgUnderBreakdown.map((v, idx) => (
-                      <TableCell key={idx} className="text-right font-semibold text-xs">{v.toFixed(2)}</TableCell>
-                    ))}
-                    <TableCell className="text-right font-semibold">{g.avgNet.toFixed(2)}</TableCell>
+                    <TableCell colSpan={2} className="font-semibold">
+                      Total
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {g.totalArr.toFixed(3)}
+                    </TableCell>
+                    <TableCell colSpan={2} className="text-right font-semibold">
+                      Average TAT
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {g.avgTat.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {g.avgNet.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {g.avgSales.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {g.avgPre.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {g.avgUnder.toFixed(2)}
+                    </TableCell>
+                    {expandUnder &&
+                      g.avgUnderBreakdown.map((v, idx) => (
+                        <TableCell key={idx} className="text-right font-semibold text-xs">
+                          {v.toFixed(2)}
+                        </TableCell>
+                      ))}
+                    <TableCell className="text-right font-semibold">
+                      {g.avgNet.toFixed(2)}
+                    </TableCell>
                   </TableRow>
                 </TableFooter>
               </Table>
-
             </CardContent>
           </Card>
         ))

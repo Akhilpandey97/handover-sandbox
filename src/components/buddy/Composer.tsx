@@ -45,7 +45,11 @@ const tokenAt = (value: string, caret: number, sigil: "@" | "/") => {
 const ATTACHMENT_CHARS = 60_000;
 const MAX_SHEETS = 16;
 
-const KIND_LABEL: Record<Mention["kind"], string> = { project: "Project", person: "Person", item: "Checklist" };
+const KIND_LABEL: Record<Mention["kind"], string> = {
+  project: "Project",
+  person: "Person",
+  item: "Checklist",
+};
 
 export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
   {
@@ -90,12 +94,22 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
         }))
         .filter((sheet) => sheet.rows.length > 0)
         .slice(0, MAX_SHEETS);
-      if (sheets.length === 0) throw new Error("Nothing is filled in yet. Add your values (example rows starting with “e.g.” are ignored) and attach it again.");
+      if (sheets.length === 0)
+        throw new Error(
+          "Nothing is filled in yet. Add your values (example rows starting with “e.g.” are ignored) and attach it again.",
+        );
       const budget = Math.floor(ATTACHMENT_CHARS / sheets.length);
       setAttachments(
         sheets.map((sheet) => {
           const { csv, rowsIncluded } = sheetToCsv(sheet, budget);
-          return { name: file.name, sheet: sheet.name, rows: sheet.rows.length, columns: sheet.headers, csv, rowsIncluded };
+          return {
+            name: file.name,
+            sheet: sheet.name,
+            rows: sheet.rows.length,
+            columns: sheet.headers,
+            csv,
+            rowsIncluded,
+          };
         }),
       );
       inputRef.current?.focus();
@@ -148,26 +162,29 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
     const q = menu.term.toLowerCase();
 
     if (menu.kind === "command") {
-      return SLASH_COMMANDS.filter((c) => (canAct || !c.acts) && c.command.startsWith(q)).map((c) => ({
-        key: c.command,
-        primary: `/${c.command}`,
-        secondary: c.label,
-        mono: true,
-        apply: () => {
-          const text = c.template.replace("{project}", projectName ? projectName : "@");
-          if (c.sendNow) submit(text);
-          else {
-            setValue(text);
-            placeCaretAtEnd(text);
-          }
-        },
-      }));
+      return SLASH_COMMANDS.filter((c) => (canAct || !c.acts) && c.command.startsWith(q)).map(
+        (c) => ({
+          key: c.command,
+          primary: `/${c.command}`,
+          secondary: c.label,
+          mono: true,
+          apply: () => {
+            const text = c.template.replace("{project}", projectName ? projectName : "@");
+            if (c.sendNow) submit(text);
+            else {
+              setValue(text);
+              placeCaretAtEnd(text);
+            }
+          },
+        }),
+      );
     }
 
     // Checklist items of the open project, and of any project already tagged in this message.
     const projectIds = new Set<string>();
     if (projectId) projectIds.add(projectId);
-    for (const m of chosen.current.values()) if (m.kind === "project" && value.includes(`@${m.name}`)) projectIds.add(m.id);
+    for (const m of chosen.current.values())
+      if (m.kind === "project" && value.includes(`@${m.name}`)) projectIds.add(m.id);
     const items = Array.from(projectIds).flatMap((id) => itemsByProject.get(id) || []);
 
     const match = (m: Mention) => !q || m.name.toLowerCase().includes(q);
@@ -205,17 +222,40 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
     setValue(next);
     const cmd = tokenAt(next, caret, "/");
     const mention = cmd ? null : tokenAt(next, caret, "@");
-    setMenu(cmd ? { kind: "command", term: cmd.term } : mention ? { kind: "mention", term: mention.term } : null);
+    setMenu(
+      cmd
+        ? { kind: "command", term: cmd.term }
+        : mention
+          ? { kind: "mention", term: mention.term }
+          : null,
+    );
     setIndex(0);
     resize();
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (menu && options.length > 0) {
-      if (e.key === "ArrowDown") { e.preventDefault(); setIndex((i) => (i + 1) % options.length); return; }
-      if (e.key === "ArrowUp") { e.preventDefault(); setIndex((i) => (i - 1 + options.length) % options.length); return; }
-      if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); options[index]?.apply(); setMenu(null); return; }
-      if (e.key === "Escape") { e.preventDefault(); setMenu(null); return; }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setIndex((i) => (i + 1) % options.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setIndex((i) => (i - 1 + options.length) % options.length);
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        options[index]?.apply();
+        setMenu(null);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMenu(null);
+        return;
+      }
     }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -224,9 +264,17 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
   };
 
   return (
-    <div className={cn("relative border-t border-border bg-card", compact ? "px-3 py-2.5" : "px-4 py-3")}>
+    <div
+      className={cn(
+        "relative border-t border-border bg-card",
+        compact ? "px-3 py-2.5" : "px-4 py-3",
+      )}
+    >
       {menu && options.length > 0 && (
-        <div role="listbox" className="absolute bottom-full left-3 right-3 z-20 mb-2 max-h-72 overflow-y-auto rounded-xl border border-border bg-popover p-1 shadow-lg">
+        <div
+          role="listbox"
+          className="absolute bottom-full left-3 right-3 z-20 mb-2 max-h-72 overflow-y-auto rounded-xl border border-border bg-popover p-1 shadow-lg"
+        >
           {options.map((o, i) => (
             <button
               key={o.key}
@@ -244,8 +292,12 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
                 i === index ? "bg-primary-soft text-foreground" : "hover:bg-muted",
               )}
             >
-              <span className={cn("min-w-0 truncate font-medium", o.mono && "font-mono text-xs")}>{o.primary}</span>
-              <span className="max-w-[45%] shrink-0 truncate text-xs text-muted-foreground">{o.secondary}</span>
+              <span className={cn("min-w-0 truncate font-medium", o.mono && "font-mono text-xs")}>
+                {o.primary}
+              </span>
+              <span className="max-w-[45%] shrink-0 truncate text-xs text-muted-foreground">
+                {o.secondary}
+              </span>
             </button>
           ))}
         </div>
@@ -261,16 +313,27 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
       {(attachments.length > 0 || fileError) && (
         <div className="mb-2 flex flex-wrap items-center gap-2 px-1">
           {attachments.map((a) => (
-            <span key={a.sheet} className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-border bg-muted/60 px-2 py-1 text-xs text-foreground">
+            <span
+              key={a.sheet}
+              className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-border bg-muted/60 px-2 py-1 text-xs text-foreground"
+            >
               <FileSpreadsheet className="h-3.5 w-3.5 shrink-0 text-primary" />
-              <span className="truncate">{attachments.length > 1 ? `${a.name} · ${a.sheet}` : a.name}</span>
+              <span className="truncate">
+                {attachments.length > 1 ? `${a.name} · ${a.sheet}` : a.name}
+              </span>
               <span className="shrink-0 text-muted-foreground">
-                {a.rows} row{a.rows === 1 ? "" : "s"}{a.rowsIncluded < a.rows ? `, first ${a.rowsIncluded} sent` : ""}
+                {a.rows} row{a.rows === 1 ? "" : "s"}
+                {a.rowsIncluded < a.rows ? `, first ${a.rowsIncluded} sent` : ""}
               </span>
             </span>
           ))}
           {attachments.length > 0 && (
-            <button type="button" onClick={() => setAttachments([])} aria-label="Remove attachment" className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+            <button
+              type="button"
+              onClick={() => setAttachments([])}
+              aria-label="Remove attachment"
+              className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -297,7 +360,11 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
               aria-label="Attach an Excel or CSV file"
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
             >
-              {reading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+              {reading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Paperclip className="h-4 w-4" />
+              )}
             </button>
           </>
         )}
@@ -315,7 +382,9 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
                 ? `Ask about ${projectName}, or type / for commands`
                 : "Ask Buddy, or type / for commands and @ to tag"
           }
-          onChange={(e) => onChange(e.target.value, e.target.selectionStart ?? e.target.value.length)}
+          onChange={(e) =>
+            onChange(e.target.value, e.target.selectionStart ?? e.target.value.length)
+          }
           onKeyDown={onKeyDown}
           onBlur={() => window.setTimeout(() => setMenu(null), 120)}
           className="max-h-40 min-h-[24px] flex-1 resize-none bg-transparent py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-60"
@@ -329,7 +398,9 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
             aria-label={listening ? "Stop listening" : "Speak your message"}
             className={cn(
               "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-50",
-              listening ? "bg-destructive text-destructive-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              listening
+                ? "bg-destructive text-destructive-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
             {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}

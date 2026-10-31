@@ -109,26 +109,26 @@ A sandbox base URL and key are provided for testing; only the host differs.
 
 ## 6. Request fields
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `merchant_name` | string (1–200) | Yes | Merchant / customer / account name |
-| `external_id` | string (1–120) | Recommended | Unique deal ID from your CRM. Without it, retries create duplicate projects |
-| `mid` | string (1–80) | No | Merchant ID. Generated if omitted |
-| `contact_email` | string | No | Primary merchant contact. Must be a valid email address |
-| `brand_url` | string (≤400) | No | Merchant website |
-| `platform` | string (≤80) | No | Platform the merchant sells on |
-| `category` | string (≤80) | No | Merchant category |
-| `arr` | number ≥ 0 | No | Annual value in INR |
-| `aov` | number ≥ 0 | No | Average order value |
-| `txns_per_day` | integer ≥ 0 | No | Average transactions per day |
-| `kick_off_date` | date `YYYY-MM-DD` | No | Kick-off date. Defaults to the date the request is received |
-| `expected_go_live_date` | date `YYYY-MM-DD` | No | Expected go-live date. If omitted, Handover derives one from the seeded checklist's due dates and keeps it up to date as the checklist moves; sending a value pins it until someone changes it in Handover |
-| `sales_spoc` | string (≤160) | No | Sales SPOC / contact |
-| `owner_email` | string | No | Hands the project to this Handover user. Ignored unless the address belongs to a user in your workspace |
-| `integration_type` | string (≤80) | No | Integration type |
-| `project_notes` | string (≤5000) | No | Additional project information |
-| `custom_fields` | object | No | Values for custom fields configured in Handover. Values must be strings, numbers or booleans |
-| `allow_duplicate` | boolean | No | Set `true` to create a project even when one already exists with the same merchant name (see §9) |
+| Field                   | Type              | Required    | Description                                                                                                                                                                                                |
+| ----------------------- | ----------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `merchant_name`         | string (1–200)    | Yes         | Merchant / customer / account name                                                                                                                                                                         |
+| `external_id`           | string (1–120)    | Recommended | Unique deal ID from your CRM. Without it, retries create duplicate projects                                                                                                                                |
+| `mid`                   | string (1–80)     | No          | Merchant ID. Generated if omitted                                                                                                                                                                          |
+| `contact_email`         | string            | No          | Primary merchant contact. Must be a valid email address                                                                                                                                                    |
+| `brand_url`             | string (≤400)     | No          | Merchant website                                                                                                                                                                                           |
+| `platform`              | string (≤80)      | No          | Platform the merchant sells on                                                                                                                                                                             |
+| `category`              | string (≤80)      | No          | Merchant category                                                                                                                                                                                          |
+| `arr`                   | number ≥ 0        | No          | Annual value in INR                                                                                                                                                                                        |
+| `aov`                   | number ≥ 0        | No          | Average order value                                                                                                                                                                                        |
+| `txns_per_day`          | integer ≥ 0       | No          | Average transactions per day                                                                                                                                                                               |
+| `kick_off_date`         | date `YYYY-MM-DD` | No          | Kick-off date. Defaults to the date the request is received                                                                                                                                                |
+| `expected_go_live_date` | date `YYYY-MM-DD` | No          | Expected go-live date. If omitted, Handover derives one from the seeded checklist's due dates and keeps it up to date as the checklist moves; sending a value pins it until someone changes it in Handover |
+| `sales_spoc`            | string (≤160)     | No          | Sales SPOC / contact                                                                                                                                                                                       |
+| `owner_email`           | string            | No          | Hands the project to this Handover user. Ignored unless the address belongs to a user in your workspace                                                                                                    |
+| `integration_type`      | string (≤80)      | No          | Integration type                                                                                                                                                                                           |
+| `project_notes`         | string (≤5000)    | No          | Additional project information                                                                                                                                                                             |
+| `custom_fields`         | object            | No          | Values for custom fields configured in Handover. Values must be strings, numbers or booleans                                                                                                               |
+| `allow_duplicate`       | boolean           | No          | Set `true` to create a project even when one already exists with the same merchant name (see §9)                                                                                                           |
 
 Fields not listed here are ignored rather than rejected, so check spelling carefully — a
 mistyped field name is dropped silently.
@@ -137,12 +137,12 @@ mistyped field name is dropped silently.
 
 Put the unique deal or opportunity ID from your CRM here:
 
-| CRM | Example |
-|---|---|
+| CRM        | Example      |
+| ---------- | ------------ |
 | Salesforce | `SF-0061234` |
-| HubSpot | `12345678` |
-| Zoho | `DEAL-98765` |
-| Pipedrive | `45678` |
+| HubSpot    | `12345678`   |
+| Zoho       | `DEAL-98765` |
+| Pipedrive  | `45678`      |
 
 This is what lets Handover recognise the deal on a later request.
 
@@ -246,9 +246,7 @@ If one merchant legitimately has several deals, give each its own `external_id`.
 ```json
 {
   "error": "Validation failed",
-  "fields": [
-    { "path": "merchant_name", "message": "Required" }
-  ]
+  "fields": [{ "path": "merchant_name", "message": "Required" }]
 }
 ```
 

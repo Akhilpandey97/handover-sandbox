@@ -99,10 +99,15 @@ Be concise. Minutes under 200 words.`;
     parsed =
       (await aiStructured<Partial<Analysis>>({
         system: systemPrompt,
-        messages: [{ role: "user", content: `${context}
+        messages: [
+          {
+            role: "user",
+            content: `${context}
 
 TRANSCRIPT:
-${clipTranscript(transcript)}` }],
+${clipTranscript(transcript)}`,
+          },
+        ],
         toolName: "submit_meeting_analysis",
         description: "Return the minutes, decisions, action items and risks for this meeting",
         schema: {
@@ -134,8 +139,10 @@ ${clipTranscript(transcript)}` }],
         signal: controller.signal,
       })) ?? {};
   } catch (e) {
-    if (e instanceof Anthropic.RateLimitError) throw new Error("AI rate limit exceeded. Try again shortly.");
-    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) throw new Error("AI credits exhausted.");
+    if (e instanceof Anthropic.RateLimitError)
+      throw new Error("AI rate limit exceeded. Try again shortly.");
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError)
+      throw new Error("AI credits exhausted.");
     throw e;
   } finally {
     clearTimeout(timeout);

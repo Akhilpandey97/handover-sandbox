@@ -4,7 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLabelsOptional } from "@/contexts/LabelsContext";
 import { tenantScope } from "@/lib/tenant-scope";
 import { toast } from "sonner";
-import type { Project, ProjectChecklist, ResponsibilityLog, ChecklistResponsibilityLog, TransferRecord, ResponsibilityParty, ProjectPhase, ProjectState } from "@/data/projectsData";
+import type {
+  Project,
+  ProjectChecklist,
+  ResponsibilityLog,
+  ChecklistResponsibilityLog,
+  TransferRecord,
+  ResponsibilityParty,
+  ProjectPhase,
+  ProjectState,
+} from "@/data/projectsData";
 import type { TeamRole } from "@/data/teams";
 import { sendNotification } from "@/utils/sendNotification";
 import { logActivity } from "@/hooks/useActivityLogs";
@@ -76,7 +85,7 @@ const transformDbProject = (row: any): Project => ({
   enableMcpDocument: (row as any).enable_mcp_document || false,
   enableKp: (row as any).enable_kp || false,
   kpProdJweKey: (row as any).kp_prod_jwe_key || undefined,
-  kpSandboxJweKey: (row as any).kp_sandbox_jwe_key || 'zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI',
+  kpSandboxJweKey: (row as any).kp_sandbox_jwe_key || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI",
   faqHelp: Array.isArray((row as any).faq_help) ? (row as any).faq_help : [],
   paymentSimulatorLink: (row as any).payment_simulator_link || undefined,
 });
@@ -192,9 +201,12 @@ export const useProjectsQuery = () => {
       );
 
       // Fetch profiles for owner name lookup
-      const { data: profiles } = await supabase.from("profiles").select("id, name").eq("tenant_id", tenantId);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name")
+        .eq("tenant_id", tenantId);
       const profileMap = new Map<string, string>();
-      profiles?.forEach(p => profileMap.set(p.id, p.name));
+      profiles?.forEach((p) => profileMap.set(p.id, p.name));
 
       // Fetch all checklist items (paginated to avoid 1000-row limit dropping Integration rows)
       const checklistItems = await fetchAllChecklistItems();
@@ -293,7 +305,9 @@ export const useProjectsQuery = () => {
           checklist_items: items,
           responsibility_logs: logsByProject.get(project.id) || [],
           transfer_history: transfersByProject.get(project.id) || [],
-          assigned_owner_name: project.assigned_owner ? profileMap.get(project.assigned_owner) : undefined,
+          assigned_owner_name: project.assigned_owner
+            ? profileMap.get(project.assigned_owner)
+            : undefined,
         });
       });
     },
@@ -340,9 +354,9 @@ export const useAddProject = () => {
           pg_onboarding: project.pgOnboarding,
           current_responsibility: project.currentResponsibility,
           project_state: project.projectState,
-           contact_email: project.contactEmail || null,
-           config_id: project.configId || null,
-           tenant_id: currentUser?.tenantId || null,
+          contact_email: project.contactEmail || null,
+          config_id: project.configId || null,
+          tenant_id: currentUser?.tenantId || null,
         })
         .select()
         .single();
@@ -374,8 +388,16 @@ export const useAddProject = () => {
     onSuccess: (newProject) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project created successfully");
-      void runWorkflows().then((fired) => { if (fired) queryClient.invalidateQueries({ queryKey: ["projects"] }); });
-      logActivity({ action_type: "user", category: "project", description: `Created project "${newProject.merchant_name}"`, entity_type: "project", entity_id: newProject.id });
+      void runWorkflows().then((fired) => {
+        if (fired) queryClient.invalidateQueries({ queryKey: ["projects"] });
+      });
+      logActivity({
+        action_type: "user",
+        category: "project",
+        description: `Created project "${newProject.merchant_name}"`,
+        entity_type: "project",
+        entity_id: newProject.id,
+      });
     },
     onError: (error) => {
       console.error("Error creating project:", error);
@@ -385,7 +407,10 @@ export const useAddProject = () => {
 };
 
 // Diff helper for project updates
-const diffProject = (oldP: Project | undefined, newP: Project): { field: string; from: string; to: string }[] => {
+const diffProject = (
+  oldP: Project | undefined,
+  newP: Project,
+): { field: string; from: string; to: string }[] => {
   if (!oldP) return [];
   const changes: { field: string; from: string; to: string }[] = [];
   const check = (label: string, oldVal: any, newVal: any) => {
@@ -417,7 +442,11 @@ const diffProject = (oldP: Project | undefined, newP: Project): { field: string;
   check("BRD Link", oldP.links.brdLink, newP.links.brdLink);
   check("SOW Link", oldP.links.sowLink, newP.links.sowLink);
   check("MINT Checklist Link", oldP.links.mintChecklistLink, newP.links.mintChecklistLink);
-  check("Integration Checklist Link", oldP.links.integrationChecklistLink, newP.links.integrationChecklistLink);
+  check(
+    "Integration Checklist Link",
+    oldP.links.integrationChecklistLink,
+    newP.links.integrationChecklistLink,
+  );
   check("MINT Notes", oldP.notes.mintNotes, newP.notes.mintNotes);
   check("Project Notes", oldP.notes.projectNotes, newP.notes.projectNotes);
   check("Phase Comment", oldP.notes.currentPhaseComment, newP.notes.currentPhaseComment);
@@ -434,8 +463,10 @@ export const useUpdateProject = () => {
   return useMutation({
     mutationFn: async (project: Project) => {
       // Grab the old version for diffing
-      const oldProjects = (queryClient.getQueriesData<Project[]>({ queryKey: ["projects"] })[0]?.[1]) as Project[] | undefined;
-      const oldProject = oldProjects?.find(p => p.id === project.id);
+      const oldProjects = queryClient.getQueriesData<Project[]>({
+        queryKey: ["projects"],
+      })[0]?.[1] as Project[] | undefined;
+      const oldProject = oldProjects?.find((p) => p.id === project.id);
 
       // Auto-set Actual Go-Live date the moment a project transitions to "live"
       if (
@@ -446,7 +477,6 @@ export const useUpdateProject = () => {
         const today = new Date().toISOString().split("T")[0];
         project.dates = { ...project.dates, goLiveDate: today };
       }
-
 
       const { error } = await supabase
         .from("projects")
@@ -480,31 +510,33 @@ export const useUpdateProject = () => {
           pg_onboarding: project.pgOnboarding,
           current_responsibility: project.currentResponsibility,
           project_state: project.projectState,
-           archived: project.archived || false,
-           archived_at: project.archivedAt || null,
-           contact_email: project.contactEmail || null,
-           config_id: project.configId || null,
-           sandbox_mid: project.sandboxMid || null,
-           sandbox_app_id: project.sandboxAppId || null,
-           sandbox_base_url: project.sandboxBaseUrl || null,
-           sandbox_config_id: project.sandboxConfigId || null,
-           prod_mid: project.prodMid || null,
-           prod_app_id: project.prodAppId || null,
-           prod_base_url: project.prodBaseUrl || null,
-           prod_config_id: project.prodConfigId || null,
-            mcp_config_id: project.mcpConfigId || null,
-            enable_mcp_document: project.enableMcpDocument || false,
-            enable_kp: project.enableKp || false,
-             faq_help: (project.faqHelp ?? []) as any,
-             payment_simulator_link: project.paymentSimulatorLink || null,
-         })
+          archived: project.archived || false,
+          archived_at: project.archivedAt || null,
+          contact_email: project.contactEmail || null,
+          config_id: project.configId || null,
+          sandbox_mid: project.sandboxMid || null,
+          sandbox_app_id: project.sandboxAppId || null,
+          sandbox_base_url: project.sandboxBaseUrl || null,
+          sandbox_config_id: project.sandboxConfigId || null,
+          prod_mid: project.prodMid || null,
+          prod_app_id: project.prodAppId || null,
+          prod_base_url: project.prodBaseUrl || null,
+          prod_config_id: project.prodConfigId || null,
+          mcp_config_id: project.mcpConfigId || null,
+          enable_mcp_document: project.enableMcpDocument || false,
+          enable_kp: project.enableKp || false,
+          faq_help: (project.faqHelp ?? []) as any,
+          payment_simulator_link: project.paymentSimulatorLink || null,
+        })
         .eq("id", project.id);
 
       if (error) throw error;
-      if (currentUser?.tenantId && ["admin", "super_admin", "superadmin"].includes(currentUser.team)) {
-        const { error: credentialsError } = await supabase
-          .from("project_credentials")
-          .upsert({
+      if (
+        currentUser?.tenantId &&
+        ["admin", "super_admin", "superadmin"].includes(currentUser.team)
+      ) {
+        const { error: credentialsError } = await supabase.from("project_credentials").upsert(
+          {
             project_id: project.id,
             tenant_id: currentUser.tenantId,
             sandbox_app_secret: project.sandboxAppSecret || null,
@@ -513,19 +545,23 @@ export const useUpdateProject = () => {
             prod_kwikpass_jwe_key: project.prodKwikpassJweKey || null,
             kp_prod_jwe_key: project.kpProdJweKey || null,
             kp_sandbox_jwe_key: project.kpSandboxJweKey || null,
-          }, { onConflict: "project_id" });
+          },
+          { onConflict: "project_id" },
+        );
         if (credentialsError) throw credentialsError;
       }
       return { project, changes: diffProject(oldProject, project) };
     },
     onSuccess: ({ project, changes }) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      const changesSummary = changes.length > 0
-        ? changes.map(c => `${c.field}: "${c.from || '—'}" → "${c.to || '—'}"`).join("; ")
-        : "No field changes detected";
-      const description = changes.length > 0
-        ? `Updated ${changes.map(c => c.field).join(", ")} on "${project.merchantName}"`
-        : `Updated project "${project.merchantName}"`;
+      const changesSummary =
+        changes.length > 0
+          ? changes.map((c) => `${c.field}: "${c.from || "—"}" → "${c.to || "—"}"`).join("; ")
+          : "No field changes detected";
+      const description =
+        changes.length > 0
+          ? `Updated ${changes.map((c) => c.field).join(", ")} on "${project.merchantName}"`
+          : `Updated project "${project.merchantName}"`;
       logActivity({
         action_type: "user",
         category: "project",
@@ -534,7 +570,9 @@ export const useUpdateProject = () => {
         entity_id: project.id,
         metadata: { changes },
       });
-      void runWorkflows().then((fired) => { if (fired) queryClient.invalidateQueries({ queryKey: ["projects"] }); });
+      void runWorkflows().then((fired) => {
+        if (fired) queryClient.invalidateQueries({ queryKey: ["projects"] });
+      });
     },
     onError: (error) => {
       console.error("Error updating project:", error);
@@ -562,7 +600,13 @@ export const useArchiveProject = () => {
     onSuccess: ({ projectId, archive }) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success(archive ? "Project archived" : "Project restored");
-      logActivity({ action_type: "user", category: "project", description: archive ? "Archived project" : "Unarchived project", entity_type: "project", entity_id: projectId });
+      logActivity({
+        action_type: "user",
+        category: "project",
+        description: archive ? "Archived project" : "Unarchived project",
+        entity_type: "project",
+        entity_id: projectId,
+      });
     },
     onError: (error) => {
       console.error("Error archiving project:", error);
@@ -584,23 +628,17 @@ export const useDeleteProject = () => {
         .eq("project_id", projectId);
 
       if (checklistItems && checklistItems.length > 0) {
-        const checklistIds = checklistItems.map(c => c.id);
+        const checklistIds = checklistItems.map((c) => c.id);
         await supabase
           .from("checklist_responsibility_logs")
           .delete()
           .in("checklist_item_id", checklistIds);
 
-        await supabase
-          .from("checklist_comments")
-          .delete()
-          .in("checklist_item_id", checklistIds);
+        await supabase.from("checklist_comments").delete().in("checklist_item_id", checklistIds);
       }
 
       // Unlink parsed emails referencing this project
-      await supabase
-        .from("parsed_emails")
-        .update({ project_id: null })
-        .eq("project_id", projectId);
+      await supabase.from("parsed_emails").update({ project_id: null }).eq("project_id", projectId);
 
       // Delete related records
       await supabase.from("checklist_items").delete().eq("project_id", projectId);
@@ -616,7 +654,13 @@ export const useDeleteProject = () => {
     onSuccess: (projectId) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project deleted successfully");
-      logActivity({ action_type: "user", category: "project", description: `Deleted project`, entity_type: "project", entity_id: projectId });
+      logActivity({
+        action_type: "user",
+        category: "project",
+        description: `Deleted project`,
+        entity_type: "project",
+        entity_id: projectId,
+      });
     },
     onError: (error) => {
       console.error("Error deleting project:", error);
@@ -668,8 +712,16 @@ export const useAcceptProject = () => {
     onSuccess: (projectId) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project accepted successfully");
-      void runWorkflows().then((fired) => { if (fired) queryClient.invalidateQueries({ queryKey: ["projects"] }); });
-      logActivity({ action_type: "user", category: "transfer", description: `Accepted project transfer`, entity_type: "project", entity_id: projectId });
+      void runWorkflows().then((fired) => {
+        if (fired) queryClient.invalidateQueries({ queryKey: ["projects"] });
+      });
+      logActivity({
+        action_type: "user",
+        category: "transfer",
+        description: `Accepted project transfer`,
+        entity_type: "project",
+        entity_id: projectId,
+      });
     },
     onError: (error) => {
       console.error("Error accepting project:", error);
@@ -685,7 +737,15 @@ export const useTransferProject = () => {
   const teamLabels = useLabelsOptional()?.teamLabels ?? {};
 
   return useMutation({
-    mutationFn: async ({ projectId, notes, assigneeId }: { projectId: string; notes?: string; assigneeId?: string }) => {
+    mutationFn: async ({
+      projectId,
+      notes,
+      assigneeId,
+    }: {
+      projectId: string;
+      notes?: string;
+      assigneeId?: string;
+    }) => {
       if (!currentUser) throw new Error("Not authenticated");
 
       const getNextTeam = (current: TeamRole): TeamRole | null => {
@@ -697,7 +757,8 @@ export const useTransferProject = () => {
       const nextTeam = getNextTeam(currentUser.team);
       if (!nextTeam) throw new Error("Cannot transfer from this team");
 
-      const nextPhase = nextTeam === "integration" ? "integration" : nextTeam === "ms" ? "ms" : undefined;
+      const nextPhase =
+        nextTeam === "integration" ? "integration" : nextTeam === "ms" ? "ms" : undefined;
 
       // Update project with new owner
       const { error: projectError } = await supabase
@@ -713,16 +774,14 @@ export const useTransferProject = () => {
       if (projectError) throw projectError;
 
       // Create transfer record
-      const { error: transferError } = await supabase
-        .from("transfer_history")
-        .insert({
-          project_id: projectId,
-          from_team: currentUser.team,
-          to_team: nextTeam,
-          transferred_by: currentUser.name,
-          notes,
-          tenant_id: currentUser.tenantId || null,
-        });
+      const { error: transferError } = await supabase.from("transfer_history").insert({
+        project_id: projectId,
+        from_team: currentUser.team,
+        to_team: nextTeam,
+        transferred_by: currentUser.name,
+        notes,
+        tenant_id: currentUser.tenantId || null,
+      });
 
       if (transferError) throw transferError;
 
@@ -760,8 +819,16 @@ export const useTransferProject = () => {
     onSuccess: (projectId) => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project transferred successfully");
-      void runWorkflows().then((fired) => { if (fired) queryClient.invalidateQueries({ queryKey: ["projects"] }); });
-      logActivity({ action_type: "user", category: "transfer", description: `Transferred project`, entity_type: "project", entity_id: projectId });
+      void runWorkflows().then((fired) => {
+        if (fired) queryClient.invalidateQueries({ queryKey: ["projects"] });
+      });
+      logActivity({
+        action_type: "user",
+        category: "transfer",
+        description: `Transferred project`,
+        entity_type: "project",
+        entity_id: projectId,
+      });
     },
     onError: (error) => {
       console.error("Error transferring project:", error);
@@ -827,7 +894,6 @@ export const useRejectProject = () => {
         previousOwnerId = prevOwnerProfile?.id || null;
       }
 
-
       // Update project back to previous team, active (not pending), with previous owner
       const { error: projectError } = await supabase
         .from("projects")
@@ -842,16 +908,14 @@ export const useRejectProject = () => {
       if (projectError) throw projectError;
 
       // Create transfer record for the rejection
-      const { error: transferError } = await supabase
-        .from("transfer_history")
-        .insert({
-          project_id: projectId,
-          from_team: currentTeam,
-          to_team: previousTeam,
-          transferred_by: currentUser.name,
-          notes: `REJECTED: ${reason}`,
-          tenant_id: currentUser.tenantId || null,
-        });
+      const { error: transferError } = await supabase.from("transfer_history").insert({
+        project_id: projectId,
+        from_team: currentTeam,
+        to_team: previousTeam,
+        transferred_by: currentUser.name,
+        notes: `REJECTED: ${reason}`,
+        tenant_id: currentUser.tenantId || null,
+      });
 
       if (transferError) throw transferError;
 
@@ -876,7 +940,6 @@ export const useRejectProject = () => {
           });
         }
       }
-
 
       return projectId;
     },
@@ -958,12 +1021,17 @@ export const useUpdateChecklist = () => {
                 ...p,
                 checklist: p.checklist.map((c) =>
                   c.id === checklistId
-                    ? { ...c, completed, completedBy: completed ? currentUser?.name : undefined, completedAt: completed ? new Date().toISOString() : undefined }
-                    : c
+                    ? {
+                        ...c,
+                        completed,
+                        completedBy: completed ? currentUser?.name : undefined,
+                        completedAt: completed ? new Date().toISOString() : undefined,
+                      }
+                    : c,
                 ),
               }
-            : p
-        )
+            : p,
+        ),
       );
       return { previous };
     },
@@ -1000,11 +1068,13 @@ export const useUpdateChecklist = () => {
             itemTitle,
             itemTeam,
             completed: variables.completed,
-            changes: [{
-              field: itemTitle,
-              from: variables.completed ? "unchecked" : "completed",
-              to: variables.completed ? "completed" : "unchecked",
-            }],
+            changes: [
+              {
+                field: itemTitle,
+                from: variables.completed ? "unchecked" : "completed",
+                to: variables.completed ? "completed" : "unchecked",
+              },
+            ],
           },
         });
       }
@@ -1018,13 +1088,7 @@ export const useUpdateChecklistComment = () => {
   const { currentUser } = useAuth();
 
   return useMutation({
-    mutationFn: async ({
-      checklistId,
-      comment,
-    }: {
-      checklistId: string;
-      comment: string;
-    }) => {
+    mutationFn: async ({ checklistId, comment }: { checklistId: string; comment: string }) => {
       const { error } = await supabase
         .from("checklist_items")
         .update({
@@ -1083,15 +1147,13 @@ export const useToggleResponsibility = () => {
       }
 
       // Create new log entry
-      const { error: insertError } = await supabase
-        .from("project_responsibility_logs")
-        .insert({
-          project_id: projectId,
-          party,
-          phase: currentPhase,
-          started_at: new Date().toISOString(),
-          tenant_id: currentUser?.tenantId || null,
-        });
+      const { error: insertError } = await supabase.from("project_responsibility_logs").insert({
+        project_id: projectId,
+        party,
+        phase: currentPhase,
+        started_at: new Date().toISOString(),
+        tenant_id: currentUser?.tenantId || null,
+      });
 
       if (insertError) throw insertError;
 
@@ -1111,7 +1173,7 @@ export const useToggleResponsibility = () => {
       queryClient.setQueriesData({ queryKey: ["projects"] }, (old: any[] | undefined) => {
         if (!old) return old;
         return old.map((p: any) =>
-          p.id === projectId ? { ...p, current_responsibility: party } : p
+          p.id === projectId ? { ...p, current_responsibility: party } : p,
         );
       });
       return { previous };
@@ -1164,14 +1226,12 @@ export const useToggleChecklistResponsibility = () => {
       }
 
       // Create new log entry
-      const { error: insertError } = await supabase
-        .from("checklist_responsibility_logs")
-        .insert({
-          checklist_item_id: checklistId,
-          party,
-          started_at: new Date().toISOString(),
-          tenant_id: currentUser?.tenantId || null,
-        });
+      const { error: insertError } = await supabase.from("checklist_responsibility_logs").insert({
+        checklist_item_id: checklistId,
+        party,
+        started_at: new Date().toISOString(),
+        tenant_id: currentUser?.tenantId || null,
+      });
 
       if (insertError) throw insertError;
 
@@ -1193,7 +1253,7 @@ export const useToggleChecklistResponsibility = () => {
         return old.map((project) => ({
           ...project,
           checklist: project.checklist.map((item) =>
-            item.id === checklistId ? { ...item, currentResponsibility: party } : item
+            item.id === checklistId ? { ...item, currentResponsibility: party } : item,
           ),
         }));
       });

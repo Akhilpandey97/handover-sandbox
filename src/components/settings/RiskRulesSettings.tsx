@@ -5,7 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AlertTriangle, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { projectStateLabels, ProjectState } from "@/data/projectsData";
@@ -26,7 +32,9 @@ export const RiskRulesSettings = () => {
   const [draft, setDraft] = useState<RiskRule[]>(rules);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { setDraft(rules); }, [rules]);
+  useEffect(() => {
+    setDraft(rules);
+  }, [rules]);
 
   const update = (idx: number, patch: Partial<RiskRule>) =>
     setDraft((d) => d.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
@@ -36,7 +44,14 @@ export const RiskRulesSettings = () => {
   const add = () =>
     setDraft((d) => [
       ...d,
-      { id: newRiskRuleId(), label: "New rule", type: "no_activity", enabled: true, days: 7, severity: "medium" },
+      {
+        id: newRiskRuleId(),
+        label: "New rule",
+        type: "no_activity",
+        enabled: true,
+        days: 7,
+        severity: "medium",
+      },
     ]);
 
   const save = async () => {
@@ -99,11 +114,18 @@ export const RiskRulesSettings = () => {
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">Condition</Label>
-                <Select value={rule.type} onValueChange={(v) => update(idx, { type: v as RiskRuleType })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <Select
+                  value={rule.type}
+                  onValueChange={(v) => update(idx, { type: v as RiskRuleType })}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {(Object.keys(RISK_RULE_TYPE_LABELS) as RiskRuleType[]).map((t) => (
-                      <SelectItem key={t} value={t} className="text-xs">{RISK_RULE_TYPE_LABELS[t]}</SelectItem>
+                      <SelectItem key={t} value={t} className="text-xs">
+                        {RISK_RULE_TYPE_LABELS[t]}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -127,7 +149,9 @@ export const RiskRulesSettings = () => {
                             })
                           }
                           className={`text-2xs px-2 py-0.5 rounded-full border transition-colors ${
-                            on ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:bg-muted"
+                            on
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border text-muted-foreground hover:bg-muted"
                           }`}
                         >
                           {projectStateLabels[s]}
@@ -145,7 +169,9 @@ export const RiskRulesSettings = () => {
                     type="number"
                     min={0}
                     value={rule.days ?? 0}
-                    onChange={(e) => update(idx, { days: Math.max(0, Number(e.target.value) || 0) })}
+                    onChange={(e) =>
+                      update(idx, { days: Math.max(0, Number(e.target.value) || 0) })
+                    }
                     className="h-8 text-xs"
                   />
                 </div>
@@ -153,11 +179,18 @@ export const RiskRulesSettings = () => {
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Severity</Label>
-                <Select value={rule.severity} onValueChange={(v) => update(idx, { severity: v as RiskSeverity })}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <Select
+                  value={rule.severity}
+                  onValueChange={(v) => update(idx, { severity: v as RiskSeverity })}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {SEVERITIES.map((s) => (
-                      <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>
+                      <SelectItem key={s} value={s} className="text-xs capitalize">
+                        {s}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -170,7 +203,12 @@ export const RiskRulesSettings = () => {
           <Button variant="outline" size="sm" onClick={add} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" /> Add rule
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setDraft(DEFAULT_RISK_RULES)} className="gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setDraft(DEFAULT_RISK_RULES)}
+            className="gap-1.5"
+          >
             <RotateCcw className="h-3.5 w-3.5" /> Reset to defaults
           </Button>
           <Button size="sm" onClick={save} disabled={saving} className="ml-auto">

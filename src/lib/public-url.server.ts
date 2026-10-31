@@ -14,7 +14,9 @@ export function publicAppUrl(req: Request): string {
 
   const forwardedHost = req.headers.get("x-forwarded-host") || req.headers.get("host");
   if (forwardedHost) {
-    const proto = req.headers.get("x-forwarded-proto") || (forwardedHost.startsWith("localhost") ? "http" : "https");
+    const proto =
+      req.headers.get("x-forwarded-proto") ||
+      (forwardedHost.startsWith("localhost") ? "http" : "https");
     return `${proto}://${forwardedHost}`;
   }
 

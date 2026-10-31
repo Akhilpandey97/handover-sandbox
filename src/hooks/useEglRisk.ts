@@ -23,28 +23,33 @@ export const useEglRisk = (window: EglWindow, projectsOverride?: Project[]) => {
 
   const rows = useMemo<EglRiskRow[]>(() => {
     const now = new Date();
-    return projects
-      .filter((p) => !p.archived && isInWindow(p.dates?.expectedGoLiveDate, window, now))
-      .map((p) => ({
-        project: p,
-        verdict: evaluateEglRisk({
-          projectState: p.projectState,
-          expectedGoLiveDate: p.dates?.expectedGoLiveDate ?? null,
-          expectedGoLiveDateIsDerived: p.dates?.expectedGoLiveDateIsDerived,
-          pendingAcceptance: p.pendingAcceptance,
-          checklist: (p.checklist || []).map((c) => ({
-            completed: !!c.completed,
-            dueDate: c.dueDate ?? null,
-            isTask: c.isTask,
-          })),
-          lastActivityAt: lastActivityByProject[p.id] ?? null,
-          updatedAt: p.updatedAt ?? null,
-          now,
-        }, rules),
-      }))
-      .filter((r) => r.verdict.atRisk)
-      // Soonest (and most overdue) first — that is the order to act in.
-      .sort((a, b) => a.verdict.daysRemaining - b.verdict.daysRemaining);
+    return (
+      projects
+        .filter((p) => !p.archived && isInWindow(p.dates?.expectedGoLiveDate, window, now))
+        .map((p) => ({
+          project: p,
+          verdict: evaluateEglRisk(
+            {
+              projectState: p.projectState,
+              expectedGoLiveDate: p.dates?.expectedGoLiveDate ?? null,
+              expectedGoLiveDateIsDerived: p.dates?.expectedGoLiveDateIsDerived,
+              pendingAcceptance: p.pendingAcceptance,
+              checklist: (p.checklist || []).map((c) => ({
+                completed: !!c.completed,
+                dueDate: c.dueDate ?? null,
+                isTask: c.isTask,
+              })),
+              lastActivityAt: lastActivityByProject[p.id] ?? null,
+              updatedAt: p.updatedAt ?? null,
+              now,
+            },
+            rules,
+          ),
+        }))
+        .filter((r) => r.verdict.atRisk)
+        // Soonest (and most overdue) first — that is the order to act in.
+        .sort((a, b) => a.verdict.daysRemaining - b.verdict.daysRemaining)
+    );
   }, [projects, lastActivityByProject, rules, window]);
 
   return { rows };

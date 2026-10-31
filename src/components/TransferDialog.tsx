@@ -59,7 +59,7 @@ export const TransferDialog = ({
   useEffect(() => {
     const fetchTeamMembers = async () => {
       if (!open || !nextTeam) return;
-      
+
       setIsLoading(true);
       try {
         const { data, error } = await supabase

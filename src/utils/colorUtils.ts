@@ -5,9 +5,13 @@ export const hexToRgba = (value: string, alpha: number) => {
     return value;
   }
 
-  const expanded = normalized.length === 3
-    ? normalized.split("").map((char) => char + char).join("")
-    : normalized;
+  const expanded =
+    normalized.length === 3
+      ? normalized
+          .split("")
+          .map((char) => char + char)
+          .join("")
+      : normalized;
 
   const red = Number.parseInt(expanded.slice(0, 2), 16);
   const green = Number.parseInt(expanded.slice(2, 4), 16);

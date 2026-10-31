@@ -16,7 +16,13 @@ export interface Hsl {
 
 export function hexToHsl(hex: string): Hsl | null {
   const clean = hex.trim().replace(/^#/, "");
-  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean;
+  const full =
+    clean.length === 3
+      ? clean
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : clean;
   if (!/^[0-9a-fA-F]{6}$/.test(full)) return null;
 
   const r = parseInt(full.slice(0, 2), 16) / 255;
@@ -170,14 +176,17 @@ export async function extractLogoColor(url: string): Promise<string | null> {
     const s = max === min ? 0 : (max - min) / (255 - Math.abs(2 * l * 255 - 255));
     if (l > 0.92 || l < 0.08 || s < 0.25) continue; // background, outline, grey
 
-    const hsl = hexToHsl(
-      `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`,
-    );
+    const hsl = hexToHsl(`#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`);
     if (!hsl) continue;
 
     const bucket = Math.round(hsl.h / 15);
     const current = buckets.get(bucket) || { count: 0, r: 0, g: 0, b: 0 };
-    buckets.set(bucket, { count: current.count + 1, r: current.r + r, g: current.g + g, b: current.b + b });
+    buckets.set(bucket, {
+      count: current.count + 1,
+      r: current.r + r,
+      g: current.g + g,
+      b: current.b + b,
+    });
   }
 
   const best = [...buckets.values()].sort((a, b) => b.count - a.count)[0];

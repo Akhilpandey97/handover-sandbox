@@ -8,13 +8,14 @@ import { tenantScope } from "@/lib/tenant-scope";
 import { sendNotification } from "@/utils/sendNotification";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { User, CheckCircle2, Loader2 } from "lucide-react";
 import type { Database } from "@/integrations/supabase/types";
@@ -36,7 +37,13 @@ export interface AssignOwnerDialogProps {
   onAssigned?: () => void;
 }
 
-export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onAssigned }: AssignOwnerDialogProps) => {
+export const AssignOwnerDialog = ({
+  project,
+  open,
+  onOpenChange,
+  projectIds,
+  onAssigned,
+}: AssignOwnerDialogProps) => {
   const queryClient = useQueryClient();
   const { teamLabels } = useLabels();
   const { currentUser } = useAuth();
@@ -78,7 +85,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
           .eq("role", targetTeam);
 
         const allProfiles = [...(profiles || [])];
-        const roleUserIds = userRoles?.map(r => r.user_id) || [];
+        const roleUserIds = userRoles?.map((r) => r.user_id) || [];
 
         if (roleUserIds.length > 0) {
           const { data: extra } = await supabase
@@ -86,8 +93,8 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
             .select("id, name, email, team")
             .eq("tenant_id", tenantId)
             .in("id", roleUserIds);
-          extra?.forEach(p => {
-            if (!allProfiles.find(ap => ap.id === p.id)) {
+          extra?.forEach((p) => {
+            if (!allProfiles.find((ap) => ap.id === p.id)) {
               allProfiles.push({ ...p, team: targetTeam });
             }
           });
@@ -99,15 +106,15 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
           .select("user_id")
           .eq("role", "manager");
 
-        const managerIds = managerRoles?.map(r => r.user_id) || [];
+        const managerIds = managerRoles?.map((r) => r.user_id) || [];
         if (managerIds.length > 0) {
           const { data: managerProfiles } = await supabase
             .from("profiles")
             .select("id, name, email, team")
             .eq("tenant_id", tenantId)
             .in("id", managerIds);
-          managerProfiles?.forEach(p => {
-            if (!allProfiles.find(ap => ap.id === p.id)) {
+          managerProfiles?.forEach((p) => {
+            if (!allProfiles.find((ap) => ap.id === p.id)) {
               allProfiles.push(p);
             }
           });
@@ -142,7 +149,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
 
         if (error) throw error;
 
-        const owner = teamMembers.find(m => m.id === targetOwner);
+        const owner = teamMembers.find((m) => m.id === targetOwner);
         if (owner) {
           // Send notification for bulk
           sendNotification({
@@ -155,7 +162,9 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
         }
 
         await queryClient.invalidateQueries({ queryKey: ["projects"] });
-        toast.success(`Assigned ${projectIds!.length} project(s) to ${owner?.name || teamLabels[targetTeam]}`);
+        toast.success(
+          `Assigned ${projectIds!.length} project(s) to ${owner?.name || teamLabels[targetTeam]}`,
+        );
         onAssigned?.();
       } else if (project) {
         // Single assign
@@ -167,7 +176,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
         if (error) throw error;
 
         await queryClient.invalidateQueries({ queryKey: ["projects"] });
-        const owner = teamMembers.find(m => m.id === targetOwner);
+        const owner = teamMembers.find((m) => m.id === targetOwner);
 
         if (owner) {
           sendNotification({
@@ -183,7 +192,7 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
         toast.success(
           owner
             ? `Assigned ${project.merchantName} to ${owner.name} (${teamLabels[targetTeam]})`
-            : `Assigned ${project.merchantName} to ${teamLabels[targetTeam]}`
+            : `Assigned ${project.merchantName} to ${teamLabels[targetTeam]}`,
         );
       }
 
@@ -196,11 +205,16 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
   };
 
   const title = isBulk ? `Bulk Assign ${projectIds!.length} Project(s)` : "Assign Project";
-  const description = isBulk
-    ? `Assign ${projectIds!.length} selected project(s) to a team and owner.`
-    : project
-    ? <>Assign <span className="font-semibold text-foreground">{project.merchantName}</span> to a team and owner.</>
-    : "";
+  const description = isBulk ? (
+    `Assign ${projectIds!.length} selected project(s) to a team and owner.`
+  ) : project ? (
+    <>
+      Assign <span className="font-semibold text-foreground">{project.merchantName}</span> to a team
+      and owner.
+    </>
+  ) : (
+    ""
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -217,7 +231,13 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Team</label>
-            <Select value={targetTeam} onValueChange={(v) => { setTargetTeam(v as TeamRole); setTargetOwner(""); }}>
+            <Select
+              value={targetTeam}
+              onValueChange={(v) => {
+                setTargetTeam(v as TeamRole);
+                setTargetOwner("");
+              }}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -241,19 +261,26 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">No specific owner</SelectItem>
-                {teamMembers.filter(m => m.team === targetTeam).map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name}
-                  </SelectItem>
-                ))}
-                {teamMembers.some(m => m.team !== targetTeam) && (
+                {teamMembers
+                  .filter((m) => m.team === targetTeam)
+                  .map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name}
+                    </SelectItem>
+                  ))}
+                {teamMembers.some((m) => m.team !== targetTeam) && (
                   <>
-                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-1">Managers</div>
-                    {teamMembers.filter(m => m.team !== targetTeam).map((member) => (
-                      <SelectItem key={member.id} value={member.id}>
-                        {member.name} <span className="text-muted-foreground text-xs">({member.team})</span>
-                      </SelectItem>
-                    ))}
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-1">
+                      Managers
+                    </div>
+                    {teamMembers
+                      .filter((m) => m.team !== targetTeam)
+                      .map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
+                          {member.name}{" "}
+                          <span className="text-muted-foreground text-xs">({member.team})</span>
+                        </SelectItem>
+                      ))}
                   </>
                 )}
               </SelectContent>
@@ -261,7 +288,11 @@ export const AssignOwnerDialog = ({ project, open, onOpenChange, projectIds, onA
           </div>
 
           <Button onClick={handleAssign} disabled={isAssigning} className="w-full gap-2">
-            {isAssigning ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {isAssigning ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
             {isAssigning ? "Assigning..." : "Assign"}
           </Button>
         </div>

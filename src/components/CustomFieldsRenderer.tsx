@@ -1,7 +1,13 @@
 import { CustomField } from "@/hooks/useCustomFields";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Layers } from "lucide-react";
 
@@ -25,14 +31,15 @@ export const CustomFieldsForm = ({ fields, values, onChange }: CustomFieldsFormP
           <div key={field.id} className="space-y-2">
             <Label className="text-xs">{field.field_label}</Label>
             {field.field_type === "select" ? (
-              <Select
-                value={values[field.id] || ""}
-                onValueChange={(v) => onChange(field.id, v)}
-              >
-                <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+              <Select value={values[field.id] || ""} onValueChange={(v) => onChange(field.id, v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select..." />
+                </SelectTrigger>
                 <SelectContent className="bg-popover">
                   {field.options.map((opt) => (
-                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                    <SelectItem key={opt} value={opt}>
+                      {opt}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -48,7 +55,15 @@ export const CustomFieldsForm = ({ fields, values, onChange }: CustomFieldsFormP
               </div>
             ) : (
               <Input
-                type={field.field_type === "number" ? "number" : field.field_type === "date" ? "date" : field.field_type === "url" ? "url" : "text"}
+                type={
+                  field.field_type === "number"
+                    ? "number"
+                    : field.field_type === "date"
+                      ? "date"
+                      : field.field_type === "url"
+                        ? "url"
+                        : "text"
+                }
                 value={values[field.id] || ""}
                 onChange={(e) => onChange(field.id, e.target.value)}
                 placeholder={`Enter ${field.field_label.toLowerCase()}`}
@@ -81,11 +96,24 @@ export const CustomFieldsDisplay = ({ fields, values }: CustomFieldsDisplayProps
           <div key={field.id} className="p-3 rounded-lg bg-muted/50">
             <p className="text-xs text-muted-foreground">{field.field_label}</p>
             <p className="text-sm font-medium">
-              {field.field_type === "boolean"
-                ? values[field.id] === "true" ? "Yes" : "No"
-                : field.field_type === "url"
-                ? <a href={values[field.id]} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{values[field.id]}</a>
-                : values[field.id]}
+              {field.field_type === "boolean" ? (
+                values[field.id] === "true" ? (
+                  "Yes"
+                ) : (
+                  "No"
+                )
+              ) : field.field_type === "url" ? (
+                <a
+                  href={values[field.id]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {values[field.id]}
+                </a>
+              ) : (
+                values[field.id]
+              )}
             </p>
           </div>
         ))}

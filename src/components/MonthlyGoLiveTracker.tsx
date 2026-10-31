@@ -6,8 +6,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { tenantScope } from "@/lib/tenant-scope";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
@@ -66,13 +79,13 @@ const CONF_BADGE: Record<string, string> = {
   Low: "bg-destructive-soft text-destructive-strong",
 };
 
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const COLUMN_STORAGE_KEY = "golive_tracker_columns";
 
 function ymToLabel(ym: string) {
   const [y, m] = ym.split("-");
-  return `${MONTHS[parseInt(m,10)-1]} ${y}`;
+  return `${MONTHS[parseInt(m, 10) - 1]} ${y}`;
 }
 function weekOfMonth(dateStr: string | null) {
   if (!dateStr) return "";
@@ -86,7 +99,15 @@ function dateLabel(dateStr: string | null) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} · W${weekOfMonth(dateStr).replace(/[^\d]/g, "")}`;
 }
 
-export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", projectsOverride }: { toolbarContainer?: HTMLElement | null; searchQuery?: string; projectsOverride?: import("@/data/projectsData").Project[] } = {}) => {
+export const MonthlyGoLiveTracker = ({
+  toolbarContainer,
+  searchQuery = "",
+  projectsOverride,
+}: {
+  toolbarContainer?: HTMLElement | null;
+  searchQuery?: string;
+  projectsOverride?: import("@/data/projectsData").Project[];
+} = {}) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { getLabel } = useLabels();
@@ -105,8 +126,10 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
   // Column parity with the List view: status and the tenant's custom fields
   // were selectable there but absent here.
   const { fields: customFields } = useCustomFields();
-  const { valuesMap: customValuesMap } = useAllCustomFieldValues(useMemo(() => projects.map(p => p.id), [projects]));
-  const editingProject = editProjectId ? fullProjects.find(p => p.id === editProjectId) : null;
+  const { valuesMap: customValuesMap } = useAllCustomFieldValues(
+    useMemo(() => projects.map((p) => p.id), [projects]),
+  );
+  const editingProject = editProjectId ? fullProjects.find((p) => p.id === editProjectId) : null;
   const allowedProjectIds = useMemo(
     () => projectsOverride?.map((project) => project.id),
     [projectsOverride],
@@ -123,57 +146,75 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
   // Stage resolves through the tenant's configured project-stage rules
   const funnelStages = useMemo(() => {
     const map: Record<string, string> = {};
-    fullProjects.forEach(p => { map[p.id] = getProjectFunnelStage(p); });
+    fullProjects.forEach((p) => {
+      map[p.id] = getProjectFunnelStage(p);
+    });
     return map;
   }, [fullProjects]);
 
   const fullById = useMemo(
-    () => Object.fromEntries(fullProjects.map(fp => [fp.id, fp])),
+    () => Object.fromEntries(fullProjects.map((fp) => [fp.id, fp])),
     [fullProjects],
   );
 
-  const SYSTEM_COLUMNS = useMemo(() => ([
-    { key: "mid", label: getLabel("field_mid") },
-    { key: "platform", label: getLabel("field_platform") },
-    { key: "category", label: getLabel("field_category") },
-    { key: "salesSpoc", label: getLabel("field_sales_spoc") },
-    { key: "kickOffDate", label: getLabel("field_kick_off_date") },
-    { key: "actualGoLive", label: getLabel("field_actual_go_live_date") },
-    { key: "integrationType", label: getLabel("field_integration_type") },
-    { key: "pgOnboarding", label: getLabel("field_pg_onboarding") },
-    { key: "goLivePercent", label: getLabel("field_go_live_percent") },
-  ]), [getLabel]);
+  const SYSTEM_COLUMNS = useMemo(
+    () => [
+      { key: "mid", label: getLabel("field_mid") },
+      { key: "platform", label: getLabel("field_platform") },
+      { key: "category", label: getLabel("field_category") },
+      { key: "salesSpoc", label: getLabel("field_sales_spoc") },
+      { key: "kickOffDate", label: getLabel("field_kick_off_date") },
+      { key: "actualGoLive", label: getLabel("field_actual_go_live_date") },
+      { key: "integrationType", label: getLabel("field_integration_type") },
+      { key: "pgOnboarding", label: getLabel("field_pg_onboarding") },
+      { key: "goLivePercent", label: getLabel("field_go_live_percent") },
+    ],
+    [getLabel],
+  );
 
   const systemValue = (projectId: string, key: string): string => {
     const fp = fullById[projectId];
     if (!fp) return "—";
     switch (key) {
-      case "mid": return fp.mid || "—";
-      case "platform": return fp.platform || "—";
-      case "category": return fp.category || "—";
-      case "salesSpoc": return fp.salesSpoc || "—";
-      case "kickOffDate": return fp.dates?.kickOffDate || "—";
-      case "actualGoLive": return fp.dates?.goLiveDate || "—";
-      case "integrationType": return fp.integrationType || "—";
-      case "pgOnboarding": return fp.pgOnboarding || "—";
-      case "goLivePercent": return fp.goLivePercent != null ? `${fp.goLivePercent}%` : "—";
-      default: return "—";
+      case "mid":
+        return fp.mid || "—";
+      case "platform":
+        return fp.platform || "—";
+      case "category":
+        return fp.category || "—";
+      case "salesSpoc":
+        return fp.salesSpoc || "—";
+      case "kickOffDate":
+        return fp.dates?.kickOffDate || "—";
+      case "actualGoLive":
+        return fp.dates?.goLiveDate || "—";
+      case "integrationType":
+        return fp.integrationType || "—";
+      case "pgOnboarding":
+        return fp.pgOnboarding || "—";
+      case "goLivePercent":
+        return fp.goLivePercent != null ? `${fp.goLivePercent}%` : "—";
+      default:
+        return "—";
     }
   };
 
-  const ALL_COLUMNS = useMemo(() => ([
-    { key: "arr", label: `${arrLabel} Cr.` },
-    { key: "stage", label: stageLabel },
-    { key: "status", label: stateLabel },
-    { key: "blocker", label: "Blocker" },
-    { key: "blocked_on", label: "Blocked On" },
-    { key: "deadline", label: "Deadline" },
-    { key: "confidence", label: "Confidence" },
-    { key: "owner", label: ownerLabel },
-    { key: "expected", label: expectedLabel },
-    ...SYSTEM_COLUMNS,
-    ...customFields.map(cf => ({ key: `custom_field_${cf.id}`, label: cf.field_label })),
-  ]), [arrLabel, stageLabel, stateLabel, ownerLabel, expectedLabel, SYSTEM_COLUMNS, customFields]);
+  const ALL_COLUMNS = useMemo(
+    () => [
+      { key: "arr", label: `${arrLabel} Cr.` },
+      { key: "stage", label: stageLabel },
+      { key: "status", label: stateLabel },
+      { key: "blocker", label: "Blocker" },
+      { key: "blocked_on", label: "Blocked On" },
+      { key: "deadline", label: "Deadline" },
+      { key: "confidence", label: "Confidence" },
+      { key: "owner", label: ownerLabel },
+      { key: "expected", label: expectedLabel },
+      ...SYSTEM_COLUMNS,
+      ...customFields.map((cf) => ({ key: `custom_field_${cf.id}`, label: cf.field_label })),
+    ],
+    [arrLabel, stageLabel, stateLabel, ownerLabel, expectedLabel, SYSTEM_COLUMNS, customFields],
+  );
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
@@ -183,23 +224,34 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length > 0) return parsed as string[];
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     return ["arr", "stage", "blocker", "blocked_on", "deadline", "confidence", "owner", "expected"];
   });
   const isVisible = (key: string) => visibleColumns.includes(key);
   const toggleColumn = (key: string) => {
-    const next = visibleColumns.includes(key) ? visibleColumns.filter(c => c !== key) : [...visibleColumns, key];
+    const next = visibleColumns.includes(key)
+      ? visibleColumns.filter((c) => c !== key)
+      : [...visibleColumns, key];
     setVisibleColumns(next);
-    try { window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+    try {
+      window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
   };
 
   // Sort
   const [sortField, setSortField] = useState<string>("none");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const toggleSort = (field: string) => {
-    if (sortField === field) setSortDir(d => d === "asc" ? "desc" : "asc");
-    else { setSortField(field); setSortDir("asc"); }
+    if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      setSortField(field);
+      setSortDir("asc");
+    }
   };
 
   // Column drag-to-reorder
@@ -207,14 +259,18 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
   const handleColDragStart = (key: string) => setDraggedCol(key);
   const handleColDragOver = (key: string) => {
     if (!draggedCol || draggedCol === key) return;
-    setVisibleColumns(prev => {
+    setVisibleColumns((prev) => {
       const next = [...prev];
       const from = next.indexOf(draggedCol);
       const to = next.indexOf(key);
       if (from === -1 || to === -1) return prev;
       next.splice(from, 1);
       next.splice(to, 0, draggedCol);
-      try { window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      try {
+        window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
       return next;
     });
   };
@@ -231,16 +287,28 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
   const [expectedTo, setExpectedTo] = useState("");
 
   const activeFilterCount =
-    stageFilter.length + stateFilter.length + confidenceFilter.length +
-    (arrMin ? 1 : 0) + (arrMax ? 1 : 0) + (expectedFrom ? 1 : 0) + (expectedTo ? 1 : 0) + (needsAttentionOnly ? 1 : 0);
+    stageFilter.length +
+    stateFilter.length +
+    confidenceFilter.length +
+    (arrMin ? 1 : 0) +
+    (arrMax ? 1 : 0) +
+    (expectedFrom ? 1 : 0) +
+    (expectedTo ? 1 : 0) +
+    (needsAttentionOnly ? 1 : 0);
 
   const clearFilters = () => {
-    setStageFilter([]); setStateFilter([]); setConfidenceFilter([]); setNeedsAttentionOnly(false);
-    setArrMin(""); setArrMax(""); setExpectedFrom(""); setExpectedTo("");
+    setStageFilter([]);
+    setStateFilter([]);
+    setConfidenceFilter([]);
+    setNeedsAttentionOnly(false);
+    setArrMin("");
+    setArrMax("");
+    setExpectedFrom("");
+    setExpectedTo("");
   };
 
   const toggleValue = (setter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
-    setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
+    setter((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
   };
 
   const load = async () => {
@@ -256,28 +324,38 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       }
       let projectQuery = supabase
         .from("projects")
-        .select("id, merchant_name, arr, current_phase, project_state, assigned_owner, expected_go_live_date, tracker_month, platform")
+        .select(
+          "id, merchant_name, arr, current_phase, project_state, assigned_owner, expected_go_live_date, tracker_month, platform",
+        )
         .eq("tenant_id", tenantScope(currentUser?.tenantId))
         .eq("archived", false)
-        .or(`tracker_month.eq.${month},and(expected_go_live_date.gte.${from},expected_go_live_date.lte.${to})`);
+        .or(
+          `tracker_month.eq.${month},and(expected_go_live_date.gte.${from},expected_go_live_date.lte.${to})`,
+        );
       if (allowedProjectIds) projectQuery = projectQuery.in("id", allowedProjectIds);
       const { data: pData } = await projectQuery;
       const list = (pData || []) as Project[];
       setProjects(list);
 
-      const ids = list.map(p => p.id);
+      const ids = list.map((p) => p.id);
       if (ids.length > 0) {
         const [{ data: iData }, { data: profData }] = await Promise.all([
           supabase.from("project_ai_insights").select("*").eq("month", month).in("project_id", ids),
-          supabase.from("profiles").select("id, name").in("id", list.map(p => p.assigned_owner).filter(Boolean) as string[]),
+          supabase
+            .from("profiles")
+            .select("id, name")
+            .in("id", list.map((p) => p.assigned_owner).filter(Boolean) as string[]),
         ]);
         const iMap: Record<string, Insight> = {};
-        (iData || []).forEach((r: any) => { iMap[r.project_id] = r; });
+        (iData || []).forEach((r: any) => {
+          iMap[r.project_id] = r;
+        });
         setInsights(iMap);
         const oMap: Record<string, string> = {};
-        (profData || []).forEach((p: any) => { oMap[p.id] = p.name; });
+        (profData || []).forEach((p: any) => {
+          oMap[p.id] = p.name;
+        });
         setOwners(oMap);
-
       } else {
         setInsights({});
         setOwners({});
@@ -287,7 +365,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [month, allowedProjectIds?.join(",")]);
+  useEffect(() => {
+    load(); /* eslint-disable-next-line */
+  }, [month, allowedProjectIds?.join(",")]);
 
   const monthBounds = (ym: string): [string, string] => {
     const [y, m] = ym.split("-").map(Number);
@@ -300,12 +380,17 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
     if (projects.length === 0) return;
     setAiLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const url = `/api/public/enrich-golive-tracker`;
       const r = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token || ""}` },
-        body: JSON.stringify({ projectIds: projects.map(p => p.id), month }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token || ""}`,
+        },
+        body: JSON.stringify({ projectIds: projects.map((p) => p.id), month }),
       });
       if (!r.ok) throw new Error(await r.text());
       toast.success("AI insights refreshed");
@@ -331,13 +416,15 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       .upsert(payload, { onConflict: "project_id,month" })
       .select()
       .single();
-    if (error) { toast.error(error.message); return; }
-    setInsights(prev => ({ ...prev, [projectId]: data as any }));
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setInsights((prev) => ({ ...prev, [projectId]: data as any }));
   };
 
   const stageOf = (id: string) => funnelStages[id] || "none";
   const stageText = (id: string) => funnelStageLabels[stageOf(id)] || "—";
-
 
   const sortedRows = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -345,13 +432,19 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       if (query && !p.merchant_name.toLowerCase().includes(query)) return false;
       if (stageFilter.length > 0 && !stageFilter.includes(stageOf(p.id))) return false;
       if (stateFilter.length > 0 && !stateFilter.includes(p.project_state || "")) return false;
-      if (confidenceFilter.length > 0 && !confidenceFilter.includes(insights[p.id]?.confidence || "")) return false;
+      if (
+        confidenceFilter.length > 0 &&
+        !confidenceFilter.includes(insights[p.id]?.confidence || "")
+      )
+        return false;
       if (needsAttentionOnly && riskVerdicts[p.id]?.level !== "high") return false;
       const arrCr = p.arr != null ? Number(arrCroreValue(p.arr)) : null;
       if (arrMin && (arrCr == null || arrCr < parseFloat(arrMin))) return false;
       if (arrMax && (arrCr == null || arrCr > parseFloat(arrMax))) return false;
-      if (expectedFrom && (!p.expected_go_live_date || p.expected_go_live_date < expectedFrom)) return false;
-      if (expectedTo && (!p.expected_go_live_date || p.expected_go_live_date > expectedTo)) return false;
+      if (expectedFrom && (!p.expected_go_live_date || p.expected_go_live_date < expectedFrom))
+        return false;
+      if (expectedTo && (!p.expected_go_live_date || p.expected_go_live_date > expectedTo))
+        return false;
       return true;
     });
 
@@ -359,13 +452,30 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       const dir = sortDir === "asc" ? 1 : -1;
       return [...filtered].sort((a, b) => {
         switch (sortField) {
-          case "merchantName": return dir * a.merchant_name.localeCompare(b.merchant_name);
-          case "arr": return dir * ((a.arr ?? 0) - (b.arr ?? 0));
-          case "stage": return dir * stageText(a.id).localeCompare(stageText(b.id));
-          case "confidence": return dir * (insights[a.id]?.confidence || "").localeCompare(insights[b.id]?.confidence || "");
-          case "owner": return dir * (owners[a.assigned_owner || ""] || "").localeCompare(owners[b.assigned_owner || ""] || "");
-          case "expected": return dir * (a.expected_go_live_date || "").localeCompare(b.expected_go_live_date || "");
-          default: return 0;
+          case "merchantName":
+            return dir * a.merchant_name.localeCompare(b.merchant_name);
+          case "arr":
+            return dir * ((a.arr ?? 0) - (b.arr ?? 0));
+          case "stage":
+            return dir * stageText(a.id).localeCompare(stageText(b.id));
+          case "confidence":
+            return (
+              dir *
+              (insights[a.id]?.confidence || "").localeCompare(insights[b.id]?.confidence || "")
+            );
+          case "owner":
+            return (
+              dir *
+              (owners[a.assigned_owner || ""] || "").localeCompare(
+                owners[b.assigned_owner || ""] || "",
+              )
+            );
+          case "expected":
+            return (
+              dir * (a.expected_go_live_date || "").localeCompare(b.expected_go_live_date || "")
+            );
+          default:
+            return 0;
         }
       });
     }
@@ -377,7 +487,24 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       return (a.expected_go_live_date || "").localeCompare(b.expected_go_live_date || "");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projects, searchQuery, stageFilter, stateFilter, confidenceFilter, needsAttentionOnly, riskVerdicts, arrMin, arrMax, expectedFrom, expectedTo, sortField, sortDir, insights, owners, funnelStages]);
+  }, [
+    projects,
+    searchQuery,
+    stageFilter,
+    stateFilter,
+    confidenceFilter,
+    needsAttentionOnly,
+    riskVerdicts,
+    arrMin,
+    arrMax,
+    expectedFrom,
+    expectedTo,
+    sortField,
+    sortDir,
+    insights,
+    owners,
+    funnelStages,
+  ]);
 
   const monthOptions = useMemo(() => {
     const opts: string[] = [];
@@ -392,52 +519,76 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
 
   const stageOptions = useMemo(() => {
     const set = new Set<string>();
-    projects.forEach(p => set.add(stageOf(p.id)));
+    projects.forEach((p) => set.add(stageOf(p.id)));
     return Array.from(set).sort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects, funnelStages]);
 
   // Count only columns that still exist: "csm" was removed and may linger in a
   // saved arrangement, which would widen the empty-state colspan.
-  const visibleColCount = 1 + ALL_COLUMNS.filter(c => visibleColumns.includes(c.key)).length;
+  const visibleColCount = 1 + ALL_COLUMNS.filter((c) => visibleColumns.includes(c.key)).length;
 
   const toolbar = (
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-2">
-          {/* Select Columns */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <ToolbarIconButton icon={<ListChecks className="h-3.5 w-3.5" />} label="Select columns" />
-            </PopoverTrigger>
-            <PopoverContent className={TOOLBAR_POPOVER.columns} align="end">
-              <p className="text-xs font-semibold text-muted-foreground mb-2 tracking-normal">Visible Columns</p>
-              <div className="space-y-1 max-h-[300px] overflow-auto">
-                {ALL_COLUMNS.map(col => (
-                  <label key={col.key} className="flex items-center gap-2 py-1.5 px-1 cursor-pointer text-sm hover:bg-muted/50 rounded">
-                    <Checkbox checked={isVisible(col.key)} onCheckedChange={() => toggleColumn(col.key)} className="h-4 w-4" />
-                    {col.label}
-                  </label>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Select value={month} onValueChange={setMonth}>
-            <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {monthOptions.map(m => <SelectItem key={m} value={m}>{ymToLabel(m)}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <ToolbarIconButton
-            icon={aiLoading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-            label="Refresh AI"
-            onClick={runAiRefresh}
-            disabled={aiLoading}
-          />
-        </div>
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2">
+        {/* Select Columns */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <ToolbarIconButton
+              icon={<ListChecks className="h-3.5 w-3.5" />}
+              label="Select columns"
+            />
+          </PopoverTrigger>
+          <PopoverContent className={TOOLBAR_POPOVER.columns} align="end">
+            <p className="text-xs font-semibold text-muted-foreground mb-2 tracking-normal">
+              Visible Columns
+            </p>
+            <div className="space-y-1 max-h-[300px] overflow-auto">
+              {ALL_COLUMNS.map((col) => (
+                <label
+                  key={col.key}
+                  className="flex items-center gap-2 py-1.5 px-1 cursor-pointer text-sm hover:bg-muted/50 rounded"
+                >
+                  <Checkbox
+                    checked={isVisible(col.key)}
+                    onCheckedChange={() => toggleColumn(col.key)}
+                    className="h-4 w-4"
+                  />
+                  {col.label}
+                </label>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
+
+      <div className="flex items-center gap-2">
+        <Select value={month} onValueChange={setMonth}>
+          <SelectTrigger className="h-8 w-36 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {monthOptions.map((m) => (
+              <SelectItem key={m} value={m}>
+                {ymToLabel(m)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <ToolbarIconButton
+          icon={
+            aiLoading ? (
+              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )
+          }
+          label="Refresh AI"
+          onClick={runAiRefresh}
+          disabled={aiLoading}
+        />
+      </div>
+    </div>
   );
 
   return (
@@ -445,48 +596,96 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
       {toolbarContainer ? createPortal(toolbar, toolbarContainer) : toolbar}
       <Card className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
         <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-
           {/* Inline filter strip */}
           <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
             {/* At Risk toggle */}
             <button
               type="button"
-              onClick={() => setNeedsAttentionOnly(v => !v)}
+              onClick={() => setNeedsAttentionOnly((v) => !v)}
               className={cn(
                 "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
-                needsAttentionOnly ? "bg-destructive/10 text-destructive border-destructive/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+                needsAttentionOnly
+                  ? "bg-destructive/10 text-destructive border-destructive/30"
+                  : "bg-background text-muted-foreground border-border hover:bg-muted",
               )}
             >
-              <Eye className="h-3 w-3" />At Risk
-              {needsAttentionOnly && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={e => { e.stopPropagation(); setNeedsAttentionOnly(false); }} />}
+              <Eye className="h-3 w-3" />
+              At Risk
+              {needsAttentionOnly && (
+                <X
+                  className="h-2.5 w-2.5 ml-0.5 opacity-70"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setNeedsAttentionOnly(false);
+                  }}
+                />
+              )}
             </button>
 
             {/* Categorical pill popovers */}
             {[
-              { label: stageLabel, values: stageFilter, setter: setStageFilter, options: stageOptions.map(s => ({ value: s, label: funnelStageLabels[s] || s })) },
-              { label: stateLabel, values: stateFilter, setter: setStateFilter, options: Object.keys(projectStateLabels).map(s => ({ value: s, label: projectStateLabels[s as keyof typeof projectStateLabels] })) },
-              { label: "Confidence", values: confidenceFilter, setter: setConfidenceFilter, options: ["High", "Medium", "Low"].map(c => ({ value: c, label: c })) },
+              {
+                label: stageLabel,
+                values: stageFilter,
+                setter: setStageFilter,
+                options: stageOptions.map((s) => ({ value: s, label: funnelStageLabels[s] || s })),
+              },
+              {
+                label: stateLabel,
+                values: stateFilter,
+                setter: setStateFilter,
+                options: Object.keys(projectStateLabels).map((s) => ({
+                  value: s,
+                  label: projectStateLabels[s as keyof typeof projectStateLabels],
+                })),
+              },
+              {
+                label: "Confidence",
+                values: confidenceFilter,
+                setter: setConfidenceFilter,
+                options: ["High", "Medium", "Low"].map((c) => ({ value: c, label: c })),
+              },
             ].map(({ label, values, setter, options }) => (
               <Popover key={label}>
                 <PopoverTrigger asChild>
-                  <button type="button" className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
-                    values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
-                  )}>
+                  <button
+                    type="button"
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                      values.length > 0
+                        ? "bg-primary/10 text-primary border-primary/30"
+                        : "bg-background text-muted-foreground border-border hover:bg-muted",
+                    )}
+                  >
                     {values.length > 0 ? `${label}: ${values.length}` : label}
                     <ChevronDown className="h-2.5 w-2.5 opacity-50" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent align="start" className="w-52 p-2">
                   <div className="max-h-48 overflow-y-auto space-y-0.5">
-                    {options.map(opt => (
-                      <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
-                        <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleValue(setter, opt.value)} />
+                    {options.map((opt) => (
+                      <label
+                        key={opt.value}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs"
+                      >
+                        <Checkbox
+                          checked={values.includes(opt.value)}
+                          onCheckedChange={() => toggleValue(setter, opt.value)}
+                        />
                         <span className="truncate">{opt.label}</span>
                       </label>
                     ))}
                   </div>
-                  {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>}
+                  {values.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full mt-1 h-7 text-xs"
+                      onClick={() => setter([])}
+                    >
+                      Clear
+                    </Button>
+                  )}
                 </PopoverContent>
               </Popover>
             ))}
@@ -494,197 +693,422 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
             {/* ARR range */}
             <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
               <span className="whitespace-nowrap">{arrLabel}:</span>
-              <input type="number" placeholder="min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+              <input
+                type="number"
+                placeholder="min"
+                value={arrMin}
+                onChange={(e) => setArrMin(e.target.value)}
+                className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50"
+              />
               <span>–</span>
-              <input type="number" placeholder="max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+              <input
+                type="number"
+                placeholder="max"
+                value={arrMax}
+                onChange={(e) => setArrMax(e.target.value)}
+                className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50"
+              />
               <span>Cr</span>
             </div>
 
             {/* Expected date range */}
             <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
               <span className="whitespace-nowrap">{expectedLabel}:</span>
-              <input type="date" value={expectedFrom} onChange={e => setExpectedFrom(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground" />
+              <input
+                type="date"
+                value={expectedFrom}
+                onChange={(e) => setExpectedFrom(e.target.value)}
+                className="bg-transparent outline-none text-2xs text-foreground"
+              />
               <span>–</span>
-              <input type="date" value={expectedTo} onChange={e => setExpectedTo(e.target.value)} className="bg-transparent outline-none text-2xs text-foreground" />
+              <input
+                type="date"
+                value={expectedTo}
+                onChange={(e) => setExpectedTo(e.target.value)}
+                className="bg-transparent outline-none text-2xs text-foreground"
+              />
             </div>
 
             {/* Active chips */}
             {[
-              ...stageFilter.map(v => ({ label: funnelStageLabels[v as keyof typeof funnelStageLabels] || v, clear: () => setStageFilter(p => p.filter(x => x !== v)) })),
-              ...stateFilter.map(v => ({ label: projectStateLabels[v as keyof typeof projectStateLabels] || v, clear: () => setStateFilter(p => p.filter(x => x !== v)) })),
-              ...confidenceFilter.map(v => ({ label: v, clear: () => setConfidenceFilter(p => p.filter(x => x !== v)) })),
+              ...stageFilter.map((v) => ({
+                label: funnelStageLabels[v as keyof typeof funnelStageLabels] || v,
+                clear: () => setStageFilter((p) => p.filter((x) => x !== v)),
+              })),
+              ...stateFilter.map((v) => ({
+                label: projectStateLabels[v as keyof typeof projectStateLabels] || v,
+                clear: () => setStateFilter((p) => p.filter((x) => x !== v)),
+              })),
+              ...confidenceFilter.map((v) => ({
+                label: v,
+                clear: () => setConfidenceFilter((p) => p.filter((x) => x !== v)),
+              })),
             ].map(({ label, clear }) => (
-              <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30">
+              <span
+                key={label}
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30"
+              >
                 {label}
-                <button type="button" onClick={clear} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+                <button type="button" onClick={clear} className="opacity-60 hover:opacity-100">
+                  <X className="h-2.5 w-2.5" />
+                </button>
               </span>
             ))}
 
             {activeFilterCount > 0 && (
-              <button type="button" onClick={clearFilters} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-                <X className="h-2.5 w-2.5" />Clear all
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-2.5 w-2.5" />
+                Clear all
               </button>
             )}
           </div>
           <div className="h-px w-full shrink-0 bg-border" />
-            <div className="min-h-0 flex-1 overflow-auto">
-            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible" className="text-xs w-full [&_td]:py-2 [&_td]:align-middle">
+          <div className="min-h-0 flex-1 overflow-auto">
+            <Table
+              wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible"
+              className="text-xs w-full [&_td]:py-2 [&_td]:align-middle"
+            >
               <TableHeader className="sticky top-0 z-10 bg-card table-header-tint">
                 <TableRow className="hover:bg-muted/40 border-b">
-                  <SortableHeader label={getLabel("field_merchant_name")} active={sortField === "merchantName"} dir={sortDir} onSort={() => toggleSort("merchantName")} className="min-w-[180px]" />
-                  {visibleColumns.map(key => {
+                  <SortableHeader
+                    label={getLabel("field_merchant_name")}
+                    active={sortField === "merchantName"}
+                    dir={sortDir}
+                    onSort={() => toggleSort("merchantName")}
+                    className="min-w-[180px]"
+                  />
+                  {visibleColumns.map((key) => {
                     const dragProps = {
                       draggable: true,
                       onDragStart: () => handleColDragStart(key),
-                      onDragOver: (e: React.DragEvent) => { e.preventDefault(); handleColDragOver(key); },
+                      onDragOver: (e: React.DragEvent) => {
+                        e.preventDefault();
+                        handleColDragOver(key);
+                      },
                       onDragEnd: handleColDragEnd,
-                      style: { cursor: "grab", opacity: draggedCol === key ? 0.5 : 1 } as React.CSSProperties,
+                      style: {
+                        cursor: "grab",
+                        opacity: draggedCol === key ? 0.5 : 1,
+                      } as React.CSSProperties,
                     };
-                    const SORTABLE = { arr: "arr", stage: "stage", confidence: "confidence", owner: "owner", expected: "expected" } as Record<string, string>;
+                    const SORTABLE = {
+                      arr: "arr",
+                      stage: "stage",
+                      confidence: "confidence",
+                      owner: "owner",
+                      expected: "expected",
+                    } as Record<string, string>;
                     if (SORTABLE[key]) {
-                      const col = ALL_COLUMNS.find(c => c.key === key);
-                      return <SortableHeader key={key} label={col?.label || key} active={sortField === SORTABLE[key]} dir={sortDir} onSort={() => toggleSort(SORTABLE[key])} align={key === "arr" ? "right" : "left"} className="whitespace-nowrap" {...dragProps} />;
+                      const col = ALL_COLUMNS.find((c) => c.key === key);
+                      return (
+                        <SortableHeader
+                          key={key}
+                          label={col?.label || key}
+                          active={sortField === SORTABLE[key]}
+                          dir={sortDir}
+                          onSort={() => toggleSort(SORTABLE[key])}
+                          align={key === "arr" ? "right" : "left"}
+                          className="whitespace-nowrap"
+                          {...dragProps}
+                        />
+                      );
                     }
-                    const col = ALL_COLUMNS.find(c => c.key === key);
-                    const extraClass = key === "blocker" ? "min-w-[240px] max-w-[340px]" : key === "blocked_on" || key === "deadline" ? "min-w-[100px]" : key === "owner" ? "min-w-[140px]" : "";
+                    const col = ALL_COLUMNS.find((c) => c.key === key);
+                    const extraClass =
+                      key === "blocker"
+                        ? "min-w-[240px] max-w-[340px]"
+                        : key === "blocked_on" || key === "deadline"
+                          ? "min-w-[100px]"
+                          : key === "owner"
+                            ? "min-w-[140px]"
+                            : "";
                     return (
-                      <TableHead key={key} className={cn("h-auto py-2 px-3 font-semibold whitespace-nowrap text-foreground", extraClass)} {...dragProps}>
+                      <TableHead
+                        key={key}
+                        className={cn(
+                          "h-auto py-2 px-3 font-semibold whitespace-nowrap text-foreground",
+                          extraClass,
+                        )}
+                        {...dragProps}
+                      >
                         {col?.label || key}
                       </TableHead>
                     );
                   })}
                 </TableRow>
               </TableHeader>
-            <TableBody>
-              {loading && <TableRow><TableCell colSpan={visibleColCount} className="text-center text-muted-foreground py-8">Loading…</TableCell></TableRow>}
-              {!loading && sortedRows.length === 0 && <TableRow><TableCell colSpan={visibleColCount} className="text-center text-muted-foreground py-8">No projects for {ymToLabel(month)}.</TableCell></TableRow>}
-              {sortedRows.map(p => {
-                const i = insights[p.id];
-                const isBlocked = p.project_state === "blocked" || (i?.confidence?.toLowerCase() === "low");
-                const conf = i?.confidence || "";
-                const blockerText = i?.blocker || "";
-                const isUrl = /^https?:\/\//i.test(blockerText);
-                const stage = stageOf(p.id);
-                return (
-                  <TableRow key={p.id} onClick={() => openProjectInNewTab(p.id, "go-live")} className={cn("cursor-pointer hover:bg-muted/40", isBlocked && "bg-destructive/40")}>
-                    <TableCell className={cn("font-medium whitespace-nowrap", isBlocked && "text-destructive-strong")} title={p.merchant_name}>
-                      <button
-                        type="button"
-                        onClick={(event) => { event.stopPropagation(); openProjectInNewTab(p.id, "go-live"); }}
-                        className="max-w-[220px] truncate text-left hover:text-primary hover:underline cursor-pointer"
-                      >
-                        {p.merchant_name}
-                      </button>
-                      <RiskBadge projectId={p.id} verdict={riskVerdicts[p.id]} className="ml-1.5 align-middle" />
+              <TableBody>
+                {loading && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={visibleColCount}
+                      className="text-center text-muted-foreground py-8"
+                    >
+                      Loading…
                     </TableCell>
-                    {visibleColumns.map(key => {
-                      switch (key) {
-                        case "arr": return <TableCell key="arr" className="text-right tabular-nums whitespace-nowrap">{p.arr != null ? arrCroreValue(p.arr) : "—"}</TableCell>;
-                        case "stage": return (
-                          <TableCell key="stage" className="whitespace-nowrap">
-                            <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium", STAGE_BADGE[stage] || "bg-navy text-navy-foreground")}>{funnelStageLabels[stage] || "—"}</span>
-                          </TableCell>
-                        );
-                        case "status": return <TableCell key="status" className="whitespace-nowrap">{projectStateLabels[p.project_state as keyof typeof projectStateLabels] || "—"}</TableCell>;
-                        case "blocker": return (
-                          <TableCell key="blocker" className="align-top max-w-[340px]">
-                            {isUrl ? (
-                              <a href={blockerText.split(" ")[0]} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline break-all">
-                                <span>{blockerText.split(" — ")[0].replace(/^https?:\/\/[^/]+\/browse\//, "")}</span>
-                                <ExternalLink className="h-3 w-3 shrink-0" />
-                              </a>
-                            ) : (
-                              <textarea
-                                value={blockerText}
-                                ref={el => { if (el) { el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; } }}
-                                onChange={e => {
-                                  setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), blocker: e.target.value } }));
-                                  e.currentTarget.style.height = "auto";
-                                  e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
-                                }}
-                                onBlur={e => updateInsight(p.id, "blocker", e.target.value)}
-                                onClick={e => e.stopPropagation()}
-                                className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
-                                placeholder="—"
-                                rows={1}
-                              />
-                            )}
-                          </TableCell>
-                        );
-                        case "blocked_on": return (
-                          <TableCell key="blocked_on" className="align-top">
-                            <textarea
-                              value={i?.blocked_on || ""}
-                              onChange={e => {
-                                setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), blocked_on: e.target.value } }));
-                                e.currentTarget.style.height = "auto";
-                                e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
-                              }}
-                              onBlur={e => updateInsight(p.id, "blocked_on", e.target.value)}
-                              onClick={e => e.stopPropagation()}
-                              className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
-                              placeholder="—"
-                              rows={1}
-                            />
-                          </TableCell>
-                        );
-                        case "deadline": return (
-                          <TableCell key="deadline" className="align-top">
-                            <textarea
-                              value={i?.deadline || ""}
-                              onChange={e => {
-                                setInsights(prev => ({ ...prev, [p.id]: { ...(prev[p.id] || {} as any), deadline: e.target.value } }));
-                                e.currentTarget.style.height = "auto";
-                                e.currentTarget.style.height = e.currentTarget.scrollHeight + "px";
-                              }}
-                              onBlur={e => updateInsight(p.id, "deadline", e.target.value)}
-                              onClick={e => e.stopPropagation()}
-                              className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
-                              placeholder="—"
-                              rows={1}
-                            />
-                          </TableCell>
-                        );
-                        case "confidence": return (
-                          <TableCell key="confidence" className="whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                            <Select value={conf} onValueChange={v => updateInsight(p.id, "confidence", v)}>
-                              <SelectTrigger className={cn("h-7 border-0 bg-transparent w-[100px] px-2", conf && CONF_BADGE[conf], conf && "rounded-md font-medium")}><SelectValue placeholder="—" /></SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="High">High</SelectItem>
-                                <SelectItem value="Medium">Medium</SelectItem>
-                                <SelectItem value="Low">Low</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        );
-                        case "owner": return (
-                          <TableCell key="owner" className="whitespace-nowrap" title={owners[p.assigned_owner || ""] || ""}>
-                            <div className="max-w-[160px] truncate">{owners[p.assigned_owner || ""] || "—"}</div>
-                          </TableCell>
-                        );
-                        case "expected": return (
-                          <TableCell key="expected" className="whitespace-nowrap tabular-nums">
-                            {dateLabel(p.expected_go_live_date)}
-                            {fullProjects.find(fp => fp.id === p.id)?.dates?.expectedGoLiveDateIsDerived && (
-                              <span className="ml-1 text-2xs text-muted-foreground" title="Estimated from the latest checklist due date — no go-live date has been set on this project">est.</span>
-                            )}
-                          </TableCell>
-                        );
-                        default: {
-                          if (key.startsWith("custom_field_")) {
-                            const cfId = key.replace("custom_field_", "");
-                            return <TableCell key={key} className="whitespace-nowrap">{customValuesMap[p.id]?.[cfId] || "—"}</TableCell>;
-                          }
-                          return <TableCell key={key} className="whitespace-nowrap">{systemValue(p.id, key)}</TableCell>;
-                        }
-                      }
-                    })}
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-            </div>
+                )}
+                {!loading && sortedRows.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={visibleColCount}
+                      className="text-center text-muted-foreground py-8"
+                    >
+                      No projects for {ymToLabel(month)}.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {sortedRows.map((p) => {
+                  const i = insights[p.id];
+                  const isBlocked =
+                    p.project_state === "blocked" || i?.confidence?.toLowerCase() === "low";
+                  const conf = i?.confidence || "";
+                  const blockerText = i?.blocker || "";
+                  const isUrl = /^https?:\/\//i.test(blockerText);
+                  const stage = stageOf(p.id);
+                  return (
+                    <TableRow
+                      key={p.id}
+                      onClick={() => openProjectInNewTab(p.id, "go-live")}
+                      className={cn(
+                        "cursor-pointer hover:bg-muted/40",
+                        isBlocked && "bg-destructive/40",
+                      )}
+                    >
+                      <TableCell
+                        className={cn(
+                          "font-medium whitespace-nowrap",
+                          isBlocked && "text-destructive-strong",
+                        )}
+                        title={p.merchant_name}
+                      >
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openProjectInNewTab(p.id, "go-live");
+                          }}
+                          className="max-w-[220px] truncate text-left hover:text-primary hover:underline cursor-pointer"
+                        >
+                          {p.merchant_name}
+                        </button>
+                        <RiskBadge
+                          projectId={p.id}
+                          verdict={riskVerdicts[p.id]}
+                          className="ml-1.5 align-middle"
+                        />
+                      </TableCell>
+                      {visibleColumns.map((key) => {
+                        switch (key) {
+                          case "arr":
+                            return (
+                              <TableCell
+                                key="arr"
+                                className="text-right tabular-nums whitespace-nowrap"
+                              >
+                                {p.arr != null ? arrCroreValue(p.arr) : "—"}
+                              </TableCell>
+                            );
+                          case "stage":
+                            return (
+                              <TableCell key="stage" className="whitespace-nowrap">
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium",
+                                    STAGE_BADGE[stage] || "bg-navy text-navy-foreground",
+                                  )}
+                                >
+                                  {funnelStageLabels[stage] || "—"}
+                                </span>
+                              </TableCell>
+                            );
+                          case "status":
+                            return (
+                              <TableCell key="status" className="whitespace-nowrap">
+                                {projectStateLabels[
+                                  p.project_state as keyof typeof projectStateLabels
+                                ] || "—"}
+                              </TableCell>
+                            );
+                          case "blocker":
+                            return (
+                              <TableCell key="blocker" className="align-top max-w-[340px]">
+                                {isUrl ? (
+                                  <a
+                                    href={blockerText.split(" ")[0]}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 underline break-all"
+                                  >
+                                    <span>
+                                      {blockerText
+                                        .split(" — ")[0]
+                                        .replace(/^https?:\/\/[^/]+\/browse\//, "")}
+                                    </span>
+                                    <ExternalLink className="h-3 w-3 shrink-0" />
+                                  </a>
+                                ) : (
+                                  <textarea
+                                    value={blockerText}
+                                    ref={(el) => {
+                                      if (el) {
+                                        el.style.height = "auto";
+                                        el.style.height = `${el.scrollHeight}px`;
+                                      }
+                                    }}
+                                    onChange={(e) => {
+                                      setInsights((prev) => ({
+                                        ...prev,
+                                        [p.id]: {
+                                          ...(prev[p.id] || ({} as any)),
+                                          blocker: e.target.value,
+                                        },
+                                      }));
+                                      e.currentTarget.style.height = "auto";
+                                      e.currentTarget.style.height =
+                                        e.currentTarget.scrollHeight + "px";
+                                    }}
+                                    onBlur={(e) => updateInsight(p.id, "blocker", e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
+                                    placeholder="—"
+                                    rows={1}
+                                  />
+                                )}
+                              </TableCell>
+                            );
+                          case "blocked_on":
+                            return (
+                              <TableCell key="blocked_on" className="align-top">
+                                <textarea
+                                  value={i?.blocked_on || ""}
+                                  onChange={(e) => {
+                                    setInsights((prev) => ({
+                                      ...prev,
+                                      [p.id]: {
+                                        ...(prev[p.id] || ({} as any)),
+                                        blocked_on: e.target.value,
+                                      },
+                                    }));
+                                    e.currentTarget.style.height = "auto";
+                                    e.currentTarget.style.height =
+                                      e.currentTarget.scrollHeight + "px";
+                                  }}
+                                  onBlur={(e) => updateInsight(p.id, "blocked_on", e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
+                                  placeholder="—"
+                                  rows={1}
+                                />
+                              </TableCell>
+                            );
+                          case "deadline":
+                            return (
+                              <TableCell key="deadline" className="align-top">
+                                <textarea
+                                  value={i?.deadline || ""}
+                                  onChange={(e) => {
+                                    setInsights((prev) => ({
+                                      ...prev,
+                                      [p.id]: {
+                                        ...(prev[p.id] || ({} as any)),
+                                        deadline: e.target.value,
+                                      },
+                                    }));
+                                    e.currentTarget.style.height = "auto";
+                                    e.currentTarget.style.height =
+                                      e.currentTarget.scrollHeight + "px";
+                                  }}
+                                  onBlur={(e) => updateInsight(p.id, "deadline", e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full min-h-[28px] resize-none whitespace-pre-wrap break-words border-0 bg-transparent focus-visible:ring-1 px-2 py-1 text-xs leading-4 rounded-sm overflow-hidden"
+                                  placeholder="—"
+                                  rows={1}
+                                />
+                              </TableCell>
+                            );
+                          case "confidence":
+                            return (
+                              <TableCell
+                                key="confidence"
+                                className="whitespace-nowrap"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Select
+                                  value={conf}
+                                  onValueChange={(v) => updateInsight(p.id, "confidence", v)}
+                                >
+                                  <SelectTrigger
+                                    className={cn(
+                                      "h-7 border-0 bg-transparent w-[100px] px-2",
+                                      conf && CONF_BADGE[conf],
+                                      conf && "rounded-md font-medium",
+                                    )}
+                                  >
+                                    <SelectValue placeholder="—" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="High">High</SelectItem>
+                                    <SelectItem value="Medium">Medium</SelectItem>
+                                    <SelectItem value="Low">Low</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                            );
+                          case "owner":
+                            return (
+                              <TableCell
+                                key="owner"
+                                className="whitespace-nowrap"
+                                title={owners[p.assigned_owner || ""] || ""}
+                              >
+                                <div className="max-w-[160px] truncate">
+                                  {owners[p.assigned_owner || ""] || "—"}
+                                </div>
+                              </TableCell>
+                            );
+                          case "expected":
+                            return (
+                              <TableCell key="expected" className="whitespace-nowrap tabular-nums">
+                                {dateLabel(p.expected_go_live_date)}
+                                {fullProjects.find((fp) => fp.id === p.id)?.dates
+                                  ?.expectedGoLiveDateIsDerived && (
+                                  <span
+                                    className="ml-1 text-2xs text-muted-foreground"
+                                    title="Estimated from the latest checklist due date — no go-live date has been set on this project"
+                                  >
+                                    est.
+                                  </span>
+                                )}
+                              </TableCell>
+                            );
+                          default: {
+                            if (key.startsWith("custom_field_")) {
+                              const cfId = key.replace("custom_field_", "");
+                              return (
+                                <TableCell key={key} className="whitespace-nowrap">
+                                  {customValuesMap[p.id]?.[cfId] || "—"}
+                                </TableCell>
+                              );
+                            }
+                            return (
+                              <TableCell key={key} className="whitespace-nowrap">
+                                {systemValue(p.id, key)}
+                              </TableCell>
+                            );
+                          }
+                        }
+                      })}
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -692,7 +1116,9 @@ export const MonthlyGoLiveTracker = ({ toolbarContainer, searchQuery = "", proje
         <EditProjectDialog
           project={editingProject}
           open={!!editProjectId}
-          onOpenChange={(o) => { if (!o) setEditProjectId(null); }}
+          onOpenChange={(o) => {
+            if (!o) setEditProjectId(null);
+          }}
           onSave={(updated) => {
             updateProject(updated);
             toast.success("Project updated");

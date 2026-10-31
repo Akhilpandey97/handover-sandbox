@@ -8,14 +8,7 @@ import {
   useDeleteChecklistMeeting,
   useAnalyseMeeting,
 } from "@/hooks/useChecklistMeetings";
-import {
-  Trash2,
-  ExternalLink,
-  Loader2,
-  Sparkles,
-  AlertTriangle,
-  CheckCircle2,
-} from "lucide-react";
+import { Trash2, ExternalLink, Loader2, Sparkles, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 const statusStyles: Record<ChecklistMeeting["analysis_status"], string> = {
   pending: "bg-muted text-muted-foreground",

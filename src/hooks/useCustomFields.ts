@@ -50,14 +50,16 @@ export const useCustomFields = () => {
   return { fields: data ?? EMPTY_FIELDS, isLoading };
 };
 
-
 export const useCustomFieldValues = (projectId: string | undefined) => {
   const { currentUser } = useAuth();
   const [values, setValues] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!projectId) { setIsLoading(false); return; }
+    if (!projectId) {
+      setIsLoading(false);
+      return;
+    }
     const fetch = async () => {
       const { data, error } = await supabase
         .from("custom_field_values")
@@ -65,7 +67,9 @@ export const useCustomFieldValues = (projectId: string | undefined) => {
         .eq("project_id", projectId);
       if (!error && data) {
         const map: Record<string, string> = {};
-        data.forEach((r: any) => { if (r.value) map[r.field_id] = r.value; });
+        data.forEach((r: any) => {
+          if (r.value) map[r.field_id] = r.value;
+        });
         setValues(map);
       }
       setIsLoading(false);
@@ -73,34 +77,40 @@ export const useCustomFieldValues = (projectId: string | undefined) => {
     fetch();
   }, [projectId]);
 
-  const saveValues = useCallback(async (projectId: string, fieldValues: Record<string, string>) => {
-    const tenantId = currentUser?.tenantId || null;
-    const rows = Object.entries(fieldValues)
-      .filter(([, v]) => v !== undefined && v !== "")
-      .map(([field_id, value]) => ({
-        project_id: projectId,
-        field_id,
-        value,
-        tenant_id: tenantId,
-      }));
+  const saveValues = useCallback(
+    async (projectId: string, fieldValues: Record<string, string>) => {
+      const tenantId = currentUser?.tenantId || null;
+      const rows = Object.entries(fieldValues)
+        .filter(([, v]) => v !== undefined && v !== "")
+        .map(([field_id, value]) => ({
+          project_id: projectId,
+          field_id,
+          value,
+          tenant_id: tenantId,
+        }));
 
-    if (rows.length === 0) return;
+      if (rows.length === 0) return;
 
-    for (const row of rows) {
-      const { data: existing } = await supabase
-        .from("custom_field_values")
-        .select("id")
-        .eq("project_id", row.project_id)
-        .eq("field_id", row.field_id)
-        .maybeSingle();
+      for (const row of rows) {
+        const { data: existing } = await supabase
+          .from("custom_field_values")
+          .select("id")
+          .eq("project_id", row.project_id)
+          .eq("field_id", row.field_id)
+          .maybeSingle();
 
-      if (existing) {
-        await supabase.from("custom_field_values").update({ value: row.value }).eq("id", existing.id);
-      } else {
-        await supabase.from("custom_field_values").insert(row);
+        if (existing) {
+          await supabase
+            .from("custom_field_values")
+            .update({ value: row.value })
+            .eq("id", existing.id);
+        } else {
+          await supabase.from("custom_field_values").insert(row);
+        }
       }
-    }
-  }, [currentUser?.tenantId]);
+    },
+    [currentUser?.tenantId],
+  );
 
   return { values, setValues, isLoading, saveValues };
 };
@@ -117,10 +127,10 @@ export const useAllCustomFieldValues = (projectIds: string[]) => {
     refetchOnWindowFocus: false,
     queryFn: async () => {
       // Scoped to the workspace being worked in; RLS alone lets super admins read every tenant.
-      let q = supabase
-        .from("custom_field_values")
-        .select("project_id, field_id, value");
-      q = tenantId ? q.eq("tenant_id", tenantId) : q.eq("tenant_id", "00000000-0000-0000-0000-000000000000");
+      let q = supabase.from("custom_field_values").select("project_id, field_id, value");
+      q = tenantId
+        ? q.eq("tenant_id", tenantId)
+        : q.eq("tenant_id", "00000000-0000-0000-0000-000000000000");
       const { data, error } = await q;
       if (error) throw error;
       const map: Record<string, Record<string, string>> = {};
@@ -137,4 +147,3 @@ export const useAllCustomFieldValues = (projectIds: string[]) => {
   const valuesMap = useMemo(() => data ?? {}, [data]);
   return { valuesMap, isLoading: projectIds.length > 0 ? isLoading : false };
 };
-

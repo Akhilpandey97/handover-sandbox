@@ -1,9 +1,21 @@
 import { useMemo, useState } from "react";
-import { Project, calculateTimeByParty, calculateTimeFromChecklist, formatDuration } from "@/data/projectsData";
+import {
+  Project,
+  calculateTimeByParty,
+  calculateTimeFromChecklist,
+  formatDuration,
+} from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -18,20 +30,23 @@ export const MerchantResponsibility = ({ projects }: Props) => {
   const [expandedSection, setExpandedSection] = useState<string | null>("blocker");
 
   const blockerAnalysis = useMemo(() => {
-    return projects.map(p => {
-      const time = calculateTimeFromChecklist(p.checklist);
-      const total = time.gokwik + time.merchant;
-      return {
-        id: p.id,
-        name: p.merchantName,
-        gokwikTime: time.gokwik,
-        merchantTime: time.merchant,
-        total,
-        gokwikPct: total > 0 ? Math.round((time.gokwik / total) * 100) : 0,
-        merchantPct: total > 0 ? Math.round((time.merchant / total) * 100) : 0,
-        state: p.projectState,
-      };
-    }).filter(p => p.total > 0).sort((a, b) => b.merchantPct - a.merchantPct);
+    return projects
+      .map((p) => {
+        const time = calculateTimeFromChecklist(p.checklist);
+        const total = time.gokwik + time.merchant;
+        return {
+          id: p.id,
+          name: p.merchantName,
+          gokwikTime: time.gokwik,
+          merchantTime: time.merchant,
+          total,
+          gokwikPct: total > 0 ? Math.round((time.gokwik / total) * 100) : 0,
+          merchantPct: total > 0 ? Math.round((time.merchant / total) * 100) : 0,
+          state: p.projectState,
+        };
+      })
+      .filter((p) => p.total > 0)
+      .sort((a, b) => b.merchantPct - a.merchantPct);
   }, [projects]);
 
   const totalGokwik = blockerAnalysis.reduce((s, p) => s + p.gokwikTime, 0);
@@ -39,13 +54,28 @@ export const MerchantResponsibility = ({ projects }: Props) => {
   const totalAll = totalGokwik + totalMerchant;
 
   const complexityMatrix = useMemo(() => {
-    const matrix = new Map<string, { platform: string; intType: string; count: number; totalTime: number; avgGoLivePercent: number }>();
+    const matrix = new Map<
+      string,
+      {
+        platform: string;
+        intType: string;
+        count: number;
+        totalTime: number;
+        avgGoLivePercent: number;
+      }
+    >();
 
-    projects.forEach(p => {
+    projects.forEach((p) => {
       const key = `${p.platform}|${p.integrationType}`;
       const time = calculateTimeFromChecklist(p.checklist);
       const totalMs = time.gokwik + time.merchant;
-      const existing = matrix.get(key) || { platform: p.platform, intType: p.integrationType, count: 0, totalTime: 0, avgGoLivePercent: 0 };
+      const existing = matrix.get(key) || {
+        platform: p.platform,
+        intType: p.integrationType,
+        count: 0,
+        totalTime: 0,
+        avgGoLivePercent: 0,
+      };
       existing.count++;
       existing.totalTime += totalMs;
       existing.avgGoLivePercent += p.goLivePercent;
@@ -53,14 +83,16 @@ export const MerchantResponsibility = ({ projects }: Props) => {
     });
 
     return Array.from(matrix.values())
-      .map(m => ({ ...m, avgTime: m.totalTime / m.count, avgGoLivePercent: Math.round(m.avgGoLivePercent / m.count) }))
+      .map((m) => ({
+        ...m,
+        avgTime: m.totalTime / m.count,
+        avgGoLivePercent: Math.round(m.avgGoLivePercent / m.count),
+      }))
       .sort((a, b) => b.avgTime - a.avgTime);
   }, [projects]);
 
-
   return (
     <div className="space-y-6">
-
       {/* Overall distribution */}
       {totalAll > 0 && (
         <Card>
@@ -69,24 +101,41 @@ export const MerchantResponsibility = ({ projects }: Props) => {
               <div className="bg-gradient-to-br from-primary/10 to-info/5 rounded-xl p-4 text-center">
                 <Building2 className="h-6 w-6 mx-auto text-primary mb-2" />
                 <p className="text-2xl font-bold text-primary">{formatDuration(totalGokwik)}</p>
-                <p className="text-xs text-muted-foreground">{responsibilityLabels.gokwik} (Internal) — {Math.round((totalGokwik / totalAll) * 100)}%</p>
+                <p className="text-xs text-muted-foreground">
+                  {responsibilityLabels.gokwik} (Internal) —{" "}
+                  {Math.round((totalGokwik / totalAll) * 100)}%
+                </p>
               </div>
               <div className="bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl p-4 text-center">
                 <Users className="h-6 w-6 mx-auto text-warning-strong mb-2" />
-                <p className="text-2xl font-bold text-warning-strong">{formatDuration(totalMerchant)}</p>
-                <p className="text-xs text-muted-foreground">{responsibilityLabels.merchant} (External) — {Math.round((totalMerchant / totalAll) * 100)}%</p>
+                <p className="text-2xl font-bold text-warning-strong">
+                  {formatDuration(totalMerchant)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {responsibilityLabels.merchant} (External) —{" "}
+                  {Math.round((totalMerchant / totalAll) * 100)}%
+                </p>
               </div>
             </div>
             <div className="flex h-4 rounded-full overflow-hidden">
-              <div className="bg-primary transition-all" style={{ width: `${(totalGokwik / totalAll) * 100}%` }} />
-              <div className="bg-warning transition-all" style={{ width: `${(totalMerchant / totalAll) * 100}%` }} />
+              <div
+                className="bg-primary transition-all"
+                style={{ width: `${(totalGokwik / totalAll) * 100}%` }}
+              />
+              <div
+                className="bg-warning transition-all"
+                style={{ width: `${(totalMerchant / totalAll) * 100}%` }}
+              />
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Per-project Blocker Analysis */}
-      <Collapsible open={expandedSection === "blocker"} onOpenChange={() => setExpandedSection(expandedSection === "blocker" ? null : "blocker")}>
+      <Collapsible
+        open={expandedSection === "blocker"}
+        onOpenChange={() => setExpandedSection(expandedSection === "blocker" ? null : "blocker")}
+      >
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
@@ -95,9 +144,16 @@ export const MerchantResponsibility = ({ projects }: Props) => {
                   <Building2 className="h-4 w-4 text-destructive-strong" />
                   Blocker Analysis (Internal vs External)
                 </CardTitle>
-                {expandedSection === "blocker" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expandedSection === "blocker" ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </div>
-              <CardDescription>Per-project comparison of {responsibilityLabels.gokwik} vs {responsibilityLabels.merchant} time (from checklist items)</CardDescription>
+              <CardDescription>
+                Per-project comparison of {responsibilityLabels.gokwik} vs{" "}
+                {responsibilityLabels.merchant} time (from checklist items)
+              </CardDescription>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -113,11 +169,13 @@ export const MerchantResponsibility = ({ projects }: Props) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {blockerAnalysis.map(p => (
+                  {blockerAnalysis.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.name}</TableCell>
                       <TableCell className="text-primary">{formatDuration(p.gokwikTime)}</TableCell>
-                      <TableCell className="text-warning-strong">{formatDuration(p.merchantTime)}</TableCell>
+                      <TableCell className="text-warning-strong">
+                        {formatDuration(p.merchantTime)}
+                      </TableCell>
                       <TableCell>
                         <div className="flex h-2 w-24 rounded-full overflow-hidden">
                           <div className="bg-primary" style={{ width: `${p.gokwikPct}%` }} />
@@ -125,8 +183,20 @@ export const MerchantResponsibility = ({ projects }: Props) => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={p.merchantPct > 60 ? "destructive" : p.gokwikPct > 60 ? "secondary" : "outline"}>
-                          {p.merchantPct > 60 ? responsibilityLabels.merchant : p.gokwikPct > 60 ? "Internal" : "Balanced"}
+                        <Badge
+                          variant={
+                            p.merchantPct > 60
+                              ? "destructive"
+                              : p.gokwikPct > 60
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {p.merchantPct > 60
+                            ? responsibilityLabels.merchant
+                            : p.gokwikPct > 60
+                              ? "Internal"
+                              : "Balanced"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -139,7 +209,12 @@ export const MerchantResponsibility = ({ projects }: Props) => {
       </Collapsible>
 
       {/* Integration Complexity Matrix */}
-      <Collapsible open={expandedSection === "complexity"} onOpenChange={() => setExpandedSection(expandedSection === "complexity" ? null : "complexity")}>
+      <Collapsible
+        open={expandedSection === "complexity"}
+        onOpenChange={() =>
+          setExpandedSection(expandedSection === "complexity" ? null : "complexity")
+        }
+      >
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
@@ -148,9 +223,16 @@ export const MerchantResponsibility = ({ projects }: Props) => {
                   <Layers className="h-4 w-4 text-purple-500" />
                   {getLabel("field_integration_type")} Complexity Matrix
                 </CardTitle>
-                {expandedSection === "complexity" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expandedSection === "complexity" ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </div>
-              <CardDescription>Average completion time by {getLabel("field_platform")} × {getLabel("field_integration_type")} — set realistic expectations</CardDescription>
+              <CardDescription>
+                Average completion time by {getLabel("field_platform")} ×{" "}
+                {getLabel("field_integration_type")} — set realistic expectations
+              </CardDescription>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>

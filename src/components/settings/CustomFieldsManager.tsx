@@ -6,8 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +31,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
@@ -68,10 +88,12 @@ export const CustomFieldsManager = () => {
         .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      setFields((data || []).map((f: any) => ({
-        ...f,
-        options: Array.isArray(f.options) ? f.options : [],
-      })));
+      setFields(
+        (data || []).map((f: any) => ({
+          ...f,
+          options: Array.isArray(f.options) ? f.options : [],
+        })),
+      );
     } catch (e: any) {
       console.error("Failed to fetch custom fields:", e);
     } finally {
@@ -79,10 +101,18 @@ export const CustomFieldsManager = () => {
     }
   };
 
-  useEffect(() => { fetchFields(); }, []);
+  useEffect(() => {
+    fetchFields();
+  }, []);
 
   const generateKey = (label: string) => {
-    return "custom_" + label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+    return (
+      "custom_" +
+      label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "")
+    );
   };
 
   const openCreateDialog = () => {
@@ -108,7 +138,13 @@ export const CustomFieldsManager = () => {
     setIsSaving(true);
     try {
       const key = editField ? editField.field_key : generateKey(fieldLabel);
-      const options = fieldType === "select" ? fieldOptions.split(",").map(o => o.trim()).filter(Boolean) : [];
+      const options =
+        fieldType === "select"
+          ? fieldOptions
+              .split(",")
+              .map((o) => o.trim())
+              .filter(Boolean)
+          : [];
 
       if (editField) {
         const { error } = await supabase
@@ -122,16 +158,14 @@ export const CustomFieldsManager = () => {
         if (error) throw error;
         toast.success("Field updated");
       } else {
-        const { error } = await supabase
-          .from("custom_fields")
-          .insert({
-            field_key: key,
-            field_label: fieldLabel,
-            field_type: fieldType,
-            options,
-            sort_order: fields.length,
-            tenant_id: currentUser?.tenantId || null,
-          });
+        const { error } = await supabase.from("custom_fields").insert({
+          field_key: key,
+          field_label: fieldLabel,
+          field_type: fieldType,
+          options,
+          sort_order: fields.length,
+          tenant_id: currentUser?.tenantId || null,
+        });
         if (error) throw error;
         toast.success("Field created");
       }
@@ -164,13 +198,15 @@ export const CustomFieldsManager = () => {
         .update({ is_active: !field.is_active })
         .eq("id", field.id);
       if (error) throw error;
-      setFields(prev => prev.map(f => f.id === field.id ? { ...f, is_active: !f.is_active } : f));
+      setFields((prev) =>
+        prev.map((f) => (f.id === field.id ? { ...f, is_active: !f.is_active } : f)),
+      );
     } catch (e: any) {
       toast.error("Failed to toggle field");
     }
   };
 
-  const typeLabel = (type: string) => FIELD_TYPES.find(t => t.value === type)?.label || type;
+  const typeLabel = (type: string) => FIELD_TYPES.find((t) => t.value === type)?.label || type;
 
   return (
     <Card>
@@ -182,7 +218,8 @@ export const CustomFieldsManager = () => {
               Custom Project Fields
             </CardTitle>
             <CardDescription>
-              Add custom fields to capture additional data on projects. These fields will appear in project forms and details.
+              Add custom fields to capture additional data on projects. These fields will appear in
+              project forms and details.
             </CardDescription>
           </div>
           <Button size="sm" onClick={openCreateDialog}>
@@ -213,11 +250,15 @@ export const CustomFieldsManager = () => {
               {fields.map((field) => (
                 <TableRow key={field.id}>
                   <TableCell className="font-medium">{field.field_label}</TableCell>
-                  <TableCell><code className="text-xs text-muted-foreground">{field.field_key}</code></TableCell>
+                  <TableCell>
+                    <code className="text-xs text-muted-foreground">{field.field_key}</code>
+                  </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{typeLabel(field.field_type)}</Badge>
                     {field.field_type === "select" && field.options.length > 0 && (
-                      <span className="ml-2 text-xs text-muted-foreground">({field.options.length} options)</span>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        ({field.options.length} options)
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -228,7 +269,12 @@ export const CustomFieldsManager = () => {
                       <Button variant="ghost" size="sm" onClick={() => openEditDialog(field)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteField(field)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeleteField(field)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -271,10 +317,14 @@ export const CustomFieldsManager = () => {
             <div className="space-y-2">
               <Label>Data Type</Label>
               <Select value={fieldType} onValueChange={setFieldType}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {FIELD_TYPES.map(t => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  {FIELD_TYPES.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -290,8 +340,12 @@ export const CustomFieldsManager = () => {
               </div>
             )}
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={isSaving}>{isSaving ? "Saving..." : editField ? "Update" : "Create Field"}</Button>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? "Saving..." : editField ? "Update" : "Create Field"}
+              </Button>
             </div>
           </form>
         </DialogContent>
@@ -303,12 +357,16 @@ export const CustomFieldsManager = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Custom Field</AlertDialogTitle>
             <AlertDialogDescription>
-              Delete <strong>{deleteField?.field_label}</strong>? All saved values for this field across all projects will be removed.
+              Delete <strong>{deleteField?.field_label}</strong>? All saved values for this field
+              across all projects will be removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

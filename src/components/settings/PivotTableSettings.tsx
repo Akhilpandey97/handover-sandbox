@@ -1,5 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
-import { Project, projectStateLabels, formatDuration, calculateTimeFromChecklist } from "@/data/projectsData";
+import {
+  Project,
+  projectStateLabels,
+  formatDuration,
+  calculateTimeFromChecklist,
+} from "@/data/projectsData";
 import { CustomField } from "@/hooks/useCustomFields";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,9 +15,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Sigma, Save, Trash2, FileText, Plus, X } from "lucide-react";
 import { useReportFilters } from "@/hooks/useReportFilters";
@@ -34,7 +58,17 @@ const AVAILABLE_COLUMNS: { key: string; label: string; group: string }[] = [
   { key: "goLivePercent", label: "Go Live %", group: "Status" },
 ];
 
-const BASE_GROUPABLE_COLUMNS = ["projectState", "currentOwnerTeam", "platform", "category", "assignedOwnerName", "currentResponsibility", "integrationType", "pgOnboarding", "salesSpoc"];
+const BASE_GROUPABLE_COLUMNS = [
+  "projectState",
+  "currentOwnerTeam",
+  "platform",
+  "category",
+  "assignedOwnerName",
+  "currentResponsibility",
+  "integrationType",
+  "pgOnboarding",
+  "salesSpoc",
+];
 const NUMERIC_COLUMNS = ["arr", "txnsPerDay", "aov", "goLivePercent", "transferCount"];
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -58,19 +92,35 @@ interface SavedPivotReport {
 
 function getCellValue(project: Project, key: string, labels: any): string {
   switch (key) {
-    case "merchantName": return project.merchantName;
-    case "mid": return project.mid;
-    case "platform": return project.platform;
-    case "category": return project.category;
-    case "arr": return arrCroreValue(project.arr);
-    case "txnsPerDay": return String(project.txnsPerDay);
-    case "aov": return String(project.aov);
-    case "projectState": return labels.stateLabels?.[project.projectState] || projectStateLabels[project.projectState];
-    case "currentPhase": return labels.phaseLabels?.[project.currentPhase] || project.currentPhase;
-    case "currentOwnerTeam": return labels.teamLabels?.[project.currentOwnerTeam] || project.currentOwnerTeam;
-    case "assignedOwnerName": return project.assignedOwnerName || "Unassigned";
-    case "currentResponsibility": return labels.responsibilityLabels?.[project.currentResponsibility] || project.currentResponsibility;
-    case "goLivePercent": return `${project.goLivePercent || 0}%`;
+    case "merchantName":
+      return project.merchantName;
+    case "mid":
+      return project.mid;
+    case "platform":
+      return project.platform;
+    case "category":
+      return project.category;
+    case "arr":
+      return arrCroreValue(project.arr);
+    case "txnsPerDay":
+      return String(project.txnsPerDay);
+    case "aov":
+      return String(project.aov);
+    case "projectState":
+      return labels.stateLabels?.[project.projectState] || projectStateLabels[project.projectState];
+    case "currentPhase":
+      return labels.phaseLabels?.[project.currentPhase] || project.currentPhase;
+    case "currentOwnerTeam":
+      return labels.teamLabels?.[project.currentOwnerTeam] || project.currentOwnerTeam;
+    case "assignedOwnerName":
+      return project.assignedOwnerName || "Unassigned";
+    case "currentResponsibility":
+      return (
+        labels.responsibilityLabels?.[project.currentResponsibility] ||
+        project.currentResponsibility
+      );
+    case "goLivePercent":
+      return `${project.goLivePercent || 0}%`;
     default: {
       if (key.startsWith("custom_field_")) {
         const fieldId = key.replace("custom_field_", "");
@@ -83,23 +133,34 @@ function getCellValue(project: Project, key: string, labels: any): string {
 
 function getNumericValue(project: Project, key: string): number {
   switch (key) {
-    case "arr": return project.arr;
-    case "txnsPerDay": return project.txnsPerDay;
-    case "aov": return project.aov;
-    case "goLivePercent": return project.goLivePercent;
-    case "transferCount": return project.transferHistory.length;
-    default: return 0;
+    case "arr":
+      return project.arr;
+    case "txnsPerDay":
+      return project.txnsPerDay;
+    case "aov":
+      return project.aov;
+    case "goLivePercent":
+      return project.goLivePercent;
+    case "transferCount":
+      return project.transferHistory.length;
+    default:
+      return 0;
   }
 }
 
 function computeAgg(values: number[], type: AggType): number {
   if (values.length === 0) return 0;
   switch (type) {
-    case "sum": return values.reduce((a, b) => a + b, 0);
-    case "avg": return values.reduce((a, b) => a + b, 0) / values.length;
-    case "count": return values.length;
-    case "min": return Math.min(...values);
-    case "max": return Math.max(...values);
+    case "sum":
+      return values.reduce((a, b) => a + b, 0);
+    case "avg":
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    case "count":
+      return values.length;
+    case "min":
+      return Math.min(...values);
+    case "max":
+      return Math.max(...values);
   }
 }
 
@@ -110,7 +171,15 @@ function formatAggVal(key: string, val: number, aggType: AggType): string {
   return val.toFixed(1);
 }
 
-export const PivotTableSettings = ({ projects, customFields = [], customValuesMap = {} }: { projects: Project[]; customFields?: CustomField[]; customValuesMap?: Record<string, Record<string, string>> }) => {
+export const PivotTableSettings = ({
+  projects,
+  customFields = [],
+  customValuesMap = {},
+}: {
+  projects: Project[];
+  customFields?: CustomField[];
+  customValuesMap?: Record<string, Record<string, string>>;
+}) => {
   const { teamLabels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
   const { currentUser } = useAuth();
   const labels = { teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap };
@@ -161,9 +230,10 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
   }, [currentUser?.tenantId]);
 
   const toggleScheduleDay = (day: string) => {
-    setScheduleDays(prev => {
+    setScheduleDays((prev) => {
       const next = new Set(prev);
-      if (next.has(day)) next.delete(day); else next.add(day);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
       return next;
     });
   };
@@ -171,46 +241,63 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
   const addRecipient = () => {
     const email = recipientInput.trim();
     if (email && email.includes("@") && !recipients.includes(email)) {
-      setRecipients(prev => [...prev, email]);
+      setRecipients((prev) => [...prev, email]);
       setRecipientInput("");
     }
   };
 
   const removeRecipient = (email: string) => {
-    setRecipients(prev => prev.filter(e => e !== email));
+    setRecipients((prev) => prev.filter((e) => e !== email));
   };
 
   const handleSaveReport = async () => {
-    if (!reportName.trim()) { toast.error("Please enter a report name"); return; }
+    if (!reportName.trim()) {
+      toast.error("Please enter a report name");
+      return;
+    }
     setLoading(true);
     try {
-      const scheduleValue = scheduleDays.size > 0
-        ? `${Array.from(scheduleDays).join(",")}@${String(scheduleHour).padStart(2, "0")}:${String(scheduleMinute).padStart(2, "0")}`
-        : "none";
+      const scheduleValue =
+        scheduleDays.size > 0
+          ? `${Array.from(scheduleDays).join(",")}@${String(scheduleHour).padStart(2, "0")}:${String(scheduleMinute).padStart(2, "0")}`
+          : "none";
 
       // Encode pivot config into the columns array with a marker so we can identify these rows
-      const encodedColumns = [PIVOT_MARKER, pivotRowField, pivotColField, pivotValueField, pivotAggType];
-
-      const { data, error } = await supabase.from("saved_reports").insert({
-        name: reportName.trim(),
-        columns: encodedColumns,
-        schedule: scheduleValue,
-        recipients,
-        tenant_id: currentUser?.tenantId,
-        created_by: currentUser?.id,
-      }).select().single();
-      if (error) throw error;
-
-      setSavedReports(prev => [{
-        id: data.id,
-        name: data.name,
+      const encodedColumns = [
+        PIVOT_MARKER,
         pivotRowField,
         pivotColField,
         pivotValueField,
         pivotAggType,
-        schedule: data.schedule || "none",
-        recipients: data.recipients || [],
-      }, ...prev]);
+      ];
+
+      const { data, error } = await supabase
+        .from("saved_reports")
+        .insert({
+          name: reportName.trim(),
+          columns: encodedColumns,
+          schedule: scheduleValue,
+          recipients,
+          tenant_id: currentUser?.tenantId,
+          created_by: currentUser?.id,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      setSavedReports((prev) => [
+        {
+          id: data.id,
+          name: data.name,
+          pivotRowField,
+          pivotColField,
+          pivotValueField,
+          pivotAggType,
+          schedule: data.schedule || "none",
+          recipients: data.recipients || [],
+        },
+        ...prev,
+      ]);
       toast.success(`Pivot report "${reportName}" saved`);
       setSaveDialogOpen(false);
       setReportName("");
@@ -225,7 +312,10 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
 
   const handleDeleteReport = async (id: string) => {
     const { error } = await supabase.from("saved_reports").delete().eq("id", id);
-    if (!error) { setSavedReports(prev => prev.filter(r => r.id !== id)); toast.success("Report deleted"); }
+    if (!error) {
+      setSavedReports((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Report deleted");
+    }
   };
 
   const loadReport = (report: SavedPivotReport) => {
@@ -237,7 +327,7 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
   };
 
   const allColumns = useMemo(() => {
-    const customCols = customFields.map(f => ({
+    const customCols = customFields.map((f) => ({
       key: `custom_field_${f.id}`,
       label: f.field_label,
       group: "Custom Fields",
@@ -246,7 +336,7 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
   }, [customFields]);
 
   const groupableColumns = useMemo(() => {
-    const customGroupableColumns = customFields.map(f => `custom_field_${f.id}`);
+    const customGroupableColumns = customFields.map((f) => `custom_field_${f.id}`);
     return [...BASE_GROUPABLE_COLUMNS, ...customGroupableColumns];
   }, [customFields]);
 
@@ -254,15 +344,20 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
     if (pivotRowField === "none") return null;
     const rowValues = new Set<string>();
     const colValues = new Set<string>();
-    filteredProjects.forEach(p => {
+    filteredProjects.forEach((p) => {
       rowValues.add(getCellValue(p, pivotRowField, labels));
       if (pivotColField !== "none") colValues.add(getCellValue(p, pivotColField, labels));
     });
     const sortedRows = Array.from(rowValues).sort();
     const sortedCols = pivotColField !== "none" ? Array.from(colValues).sort() : ["Total"];
     const grid: Record<string, Record<string, number[]>> = {};
-    sortedRows.forEach(r => { grid[r] = {}; sortedCols.forEach(c => { grid[r][c] = []; }); });
-    filteredProjects.forEach(p => {
+    sortedRows.forEach((r) => {
+      grid[r] = {};
+      sortedCols.forEach((c) => {
+        grid[r][c] = [];
+      });
+    });
+    filteredProjects.forEach((p) => {
       const rowVal = getCellValue(p, pivotRowField, labels);
       const colVal = pivotColField !== "none" ? getCellValue(p, pivotColField, labels) : "Total";
       const numVal = getNumericValue(p, pivotValueField);
@@ -270,21 +365,25 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
     });
     const result: Record<string, Record<string, number>> = {};
     const colTotals: Record<string, number[]> = {};
-    sortedCols.forEach(c => { colTotals[c] = []; });
-    sortedRows.forEach(r => {
+    sortedCols.forEach((c) => {
+      colTotals[c] = [];
+    });
+    sortedRows.forEach((r) => {
       result[r] = {};
-      sortedCols.forEach(c => {
+      sortedCols.forEach((c) => {
         result[r][c] = computeAgg(grid[r][c], pivotAggType);
         colTotals[c].push(...grid[r][c]);
       });
     });
     const grandTotals: Record<string, number> = {};
-    sortedCols.forEach(c => { grandTotals[c] = computeAgg(colTotals[c], pivotAggType); });
+    sortedCols.forEach((c) => {
+      grandTotals[c] = computeAgg(colTotals[c], pivotAggType);
+    });
     return { rows: sortedRows, cols: sortedCols, data: result, grandTotals };
   }, [pivotRowField, pivotColField, pivotValueField, pivotAggType, filteredProjects, labels]);
 
   const formatPivotVal = (val: number) => formatAggVal(pivotValueField, val, pivotAggType);
-  const rowLabel = allColumns.find(c => c.key === pivotRowField)?.label || pivotRowField;
+  const rowLabel = allColumns.find((c) => c.key === pivotRowField)?.label || pivotRowField;
 
   return (
     <div className="space-y-4">
@@ -292,17 +391,33 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
       {savedReports.length > 0 && (
         <Card>
           <CardHeader className="py-3 px-4">
-            <CardTitle className="text-sm flex items-center gap-2"><FileText className="h-4 w-4" />Saved Pivot Reports</CardTitle>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Saved Pivot Reports
+            </CardTitle>
           </CardHeader>
           <CardContent className="px-4 pb-3 pt-0">
             <div className="flex flex-wrap gap-2">
-              {savedReports.map(report => (
-                <div key={report.id} className="flex items-center gap-1 border rounded-lg px-3 py-1.5 bg-muted/30">
-                  <button onClick={() => loadReport(report)} className="text-sm font-medium hover:text-primary transition-colors">{report.name}</button>
+              {savedReports.map((report) => (
+                <div
+                  key={report.id}
+                  className="flex items-center gap-1 border rounded-lg px-3 py-1.5 bg-muted/30"
+                >
+                  <button
+                    onClick={() => loadReport(report)}
+                    className="text-sm font-medium hover:text-primary transition-colors"
+                  >
+                    {report.name}
+                  </button>
                   {report.schedule !== "none" && (
-                    <Badge variant="outline" className="text-2xs px-1 py-0 ml-1">{report.schedule}</Badge>
+                    <Badge variant="outline" className="text-2xs px-1 py-0 ml-1">
+                      {report.schedule}
+                    </Badge>
                   )}
-                  <button onClick={() => handleDeleteReport(report.id)} className="ml-1 text-muted-foreground hover:text-destructive transition-colors">
+                  <button
+                    onClick={() => handleDeleteReport(report.id)}
+                    className="ml-1 text-muted-foreground hover:text-destructive transition-colors"
+                  >
                     <Trash2 className="h-3 w-3" />
                   </button>
                 </div>
@@ -323,12 +438,18 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
               <div className="flex items-center gap-1.5">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">Rows:</Label>
                 <Select value={pivotRowField} onValueChange={setPivotRowField}>
-                  <SelectTrigger className="h-7 text-xs w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-7 text-xs w-[130px]">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Select…</SelectItem>
-                    {groupableColumns.map(k => {
-                      const col = allColumns.find(c => c.key === k);
-                      return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
+                    {groupableColumns.map((k) => {
+                      const col = allColumns.find((c) => c.key === k);
+                      return (
+                        <SelectItem key={k} value={k}>
+                          {col?.label || k}
+                        </SelectItem>
+                      );
                     })}
                   </SelectContent>
                 </Select>
@@ -336,24 +457,38 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
               <div className="flex items-center gap-1.5">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">Columns:</Label>
                 <Select value={pivotColField} onValueChange={setPivotColField}>
-                  <SelectTrigger className="h-7 text-xs w-[130px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-7 text-xs w-[130px]">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {groupableColumns.filter(k => k !== pivotRowField).map(k => {
-                      const col = allColumns.find(c => c.key === k);
-                      return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
-                    })}
+                    {groupableColumns
+                      .filter((k) => k !== pivotRowField)
+                      .map((k) => {
+                        const col = allColumns.find((c) => c.key === k);
+                        return (
+                          <SelectItem key={k} value={k}>
+                            {col?.label || k}
+                          </SelectItem>
+                        );
+                      })}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex items-center gap-1.5">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">Values:</Label>
                 <Select value={pivotValueField} onValueChange={setPivotValueField}>
-                  <SelectTrigger className="h-7 text-xs w-[110px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-7 text-xs w-[110px]">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {NUMERIC_COLUMNS.map(k => {
-                      const col = allColumns.find(c => c.key === k);
-                      return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
+                    {NUMERIC_COLUMNS.map((k) => {
+                      const col = allColumns.find((c) => c.key === k);
+                      return (
+                        <SelectItem key={k} value={k}>
+                          {col?.label || k}
+                        </SelectItem>
+                      );
                     })}
                   </SelectContent>
                 </Select>
@@ -361,7 +496,9 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
               <div className="flex items-center gap-1.5">
                 <Label className="text-xs text-muted-foreground whitespace-nowrap">Agg:</Label>
                 <Select value={pivotAggType} onValueChange={(v) => setPivotAggType(v as AggType)}>
-                  <SelectTrigger className="h-7 text-xs w-[90px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-7 text-xs w-[90px]">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="sum">Sum</SelectItem>
                     <SelectItem value="avg">Average</SelectItem>
@@ -371,15 +508,22 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
                   </SelectContent>
                 </Select>
               </div>
-              <Button size="sm" className="h-7 text-xs gap-1" onClick={() => setSaveDialogOpen(true)}>
-                <Save className="h-3 w-3" />Save & Schedule
+              <Button
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={() => setSaveDialogOpen(true)}
+              >
+                <Save className="h-3 w-3" />
+                Save & Schedule
               </Button>
             </div>
           </div>
           <div className="flex items-center gap-2 pt-2 border-t mt-2">
             <ReportFilterBar {...filterState} projectCount={filteredProjects.length} />
             {filteredProjects.length !== projects.length && (
-              <span className="text-xs text-muted-foreground">({filteredProjects.length} of {projects.length} projects)</span>
+              <span className="text-xs text-muted-foreground">
+                ({filteredProjects.length} of {projects.length} projects)
+              </span>
             )}
           </div>
         </CardHeader>
@@ -389,20 +533,36 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50">
-                    <TableHead className="text-xs font-semibold whitespace-nowrap sticky left-0 bg-muted/50 z-10">{rowLabel}</TableHead>
-                    {excelPivot.cols.map(col => (
-                      <TableHead key={col} className="text-xs font-semibold whitespace-nowrap text-center">{col}</TableHead>
+                    <TableHead className="text-xs font-semibold whitespace-nowrap sticky left-0 bg-muted/50 z-10">
+                      {rowLabel}
+                    </TableHead>
+                    {excelPivot.cols.map((col) => (
+                      <TableHead
+                        key={col}
+                        className="text-xs font-semibold whitespace-nowrap text-center"
+                      >
+                        {col}
+                      </TableHead>
                     ))}
-                    {excelPivot.cols.length > 1 && <TableHead className="text-xs font-semibold whitespace-nowrap text-center bg-muted/80">Grand Total</TableHead>}
+                    {excelPivot.cols.length > 1 && (
+                      <TableHead className="text-xs font-semibold whitespace-nowrap text-center bg-muted/80">
+                        Grand Total
+                      </TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {excelPivot.rows.map(row => {
-                    const rowTotal = excelPivot.cols.reduce((s, c) => s + (excelPivot.data[row]?.[c] || 0), 0);
+                  {excelPivot.rows.map((row) => {
+                    const rowTotal = excelPivot.cols.reduce(
+                      (s, c) => s + (excelPivot.data[row]?.[c] || 0),
+                      0,
+                    );
                     return (
                       <TableRow key={row} className="hover:bg-muted/20">
-                        <TableCell className="text-xs font-medium whitespace-nowrap sticky left-0 bg-background z-10">{row}</TableCell>
-                        {excelPivot.cols.map(col => (
+                        <TableCell className="text-xs font-medium whitespace-nowrap sticky left-0 bg-background z-10">
+                          {row}
+                        </TableCell>
+                        {excelPivot.cols.map((col) => (
                           <TableCell key={col} className="text-xs text-center font-mono">
                             {formatPivotVal(excelPivot.data[row]?.[col] || 0)}
                           </TableCell>
@@ -416,22 +576,28 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
                     );
                   })}
                   <TableRow className="bg-muted/60 font-semibold">
-                    <TableCell className="text-xs font-semibold sticky left-0 bg-muted/60 z-10">Grand Total</TableCell>
-                    {excelPivot.cols.map(col => (
+                    <TableCell className="text-xs font-semibold sticky left-0 bg-muted/60 z-10">
+                      Grand Total
+                    </TableCell>
+                    {excelPivot.cols.map((col) => (
                       <TableCell key={col} className="text-xs text-center font-mono font-semibold">
                         {formatPivotVal(excelPivot.grandTotals[col] || 0)}
                       </TableCell>
                     ))}
                     {excelPivot.cols.length > 1 && (
                       <TableCell className="text-xs text-center font-mono font-bold bg-muted/80">
-                        {formatPivotVal(Object.values(excelPivot.grandTotals).reduce((s, v) => s + v, 0))}
+                        {formatPivotVal(
+                          Object.values(excelPivot.grandTotals).reduce((s, v) => s + v, 0),
+                        )}
                       </TableCell>
                     )}
                   </TableRow>
                 </TableBody>
               </Table>
             ) : (
-              <p className="text-sm text-muted-foreground p-4">Select a Row field to create a pivot table.</p>
+              <p className="text-sm text-muted-foreground p-4">
+                Select a Row field to create a pivot table.
+              </p>
             )}
           </div>
         </CardContent>
@@ -440,18 +606,27 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
       {/* Save & Schedule Dialog */}
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Save & Schedule Pivot Report</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Save & Schedule Pivot Report</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label className="text-sm">Report Name</Label>
-              <Input value={reportName} onChange={e => setReportName(e.target.value)} placeholder="e.g. ARR by Platform" className="mt-1" />
+              <Input
+                value={reportName}
+                onChange={(e) => setReportName(e.target.value)}
+                placeholder="e.g. ARR by Platform"
+                className="mt-1"
+              />
             </div>
 
             <div>
               <Label className="text-sm">Schedule</Label>
-              <p className="text-xs text-muted-foreground mb-2">Select days and time for the report to be triggered</p>
+              <p className="text-xs text-muted-foreground mb-2">
+                Select days and time for the report to be triggered
+              </p>
               <div className="flex gap-1.5 mb-3">
-                {DAYS_OF_WEEK.map(day => (
+                {DAYS_OF_WEEK.map((day) => (
                   <button
                     key={day}
                     onClick={() => toggleScheduleDay(day)}
@@ -468,20 +643,34 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
               {scheduleDays.size > 0 && (
                 <div className="flex items-center gap-2">
                   <Label className="text-xs text-muted-foreground whitespace-nowrap">Time:</Label>
-                  <Select value={String(scheduleHour)} onValueChange={(v) => setScheduleHour(Number(v))}>
-                    <SelectTrigger className="h-8 w-[70px] text-xs"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={String(scheduleHour)}
+                    onValueChange={(v) => setScheduleHour(Number(v))}
+                  >
+                    <SelectTrigger className="h-8 w-[70px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {HOURS.map(h => (
-                        <SelectItem key={h} value={String(h)}>{String(h).padStart(2, "0")}</SelectItem>
+                      {HOURS.map((h) => (
+                        <SelectItem key={h} value={String(h)}>
+                          {String(h).padStart(2, "0")}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <span className="text-sm font-medium">:</span>
-                  <Select value={String(scheduleMinute)} onValueChange={(v) => setScheduleMinute(Number(v))}>
-                    <SelectTrigger className="h-8 w-[70px] text-xs"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={String(scheduleMinute)}
+                    onValueChange={(v) => setScheduleMinute(Number(v))}
+                  >
+                    <SelectTrigger className="h-8 w-[70px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {[0, 15, 30, 45].map(m => (
-                        <SelectItem key={m} value={String(m)}>{String(m).padStart(2, "0")}</SelectItem>
+                      {[0, 15, 30, 45].map((m) => (
+                        <SelectItem key={m} value={String(m)}>
+                          {String(m).padStart(2, "0")}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -496,16 +685,27 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
               <div>
                 <Label className="text-sm">Email Recipients</Label>
                 <div className="flex gap-2 mt-1">
-                  <Input value={recipientInput} onChange={e => setRecipientInput(e.target.value)} placeholder="email@example.com"
-                    onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addRecipient())} />
-                  <Button size="sm" variant="outline" onClick={addRecipient} className="shrink-0"><Plus className="h-4 w-4" /></Button>
+                  <Input
+                    value={recipientInput}
+                    onChange={(e) => setRecipientInput(e.target.value)}
+                    placeholder="email@example.com"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addRecipient())}
+                  />
+                  <Button size="sm" variant="outline" onClick={addRecipient} className="shrink-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
                 {recipients.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
-                    {recipients.map(email => (
+                    {recipients.map((email) => (
                       <Badge key={email} variant="secondary" className="text-xs gap-1 pr-1">
                         {email}
-                        <button onClick={() => removeRecipient(email)} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+                        <button
+                          onClick={() => removeRecipient(email)}
+                          className="hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                       </Badge>
                     ))}
                   </div>
@@ -514,8 +714,12 @@ export const PivotTableSettings = ({ projects, customFields = [], customValuesMa
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveReport} disabled={loading}>{loading ? "Saving..." : "Save Report"}</Button>
+            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveReport} disabled={loading}>
+              {loading ? "Saving..." : "Save Report"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

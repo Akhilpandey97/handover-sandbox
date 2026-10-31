@@ -23,7 +23,8 @@ function cred(creds: Partial<TenantIntegrations>, key: keyof TenantIntegrations)
 }
 
 export async function gmailAccessToken(creds: Partial<TenantIntegrations>): Promise<string> {
-  const clientId = cred(creds, "google_oauth_client_id") || process.env["GOOGLE_OAUTH_CLIENT_ID"] || null;
+  const clientId =
+    cred(creds, "google_oauth_client_id") || process.env["GOOGLE_OAUTH_CLIENT_ID"] || null;
   const clientSecret =
     cred(creds, "google_oauth_client_secret") || process.env["GOOGLE_OAUTH_CLIENT_SECRET"] || null;
   const refreshToken =
@@ -52,7 +53,9 @@ export async function gmailAccessToken(creds: Partial<TenantIntegrations>): Prom
 
   const data = await res.json();
   if (!res.ok || !data.access_token) {
-    throw new Error(`Gmail token refresh failed: ${data.error_description || data.error || res.status}`);
+    throw new Error(
+      `Gmail token refresh failed: ${data.error_description || data.error || res.status}`,
+    );
   }
 
   tokenCache.set(cacheKey, {

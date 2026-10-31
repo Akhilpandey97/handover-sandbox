@@ -32,16 +32,16 @@ interface ImportResult {
 const mapPhaseToEnum = (phase: string): string => {
   const phaseMap: Record<string, string> = {
     "feasibility analysis": "mint",
-    "scoping": "mint",
+    scoping: "mint",
     "api build": "mint",
     "api validation": "mint",
-    "integration": "integration",
+    integration: "integration",
     "sandbox testing": "integration",
     "production testing": "integration",
     "prod testing": "integration",
     "go-live": "ms",
-    "golive": "ms",
-    "completed": "completed",
+    golive: "ms",
+    completed: "completed",
   };
   const normalized = phase.toLowerCase().trim();
   return phaseMap[normalized] || "mint";
@@ -85,7 +85,7 @@ const parseCSVRows = (content: string): { headers: string[]; rows: string[][] } 
   const lines = content.split("\n");
   if (lines.length < 2) return { headers: [], rows: [] };
 
-  const headers = parseCSVLine(lines[0]).map(h => h.trim());
+  const headers = parseCSVLine(lines[0]).map((h) => h.trim());
   const rows: string[][] = [];
   let currentRow = "";
 
@@ -98,18 +98,14 @@ const parseCSVRows = (content: string): { headers: string[]; rows: string[][] } 
     }
     const values = parseCSVLine(currentRow);
     currentRow = "";
-    if (values.length >= 2) rows.push(values.map(v => v.trim()));
+    if (values.length >= 2) rows.push(values.map((v) => v.trim()));
   }
 
   return { headers, rows };
 };
 
 // Build project from a row using the field mapping
-const buildProject = (
-  row: string[],
-  headers: string[],
-  mapping: Record<string, string>
-) => {
+const buildProject = (row: string[], headers: string[], mapping: Record<string, string>) => {
   const getVal = (fieldKey: string): string => {
     const csvHeader = Object.entries(mapping).find(([, v]) => v === fieldKey)?.[0];
     if (!csvHeader) return "";
@@ -238,7 +234,11 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
             .maybeSingle();
 
           if (existing) {
-            importResults.push({ success: false, merchantName: project.merchant_name, error: "Already exists (duplicate MID)" });
+            importResults.push({
+              success: false,
+              merchantName: project.merchant_name,
+              error: "Already exists (duplicate MID)",
+            });
             continue;
           }
 
@@ -282,7 +282,11 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
 
           importResults.push({ success: true, merchantName: project.merchant_name });
         } catch (error: any) {
-          importResults.push({ success: false, merchantName: project.merchant_name, error: error.message || "Unknown error" });
+          importResults.push({
+            success: false,
+            merchantName: project.merchant_name,
+            error: error.message || "Unknown error",
+          });
         }
       }
 
@@ -292,7 +296,9 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
 
       if (successCount > 0) {
         queryClient.invalidateQueries({ queryKey: ["projects"] });
-        toast.success(`Imported ${successCount} projects${failCount > 0 ? `, ${failCount} failed` : ""}`);
+        toast.success(
+          `Imported ${successCount} projects${failCount > 0 ? `, ${failCount} failed` : ""}`,
+        );
       } else {
         toast.error("No projects were imported");
       }
@@ -338,7 +344,9 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
             <div
               onClick={() => !importing && fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                file ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"
+                file
+                  ? "border-primary bg-primary/5"
+                  : "border-muted-foreground/25 hover:border-primary/50"
               } ${importing ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <input
@@ -354,14 +362,18 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
                   <FileSpreadsheet className="h-8 w-8 text-primary" />
                   <div className="text-left">
                     <p className="font-medium">{file.name}</p>
-                    <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
+                    <p className="text-sm text-muted-foreground">
+                      {(file.size / 1024).toFixed(1)} KB
+                    </p>
                   </div>
                 </div>
               ) : (
                 <>
                   <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
                   <p className="font-medium">Click to select CSV file</p>
-                  <p className="text-sm text-muted-foreground mt-1">AI will auto-map your columns</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    AI will auto-map your columns
+                  </p>
                 </>
               )}
             </div>
@@ -394,15 +406,17 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
                 </div>
                 {failCount > 0 && (
                   <ScrollArea className="h-32 border rounded-md p-2">
-                    {results.filter((r) => !r.success).map((r, i) => (
-                      <div key={i} className="flex items-start gap-2 py-1 text-sm">
-                        <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-medium">{r.merchantName}:</span>{" "}
-                          <span className="text-muted-foreground">{r.error}</span>
+                    {results
+                      .filter((r) => !r.success)
+                      .map((r, i) => (
+                        <div key={i} className="flex items-start gap-2 py-1 text-sm">
+                          <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-medium">{r.merchantName}:</span>{" "}
+                            <span className="text-muted-foreground">{r.error}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </ScrollArea>
                 )}
               </div>

@@ -21,11 +21,9 @@ export interface Caller {
 const ADMIN_ROLES = ["admin", "super_admin", "superadmin", "manager"];
 
 function admin() {
-  return createClient(
-    process.env["SUPABASE_URL"]!,
-    process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
-    { auth: { persistSession: false, autoRefreshToken: false } },
-  );
+  return createClient(process.env["SUPABASE_URL"]!, process.env["SUPABASE_SERVICE_ROLE_KEY"]!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 export function bearerToken(req: Request): string {
@@ -59,7 +57,7 @@ export async function isCronCaller(req: Request): Promise<boolean> {
   const provided = cronTokenFromRequest(req);
   if (!provided) return false;
 
-  const envToken = (process.env['CRON_SECRET'] ?? process.env['LOVABLE_CRON_SECRET']);
+  const envToken = process.env["CRON_SECRET"] ?? process.env["LOVABLE_CRON_SECRET"];
   if (envToken && provided === envToken) return true;
 
   try {
@@ -100,9 +98,12 @@ export async function resolveUserScope(
 
   const homeTenantId = (profile as { tenant_id: string | null } | null)?.tenant_id ?? null;
   const homeRoles = ((roleRows || []) as { role: string }[]).map((r) => r.role);
-  const s = session as
-    | { grant_id: string; tenant_id: string; role: string; applies_role: boolean }
-    | null;
+  const s = session as {
+    grant_id: string;
+    tenant_id: string;
+    role: string;
+    applies_role: boolean;
+  } | null;
 
   if (!s?.grant_id) {
     return { tenantId: homeTenantId, homeTenantId, roles: homeRoles, supportGrantId: null };
@@ -180,9 +181,11 @@ export async function portalCaller(
       .eq("token", token)
       .eq("is_active", true)
       .maybeSingle();
-    const row = data as
-      | { project_id: string; tenant_id: string | null; expires_at: string | null }
-      | null;
+    const row = data as {
+      project_id: string;
+      tenant_id: string | null;
+      expires_at: string | null;
+    } | null;
     if (!row) return null;
     if (row.expires_at && new Date(row.expires_at) < new Date()) return null;
     return {

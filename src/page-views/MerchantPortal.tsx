@@ -1,12 +1,42 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSearchParams, useParams } from "@/lib/router-compat";
 import {
-  CheckCircle2, Loader2, ShieldAlert, ChevronLeft, ChevronRight,
-  LayoutDashboard, FileText, HelpCircle, Moon, Sun, Lock,
-  Zap, Search, AlertTriangle, Copy, Check,
-  Upload, Image, Download, X, Eye, EyeOff, ExternalLink, BookOpen, ListChecks,
-  MessageCircle, Send, Bot, ChevronDown, KeyRound, Code, LogOut, Trash2, Pencil,
-  ClipboardList, Bell
+  CheckCircle2,
+  Loader2,
+  ShieldAlert,
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  FileText,
+  HelpCircle,
+  Moon,
+  Sun,
+  Lock,
+  Zap,
+  Search,
+  AlertTriangle,
+  Copy,
+  Check,
+  Upload,
+  Image,
+  Download,
+  X,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  BookOpen,
+  ListChecks,
+  MessageCircle,
+  Send,
+  Bot,
+  ChevronDown,
+  KeyRound,
+  Code,
+  LogOut,
+  Trash2,
+  Pencil,
+  ClipboardList,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GuidedTour, type TourStep } from "@/components/GuidedTour";
@@ -50,7 +80,8 @@ interface PortalFaq {
   updatedAt?: string;
 }
 
-const POSTMAN_COLLECTION_URL = "https://documenter.getpostman.com/view/53067515/2sBXqQFxdo#3df70d23-774a-4599-945a-21f28ef6b6c4";
+const POSTMAN_COLLECTION_URL =
+  "https://documenter.getpostman.com/view/53067515/2sBXqQFxdo#3df70d23-774a-4599-945a-21f28ef6b6c4";
 
 interface PortalData {
   project: {
@@ -104,8 +135,22 @@ interface PortalData {
   branding: Record<string, string>;
   labels?: Record<string, string>;
   credentials: {
-    sandbox: { mid?: string; app_id?: string; app_secret?: string; base_url?: string; config_id?: string; kwikpass_jwe_key?: string };
-    production: { mid?: string; app_id?: string; app_secret?: string; base_url?: string; config_id?: string; kwikpass_jwe_key?: string };
+    sandbox: {
+      mid?: string;
+      app_id?: string;
+      app_secret?: string;
+      base_url?: string;
+      config_id?: string;
+      kwikpass_jwe_key?: string;
+    };
+    production: {
+      mid?: string;
+      app_id?: string;
+      app_secret?: string;
+      base_url?: string;
+      config_id?: string;
+      kwikpass_jwe_key?: string;
+    };
   } | null;
   uploads: PortalUpload[];
   brd_configured?: boolean;
@@ -113,7 +158,9 @@ interface PortalData {
 }
 
 // STAGES are dynamically derived from the checklist items (MINT checklist)
-function buildStagesFromChecklist(checklist: PortalData["checklist"]): { num: number; label: string }[] {
+function buildStagesFromChecklist(
+  checklist: PortalData["checklist"],
+): { num: number; label: string }[] {
   if (!checklist || checklist.length === 0) {
     return [{ num: 1, label: "No Items" }];
   }
@@ -125,7 +172,7 @@ function buildStagesFromChecklist(checklist: PortalData["checklist"]): { num: nu
 
 function formatArr(arr: number | null): string {
   if (!arr) return "—";
-  const fmt = (n: number) => n % 1 === 0 ? n.toFixed(0) : n.toFixed(1);
+  const fmt = (n: number) => (n % 1 === 0 ? n.toFixed(0) : n.toFixed(1));
   if (arr >= 10000000) return `${fmt(arr / 10000000)} Cr`;
   if (arr >= 100000) return `${fmt(arr / 100000)} L`;
   return arr.toLocaleString("en-IN");
@@ -140,19 +187,24 @@ function deriveCurrentStage(data: PortalData): number {
   const checklist = data.checklist;
   if (!checklist || checklist.length === 0) return 1;
   // Current stage = first incomplete item index + 1, or total if all done
-  const firstIncomplete = checklist.findIndex(c => !c.completed);
+  const firstIncomplete = checklist.findIndex((c) => !c.completed);
   if (firstIncomplete === -1) return checklist.length;
   return firstIncomplete + 1;
 }
 
-type NavPage = "integration" | "credentials" | "documents" | "faq" | "simulator" | "kwikpass" | "mcp" | "brd";
+type NavPage =
+  "integration" | "credentials" | "documents" | "faq" | "simulator" | "kwikpass" | "mcp" | "brd";
 
 // ========== COPY BUTTON ==========
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
-      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+      onClick={() => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
       className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium border transition-all
         border-border text-muted-foreground hover:text-foreground hover:bg-muted"
     >
@@ -163,21 +215,40 @@ function CopyButton({ text }: { text: string }) {
 }
 
 // ========== KWIKASSIST LOGO ==========
-function KwikAssistLogo({ size = "md", onClick }: { size?: "sm" | "md" | "lg"; onClick?: () => void }) {
+function KwikAssistLogo({
+  size = "md",
+  onClick,
+}: {
+  size?: "sm" | "md" | "lg";
+  onClick?: () => void;
+}) {
   const sizes = { sm: "text-sm", md: "text-lg", lg: "text-2xl" };
   return (
     <button onClick={onClick} className={cn("font-bold tracking-tight", sizes[size])}>
-      <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
+      <span style={{ color: BRAND.logoKwik }} className="dark:text-white">
+        Handover
+      </span>
       <span className="text-2xs text-muted-foreground ml-1 font-medium">Portal</span>
     </button>
   );
 }
 
 // ========== AI CHATBOT ==========
-function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string; token: string; faqs?: PortalFaq[] }) {
+function AiChatWidget({
+  merchantName,
+  token,
+  faqs = [],
+}: {
+  merchantName: string;
+  token: string;
+  faqs?: PortalFaq[];
+}) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([
-    { role: "assistant", content: `Hi! I'm Handover Assist 🤖\n\nI can help you with:\n• API integration questions\n• Debugging common errors\n• Validator guidance\n• Setup & configuration\n\nHow can I help you today?` },
+    {
+      role: "assistant",
+      content: `Hi! I'm Handover Assist 🤖\n\nI can help you with:\n• API integration questions\n• Debugging common errors\n• Validator guidance\n• Setup & configuration\n\nHow can I help you today?`,
+    },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -204,10 +275,10 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
           Authorization: `Bearer ${API_KEY}`,
         },
         body: JSON.stringify({
-          messages: newMsgs.slice(-10).map(m => ({ role: m.role, content: m.content })),
+          messages: newMsgs.slice(-10).map((m) => ({ role: m.role, content: m.content })),
           merchant_name: merchantName,
           token,
-          faqs: faqs.filter(f => f.question.trim() && f.answer.trim()).slice(0, 25),
+          faqs: faqs.filter((f) => f.question.trim() && f.answer.trim()).slice(0, 25),
         }),
       });
 
@@ -216,12 +287,22 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
       }
 
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "assistant", content: data.reply || "I'm sorry, I couldn't process that. Please try again." }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.reply || "I'm sorry, I couldn't process that. Please try again.",
+        },
+      ]);
     } catch {
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: "I'm having trouble connecting right now. Here are some quick tips:\n\n• Check your API credentials in the Credentials section\n• Use the tools in the Documents section to test your integration\n• Review the FAQ section for common questions\n• Contact your SE for specific issues"
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "I'm having trouble connecting right now. Here are some quick tips:\n\n• Check your API credentials in the Credentials section\n• Use the tools in the Documents section to test your integration\n• Review the FAQ section for common questions\n• Contact your SE for specific issues",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -244,7 +325,10 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
   return (
     <div className="fixed bottom-5 right-5 z-50 w-[380px] max-w-[calc(100vw-2.5rem)] max-h-[560px] rounded-2xl shadow-2xl border border-border bg-card flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border" style={{ background: BRAND.primary }}>
+      <div
+        className="flex items-center gap-3 px-4 py-3 border-b border-border"
+        style={{ background: BRAND.primary }}
+      >
         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
           <Bot className="w-5 h-5 text-white" />
         </div>
@@ -252,7 +336,10 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
           <p className="text-sm font-bold text-white">Handover Assist</p>
           <p className="text-2xs text-white/70">Integration Support</p>
         </div>
-        <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
+        <button
+          onClick={() => setOpen(false)}
+          className="text-white/70 hover:text-white transition-colors"
+        >
           <ChevronDown className="w-5 h-5" />
         </button>
       </div>
@@ -260,13 +347,19 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 max-h-[380px]">
         {messages.map((msg, i) => (
-          <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
-            <div className={cn(
-              "max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed",
-              msg.role === "user"
-                ? "text-white rounded-br-sm"
-                : "bg-muted text-foreground rounded-bl-sm"
-            )} style={msg.role === "user" ? { background: BRAND.primary } : {}}>
+          <div
+            key={i}
+            className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}
+          >
+            <div
+              className={cn(
+                "max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm whitespace-pre-wrap leading-relaxed",
+                msg.role === "user"
+                  ? "text-white rounded-br-sm"
+                  : "bg-muted text-foreground rounded-bl-sm",
+              )}
+              style={msg.role === "user" ? { background: BRAND.primary } : {}}
+            >
               {msg.content}
             </div>
           </div>
@@ -275,9 +368,18 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
           <div className="flex justify-start">
             <div className="bg-muted px-4 py-3 rounded-2xl rounded-bl-sm">
               <div className="flex gap-1.5">
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div
+                  className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                  style={{ animationDelay: "0ms" }}
+                />
+                <div
+                  className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                />
+                <div
+                  className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                />
               </div>
             </div>
           </div>
@@ -290,7 +392,12 @@ function AiChatWidget({ merchantName, token, faqs = [] }: { merchantName: string
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+              }
+            }}
             placeholder="Ask about your integration..."
             className="flex-1 px-3.5 py-2.5 rounded-xl text-sm bg-muted/40 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
           />
@@ -324,7 +431,10 @@ export default function MerchantPortal() {
   // Resolve /portal/:mid -> portal token via edge function (for direct CE access).
   // Re-runs whenever the :mid in the URL changes, so switching MIDs swaps merchants.
   useEffect(() => {
-    if (tokenFromQuery) { setResolvedToken(tokenFromQuery); return; }
+    if (tokenFromQuery) {
+      setResolvedToken(tokenFromQuery);
+      return;
+    }
     if (!midFromPath) return;
     // Shared portal links use a 64-char hex token in the path; treat those as tokens.
     if (/^[a-f0-9]{64}$/i.test(midFromPath)) {
@@ -339,11 +449,13 @@ export default function MerchantPortal() {
     fetch(`${API_URL}/resolve-mid?mid=${encodeURIComponent(midFromPath)}`, {
       headers: { apikey: API_KEY, "Content-Type": "application/json" },
     })
-      .then(r => r.json())
-      .then(d => {
+      .then((r) => r.json())
+      .then((d) => {
         if (d.token) {
           setResolvedToken(d.token);
-          try { localStorage.setItem(`portal_mid_${d.token}`, midFromPath); } catch {}
+          try {
+            localStorage.setItem(`portal_mid_${d.token}`, midFromPath);
+          } catch {}
         } else {
           setResolveError(d.error || "Unable to open portal for that MID");
         }
@@ -351,7 +463,6 @@ export default function MerchantPortal() {
       .catch(() => setResolveError("Unable to open portal for that MID"))
       .finally(() => setResolvingMid(false));
   }, [midFromPath, tokenFromQuery]);
-
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [midInput, setMidInput] = useState("");
@@ -392,11 +503,21 @@ export default function MerchantPortal() {
 
   useEffect(() => {
     if (token) {
-      const stored = localStorage.getItem(`portal_auth_${token}`) || sessionStorage.getItem(`portal_auth_${token}`);
+      const stored =
+        localStorage.getItem(`portal_auth_${token}`) ||
+        sessionStorage.getItem(`portal_auth_${token}`);
       let lastCredentials: { appId?: string; email?: string } = {};
-      try { lastCredentials = JSON.parse(localStorage.getItem("portal_last_credentials") || "{}"); } catch {}
-      const storedEmail = localStorage.getItem(`portal_email_${token}`) || sessionStorage.getItem(`portal_email_${token}`) || lastCredentials.email;
-      const storedMid = localStorage.getItem(`portal_mid_${token}`) || localStorage.getItem(`portal_app_id_${token}`) || lastCredentials.appId;
+      try {
+        lastCredentials = JSON.parse(localStorage.getItem("portal_last_credentials") || "{}");
+      } catch {}
+      const storedEmail =
+        localStorage.getItem(`portal_email_${token}`) ||
+        sessionStorage.getItem(`portal_email_${token}`) ||
+        lastCredentials.email;
+      const storedMid =
+        localStorage.getItem(`portal_mid_${token}`) ||
+        localStorage.getItem(`portal_app_id_${token}`) ||
+        lastCredentials.appId;
       if (stored) setIsAuthenticated(true);
       if (storedEmail) {
         setMerchantEmail(storedEmail);
@@ -407,13 +528,17 @@ export default function MerchantPortal() {
       const notesKey = `portal_notes_${token}`;
       const storedNotes = localStorage.getItem(notesKey);
       if (storedNotes) {
-        try { setSavedNotes(JSON.parse(storedNotes)); } catch {}
+        try {
+          setSavedNotes(JSON.parse(storedNotes));
+        } catch {}
       }
       // Load task completions
       const tasksKey = `portal_tasks_${token}`;
       const storedTasks = localStorage.getItem(tasksKey);
       if (storedTasks) {
-        try { setTaskCompletions(JSON.parse(storedTasks)); } catch {}
+        try {
+          setTaskCompletions(JSON.parse(storedTasks));
+        } catch {}
       }
     }
   }, [token]);
@@ -427,8 +552,8 @@ export default function MerchantPortal() {
       headers: { apikey: API_KEY, "Content-Type": "application/json" },
       body: JSON.stringify({ token }),
     })
-      .then(r => r.json())
-      .then(d => {
+      .then((r) => r.json())
+      .then((d) => {
         if (d.success) {
           localStorage.setItem(`portal_auth_${token}`, d.session_token || "1");
           localStorage.setItem(`portal_email_${token}`, d.email);
@@ -459,7 +584,6 @@ export default function MerchantPortal() {
     if (token) localStorage.setItem(`portal_tour_seen_${token}`, "1");
     setShowTour(false);
   };
-  
 
   const tourSteps: TourStep[] = useMemo(() => {
     const proj = data?.project;
@@ -514,9 +638,6 @@ export default function MerchantPortal() {
     return steps;
   }, [data?.project]);
 
-
-
-
   // Track page visits
   useEffect(() => {
     if (!isAuthenticated || !token || !merchantEmail) return;
@@ -545,7 +666,9 @@ export default function MerchantPortal() {
 
   const editNote = (idx: number, newText: string) => {
     if (!token) return;
-    const updated = savedNotes.map((n, i) => i === idx ? { ...n, text: newText, timestamp: new Date().toISOString() } : n);
+    const updated = savedNotes.map((n, i) =>
+      i === idx ? { ...n, text: newText, timestamp: new Date().toISOString() } : n,
+    );
     setSavedNotes(updated);
     localStorage.setItem(`portal_notes_${token}`, JSON.stringify(updated));
   };
@@ -565,9 +688,14 @@ export default function MerchantPortal() {
     setIsAuthenticated(false);
     setMerchantEmail(null);
     let lastCredentials: { appId?: string; email?: string } = {};
-    try { lastCredentials = JSON.parse(localStorage.getItem("portal_last_credentials") || "{}"); } catch {}
+    try {
+      lastCredentials = JSON.parse(localStorage.getItem("portal_last_credentials") || "{}");
+    } catch {}
     const storedEmail = localStorage.getItem(`portal_email_${token}`) || lastCredentials.email;
-    const storedMid = localStorage.getItem(`portal_mid_${token}`) || localStorage.getItem(`portal_app_id_${token}`) || lastCredentials.appId;
+    const storedMid =
+      localStorage.getItem(`portal_mid_${token}`) ||
+      localStorage.getItem(`portal_app_id_${token}`) ||
+      lastCredentials.appId;
     setMidInput(storedMid || "");
     setEmailInput(storedEmail || "");
   };
@@ -600,7 +728,10 @@ export default function MerchantPortal() {
         localStorage.setItem(`portal_email_${token}`, cleanEmail);
         localStorage.setItem(`portal_mid_${token}`, midInput.trim());
         localStorage.setItem(`portal_app_id_${token}`, midInput.trim());
-        localStorage.setItem("portal_last_credentials", JSON.stringify({ appId: midInput.trim(), email: cleanEmail }));
+        localStorage.setItem(
+          "portal_last_credentials",
+          JSON.stringify({ appId: midInput.trim(), email: cleanEmail }),
+        );
         setMerchantEmail(cleanEmail);
         setMerchantNamePreview(result.merchant_name);
         setIsAuthenticated(true);
@@ -621,12 +752,17 @@ export default function MerchantPortal() {
       headers: { apikey: API_KEY, "Content-Type": "application/json" },
     })
       .then((r) => r.json())
-      .then((d) => { if (d.error) setError(d.error); else setData(d); })
+      .then((d) => {
+        if (d.error) setError(d.error);
+        else setData(d);
+      })
       .catch(() => setError("Failed to load data."))
       .finally(() => setLoading(false));
   }, [token, isAuthenticated]);
 
-  useEffect(() => { refreshData(); }, [refreshData]);
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   const currentStage = useMemo(() => (data ? deriveCurrentStage(data) : 1), [data]);
   const orgName = data?.branding?.org_name || "Handover";
@@ -651,7 +787,10 @@ export default function MerchantPortal() {
             <ShieldAlert className="w-8 h-8 text-destructive-strong" />
           </div>
           <h1 className="heading-section text-foreground mb-2">Access Denied</h1>
-          <p className="text-muted-foreground text-sm">{resolveError || "No access token provided. Please use the link shared by your integration team."}</p>
+          <p className="text-muted-foreground text-sm">
+            {resolveError ||
+              "No access token provided. Please use the link shared by your integration team."}
+          </p>
         </div>
       </div>
     );
@@ -673,15 +812,26 @@ export default function MerchantPortal() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-background via-muted/40 to-background">
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #0074F8 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, #0074F8 1px, transparent 0)",
+            backgroundSize: "40px 40px",
+          }}
+        />
         <div className="w-full max-w-md relative z-10">
           <div className="bg-card rounded-2xl shadow-xl shadow-[var(--shadow-soft)] p-8 border border-border">
             <div className="text-center mb-8">
-              <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md" style={{ background: BRAND.primary }}>
+              <div
+                className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-md"
+                style={{ background: BRAND.primary }}
+              >
                 <Zap className="w-7 h-7 text-white" fill="white" />
               </div>
               <h1 className="heading-page">
-                <span style={{ color: BRAND.logoKwik }} className="dark:text-white">Handover</span>
+                <span style={{ color: BRAND.logoKwik }} className="dark:text-white">
+                  Handover
+                </span>
                 <span className="text-xs font-medium text-muted-foreground ml-1">Portal</span>
               </h1>
               <p className="text-muted-foreground text-sm mt-2 font-medium">
@@ -697,12 +847,19 @@ export default function MerchantPortal() {
                 <input
                   type="email"
                   value={emailInput}
-                  onChange={(e) => { setEmailInput(e.target.value); setLoginError(null); }}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleMidLogin(); }}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value);
+                    setLoginError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleMidLogin();
+                  }}
                   placeholder="you@company.com"
                   className="w-full px-4 py-3 rounded-xl border border-border bg-muted/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary transition-all text-sm"
                 />
-                <p className="text-2xs text-muted-foreground mt-1.5">We use this to track your integration progress.</p>
+                <p className="text-2xs text-muted-foreground mt-1.5">
+                  We use this to track your integration progress.
+                </p>
               </div>
 
               {loginError && (
@@ -716,7 +873,10 @@ export default function MerchantPortal() {
                 onClick={handleMidLogin}
                 disabled={loginLoading || !emailInput.trim()}
                 className="w-full py-3 px-4 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] shadow-lg hover:shadow-xl"
-                style={{ background: BRAND.primary, boxShadow: `0 8px 24px -4px ${BRAND.primary}40` }}
+                style={{
+                  background: BRAND.primary,
+                  boxShadow: `0 8px 24px -4px ${BRAND.primary}40`,
+                }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = BRAND.primaryLight)}
                 onMouseLeave={(e) => (e.currentTarget.style.background = BRAND.primary)}
               >
@@ -734,7 +894,8 @@ export default function MerchantPortal() {
             <div className="mt-6 pt-5 border-t border-border">
               <p className="text-center text-2xs text-muted-foreground">
                 Use the work email shared with your Handover integration team.
-                <br />Contact your project manager if you need assistance.
+                <br />
+                Contact your project manager if you need assistance.
               </p>
             </div>
           </div>
@@ -749,7 +910,10 @@ export default function MerchantPortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center" style={{ background: BRAND.primary }}>
+          <div
+            className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
+            style={{ background: BRAND.primary }}
+          >
             <Loader2 className="w-6 h-6 animate-spin text-white" />
           </div>
           <p className="text-muted-foreground text-sm">Loading your integration workspace...</p>
@@ -775,32 +939,48 @@ export default function MerchantPortal() {
   const pendingItems = data.checklist.filter((item) => !item.completed);
 
   const navItems: { key: NavPage; label: string; icon: any; tour: string }[] = [
-    { key: "integration", label: "My Integration", icon: LayoutDashboard, tour: "tour-integration" },
+    {
+      key: "integration",
+      label: "My Integration",
+      icon: LayoutDashboard,
+      tour: "tour-integration",
+    },
     { key: "credentials", label: "Credentials", icon: Lock, tour: "tour-credentials" },
     { key: "documents", label: "Documents", icon: FileText, tour: "tour-documents" },
     // Offered only when this tenant has a BRD form. It used to be listed
     // unconditionally, so merchants saw a form nobody had set up for them.
     ...(data.brd_configured
-      ? [{
-          key: "brd" as NavPage,
-          label: `BRD Form${data.brd_progress && data.brd_progress.total ? ` · ${data.brd_progress.percent}%` : ""}`,
-          icon: ClipboardList,
-          tour: "tour-brd",
-        }]
+      ? [
+          {
+            key: "brd" as NavPage,
+            label: `BRD Form${data.brd_progress && data.brd_progress.total ? ` · ${data.brd_progress.percent}%` : ""}`,
+            icon: ClipboardList,
+            tour: "tour-brd",
+          },
+        ]
       : []),
     { key: "faq", label: "FAQ & Help", icon: HelpCircle, tour: "tour-faq" },
     ...(project.payment_simulator_link
-      ? [{ key: "simulator" as NavPage, label: "Payment Simulator", icon: Zap, tour: "tour-simulator" }]
+      ? [
+          {
+            key: "simulator" as NavPage,
+            label: "Payment Simulator",
+            icon: Zap,
+            tour: "tour-simulator",
+          },
+        ]
       : []),
   ];
 
   return (
     <div className="flex h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
       {/* SIDEBAR — matches the signed-in dashboard shell */}
-      <aside className={cn(
-        "relative flex shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all duration-300",
-        sidebarCollapsed ? "w-16" : "w-[212px]",
-      )}>
+      <aside
+        className={cn(
+          "relative flex shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all duration-300",
+          sidebarCollapsed ? "w-16" : "w-[212px]",
+        )}
+      >
         <div className="px-4 py-4">
           <div className="flex items-center gap-3">
             {orgLogoUrl ? (
@@ -813,11 +993,19 @@ export default function MerchantPortal() {
                 )}
               />
             ) : (
-              <span className={cn(
-                "flex shrink-0 items-center justify-center rounded-xl gradient-primary shadow-[var(--shadow-soft)]",
-                sidebarCollapsed ? "h-8 w-8" : "h-11 w-11",
-              )}>
-                <Zap className={cn("text-primary-foreground", sidebarCollapsed ? "h-4 w-4" : "h-5 w-5")} fill="currentColor" />
+              <span
+                className={cn(
+                  "flex shrink-0 items-center justify-center rounded-xl gradient-primary shadow-[var(--shadow-soft)]",
+                  sidebarCollapsed ? "h-8 w-8" : "h-11 w-11",
+                )}
+              >
+                <Zap
+                  className={cn(
+                    "text-primary-foreground",
+                    sidebarCollapsed ? "h-4 w-4" : "h-5 w-5",
+                  )}
+                  fill="currentColor"
+                />
               </span>
             )}
             {!sidebarCollapsed && (
@@ -857,14 +1045,20 @@ export default function MerchantPortal() {
           {sidebarCollapsed && (
             <div className="mt-3 flex flex-col items-center gap-1">
               <button
-                onClick={() => { setSidebarCollapsed(false); setSearchOpen(true); }}
+                onClick={() => {
+                  setSidebarCollapsed(false);
+                  setSearchOpen(true);
+                }}
                 title="Search checklist"
                 className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
               >
                 <Search className="h-4 w-4" />
               </button>
               <button
-                onClick={() => { setSidebarCollapsed(false); setNotifOpen(true); }}
+                onClick={() => {
+                  setSidebarCollapsed(false);
+                  setNotifOpen(true);
+                }}
                 title="Pending actions"
                 className="relative flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
               >
@@ -924,20 +1118,38 @@ export default function MerchantPortal() {
             </div>
             <div className="max-h-48 space-y-1 overflow-y-auto">
               {pendingItems.length === 0 && (
-                <p className="px-1 py-2 text-xs text-sidebar-foreground/60">You are all caught up.</p>
+                <p className="px-1 py-2 text-xs text-sidebar-foreground/60">
+                  You are all caught up.
+                </p>
               )}
               {pendingItems.map((item, i) => {
                 const overdue = item.due_date ? new Date(item.due_date) < new Date() : false;
                 return (
                   <button
                     key={`${item.title}-${i}`}
-                    onClick={() => { setActivePage("integration"); setNotifOpen(false); }}
+                    onClick={() => {
+                      setActivePage("integration");
+                      setNotifOpen(false);
+                    }}
                     className="w-full rounded-md px-2 py-1.5 text-left hover:bg-sidebar-accent"
                   >
-                    <span className="block truncate text-xs font-medium text-sidebar-foreground">{item.title}</span>
+                    <span className="block truncate text-xs font-medium text-sidebar-foreground">
+                      {item.title}
+                    </span>
                     {item.due_date && (
-                      <span className={cn("block text-2xs", overdue ? "text-destructive" : "text-sidebar-foreground/60")}>
-                        Due {new Date(item.due_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}{overdue ? " · overdue" : ""}
+                      <span
+                        className={cn(
+                          "block text-2xs",
+                          overdue ? "text-destructive" : "text-sidebar-foreground/60",
+                        )}
+                      >
+                        Due{" "}
+                        {new Date(item.due_date).toLocaleDateString("en-GB", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                        {overdue ? " · overdue" : ""}
                       </span>
                     )}
                   </button>
@@ -1011,21 +1223,47 @@ export default function MerchantPortal() {
       <main className="flex min-w-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto app-shell-surface">
           {activePage === "integration" && (
-            <IntegrationPage data={data} project={project} owner={owner}
-              checklist_progress={checklist_progress} currentStage={currentStage}
-              noteText={noteText} setNoteText={setNoteText} orgName={orgName}
-              savedNotes={savedNotes} onSaveNote={saveNote}
-              onEditNote={editNote} onDeleteNote={deleteNote}
-              taskCompletions={taskCompletions} onToggleTask={toggleTask}
+            <IntegrationPage
+              data={data}
+              project={project}
+              owner={owner}
+              checklist_progress={checklist_progress}
+              currentStage={currentStage}
+              noteText={noteText}
+              setNoteText={setNoteText}
+              orgName={orgName}
+              savedNotes={savedNotes}
+              onSaveNote={saveNote}
+              onEditNote={editNote}
+              onDeleteNote={deleteNote}
+              taskCompletions={taskCompletions}
+              onToggleTask={toggleTask}
               brdProgress={data.brd_progress}
               searchQuery={searchQuery}
-              onOpenBrd={() => setActivePage("brd")} />
+              onOpenBrd={() => setActivePage("brd")}
+            />
           )}
-          {activePage === "credentials" && <CredentialsPage project={project} credentials={data.credentials} />}
-          {activePage === "documents" && <DocumentsPage data={data} setActivePage={setActivePage} />}
+          {activePage === "credentials" && (
+            <CredentialsPage project={project} credentials={data.credentials} />
+          )}
+          {activePage === "documents" && (
+            <DocumentsPage data={data} setActivePage={setActivePage} />
+          )}
           {activePage === "brd" && <BrdPage token={token!} onProgress={refreshData} />}
-          {activePage === "kwikpass" && project.enable_kp && <KwikPassPage project={project} credentials={data.credentials} onBack={() => setActivePage("documents")} />}
-          {activePage === "mcp" && project.enable_mcp_document && <MCPPage project={project} credentials={data.credentials} onBack={() => setActivePage("documents")} />}
+          {activePage === "kwikpass" && project.enable_kp && (
+            <KwikPassPage
+              project={project}
+              credentials={data.credentials}
+              onBack={() => setActivePage("documents")}
+            />
+          )}
+          {activePage === "mcp" && project.enable_mcp_document && (
+            <MCPPage
+              project={project}
+              credentials={data.credentials}
+              onBack={() => setActivePage("documents")}
+            />
+          )}
           {activePage === "faq" && <FAQPage faqs={project.faq_help} />}
           {activePage === "simulator" && project.payment_simulator_link && (
             <PaymentSimulatorPage link={project.payment_simulator_link} />
@@ -1049,8 +1287,22 @@ export default function MerchantPortal() {
 }
 
 /* ===================== SIDEBAR ITEM ===================== */
-function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour, collapsed }: {
-  icon: any; label: string; active?: boolean; onClick?: () => void; badge?: number; dataTour?: string; collapsed?: boolean;
+function SidebarItem({
+  icon: Icon,
+  label,
+  active,
+  onClick,
+  badge,
+  dataTour,
+  collapsed,
+}: {
+  icon: any;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+  badge?: number;
+  dataTour?: string;
+  collapsed?: boolean;
 }) {
   return (
     <button
@@ -1065,25 +1317,41 @@ function SidebarItem({ icon: Icon, label, active, onClick, badge, dataTour, coll
           : "text-sidebar-foreground hover:bg-sidebar-accent/60",
       )}
     >
-      <span className={cn(
-        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors",
-        active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-sidebar-accent text-sidebar-foreground",
-      )}>
+      <span
+        className={cn(
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors",
+          active
+            ? "bg-primary-foreground/20 text-primary-foreground"
+            : "bg-sidebar-accent text-sidebar-foreground",
+        )}
+      >
         <Icon className="h-4 w-4" />
       </span>
       {!collapsed && <span className="flex-1 text-sm font-medium">{label}</span>}
       {!collapsed && badge !== undefined && (
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-2xs font-bold">{badge}</span>
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground/20 text-2xs font-bold">
+          {badge}
+        </span>
       )}
     </button>
   );
 }
 
-
 /* ===================== CARD WRAPPER ===================== */
-function Card({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+function Card({
+  children,
+  className,
+  style,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   return (
-    <div className={cn("bg-card border border-border rounded-xl shadow-sm", className)} style={style}>
+    <div
+      className={cn("bg-card border border-border rounded-xl shadow-sm", className)}
+      style={style}
+    >
       {children}
     </div>
   );
@@ -1095,40 +1363,58 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
   const [error, setError] = useState<string | null>(null);
   const [brdToken, setBrdToken] = useState<string | null>(null);
   const [notConfigured, setNotConfigured] = useState(false);
-  const [info, setInfo] = useState<{ percent: number; answered: number; total: number; status: string | null } | null>(null);
+  const [info, setInfo] = useState<{
+    percent: number;
+    answered: number;
+    total: number;
+    status: string | null;
+  } | null>(null);
 
-  const fetchSession = useCallback(async (withLoading: boolean) => {
-    if (withLoading) setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${API_URL}/brd-session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: API_KEY },
-        body: JSON.stringify({ token }),
-      });
-      const data = await res.json();
-      if (res.status === 404 && data.error === "not_configured") {
-        setNotConfigured(true);
-        return;
+  const fetchSession = useCallback(
+    async (withLoading: boolean) => {
+      if (withLoading) setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${API_URL}/brd-session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: API_KEY },
+          body: JSON.stringify({ token }),
+        });
+        const data = await res.json();
+        if (res.status === 404 && data.error === "not_configured") {
+          setNotConfigured(true);
+          return;
+        }
+        if (!res.ok) throw new Error(data.error || "Failed to load BRD");
+        // Only set brd_token on the very first load; never replace it on poll —
+        // changing the iframe src would reload the form and wipe the in-progress answer.
+        setBrdToken((prev) => prev ?? data.brd_token);
+        setInfo({
+          percent: data.percent,
+          answered: data.answered,
+          total: data.total,
+          status: data.status,
+        });
+      } catch (e) {
+        if (withLoading) setError(e instanceof Error ? e.message : "Failed to load BRD");
+      } finally {
+        if (withLoading) setLoading(false);
       }
-      if (!res.ok) throw new Error(data.error || "Failed to load BRD");
-      // Only set brd_token on the very first load; never replace it on poll —
-      // changing the iframe src would reload the form and wipe the in-progress answer.
-      setBrdToken((prev) => prev ?? data.brd_token);
-      setInfo({ percent: data.percent, answered: data.answered, total: data.total, status: data.status });
-    } catch (e) {
-      if (withLoading) setError(e instanceof Error ? e.message : "Failed to load BRD");
-    } finally {
-      if (withLoading) setLoading(false);
-    }
-  }, [token]);
+    },
+    [token],
+  );
 
-  useEffect(() => { fetchSession(true); }, [fetchSession]);
+  useEffect(() => {
+    fetchSession(true);
+  }, [fetchSession]);
 
   // Lightweight progress poll: never touches brdToken or loading, so the iframe stays mounted.
   useEffect(() => {
     if (!brdToken) return;
-    const id = window.setInterval(() => { fetchSession(false); onProgress?.(); }, 60_000);
+    const id = window.setInterval(() => {
+      fetchSession(false);
+      onProgress?.();
+    }, 60_000);
     return () => window.clearInterval(id);
   }, [brdToken, fetchSession, onProgress]);
 
@@ -1158,7 +1444,13 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
         <div className="border border-destructive/30 bg-destructive-soft rounded-xl p-6 text-center">
           <AlertTriangle className="w-8 h-8 text-destructive-strong mx-auto mb-2" />
           <p className="text-sm font-medium text-destructive-strong">{error}</p>
-          <button onClick={() => fetchSession(true)} className="mt-3 text-xs font-bold text-white px-4 py-1.5 rounded" style={{ background: BRAND.primary }}>Retry</button>
+          <button
+            onClick={() => fetchSession(true)}
+            className="mt-3 text-xs font-bold text-white px-4 py-1.5 rounded"
+            style={{ background: BRAND.primary }}
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -1181,11 +1473,20 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
         </div>
         <div className="flex items-center gap-3">
           <div className="w-40 h-2 bg-muted rounded-full overflow-hidden">
-            <div className="h-full rounded-full transition-all"
-              style={{ width: `${info?.percent ?? 0}%`, background: (info?.percent ?? 0) === 100 ? BRAND.green : BRAND.accent }} />
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${info?.percent ?? 0}%`,
+                background: (info?.percent ?? 0) === 100 ? BRAND.green : BRAND.accent,
+              }}
+            />
           </div>
-          <a href={brdUrl} target="_blank" rel="noopener noreferrer"
-            className="text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded border border-border text-muted-foreground hover:bg-muted/50">
+          <a
+            href={brdUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded border border-border text-muted-foreground hover:bg-muted/50"
+          >
             <ExternalLink className="w-3 h-3" /> Open in new tab
           </a>
         </div>
@@ -1204,15 +1505,40 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
   );
 }
 
-function IntegrationPage({ data, project, owner, checklist_progress, currentStage, noteText, setNoteText, orgName, savedNotes, onSaveNote, onEditNote, onDeleteNote, taskCompletions, onToggleTask, brdProgress, onOpenBrd, searchQuery = "" }: {
+function IntegrationPage({
+  data,
+  project,
+  owner,
+  checklist_progress,
+  currentStage,
+  noteText,
+  setNoteText,
+  orgName,
+  savedNotes,
+  onSaveNote,
+  onEditNote,
+  onDeleteNote,
+  taskCompletions,
+  onToggleTask,
+  brdProgress,
+  onOpenBrd,
+  searchQuery = "",
+}: {
   searchQuery?: string;
-  data: PortalData; project: PortalData["project"]; owner: PortalData["owner"];
-  checklist_progress: PortalData["checklist_progress"]; currentStage: number;
-  noteText: string; setNoteText: (v: string) => void; orgName: string;
-  savedNotes: MerchantNote[]; onSaveNote: () => void;
+  data: PortalData;
+  project: PortalData["project"];
+  owner: PortalData["owner"];
+  checklist_progress: PortalData["checklist_progress"];
+  currentStage: number;
+  noteText: string;
+  setNoteText: (v: string) => void;
+  orgName: string;
+  savedNotes: MerchantNote[];
+  onSaveNote: () => void;
   onEditNote: (idx: number, text: string) => void;
   onDeleteNote: (idx: number) => void;
-  taskCompletions: Record<number, boolean>; onToggleTask: (idx: number) => void;
+  taskCompletions: Record<number, boolean>;
+  onToggleTask: (idx: number) => void;
   brdProgress?: PortalData["brd_progress"];
   onOpenBrd?: () => void;
 }) {
@@ -1228,7 +1554,8 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
           <div>
             <h1 className="heading-page text-foreground">{project.merchant_name}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {project.brand_url || "—"} · {project.platform} · {project.integration_type || "Standard"}
+              {project.brand_url || "—"} · {project.platform} ·{" "}
+              {project.integration_type || "Standard"}
             </p>
           </div>
         </div>
@@ -1237,27 +1564,43 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
             onClick={onOpenBrd}
             className="mt-4 w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl border-2 transition-all hover:shadow-md"
             style={{
-              background: brdProgress.percent === 100 ? `${BRAND.greenLight}` : `${BRAND.amberLight}`,
+              background:
+                brdProgress.percent === 100 ? `${BRAND.greenLight}` : `${BRAND.amberLight}`,
               borderColor: brdProgress.percent === 100 ? BRAND.green : BRAND.amber,
             }}
           >
             <div className="flex items-center gap-3 text-left">
-              <ClipboardList className="w-5 h-5 flex-shrink-0" style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }} />
+              <ClipboardList
+                className="w-5 h-5 flex-shrink-0"
+                style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }}
+              />
               <div>
-                <p className="text-sm font-bold" style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }}>
+                <p
+                  className="text-sm font-bold"
+                  style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }}
+                >
                   BRD Form · {brdProgress.percent}% complete
                 </p>
                 <p className="text-2xs text-muted-foreground">
-                  {brdProgress.answered}/{brdProgress.total} answered {brdProgress.status === "completed" ? "· Submitted" : "· Click to continue"}
+                  {brdProgress.answered}/{brdProgress.total} answered{" "}
+                  {brdProgress.status === "completed" ? "· Submitted" : "· Click to continue"}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-32 h-2 bg-white/60 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all"
-                  style={{ width: `${brdProgress.percent}%`, background: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }} />
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${brdProgress.percent}%`,
+                    background: brdProgress.percent === 100 ? BRAND.green : BRAND.amber,
+                  }}
+                />
               </div>
-              <ChevronRight className="w-4 h-4" style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }} />
+              <ChevronRight
+                className="w-4 h-4"
+                style={{ color: brdProgress.percent === 100 ? BRAND.green : BRAND.amber }}
+              />
             </div>
           </button>
         )}
@@ -1268,15 +1611,25 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         <div className="flex items-start justify-between mb-1">
           <div>
             <h2 className="heading-section text-foreground">Integration Roadmap</h2>
-            <p className="text-sm text-muted-foreground">Stage {currentStage} of {totalStages} — {stages[currentStage - 1]?.label}</p>
+            <p className="text-sm text-muted-foreground">
+              Stage {currentStage} of {totalStages} — {stages[currentStage - 1]?.label}
+            </p>
           </div>
           <div className="text-right">
-            <span className="text-3xl font-bold" style={{ color: BRAND.accent }}>{checklist_progress.percent}%</span>
+            <span className="text-3xl font-bold" style={{ color: BRAND.accent }}>
+              {checklist_progress.percent}%
+            </span>
             <p className="text-xs text-muted-foreground">Complete</p>
           </div>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden mb-6 mt-3">
-          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${checklist_progress.percent}%`, background: `linear-gradient(90deg, ${BRAND.accent}, ${BRAND.primary})` }} />
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{
+              width: `${checklist_progress.percent}%`,
+              background: `linear-gradient(90deg, ${BRAND.accent}, ${BRAND.primary})`,
+            }}
+          />
         </div>
         <div className="flex items-start gap-0 overflow-x-auto px-2 pb-2">
           {stages.map((stage, i) => {
@@ -1285,27 +1638,54 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
             const isFuture = !isDone && !isCurrent;
             const showLabel = isCurrent;
             return (
-              <div key={stage.num} className="flex min-w-0 flex-1 items-start" style={{ minWidth: showLabel ? 120 : 40 }}>
+              <div
+                key={stage.num}
+                className="flex min-w-0 flex-1 items-start"
+                style={{ minWidth: showLabel ? 120 : 40 }}
+              >
                 <div className="flex flex-col items-center flex-1">
                   <div className="flex items-center w-full">
                     {i > 0 && (
-                      <div className="h-0.5 flex-1" style={{ background: isDone ? BRAND.green : darkMode_bg() }} />
+                      <div
+                        className="h-0.5 flex-1"
+                        style={{ background: isDone ? BRAND.green : darkMode_bg() }}
+                      />
                     )}
-                    <div className={cn(
-                      "w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                      isFuture && "bg-muted text-muted-foreground border border-border"
-                    )}
-                      style={isDone ? { background: BRAND.green, color: "white" } : isCurrent ? { background: BRAND.accent, color: "white", boxShadow: `0 0 16px ${BRAND.accent}60` } : {}}
+                    <div
+                      className={cn(
+                        "w-9 h-9 shrink-0 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                        isFuture && "bg-muted text-muted-foreground border border-border",
+                      )}
+                      style={
+                        isDone
+                          ? { background: BRAND.green, color: "white" }
+                          : isCurrent
+                            ? {
+                                background: BRAND.accent,
+                                color: "white",
+                                boxShadow: `0 0 16px ${BRAND.accent}60`,
+                              }
+                            : {}
+                      }
                     >
                       {isDone ? <CheckCircle2 className="w-4 h-4" /> : stage.num}
                     </div>
                     {i < stages.length - 1 && (
-                      <div className="h-0.5 flex-1" style={{ background: data.checklist[i + 1]?.completed ? BRAND.green : darkMode_bg() }} />
+                      <div
+                        className="h-0.5 flex-1"
+                        style={{
+                          background: data.checklist[i + 1]?.completed
+                            ? BRAND.green
+                            : darkMode_bg(),
+                        }}
+                      />
                     )}
                   </div>
                   {showLabel && (
-                    <span className="mt-1.5 w-[110px] text-center text-2xs leading-tight font-semibold"
-                      style={{ color: BRAND.accent }}>
+                    <span
+                      className="mt-1.5 w-[110px] text-center text-2xs leading-tight font-semibold"
+                      style={{ color: BRAND.accent }}
+                    >
                       {stage.label.replace(/^\s*\d+\.\s*/, "")}
                     </span>
                   )}
@@ -1325,26 +1705,41 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
           </span>
         </div>
         <div className="divide-y divide-border">
-          {data.checklist.filter((item) => item.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).map((item, i) => {
-            const overdue = !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
-            return (
-              <div key={`${item.title}-${i}`} className="flex items-center justify-between gap-4 py-2.5">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <CheckCircle2 className="w-4 h-4 flex-shrink-0"
-                    style={{ color: item.completed ? BRAND.green : "#cbd5e1" }} />
-                  <span className={cn("text-sm truncate", item.completed
-                    ? "text-muted-foreground"
-                    : "text-foreground font-medium")}>
-                    {item.title}
+          {data.checklist
+            .filter((item) => item.title.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+            .map((item, i) => {
+              const overdue =
+                !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
+              return (
+                <div
+                  key={`${item.title}-${i}`}
+                  className="flex items-center justify-between gap-4 py-2.5"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <CheckCircle2
+                      className="w-4 h-4 flex-shrink-0"
+                      style={{ color: item.completed ? BRAND.green : "#cbd5e1" }}
+                    />
+                    <span
+                      className={cn(
+                        "text-sm truncate",
+                        item.completed ? "text-muted-foreground" : "text-foreground font-medium",
+                      )}
+                    >
+                      {item.title}
+                    </span>
+                  </div>
+                  <span
+                    className={cn(
+                      "text-xs whitespace-nowrap font-semibold",
+                      overdue ? "text-destructive-strong" : "text-muted-foreground",
+                    )}
+                  >
+                    {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
                   </span>
                 </div>
-                <span className={cn("text-xs whitespace-nowrap font-semibold",
-                  overdue ? "text-destructive-strong" : "text-muted-foreground")}>
-                  {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
           {data.checklist.length === 0 && (
             <p className="text-sm text-muted-foreground py-3">No checklist items yet.</p>
           )}
@@ -1353,25 +1748,35 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
 
       {/* Project Overview + Notes side-by-side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-
         <Card className="p-5">
           <h3 className="heading-card text-foreground mb-4">Project Overview</h3>
           <div className="divide-y divide-border">
-            <OverviewRow label={portalLabel("field_platform", "Platform")} value={project.platform || "—"} />
-            {data.custom_fields.filter(f => f.key === "arr" || f.label.toLowerCase() === "arr").map(f => (
-              <OverviewRow key={f.key} label={portalLabel("field_arr", "ARR")} value={f.value || "—"} />
-            ))}
-            <OverviewRow label="Customer Engineer (POC)" value={owner?.name || "—"} />
-            <OverviewRow label={portalLabel("field_expected_go_live_date", "Expected Go-Live Date")} value={formatDate(project.expected_go_live_date || project.go_live_date)} />
+            <OverviewRow
+              label={portalLabel("field_platform", "Platform")}
+              value={project.platform || "—"}
+            />
             {data.custom_fields
-              .filter(f => {
+              .filter((f) => f.key === "arr" || f.label.toLowerCase() === "arr")
+              .map((f) => (
+                <OverviewRow
+                  key={f.key}
+                  label={portalLabel("field_arr", "ARR")}
+                  value={f.value || "—"}
+                />
+              ))}
+            <OverviewRow label="Customer Engineer (POC)" value={owner?.name || "—"} />
+            <OverviewRow
+              label={portalLabel("field_expected_go_live_date", "Expected Go-Live Date")}
+              value={formatDate(project.expected_go_live_date || project.go_live_date)}
+            />
+            {data.custom_fields
+              .filter((f) => {
                 const lbl = f.label.toLowerCase();
                 return lbl !== "om name" && lbl !== "om" && lbl !== "arr" && f.value;
               })
-              .map(f => (
+              .map((f) => (
                 <OverviewRow key={f.key} label={f.label} value={f.value || "—"} />
-              ))
-            }
+              ))}
           </div>
         </Card>
 
@@ -1379,38 +1784,63 @@ function IntegrationPage({ data, project, owner, checklist_progress, currentStag
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="heading-card text-foreground">Notes & Updates</h3>
-            <button onClick={onSaveNote} disabled={!noteText.trim()}
+            <button
+              onClick={onSaveNote}
+              disabled={!noteText.trim()}
               className="text-xs font-bold text-white px-4 py-1.5 rounded transition-colors disabled:opacity-40"
-              style={{ background: BRAND.primary }}>Save</button>
+              style={{ background: BRAND.primary }}
+            >
+              Save
+            </button>
           </div>
           <textarea
-            value={noteText} onChange={(e) => setNoteText(e.target.value)}
+            value={noteText}
+            onChange={(e) => setNoteText(e.target.value)}
             placeholder="Add a note for your SE..."
             className="w-full bg-muted/40 border border-border rounded-lg p-3 text-sm text-foreground placeholder:text-muted-foreground resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
           {savedNotes.length > 0 && (
             <div className="mt-4 space-y-2 max-h-[260px] overflow-y-auto">
               {savedNotes.map((note, i) => (
-                <NoteRow key={i} note={note} onEdit={(text) => onEditNote(i, text)} onDelete={() => onDeleteNote(i)} />
+                <NoteRow
+                  key={i}
+                  note={note}
+                  onEdit={(text) => onEditNote(i, text)}
+                  onDelete={() => onDeleteNote(i)}
+                />
               ))}
             </div>
           )}
         </Card>
       </div>
 
-      <Card className="px-5 py-3 flex items-center gap-3" style={{ borderLeft: `3px solid ${BRAND.accent}` }}>
+      <Card
+        className="px-5 py-3 flex items-center gap-3"
+        style={{ borderLeft: `3px solid ${BRAND.accent}` }}
+      >
         <Zap className="w-4 h-4 flex-shrink-0" style={{ color: BRAND.accent }} />
         <p className="text-sm text-muted-foreground">
-          Your {orgName} SE will advance your stage once milestones are complete. Use <span className="font-bold text-foreground">Handover Assist</span> for help.
+          Your {orgName} SE will advance your stage once milestones are complete. Use{" "}
+          <span className="font-bold text-foreground">Handover Assist</span> for help.
         </p>
       </Card>
     </div>
   );
 }
 
-function darkMode_bg() { return "#253553"; }
+function darkMode_bg() {
+  return "#253553";
+}
 
-function NoteRow({ note, onEdit, onDelete }: { note: MerchantNote; onEdit: (text: string) => void; onDelete: () => void }) {
+function NoteRow({
+  note,
+  onEdit,
+  onDelete,
+}: {
+  note: MerchantNote;
+  onEdit: (text: string) => void;
+  onDelete: () => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(note.text);
   const d = new Date(note.timestamp);
@@ -1431,25 +1861,52 @@ function NoteRow({ note, onEdit, onDelete }: { note: MerchantNote; onEdit: (text
             autoFocus
           />
           <div className="flex items-center gap-2">
-            <button onClick={save} className="text-2xs font-bold text-white px-3 py-1 rounded" style={{ background: BRAND.primary }}>Save</button>
-            <button onClick={() => { setDraft(note.text); setEditing(false); }} className="text-2xs font-medium text-muted-foreground hover:text-foreground px-2 py-1">Cancel</button>
+            <button
+              onClick={save}
+              className="text-2xs font-bold text-white px-3 py-1 rounded"
+              style={{ background: BRAND.primary }}
+            >
+              Save
+            </button>
+            <button
+              onClick={() => {
+                setDraft(note.text);
+                setEditing(false);
+              }}
+              className="text-2xs font-medium text-muted-foreground hover:text-foreground px-2 py-1"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       ) : (
         <>
           <div className="flex items-start gap-2">
-            <p className="text-sm text-foreground flex-1 whitespace-pre-wrap break-words">{note.text}</p>
+            <p className="text-sm text-foreground flex-1 whitespace-pre-wrap break-words">
+              {note.text}
+            </p>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-              <button onClick={() => setEditing(true)} className="p-1 rounded hover:bg-muted text-muted-foreground" title="Edit">
+              <button
+                onClick={() => setEditing(true)}
+                className="p-1 rounded hover:bg-muted text-muted-foreground"
+                title="Edit"
+              >
                 <Pencil className="w-3 h-3" />
               </button>
-              <button onClick={() => { if (confirm("Delete this note?")) onDelete(); }} className="p-1 rounded hover:bg-destructive-soft text-muted-foreground hover:text-destructive-strong" title="Delete">
+              <button
+                onClick={() => {
+                  if (confirm("Delete this note?")) onDelete();
+                }}
+                className="p-1 rounded hover:bg-destructive-soft text-muted-foreground hover:text-destructive-strong"
+                title="Delete"
+              >
                 <Trash2 className="w-3 h-3" />
               </button>
             </div>
           </div>
           <p className="text-2xs text-muted-foreground mt-1">
-            {d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}
+            {d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} ·{" "}
+            {d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}
           </p>
         </>
       )}
@@ -1467,24 +1924,37 @@ function OverviewRow({ label, value }: { label: string; value: string }) {
 }
 
 /* ===================== CREDENTIALS PAGE ===================== */
-function CredentialsPage({ project, credentials }: { project: PortalData["project"]; credentials: PortalData["credentials"] }) {
+function CredentialsPage({
+  project,
+  credentials,
+}: {
+  project: PortalData["project"];
+  credentials: PortalData["credentials"];
+}) {
   const [env, setEnv] = useState<"sandbox" | "production">("sandbox");
   const creds = env === "sandbox" ? credentials?.sandbox : credentials?.production;
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
         <h1 className="heading-page text-foreground">My Credentials</h1>
-        <p className="text-sm text-muted-foreground">Keep your App Secret secure. Do not share it publicly.</p>
+        <p className="text-sm text-muted-foreground">
+          Keep your App Secret secure. Do not share it publicly.
+        </p>
       </div>
 
       <div className="flex gap-2">
-        {(["sandbox", "production"] as const).map(e => (
-          <button key={e} onClick={() => setEnv(e)}
-            className={cn("px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize",
-              env === e ? "text-white shadow-md" : "bg-muted text-muted-foreground hover:bg-muted"
+        {(["sandbox", "production"] as const).map((e) => (
+          <button
+            key={e}
+            onClick={() => setEnv(e)}
+            className={cn(
+              "px-5 py-2 rounded-lg text-sm font-semibold transition-all capitalize",
+              env === e ? "text-white shadow-md" : "bg-muted text-muted-foreground hover:bg-muted",
             )}
             style={env === e ? { background: BRAND.primary } : {}}
-          >{e}</button>
+          >
+            {e}
+          </button>
         ))}
       </div>
 
@@ -1493,29 +1963,88 @@ function CredentialsPage({ project, credentials }: { project: PortalData["projec
           {env === "sandbox" ? "Sandbox" : "Production"} Credentials
         </h3>
         <CredentialField label="MERCHANT ID (MID)" value={creds?.mid || project.mid || "NA"} />
-        <CredentialField label="APP ID" value={creds?.app_id || "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"} masked sensitive={!!creds?.app_id} />
-        <CredentialField label="APP SECRET" value={creds?.app_secret || "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"} masked sensitive={!!creds?.app_secret} />
-        <CredentialField label="BASE URL"
-          value={creds?.base_url || (env === "sandbox" ? "https://sandbox.api.gokwik.co" : "https://api.gokwik.co")} />
-        <CredentialField label="CONFIG ID (MERCHANT VALIDATOR)"
-          value={project.config_id || credentials?.sandbox?.config_id || credentials?.production?.config_id || "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"}
-          masked sensitive={!!(project.config_id || credentials?.sandbox?.config_id || credentials?.production?.config_id)} />
-        <CredentialField label="KWIKPASS JWE KEY"
-          value={env === "sandbox" ? (project.kp_sandbox_jwe_key || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI") : (creds?.kwikpass_jwe_key || project.kp_prod_jwe_key || "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022")}
-          masked sensitive={env === "sandbox" ? true : !!(creds?.kwikpass_jwe_key || project.kp_prod_jwe_key)} />
+        <CredentialField
+          label="APP ID"
+          value={
+            creds?.app_id ||
+            "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+          }
+          masked
+          sensitive={!!creds?.app_id}
+        />
+        <CredentialField
+          label="APP SECRET"
+          value={
+            creds?.app_secret ||
+            "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+          }
+          masked
+          sensitive={!!creds?.app_secret}
+        />
+        <CredentialField
+          label="BASE URL"
+          value={
+            creds?.base_url ||
+            (env === "sandbox" ? "https://sandbox.api.gokwik.co" : "https://api.gokwik.co")
+          }
+        />
+        <CredentialField
+          label="CONFIG ID (MERCHANT VALIDATOR)"
+          value={
+            project.config_id ||
+            credentials?.sandbox?.config_id ||
+            credentials?.production?.config_id ||
+            "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+          }
+          masked
+          sensitive={
+            !!(
+              project.config_id ||
+              credentials?.sandbox?.config_id ||
+              credentials?.production?.config_id
+            )
+          }
+        />
+        <CredentialField
+          label="KWIKPASS JWE KEY"
+          value={
+            env === "sandbox"
+              ? project.kp_sandbox_jwe_key || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI"
+              : creds?.kwikpass_jwe_key ||
+                project.kp_prod_jwe_key ||
+                "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+          }
+          masked
+          sensitive={
+            env === "sandbox" ? true : !!(creds?.kwikpass_jwe_key || project.kp_prod_jwe_key)
+          }
+        />
       </Card>
     </div>
   );
 }
 
-function CredentialField({ label, value, masked, sensitive }: { label: string; value: string; masked?: boolean; sensitive?: boolean }) {
+function CredentialField({
+  label,
+  value,
+  masked,
+  sensitive,
+}: {
+  label: string;
+  value: string;
+  masked?: boolean;
+  sensitive?: boolean;
+}) {
   // `masked` = field can be hidden behind dots. `sensitive` = true when value is real (not the placeholder dots).
   // Default: if masked AND sensitive (real value present), hide it; user clicks eye to reveal.
   // If masked but no real value (placeholder), just show the placeholder with no toggle.
   const hasRealValue = sensitive ?? !value.startsWith("\u2022\u2022\u2022");
   const [visible, setVisible] = useState(false);
   const showToggle = masked && hasRealValue;
-  const displayVal = showToggle && !visible ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" : value;
+  const displayVal =
+    showToggle && !visible
+      ? "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+      : value;
   return (
     <div>
       <p className="text-2xs font-bold text-muted-foreground tracking-normal mb-1.5">{label}</p>
@@ -1523,42 +2052,89 @@ function CredentialField({ label, value, masked, sensitive }: { label: string; v
         <span className="text-sm text-foreground font-mono">{displayVal}</span>
         <div className="flex items-center gap-2">
           {showToggle && (
-            <button onClick={() => setVisible(!visible)} className="text-muted-foreground hover:text-foreground transition-colors" title={visible ? "Hide" : "Reveal"}>
+            <button
+              onClick={() => setVisible(!visible)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title={visible ? "Hide" : "Reveal"}
+            >
               {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           )}
           <CopyButton text={value} />
         </div>
       </div>
-
     </div>
   );
 }
 
 /* ===================== DOCUMENTS PAGE ===================== */
-function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePage: (p: NavPage) => void }) {
-  const docs: { icon: React.ReactNode; title: string; desc: string; badge: string; link?: string | null; onClick?: () => void; badgeColor?: string }[] = [];
+function DocumentsPage({
+  data,
+  setActivePage,
+}: {
+  data: PortalData;
+  setActivePage: (p: NavPage) => void;
+}) {
+  const docs: {
+    icon: React.ReactNode;
+    title: string;
+    desc: string;
+    badge: string;
+    link?: string | null;
+    onClick?: () => void;
+    badgeColor?: string;
+  }[] = [];
 
   if (data.project.brd_link) {
-    docs.push({ icon: <FileText className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "BRD Document", desc: "Business Requirements Document", badge: "Available", link: data.project.brd_link });
+    docs.push({
+      icon: <FileText className="w-5 h-5" style={{ color: BRAND.primary }} />,
+      title: "BRD Document",
+      desc: "Business Requirements Document",
+      badge: "Available",
+      link: data.project.brd_link,
+    });
   }
 
   if (data.project.sow_link) {
-    docs.push({ icon: <BookOpen className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "SOW / Merchant Playbook", desc: "Statement of Work & Integration Playbook", badge: "Available", link: data.project.sow_link });
+    docs.push({
+      icon: <BookOpen className="w-5 h-5" style={{ color: BRAND.primary }} />,
+      title: "SOW / Merchant Playbook",
+      desc: "Statement of Work & Integration Playbook",
+      badge: "Available",
+      link: data.project.sow_link,
+    });
   }
 
   // The remaining link fields from Settings → Links. Anything filled in on the
   // project belongs in front of the merchant, not only BRD and SOW.
   if (data.project.mint_checklist_link) {
-    docs.push({ icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Onboarding Checklist", desc: "Pre-integration checklist for your onboarding", badge: "Available", link: data.project.mint_checklist_link });
+    docs.push({
+      icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />,
+      title: "Onboarding Checklist",
+      desc: "Pre-integration checklist for your onboarding",
+      badge: "Available",
+      link: data.project.mint_checklist_link,
+    });
   }
 
   if (data.project.integration_checklist_link) {
-    docs.push({ icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Integration Checklist", desc: "Technical checklist for your integration", badge: "Available", link: data.project.integration_checklist_link });
+    docs.push({
+      icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />,
+      title: "Integration Checklist",
+      desc: "Technical checklist for your integration",
+      badge: "Available",
+      link: data.project.integration_checklist_link,
+    });
   }
 
   if (data.project.jira_link) {
-    docs.push({ icon: <ExternalLink className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Project Tracker", desc: "Live ticket board for this integration", badge: "Available", link: data.project.jira_link });
+    docs.push({
+      icon: <ExternalLink className="w-5 h-5" style={{ color: BRAND.primary }} />,
+      title: "Project Tracker",
+      desc: "Live ticket board for this integration",
+      badge: "Available",
+      link: data.project.jira_link,
+    });
   }
 
   if (data.project.enable_mcp_document) {
@@ -1587,7 +2163,9 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
         <h1 className="heading-page text-foreground">Documents & Resources</h1>
-        <p className="text-sm text-muted-foreground">Access your integration documents and resources.</p>
+        <p className="text-sm text-muted-foreground">
+          Access your integration documents and resources.
+        </p>
       </div>
       <div className="space-y-3">
         {docs.map((doc, i) => {
@@ -1600,18 +2178,33 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
                 <p className="text-sm font-bold text-foreground">{doc.title}</p>
                 <p className="text-xs text-muted-foreground">{doc.desc}</p>
               </div>
-              <span className={cn(
-                "text-2xs font-bold px-2.5 py-1 rounded",
-                doc.badgeColor === "blue" ? "bg-info-soft text-info-strong" :
-                "bg-success-soft text-success-strong"
-              )}>{doc.badge}</span>
+              <span
+                className={cn(
+                  "text-2xs font-bold px-2.5 py-1 rounded",
+                  doc.badgeColor === "blue"
+                    ? "bg-info-soft text-info-strong"
+                    : "bg-success-soft text-success-strong",
+                )}
+              >
+                {doc.badge}
+              </span>
               <ExternalLink className="w-4 h-4 text-muted-foreground" />
             </Card>
           );
           return doc.onClick ? (
-            <button key={i} type="button" onClick={doc.onClick} className="block w-full text-left">{inner}</button>
+            <button key={i} type="button" onClick={doc.onClick} className="block w-full text-left">
+              {inner}
+            </button>
           ) : (
-            <a key={i} href={doc.link || "#"} target="_blank" rel="noopener noreferrer" className="block">{inner}</a>
+            <a
+              key={i}
+              href={doc.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              {inner}
+            </a>
           );
         })}
       </div>
@@ -1626,7 +2219,15 @@ function DocumentsPage({ data, setActivePage }: { data: PortalData; setActivePag
 }
 
 /* ===================== KWIKPASS PAGE ===================== */
-function KwikPassPage({ project, credentials, onBack }: { project: PortalData["project"]; credentials: PortalData["credentials"]; onBack?: () => void }) {
+function KwikPassPage({
+  project,
+  credentials,
+  onBack,
+}: {
+  project: PortalData["project"];
+  credentials: PortalData["credentials"];
+  onBack?: () => void;
+}) {
   const [activeStep, setActiveStep] = useState(0);
 
   const steps = [
@@ -1639,13 +2240,17 @@ function KwikPassPage({ project, credentials, onBack }: { project: PortalData["p
       code: `window.merchantInfo = {
   ...window.merchantInfo,
   environment: "sandbox",
-  mid: "${project.mid || '<your_merchant_id>'}",
+  mid: "${project.mid || "<your_merchant_id>"}",
   type: "merchantInfo",
   integrationType: 'CUSTOM_HEADLESS'
 }`,
       envChanges: [
         { field: "environment", sandbox: '"sandbox"', production: '"production"' },
-        { field: "mid", sandbox: "Sandbox MID (from Credentials tab)", production: "Production MID (from Credentials tab)" },
+        {
+          field: "mid",
+          sandbox: "Sandbox MID (from Credentials tab)",
+          production: "Production MID (from Credentials tab)",
+        },
       ],
       critical: "This MUST appear before Step 2 on every single page of your website.",
     },
@@ -1674,7 +2279,11 @@ function KwikPassPage({ project, credentials, onBack }: { project: PortalData["p
 })();
 </script>`,
       envChanges: [
-        { field: "s.src (SDK URL)", sandbox: "sandbox.pdp.gokwik.co/kwikpass/plugin/build/kp-custom-merchant.js", production: "pdp.gokwik.co/kwikpass/plugin/build/kp-custom-merchant.js" },
+        {
+          field: "s.src (SDK URL)",
+          sandbox: "sandbox.pdp.gokwik.co/kwikpass/plugin/build/kp-custom-merchant.js",
+          production: "pdp.gokwik.co/kwikpass/plugin/build/kp-custom-merchant.js",
+        },
       ],
     },
     {
@@ -1749,7 +2358,11 @@ const { payload, protectedHeader } = await jose.jwtDecrypt(jwt, secret);
 console.log(payload);
 // payload contains: { phone, email, ... }`,
       envChanges: [
-        { field: "JWE Key", sandbox: "Sandbox JWE Key (from Credentials tab)", production: "Production JWE Key (from Credentials tab)" },
+        {
+          field: "JWE Key",
+          sandbox: "Sandbox JWE Key (from Credentials tab)",
+          production: "Production JWE Key (from Credentials tab)",
+        },
       ],
     },
   ];
@@ -1760,7 +2373,10 @@ console.log(payload);
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       {onBack && (
-        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ChevronLeft className="w-4 h-4" /> Back to Documents
         </button>
       )}
@@ -1772,12 +2388,14 @@ console.log(payload);
             KwikPass Integration
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Follow the steps below, or open the full KP API reference for advanced details. Both stay in sync.
+            Follow the steps below, or open the full KP API reference for advanced details. Both
+            stay in sync.
           </p>
         </div>
         <a
           href="https://documenter.getpostman.com/view/50602298/2sBXiomAJs#802a85ed-097f-40ae-a29b-dd05740b5e2c"
-          target="_blank" rel="noopener noreferrer"
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white shadow-sm transition-colors"
           style={{ background: BRAND.primary }}
         >
@@ -1786,17 +2404,37 @@ console.log(payload);
       </div>
 
       {/* Overview Card with features */}
-      <div className="rounded-xl p-6" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
+      <div
+        className="rounded-xl p-6"
+        style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}
+      >
         <h2 className="heading-section text-white mb-2">KwikPass Integration Guide</h2>
         <p className="text-sm text-white/80 mb-4">
-          KwikPass enables user authentication, SSO, page-view event tracking, and retargeting via KwikChat.
+          KwikPass enables user authentication, SSO, page-view event tracking, and retargeting via
+          KwikChat.
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: "Phone OTP Login", desc: "Users log in via phone number with 4-digit OTP — no email/password", icon: "🔐" },
-            { label: "Single Sign-On (SSO)", desc: "Auto-login for users who shopped at any Handover merchant before", icon: "🔑" },
-            { label: "PageView Tracking", desc: "Capture Product/Collection IDs for logged-in user retargeting", icon: "📊" },
-            { label: "User Cohorts", desc: "Via KwikChat based on captured events — boosts repeat purchase rate", icon: "🎯" },
+            {
+              label: "Phone OTP Login",
+              desc: "Users log in via phone number with 4-digit OTP — no email/password",
+              icon: "🔐",
+            },
+            {
+              label: "Single Sign-On (SSO)",
+              desc: "Auto-login for users who shopped at any Handover merchant before",
+              icon: "🔑",
+            },
+            {
+              label: "PageView Tracking",
+              desc: "Capture Product/Collection IDs for logged-in user retargeting",
+              icon: "📊",
+            },
+            {
+              label: "User Cohorts",
+              desc: "Via KwikChat based on captured events — boosts repeat purchase rate",
+              icon: "🎯",
+            },
           ].map((f, i) => (
             <div key={i} className="bg-white/10 rounded-lg p-3 text-center">
               <span className="text-xl">{f.icon}</span>
@@ -1811,7 +2449,12 @@ console.log(payload);
       <Card className="p-5 space-y-4">
         <h3 className="heading-card text-foreground">Your JWE Decryption Keys</h3>
         <CredentialField label="SANDBOX JWE KEY" value={sandboxJweKey} masked sensitive />
-        <CredentialField label="PRODUCTION JWE KEY" value={prodJweKey || "••••••••••••••••"} masked sensitive={!!prodJweKey} />
+        <CredentialField
+          label="PRODUCTION JWE KEY"
+          value={prodJweKey || "••••••••••••••••"}
+          masked
+          sensitive={!!prodJweKey}
+        />
       </Card>
 
       {/* Step-by-step Guide */}
@@ -1819,12 +2462,14 @@ console.log(payload);
         <h3 className="heading-card text-foreground mb-4">Integration Steps</h3>
         <div className="flex gap-2 flex-wrap mb-5">
           {steps.map((s, i) => (
-            <button key={i} onClick={() => setActiveStep(i)}
+            <button
+              key={i}
+              onClick={() => setActiveStep(i)}
               className={cn(
                 "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                 activeStep === i
                   ? "text-white shadow-md"
-                  : "bg-muted text-muted-foreground hover:bg-muted"
+                  : "bg-muted text-muted-foreground hover:bg-muted",
               )}
               style={activeStep === i ? { background: BRAND.primary } : {}}
             >
@@ -1837,18 +2482,23 @@ console.log(payload);
           <div className="flex items-center gap-3">
             <h4 className="text-base font-bold text-foreground">{steps[activeStep].title}</h4>
             {(steps[activeStep] as any).badge && (
-              <span className={cn("text-2xs font-bold px-2 py-0.5 rounded border",
-                (steps[activeStep] as any).badgeColor === "red"
-                  ? "bg-destructive-soft text-destructive-strong border-destructive/30"
-                  : "bg-info-soft text-info-strong border-info/30"
-              )}>
+              <span
+                className={cn(
+                  "text-2xs font-bold px-2 py-0.5 rounded border",
+                  (steps[activeStep] as any).badgeColor === "red"
+                    ? "bg-destructive-soft text-destructive-strong border-destructive/30"
+                    : "bg-info-soft text-info-strong border-info/30",
+                )}
+              >
                 {(steps[activeStep] as any).badge}
               </span>
             )}
           </div>
           <p className="text-sm text-muted-foreground">{steps[activeStep].desc}</p>
           {(steps[activeStep] as any).note && (
-            <p className="text-xs text-muted-foreground italic">{(steps[activeStep] as any).note}</p>
+            <p className="text-xs text-muted-foreground italic">
+              {(steps[activeStep] as any).note}
+            </p>
           )}
           <div className="relative">
             <pre className="bg-muted text-success rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-border">
@@ -1862,7 +2512,9 @@ console.log(payload);
           {/* Environment-specific changes table */}
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-2xs font-bold text-muted-foreground tracking-normal mb-2">Sandbox vs Production Changes</p>
+              <p className="text-2xs font-bold text-muted-foreground tracking-normal mb-2">
+                Sandbox vs Production Changes
+              </p>
               <div className="border border-border rounded-lg overflow-hidden text-xs">
                 <div className="grid grid-cols-3 bg-muted/40 font-bold">
                   <div className="px-3 py-2 text-muted-foreground">Field</div>
@@ -1872,8 +2524,12 @@ console.log(payload);
                 {(steps[activeStep] as any).envChanges.map((c: any, j: number) => (
                   <div key={j} className="grid grid-cols-3 border-t border-border">
                     <div className="px-3 py-2 font-medium text-foreground">{c.field}</div>
-                    <div className="px-3 py-2 text-success-strong font-mono break-all">{c.sandbox}</div>
-                    <div className="px-3 py-2 text-warning-strong font-mono break-all">{c.production}</div>
+                    <div className="px-3 py-2 text-success-strong font-mono break-all">
+                      {c.sandbox}
+                    </div>
+                    <div className="px-3 py-2 text-warning-strong font-mono break-all">
+                      {c.production}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1893,7 +2549,9 @@ console.log(payload);
           {/* SSO customization note */}
           {(steps[activeStep] as any).ssoNote && (
             <Card className="p-4 mt-2" style={{ borderLeft: `3px solid ${BRAND.accent}` }}>
-              <p className="text-xs font-bold text-foreground mb-2">SSO Button — What can & cannot be changed</p>
+              <p className="text-xs font-bold text-foreground mb-2">
+                SSO Button — What can & cannot be changed
+              </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-2xs font-bold text-success-strong mb-1">✅ Can Customise</p>
@@ -1926,7 +2584,9 @@ console.log(payload);
           >
             <ChevronLeft className="w-4 h-4" /> Previous
           </button>
-          <span className="text-xs text-muted-foreground">Step {activeStep + 1} of {steps.length}</span>
+          <span className="text-xs text-muted-foreground">
+            Step {activeStep + 1} of {steps.length}
+          </span>
           <button
             onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))}
             disabled={activeStep === steps.length - 1}
@@ -1979,11 +2639,14 @@ console.log(payload);
 
       {/* Production vs Sandbox — all changes */}
       <Card className="p-5">
-        <h3 className="heading-card text-foreground mb-4">Production vs Sandbox — Full Change Reference</h3>
+        <h3 className="heading-card text-foreground mb-4">
+          Production vs Sandbox — Full Change Reference
+        </h3>
         <div className="bg-warning-soft border border-warning/30 rounded-lg px-4 py-2.5 flex items-center gap-2 mb-4">
           <AlertTriangle className="w-4 h-4 text-warning-strong flex-shrink-0" />
           <p className="text-xs text-warning-strong">
-            When moving from Sandbox → Production, update <strong>all</strong> values below. Mixing environments will cause authentication failures.
+            When moving from Sandbox → Production, update <strong>all</strong> values below. Mixing
+            environments will cause authentication failures.
           </p>
         </div>
         <div className="border border-border rounded-lg overflow-hidden text-xs">
@@ -1995,14 +2658,28 @@ console.log(payload);
           {[
             { field: "merchantInfo.environment", sandbox: '"sandbox"', production: '"production"' },
             { field: "merchantInfo.mid", sandbox: "Sandbox MID", production: "Production MID" },
-            { field: "SDK URL (s.src)", sandbox: "sandbox.pdp.gokwik.co/…", production: "pdp.gokwik.co/…" },
-            { field: "JWE Decryption Key", sandbox: sandboxJweKey.substring(0, 20) + "…", production: "Production Key (from Credentials)" },
-            { field: "Base URL (APIs)", sandbox: "sandbox.api.gokwik.co", production: "api.gokwik.co" },
+            {
+              field: "SDK URL (s.src)",
+              sandbox: "sandbox.pdp.gokwik.co/…",
+              production: "pdp.gokwik.co/…",
+            },
+            {
+              field: "JWE Decryption Key",
+              sandbox: sandboxJweKey.substring(0, 20) + "…",
+              production: "Production Key (from Credentials)",
+            },
+            {
+              field: "Base URL (APIs)",
+              sandbox: "sandbox.api.gokwik.co",
+              production: "api.gokwik.co",
+            },
           ].map((row, i) => (
             <div key={i} className="grid grid-cols-3 border-t border-border">
               <div className="px-3 py-2 font-medium text-foreground">{row.field}</div>
               <div className="px-3 py-2 text-success-strong font-mono break-all">{row.sandbox}</div>
-              <div className="px-3 py-2 text-warning-strong font-mono break-all">{row.production}</div>
+              <div className="px-3 py-2 text-warning-strong font-mono break-all">
+                {row.production}
+              </div>
             </div>
           ))}
         </div>
@@ -2013,10 +2690,26 @@ console.log(payload);
         <h3 className="heading-card text-foreground mb-4">Testing Guide</h3>
         <div className="space-y-3">
           {[
-            { title: "Test OTP Flow", desc: "Go to profile/account section → Enter mobile number → Receive Handover OTP → Verify OTP → You're logged in!", icon: "📱" },
-            { title: "Test SSO Flow", desc: "Login to Handover test environment → Visit your store → SSO button appears with masked number → Click to login", icon: "⚡" },
-            { title: "Test Token Decryption", desc: "Use the JWE secret key to decrypt kpToken → Verify phone number and email in payload", icon: "🔑" },
-            { title: "Test Logout", desc: "Logout → Verify handleKPLogout() clears session → Login again via OTP to confirm flow resets", icon: "🔄" },
+            {
+              title: "Test OTP Flow",
+              desc: "Go to profile/account section → Enter mobile number → Receive Handover OTP → Verify OTP → You're logged in!",
+              icon: "📱",
+            },
+            {
+              title: "Test SSO Flow",
+              desc: "Login to Handover test environment → Visit your store → SSO button appears with masked number → Click to login",
+              icon: "⚡",
+            },
+            {
+              title: "Test Token Decryption",
+              desc: "Use the JWE secret key to decrypt kpToken → Verify phone number and email in payload",
+              icon: "🔑",
+            },
+            {
+              title: "Test Logout",
+              desc: "Logout → Verify handleKPLogout() clears session → Login again via OTP to confirm flow resets",
+              icon: "🔄",
+            },
           ].map((t, i) => (
             <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/40">
               <span className="text-lg">{t.icon}</span>
@@ -2038,26 +2731,39 @@ function PaymentSimulatorPage({ link }: { link: string }) {
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
         <h1 className="heading-page text-foreground">Payment Simulator</h1>
-        <p className="text-sm text-muted-foreground">Run end-to-end test transactions on a sandbox payment flow.</p>
+        <p className="text-sm text-muted-foreground">
+          Run end-to-end test transactions on a sandbox payment flow.
+        </p>
       </div>
 
-      <div className="rounded-xl p-6" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
+      <div
+        className="rounded-xl p-6"
+        style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}
+      >
         <div className="flex items-center gap-3 mb-1">
           <Zap className="w-5 h-5 text-white" />
           <h2 className="heading-section text-white">Sandbox Payment Simulator</h2>
         </div>
-        <p className="text-sm text-white/70">Validate your checkout integration with simulated success, failure and pending scenarios — no real charges are made.</p>
+        <p className="text-sm text-white/70">
+          Validate your checkout integration with simulated success, failure and pending scenarios —
+          no real charges are made.
+        </p>
       </div>
 
       <Card className="p-6 space-y-4">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: BRAND.primarySoft }}>
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: BRAND.primarySoft }}
+          >
             <Zap className="w-5 h-5" style={{ color: BRAND.primary }} />
           </div>
           <div className="flex-1">
             <h3 className="heading-card text-foreground">About the Simulator</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              The Payment Simulator lets you trigger end-to-end sandbox payment flows tied to your merchant configuration. Use it to verify webhooks, order status updates and the full checkout experience before going live.
+              The Payment Simulator lets you trigger end-to-end sandbox payment flows tied to your
+              merchant configuration. Use it to verify webhooks, order status updates and the full
+              checkout experience before going live.
             </p>
           </div>
         </div>
@@ -2081,8 +2787,8 @@ function PaymentSimulatorPage({ link }: { link: string }) {
 function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const faqs = managedFaqs
-    .filter(f => f.question.trim() && f.answer.trim())
-    .map(f => ({ q: f.question, a: f.answer }));
+    .filter((f) => f.question.trim() && f.answer.trim())
+    .map((f) => ({ q: f.question, a: f.answer }));
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
@@ -2103,7 +2809,12 @@ function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
               className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/50 transition-colors"
             >
               <span className="text-sm text-foreground">{faq.q}</span>
-              <ChevronRight className={cn("w-4 h-4 text-muted-foreground transition-transform", openIdx === i && "rotate-90")} />
+              <ChevronRight
+                className={cn(
+                  "w-4 h-4 text-muted-foreground transition-transform",
+                  openIdx === i && "rotate-90",
+                )}
+              />
             </button>
             {openIdx === i && (
               <div className="px-5 pb-4">
@@ -2118,7 +2829,15 @@ function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
 }
 
 /* ===================== MCP SERVER PAGE ===================== */
-function MCPPage({ project, credentials, onBack }: { project: PortalData["project"]; credentials: PortalData["credentials"]; onBack?: () => void }) {
+function MCPPage({
+  project,
+  credentials,
+  onBack,
+}: {
+  project: PortalData["project"];
+  credentials: PortalData["credentials"];
+  onBack?: () => void;
+}) {
   const [activeStep, setActiveStep] = useState(0);
   // X-API-KEY uses the same mapped field as the Validator's Config ID
   const apiKey =
@@ -2178,7 +2897,8 @@ npm list -g mcp-remote 2>/dev/null || echo "mcp-remote NOT installed"`,
 
 # Verify entry point exists
 ls -la $(npm root -g)/mcp-remote/dist/proxy.js`,
-      critical: "Node.js >= 18 is required. Earlier versions will fail with 'node:fs/promises does not provide constants'.",
+      critical:
+        "Node.js >= 18 is required. Earlier versions will fail with 'node:fs/promises does not provide constants'.",
     },
     {
       title: "4. Write the MCP config",
@@ -2201,11 +2921,20 @@ ls -la $(npm root -g)/mcp-remote/dist/proxy.js`,
   }
 }`,
       envChanges: [
-        { field: "Config location", sandbox: "~/.claude.json (Claude Code) — root-level mcpServers", production: "Claude Desktop config (per-OS path)" },
+        {
+          field: "Config location",
+          sandbox: "~/.claude.json (Claude Code) — root-level mcpServers",
+          production: "Claude Desktop config (per-OS path)",
+        },
         { field: "URL suffix", sandbox: "Must end with /mcp", production: "Must end with /mcp" },
-        { field: "Header format", sandbox: "X-API-Key:<value> (no space)", production: "X-API-Key:<value> (no space)" },
+        {
+          field: "Header format",
+          sandbox: "X-API-Key:<value> (no space)",
+          production: "X-API-Key:<value> (no space)",
+        },
       ],
-      critical: "NEVER use bare 'npx' as the command — always the full path to node. ALWAYS set env.PATH so the correct Node comes first.",
+      critical:
+        "NEVER use bare 'npx' as the command — always the full path to node. ALWAYS set env.PATH so the correct Node comes first.",
     },
     {
       title: "5. Verify the setup",
@@ -2242,20 +2971,44 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
   ];
 
   const troubleshooting = [
-    { error: "MCP error -32001: Invalid API key", fix: "Get correct key from Credentials tab — copy the App Secret value." },
-    { error: "node:fs/promises does not provide export 'constants'", fix: "mcp-remote running under Node < 18. Use full path to Node >= 18, set env.PATH." },
-    { error: "npm is known not to run on Node.js v14", fix: "Don't use npx. Use node + proxy.js directly with full paths." },
+    {
+      error: "MCP error -32001: Invalid API key",
+      fix: "Get correct key from Credentials tab — copy the App Secret value.",
+    },
+    {
+      error: "node:fs/promises does not provide export 'constants'",
+      fix: "mcp-remote running under Node < 18. Use full path to Node >= 18, set env.PATH.",
+    },
+    {
+      error: "npm is known not to run on Node.js v14",
+      fix: "Don't use npx. Use node + proxy.js directly with full paths.",
+    },
     { error: "HTTP 404: Route Not Found", fix: "URL must end with /mcp — not /checkout-mcp." },
-    { error: "HTTP 404: Invalid OAuth error", fix: "Native HTTP transport tried OAuth. Use the mcp-remote bridge instead of \"type\": \"http\"." },
-    { error: "Auth: not authenticated in /mcp", fix: "Switch to mcp-remote stdio bridge — native HTTP transport forces OAuth." },
-    { error: "Server doesn't appear after config", fix: "Restart Claude Desktop or start a new Claude Code session." },
-    { error: "Server under projects.* in claude.json", fix: "Move to root-level mcpServers for global access." },
+    {
+      error: "HTTP 404: Invalid OAuth error",
+      fix: 'Native HTTP transport tried OAuth. Use the mcp-remote bridge instead of "type": "http".',
+    },
+    {
+      error: "Auth: not authenticated in /mcp",
+      fix: "Switch to mcp-remote stdio bridge — native HTTP transport forces OAuth.",
+    },
+    {
+      error: "Server doesn't appear after config",
+      fix: "Restart Claude Desktop or start a new Claude Code session.",
+    },
+    {
+      error: "Server under projects.* in claude.json",
+      fix: "Move to root-level mcpServers for global access.",
+    },
   ];
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       {onBack && (
-        <button onClick={onBack} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ChevronLeft className="w-4 h-4" /> Back to Documents
         </button>
       )}
@@ -2267,7 +3020,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
             MCP Server Setup
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Hand the steps below to your AI assistant — it will set up the MCP server end-to-end. Or download the full prompt.
+            Hand the steps below to your AI assistant — it will set up the MCP server end-to-end. Or
+            download the full prompt.
           </p>
         </div>
         <a
@@ -2283,9 +3037,15 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
       {/* API Key */}
       <Card className="p-5 space-y-3">
         <h3 className="heading-card text-foreground">Your API Key</h3>
-        <CredentialField label="X-API-KEY" value={apiKey} masked sensitive={apiKey !== "<USER_API_KEY>"} />
+        <CredentialField
+          label="X-API-KEY"
+          value={apiKey}
+          masked
+          sensitive={apiKey !== "<USER_API_KEY>"}
+        />
         <p className="text-xs text-muted-foreground">
-          Same value as the Validator's <span className="font-semibold">Config ID</span>. If empty, request it from your Handover onboarding manager.
+          Same value as the Validator's <span className="font-semibold">Config ID</span>. If empty,
+          request it from your Handover onboarding manager.
         </p>
       </Card>
 
@@ -2294,12 +3054,14 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
         <h3 className="heading-card text-foreground mb-4">Setup Steps</h3>
         <div className="flex gap-2 flex-wrap mb-5">
           {steps.map((s, i) => (
-            <button key={i} onClick={() => setActiveStep(i)}
+            <button
+              key={i}
+              onClick={() => setActiveStep(i)}
               className={cn(
                 "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                 activeStep === i
                   ? "text-white shadow-md"
-                  : "bg-muted text-muted-foreground hover:bg-muted"
+                  : "bg-muted text-muted-foreground hover:bg-muted",
               )}
               style={activeStep === i ? { background: BRAND.primary } : {}}
             >
@@ -2312,7 +3074,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
           <h4 className="text-base font-bold text-foreground">{steps[activeStep].title}</h4>
           <p className="text-sm text-muted-foreground">{steps[activeStep].desc}</p>
           {(steps[activeStep] as any).note && (
-            <p className="text-xs text-muted-foreground italic">{(steps[activeStep] as any).note}</p>
+            <p className="text-xs text-muted-foreground italic">
+              {(steps[activeStep] as any).note}
+            </p>
           )}
           <div className="relative">
             <pre className="bg-muted text-success rounded-lg p-4 text-xs overflow-x-auto font-mono leading-relaxed border border-border">
@@ -2325,7 +3089,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
           {(steps[activeStep] as any).envChanges && (
             <div className="mt-3">
-              <p className="text-2xs font-bold text-muted-foreground tracking-normal mb-2">Environment-Specific Configuration</p>
+              <p className="text-2xs font-bold text-muted-foreground tracking-normal mb-2">
+                Environment-Specific Configuration
+              </p>
               <div className="border border-border rounded-lg overflow-hidden text-xs">
                 <div className="grid grid-cols-3 bg-muted/40 font-bold">
                   <div className="px-3 py-2 text-muted-foreground">Field</div>
@@ -2335,8 +3101,12 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
                 {(steps[activeStep] as any).envChanges.map((c: any, j: number) => (
                   <div key={j} className="grid grid-cols-3 border-t border-border">
                     <div className="px-3 py-2 font-medium text-foreground">{c.field}</div>
-                    <div className="px-3 py-2 text-success-strong font-mono break-all">{c.sandbox}</div>
-                    <div className="px-3 py-2 text-warning-strong font-mono break-all">{c.production}</div>
+                    <div className="px-3 py-2 text-success-strong font-mono break-all">
+                      {c.sandbox}
+                    </div>
+                    <div className="px-3 py-2 text-warning-strong font-mono break-all">
+                      {c.production}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2354,14 +3124,22 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
         </div>
 
         <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-          <button onClick={() => setActiveStep(Math.max(0, activeStep - 1))} disabled={activeStep === 0}
-            className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
+          <button
+            onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
+            disabled={activeStep === 0}
+            className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+          >
             <ChevronLeft className="w-4 h-4" /> Previous
           </button>
-          <span className="text-xs text-muted-foreground">Step {activeStep + 1} of {steps.length}</span>
-          <button onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))} disabled={activeStep === steps.length - 1}
+          <span className="text-xs text-muted-foreground">
+            Step {activeStep + 1} of {steps.length}
+          </span>
+          <button
+            onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))}
+            disabled={activeStep === steps.length - 1}
             className="flex items-center gap-1 text-sm font-medium hover:text-foreground disabled:opacity-30 transition-colors"
-            style={{ color: BRAND.primary }}>
+            style={{ color: BRAND.primary }}
+          >
             Next <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -2428,68 +3206,143 @@ curl -s -o /dev/null -w "HTTP %{http_code}" -X POST \\
 
 /* ===================== MANDATORY APIS PAGE ===================== */
 const MANDATORY_API_DOC_LINKS: Record<string, string> = {
-  "Get Cart": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#ce6c02b2-57bc-4f71-86b9-6967a2dcd0cf",
-  "Set Shipping Address": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#3e16f54e-cf77-4fd5-ac46-8058e10a1965",
-  "Set Shipping Option": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#10f41fa4-e17f-4009-94ad-773e3e5d0575",
-  "Get Available Coupon": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#b2419dfa-27e8-4ac7-b6c8-1e53a7922a1b",
-  "Apply Discount": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#5769ba9e-f594-4352-916c-c3c01e8c5463",
-  "Remove Discount": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#39df3e59-8304-49ba-9ab9-e03472b4982a",
-  "Create Order": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#a1d00cfa-265e-43c3-9bac-4d3aca2e21dc",
-  "Place Order": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#1cca8fbf-b36d-4aed-a121-08a1c46bd91a",
-  "Update Order": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#2eb04ba6-291b-4603-90ea-f58712acce2a",
-  "Split Order": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#5f27d842-a665-4867-a653-89377c221c45",
-  "Get Merchant User": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#f4299835-b476-4528-83ae-632e311460a1",
-  "Apply Wallet Credit": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#8a701213-8715-4f8f-891f-6ad3878d0b9a",
-  "Remove Wallet Credit": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#f589f863-42f2-4be5-a35f-7e428fa03678",
-  "Get Available Membership Item": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#5a208267-7d29-469e-bf77-a14850a58726",
-  "Add Membership": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#602697ea-a5a6-44b6-88cb-bddf22c4b623",
-  "Remove Membership": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#16ba6240-78fc-42ad-9189-218c7e2f70a4",
-  "Remove Out of Stock Products": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#9a44aa3f-9765-4417-9259-626431712d46",
-  "Check Order Status": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#3adc769c-b933-4fe8-8fb2-3360c72eecc1",
-  "Get Redirection URL": "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#977ab78c-a343-4584-a9d2-16af5b3a47fc",
-  "Sync Product": "https://documenter.getpostman.com/view/53067515/2sBXqQFxdo#a6ca9856-bcd6-4153-82a9-840de2ccb557",
-  "Sync Collection": "https://documenter.getpostman.com/view/53067515/2sBXqQFxdo#0b4716a8-09b2-495d-afe4-fc701e5370be",
+  "Get Cart":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#ce6c02b2-57bc-4f71-86b9-6967a2dcd0cf",
+  "Set Shipping Address":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#3e16f54e-cf77-4fd5-ac46-8058e10a1965",
+  "Set Shipping Option":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#10f41fa4-e17f-4009-94ad-773e3e5d0575",
+  "Get Available Coupon":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#b2419dfa-27e8-4ac7-b6c8-1e53a7922a1b",
+  "Apply Discount":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#5769ba9e-f594-4352-916c-c3c01e8c5463",
+  "Remove Discount":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#39df3e59-8304-49ba-9ab9-e03472b4982a",
+  "Create Order":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#a1d00cfa-265e-43c3-9bac-4d3aca2e21dc",
+  "Place Order":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#1cca8fbf-b36d-4aed-a121-08a1c46bd91a",
+  "Update Order":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#2eb04ba6-291b-4603-90ea-f58712acce2a",
+  "Split Order":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#5f27d842-a665-4867-a653-89377c221c45",
+  "Get Merchant User":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#f4299835-b476-4528-83ae-632e311460a1",
+  "Apply Wallet Credit":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#8a701213-8715-4f8f-891f-6ad3878d0b9a",
+  "Remove Wallet Credit":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#f589f863-42f2-4be5-a35f-7e428fa03678",
+  "Get Available Membership Item":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#5a208267-7d29-469e-bf77-a14850a58726",
+  "Add Membership":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#602697ea-a5a6-44b6-88cb-bddf22c4b623",
+  "Remove Membership":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#16ba6240-78fc-42ad-9189-218c7e2f70a4",
+  "Remove Out of Stock Products":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#9a44aa3f-9765-4417-9259-626431712d46",
+  "Check Order Status":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#3adc769c-b933-4fe8-8fb2-3360c72eecc1",
+  "Get Redirection URL":
+    "https://documenter.getpostman.com/view/50602298/2sBXiomAJs#977ab78c-a343-4584-a9d2-16af5b3a47fc",
+  "Sync Product":
+    "https://documenter.getpostman.com/view/53067515/2sBXqQFxdo#a6ca9856-bcd6-4153-82a9-840de2ccb557",
+  "Sync Collection":
+    "https://documenter.getpostman.com/view/53067515/2sBXqQFxdo#0b4716a8-09b2-495d-afe4-fc701e5370be",
 };
 
-function IntroOnePagerModal({ merchantName, onClose }: { merchantName: string; onClose: () => void }) {
+function IntroOnePagerModal({
+  merchantName,
+  onClose,
+}: {
+  merchantName: string;
+  onClose: () => void;
+}) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
       <div className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-border">
-        <div className="px-7 py-6 border-b border-border flex items-start justify-between gap-4" style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}>
+        <div
+          className="px-7 py-6 border-b border-border flex items-start justify-between gap-4"
+          style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryLight})` }}
+        >
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Zap className="w-5 h-5 text-white" fill="white" />
               <h2 className="heading-page text-white">Welcome to Handover Assist</h2>
             </div>
-            <p className="text-sm text-white/80">Hi <strong>{merchantName}</strong> — here's how this portal helps you go live faster.</p>
+            <p className="text-sm text-white/80">
+              Hi <strong>{merchantName}</strong> — here's how this portal helps you go live faster.
+            </p>
           </div>
-          <button onClick={onClose} className="text-white/70 hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-white/70 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
         </div>
         <div className="px-7 py-6 space-y-5">
           <div>
             <h3 className="heading-card text-foreground mb-2">🎯 What problem does this solve?</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Merchant integrations often stall because credentials, documents, status updates, and validations live across emails, Jira, Slack, and spreadsheets. <strong>Handover Assist consolidates everything you need to go live into one secure workspace</strong> — eliminating back-and-forth and accelerating time-to-launch.
+              Merchant integrations often stall because credentials, documents, status updates, and
+              validations live across emails, Jira, Slack, and spreadsheets.{" "}
+              <strong>
+                Handover Assist consolidates everything you need to go live into one secure
+                workspace
+              </strong>{" "}
+              — eliminating back-and-forth and accelerating time-to-launch.
             </p>
           </div>
           <div>
             <h3 className="heading-card text-foreground mb-2">⚡ How are we solving it?</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex gap-2"><span className="text-info-strong">1.</span><span><strong>Single source of truth</strong> — Live integration status, owner, and next steps, always in sync with your Handover CE.</span></li>
-              <li className="flex gap-2"><span className="text-info-strong">2.</span><span><strong>Secure credentials vault</strong> — Sandbox & production keys hidden by default, with copy + reveal controls.</span></li>
-              <li className="flex gap-2"><span className="text-info-strong">3.</span><span><strong>Self-service validation</strong> — Run the Payment Simulator without waiting on your onboarding manager.</span></li>
-              <li className="flex gap-2"><span className="text-info-strong">4.</span><span><strong>Documents on demand</strong> — BRD, SOW, mandatory APIs, KwikPass & MCP guides, all linked from one place.</span></li>
-              <li className="flex gap-2"><span className="text-info-strong">5.</span><span><strong>AI assistant</strong> — Ask anything about your integration; trained on your project's context.</span></li>
+              <li className="flex gap-2">
+                <span className="text-info-strong">1.</span>
+                <span>
+                  <strong>Single source of truth</strong> — Live integration status, owner, and next
+                  steps, always in sync with your Handover CE.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-info-strong">2.</span>
+                <span>
+                  <strong>Secure credentials vault</strong> — Sandbox & production keys hidden by
+                  default, with copy + reveal controls.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-info-strong">3.</span>
+                <span>
+                  <strong>Self-service validation</strong> — Run the Payment Simulator without
+                  waiting on your onboarding manager.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-info-strong">4.</span>
+                <span>
+                  <strong>Documents on demand</strong> — BRD, SOW, mandatory APIs, KwikPass & MCP
+                  guides, all linked from one place.
+                </span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-info-strong">5.</span>
+                <span>
+                  <strong>AI assistant</strong> — Ask anything about your integration; trained on
+                  your project's context.
+                </span>
+              </li>
             </ul>
           </div>
           <div className="p-4 rounded-lg bg-warning-soft border border-warning/30">
             <p className="text-xs text-warning-strong">
-              💡 <strong>Tip:</strong> Use the side panel on the right of each page for quick guidance. Ping your CE through the in-app chat if you get stuck.
+              💡 <strong>Tip:</strong> Use the side panel on the right of each page for quick
+              guidance. Ping your CE through the in-app chat if you get stuck.
             </p>
           </div>
         </div>
         <div className="px-7 py-4 border-t border-border flex justify-end">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90" style={{ background: BRAND.primary }}>
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: BRAND.primary }}
+          >
             Get Started →
           </button>
         </div>

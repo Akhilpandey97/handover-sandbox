@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { buddyCaller, corsHeaders, json } from "@/lib/buddy/scope.server";
-import { DEFAULT_BULK_LIMIT, UNDO_WINDOW_MS, isActionError, undoAction } from "@/lib/buddy/actions.server";
+import {
+  DEFAULT_BULK_LIMIT,
+  UNDO_WINDOW_MS,
+  isActionError,
+  undoAction,
+} from "@/lib/buddy/actions.server";
 import { getAnyAction as getAction } from "@/lib/buddy/registry.server";
 import { hasRole, maskSecret } from "@/lib/buddy/setup-catalog.server";
 import { drainQueue } from "@/lib/workflows.server";
@@ -20,8 +25,12 @@ const redactFor = (name: string, params: Record<string, any>) => {
 };
 
 /** Replace pasted secrets in the person's saved Buddy chats with a masked form. */
-async function redactChat(caller: NonNullable<Awaited<ReturnType<typeof buddyCaller>>>, secrets: string[]) {
-  const mask = (text: string) => secrets.reduce((t, s) => (s.length >= 6 ? t.split(s).join(maskSecret(s)) : t), text);
+async function redactChat(
+  caller: NonNullable<Awaited<ReturnType<typeof buddyCaller>>>,
+  secrets: string[],
+) {
+  const mask = (text: string) =>
+    secrets.reduce((t, s) => (s.length >= 6 ? t.split(s).join(maskSecret(s)) : t), text);
   const { data } = await caller.client
     .from("chat_messages")
     .select("id, content, metadata")
@@ -30,7 +39,8 @@ async function redactChat(caller: NonNullable<Awaited<ReturnType<typeof buddyCal
     .limit(200);
   for (const row of (data || []) as { id: string; content: string; metadata?: unknown }[]) {
     const content = mask(row.content || "");
-    const meta = row.metadata === undefined ? undefined : JSON.parse(mask(JSON.stringify(row.metadata)));
+    const meta =
+      row.metadata === undefined ? undefined : JSON.parse(mask(JSON.stringify(row.metadata)));
     if (content === row.content && JSON.stringify(meta) === JSON.stringify(row.metadata)) continue;
     await caller.client
       .from("chat_messages")
@@ -56,7 +66,11 @@ async function handler(req: Request): Promise<Response> {
   const mode = body.mode || "execute";
 
   if (!caller.canAct) {
-    return json({ error: "Your role can't make changes through Buddy. A manager or admin can." }, 403, corsHeaders);
+    return json(
+      { error: "Your role can't make changes through Buddy. A manager or admin can." },
+      403,
+      corsHeaders,
+    );
   }
 
   try {
@@ -67,14 +81,21 @@ async function handler(req: Request): Promise<Response> {
 
     const name = String(body.action || "");
     const def = getAction(name);
-    if (!def) return json({ error: `Buddy doesn't know how to ${name.replace(/_/g, " ") || "do that"}.` }, 400, corsHeaders);
+    if (!def)
+      return json(
+        { error: `Buddy doesn't know how to ${name.replace(/_/g, " ") || "do that"}.` },
+        400,
+        corsHeaders,
+      );
 
     if (def.requires === "admin" && !hasRole(caller.roles, "admin")) {
       return json({ error: `${def.label} is for workspace admins.` }, 403, corsHeaders);
     }
     if (caller.ownScopeOnly && (def as { portfolioOnly?: boolean }).portfolioOnly) {
       return json(
-        { error: `${def.label} covers more than the projects assigned to you. A manager or admin can do that.` },
+        {
+          error: `${def.label} covers more than the projects assigned to you. A manager or admin can do that.`,
+        },
         403,
         corsHeaders,
       );
@@ -94,7 +115,9 @@ async function handler(req: Request): Promise<Response> {
     const loggedParams = def.redactParams ? def.redactParams(params) : params;
     if (outcome.secrets?.length) await redactChat(caller, outcome.secrets);
     // Workflows react to what Buddy just changed now, not at the next scheduled run.
-    await drainQueue(req, caller.tenantId).catch((err) => console.error("ai-actions workflow drain:", (err as Error).message));
+    await drainQueue(req, caller.tenantId).catch((err) =>
+      console.error("ai-actions workflow drain:", (err as Error).message),
+    );
     const { data: log } = await caller.client
       .from("activity_logs")
       .insert({
@@ -106,7 +129,14 @@ async function handler(req: Request): Promise<Response> {
         description: outcome.log.description,
         entity_type: outcome.log.entityType,
         entity_id: outcome.log.entityId,
-        metadata: { action: name, params: loggedParams, result: { message: outcome.message }, undo: outcome.undo, log_category: outcome.log.category, via: "buddy" },
+        metadata: {
+          action: name,
+          params: loggedParams,
+          result: { message: outcome.message },
+          undo: outcome.undo,
+          log_category: outcome.log.category,
+          via: "buddy",
+        },
         status: "success",
       })
       .select("id")
@@ -138,10 +168,18 @@ async function handler(req: Request): Promise<Response> {
           action_type: "ai",
           category: "api",
           description: `Buddy couldn't ${String(body.action || "act").replace(/_/g, " ")}: ${message}`,
-          metadata: { action: body.action, params: redactFor(String(body.action || ""), body.params || {}), error: message, via: "buddy" },
+          metadata: {
+            action: body.action,
+            params: redactFor(String(body.action || ""), body.params || {}),
+            error: message,
+            via: "buddy",
+          },
           status: "failed",
         })
-        .then(() => undefined, () => undefined);
+        .then(
+          () => undefined,
+          () => undefined,
+        );
     }
     if (!isActionError(e)) console.error("ai-actions error:", e);
     return json({ error: message }, isActionError(e) ? 400 : 500, corsHeaders);

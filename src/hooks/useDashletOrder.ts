@@ -10,7 +10,7 @@ export interface CustomDashletConfig {
   field: string;
 }
 
-const read = <T,>(key: string, fallback: T): T => {
+const read = <T>(key: string, fallback: T): T => {
   try {
     const saved = localStorage.getItem(key);
     return saved ? (JSON.parse(saved) as T) : fallback;
@@ -20,7 +20,11 @@ const read = <T,>(key: string, fallback: T): T => {
 };
 
 const write = (key: string, value: unknown) => {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private mode */ }
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* private mode */
+  }
 };
 
 /**
@@ -30,7 +34,10 @@ const write = (key: string, value: unknown) => {
  * `storageKey` keeps separate arrangements apart — the manager dashboard, the
  * user dashboard and the KPI bar each remember their own layout.
  */
-export const useDashletOrder = (defaultOrder: string[], storageKey: string = DEFAULT_STORAGE_KEY) => {
+export const useDashletOrder = (
+  defaultOrder: string[],
+  storageKey: string = DEFAULT_STORAGE_KEY,
+) => {
   const hiddenKey = `${storageKey}_hidden`;
   const customKey = `${storageKey}_custom`;
 
@@ -50,7 +57,10 @@ export const useDashletOrder = (defaultOrder: string[], storageKey: string = DEF
     if (!Array.isArray(parsed) || parsed.length === 0) return known;
     // A section added since the last drag keeps its default position rather
     // than disappearing because the saved list never mentioned it.
-    return [...parsed.filter((k) => known.includes(k)), ...known.filter((k) => !parsed.includes(k))];
+    return [
+      ...parsed.filter((k) => known.includes(k)),
+      ...known.filter((k) => !parsed.includes(k)),
+    ];
   });
 
   const [dragging, setDragging] = useState<string | null>(null);
@@ -74,27 +84,55 @@ export const useDashletOrder = (defaultOrder: string[], storageKey: string = DEF
     setDragging(null);
     // Read through the setter: `order` in this closure is the value from the
     // render that registered the handler, so the last move would be lost.
-    setOrder((current) => { write(storageKey, current); return current; });
+    setOrder((current) => {
+      write(storageKey, current);
+      return current;
+    });
   };
 
-  const toggleHidden = useCallback((id: string) => {
-    setHidden((current) => {
-      const next = current.includes(id) ? current.filter((k) => k !== id) : [...current, id];
-      write(hiddenKey, next);
-      return next;
-    });
-  }, [hiddenKey]);
+  const toggleHidden = useCallback(
+    (id: string) => {
+      setHidden((current) => {
+        const next = current.includes(id) ? current.filter((k) => k !== id) : [...current, id];
+        write(hiddenKey, next);
+        return next;
+      });
+    },
+    [hiddenKey],
+  );
 
-  const addCustom = useCallback((config: Omit<CustomDashletConfig, "id">) => {
-    const id = `custom:${Date.now().toString(36)}`;
-    setCustom((current) => { const next = [...current, { ...config, id }]; write(customKey, next); return next; });
-    setOrder((current) => { const next = [...current, id]; write(storageKey, next); return next; });
-  }, [customKey, storageKey]);
+  const addCustom = useCallback(
+    (config: Omit<CustomDashletConfig, "id">) => {
+      const id = `custom:${Date.now().toString(36)}`;
+      setCustom((current) => {
+        const next = [...current, { ...config, id }];
+        write(customKey, next);
+        return next;
+      });
+      setOrder((current) => {
+        const next = [...current, id];
+        write(storageKey, next);
+        return next;
+      });
+    },
+    [customKey, storageKey],
+  );
 
-  const removeCustom = useCallback((id: string) => {
-    setCustom((current) => { const next = current.filter((c) => c.id !== id); write(customKey, next); return next; });
-    setOrder((current) => { const next = current.filter((k) => k !== id); write(storageKey, next); return next; });
-  }, [customKey, storageKey]);
+  const removeCustom = useCallback(
+    (id: string) => {
+      setCustom((current) => {
+        const next = current.filter((c) => c.id !== id);
+        write(customKey, next);
+        return next;
+      });
+      setOrder((current) => {
+        const next = current.filter((k) => k !== id);
+        write(storageKey, next);
+        return next;
+      });
+    },
+    [customKey, storageKey],
+  );
 
   const visibleOrder = order.filter((id) => !hidden.includes(id));
 

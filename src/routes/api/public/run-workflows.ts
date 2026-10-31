@@ -31,7 +31,11 @@ async function cronToken(req: Request): Promise<boolean> {
   const provided =
     req.headers.get("x-cron-token") || new URL(req.url).searchParams.get("token") || "";
   if (!provided) return false;
-  if ((process.env['CRON_SECRET'] ?? process.env['LOVABLE_CRON_SECRET']) && provided === (process.env['CRON_SECRET'] ?? process.env['LOVABLE_CRON_SECRET'])) return true;
+  if (
+    (process.env["CRON_SECRET"] ?? process.env["LOVABLE_CRON_SECRET"]) &&
+    provided === (process.env["CRON_SECRET"] ?? process.env["LOVABLE_CRON_SECRET"])
+  )
+    return true;
   const { data } = await adminClient().rpc("cron_token_matches", { _token: provided });
   return data === true;
 }
@@ -54,9 +58,13 @@ async function handler(req: Request): Promise<Response> {
 
     // The app calls this after every project edit, so the scheduled pass only
     // runs for the scheduler and when someone presses "Run now".
-    const body = (await req.clone().json().catch(() => ({}))) as { scheduled?: boolean };
+    const body = (await req
+      .clone()
+      .json()
+      .catch(() => ({}))) as { scheduled?: boolean };
     const queue = await drainQueue(req, tenantId);
-    const scheduled = isCron || body.scheduled ? await runScheduledPass(req, tenantId) : { fired: 0 };
+    const scheduled =
+      isCron || body.scheduled ? await runScheduledPass(req, tenantId) : { fired: 0 };
     return json({ processed: queue.processed, fired: queue.fired + scheduled.fired });
   } catch (err) {
     console.error("run-workflows error:", (err as Error).message);

@@ -30,7 +30,12 @@ interface AuthContextType {
   session: Session | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
-  signup: (email: string, password: string, name: string, team: TeamRole) => Promise<{ success: boolean; error?: string }>;
+  signup: (
+    email: string,
+    password: string,
+    name: string,
+    team: TeamRole,
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -95,8 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // so use the highest role they hold.
       const ROLE_RANK = ["super_admin", "superadmin", "admin", "manager"];
       const roleRows = ((roleData as { role: string }[] | null) ?? []).map((r) => r.role);
-      const topRole =
-        ROLE_RANK.find((r) => roleRows.includes(r)) ?? roleRows[0] ?? null;
+      const topRole = ROLE_RANK.find((r) => roleRows.includes(r)) ?? roleRows[0] ?? null;
 
       // Resolved server-side, so an expired or revoked grant simply stops
       // working — the client is never asked to be honest about it. The session
@@ -143,7 +147,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const recordLogin = async (userId: string, email: string) => {
-    await supabase.from("profiles").update({ last_login: new Date().toISOString() }).eq("id", userId);
+    await supabase
+      .from("profiles")
+      .update({ last_login: new Date().toISOString() })
+      .eq("id", userId);
     logActivity({ action_type: "user", category: "auth", description: `User logged in: ${email}` });
   };
 
@@ -169,48 +176,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, 10000);
 
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
 
-        // Only an explicit sign-out clears the user
-        if (event === "SIGNED_OUT" || !session?.user) {
-          if (event === "SIGNED_OUT" || !session) {
-            setCurrentUser(null);
-          }
-          setIsLoading(false);
-          return;
+      // Only an explicit sign-out clears the user
+      if (event === "SIGNED_OUT" || !session?.user) {
+        if (event === "SIGNED_OUT" || !session) {
+          setCurrentUser(null);
         }
-
-        // Token refreshes / tab focus events must not re-fetch or reset an existing profile
-        if (currentUserRef.current?.id === session.user.id) {
-          setIsLoading(false);
-          return;
-        }
-
-        // Defer profile fetch to avoid blocking the auth callback
-        setTimeout(async () => {
-          const lookup = await fetchUserProfile(session.user.id);
-          if (!mounted) return;
-          if (lookup.status === "ok") {
-            setCurrentUser(lookup.user);
-            setAccessError(null);
-            // Password sign-in records this itself; this covers the SSO redirect,
-            // which lands here rather than in login().
-            if (session.user.app_metadata?.provider !== "email") {
-              void recordLogin(lookup.user.id, lookup.user.email);
-            }
-          } else if (lookup.status === "missing") {
-            await denyAccess();
-          }
-          // "unavailable" keeps the previous user rather than logging them out
-          setIsLoading(false);
-        }, 0);
+        setIsLoading(false);
+        return;
       }
-    );
+
+      // Token refreshes / tab focus events must not re-fetch or reset an existing profile
+      if (currentUserRef.current?.id === session.user.id) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Defer profile fetch to avoid blocking the auth callback
+      setTimeout(async () => {
+        const lookup = await fetchUserProfile(session.user.id);
+        if (!mounted) return;
+        if (lookup.status === "ok") {
+          setCurrentUser(lookup.user);
+          setAccessError(null);
+          // Password sign-in records this itself; this covers the SSO redirect,
+          // which lands here rather than in login().
+          if (session.user.app_metadata?.provider !== "email") {
+            void recordLogin(lookup.user.id, lookup.user.email);
+          }
+        } else if (lookup.status === "missing") {
+          await denyAccess();
+        }
+        // "unavailable" keeps the previous user rather than logging them out
+        setIsLoading(false);
+      }, 0);
+    });
 
     // THEN check for existing session
-    supabase.auth.getSession()
+    supabase.auth
+      .getSession()
       .then(async ({ data: { session } }) => {
         if (!mounted) return;
         setSession(session);
@@ -245,7 +253,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userId = currentUserRef.current?.id;
       if (!userId) return;
       try {
-        const { data, error } = await (supabase as any).rpc("active_support_tenant", { _user_id: userId });
+        const { data, error } = await (supabase as any).rpc("active_support_tenant", {
+          _user_id: userId,
+        });
         // A failed check proves nothing; only a definite answer moves anyone.
         if (stopped || error) return;
         if (((data as string | null) ?? null) !== supportTenantId) window.location.reload();
@@ -255,13 +265,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const interval = window.setInterval(check, 60_000);
-    const onFocus = () => { void check(); };
+    const onFocus = () => {
+      void check();
+    };
     window.addEventListener("focus", onFocus);
 
-    const msToExpiry = supportExpiresAt ? new Date(supportExpiresAt).getTime() - Date.now() + 1_000 : NaN;
-    const expiryTimer = msToExpiry > 0 && msToExpiry < 2_147_483_647
-      ? window.setTimeout(check, msToExpiry)
-      : undefined;
+    const msToExpiry = supportExpiresAt
+      ? new Date(supportExpiresAt).getTime() - Date.now() + 1_000
+      : NaN;
+    const expiryTimer =
+      msToExpiry > 0 && msToExpiry < 2_147_483_647
+        ? window.setTimeout(check, msToExpiry)
+        : undefined;
 
     return () => {
       stopped = true;
@@ -271,8 +286,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [supportTenantId, supportExpiresAt]);
 
-
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (
+    email: string,
+    password: string,
+  ): Promise<{ success: boolean; error?: string }> => {
     try {
       setAccessError(null);
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -329,10 +346,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (
-    email: string, 
-    password: string, 
-    name: string, 
-    team: TeamRole
+    email: string,
+    password: string,
+    name: string,
+    team: TeamRole,
   ): Promise<{ success: boolean; error?: string }> => {
     try {
       const { data, error } = await supabase.auth.signUp({

@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  requireCred,
+  resendFrom,
+  resendReplyTo,
+} from "@/lib/tenant-integrations.server";
 import { projectUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
@@ -34,10 +39,9 @@ async function handler(req: Request): Promise<Response> {
   if (denied) return denied;
 
   try {
-
     const supabase = createClient(
-      process.env['SUPABASE_URL']!,
-      process.env['SUPABASE_SERVICE_ROLE_KEY']!
+      process.env["SUPABASE_URL"]!,
+      process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
     );
 
     const url = new URL(req.url);
@@ -46,9 +50,7 @@ async function handler(req: Request): Promise<Response> {
     const testRecipient = url.searchParams.get("to");
 
     // Load all tenants
-    const { data: tenants, error: tErr } = await supabase
-      .from("tenants")
-      .select("id, name");
+    const { data: tenants, error: tErr } = await supabase.from("tenants").select("id, name");
     if (tErr) throw tErr;
 
     const results: any[] = [];
@@ -157,20 +159,17 @@ async function handler(req: Request): Promise<Response> {
     });
   } catch (error) {
     console.error("slack-stuck-merchants-digest error", error);
-    return new Response(
-      JSON.stringify({ success: false, error: (error as Error).message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ success: false, error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 }
 async function findStuckItems(
   supabase: any,
   tenantId: string,
   tag: string,
-  hours: number
+  hours: number,
 ): Promise<StuckItem[]> {
   const cutoff = new Date(Date.now() - hours * 3600_000).toISOString();
 
@@ -226,7 +225,7 @@ async function findStuckItems(
   if (!stuckItems.length) return [];
 
   const projectIds = Array.from(
-    new Set(stuckItems.map((id: string) => itemById.get(id)!.project_id))
+    new Set(stuckItems.map((id: string) => itemById.get(id)!.project_id)),
   );
 
   const { data: projects } = await supabase
@@ -242,9 +241,7 @@ async function findStuckItems(
     const project = projectById.get(item.project_id);
     if (!project || project.archived) continue;
     const tagCmt = latestTagByItem.get(itemId);
-    const hoursStuck = Math.floor(
-      (Date.now() - new Date(tagCmt.created_at).getTime()) / 3600_000
-    );
+    const hoursStuck = Math.floor((Date.now() - new Date(tagCmt.created_at).getTime()) / 3600_000);
     stuck.push({
       project_id: project.id,
       checklist_item_id: itemId,
@@ -314,9 +311,11 @@ function buildDigestHtml(
       return `
       <div style="border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#ffffff">
         <div style="font-size:15px;font-weight:600;color:#11263b;margin-bottom:4px">
-          ${url
-            ? `<a href="${url}" style="color:#0074F8;text-decoration:none">${escapeHtml(it.merchant_name)}</a>`
-            : escapeHtml(it.merchant_name)}
+          ${
+            url
+              ? `<a href="${url}" style="color:#0074F8;text-decoration:none">${escapeHtml(it.merchant_name)}</a>`
+              : escapeHtml(it.merchant_name)
+          }
           <span style="color:#546978;font-weight:400;font-size:13px"> · ${escapeHtml(it.funnel_stage)} · ${it.hours_stuck}h stuck</span>
         </div>
         <div style="font-size:13px;color:#3b5466;margin-bottom:6px">

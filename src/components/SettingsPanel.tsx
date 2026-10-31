@@ -7,7 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Save, RotateCcw, Settings, Palette, Tags, Layers, Mail, FileText, Zap, Activity, Bell, Plug } from "lucide-react";
+import {
+  Save,
+  RotateCcw,
+  Settings,
+  Palette,
+  Tags,
+  Layers,
+  Mail,
+  FileText,
+  Zap,
+  Activity,
+  Bell,
+  Plug,
+} from "lucide-react";
 import { LogoUpload } from "./LogoUpload";
 import { CustomFieldsManager } from "./settings/CustomFieldsManager";
 import { ChecklistFormsManager } from "./settings/ChecklistFormsManager";
@@ -156,7 +169,8 @@ const FIELD_GROUPS: LabelGroup[] = [
 const EMAIL_GROUPS: LabelGroup[] = [
   {
     title: "Email Monitoring",
-    description: "Configure the email address and subject keywords for auto-parsing new brand onboarding emails",
+    description:
+      "Configure the email address and subject keywords for auto-parsing new brand onboarding emails",
     keys: [
       { key: "email_monitor_address", label: "Sender Email Address (emails FROM this address)" },
       { key: "email_subject_keywords", label: "Subject Keywords (comma-separated)" },
@@ -282,12 +296,16 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {group.keys.map(({ key, label }) => (
               <div key={key} className="space-y-1.5">
-                <Label htmlFor={key} className="text-xs text-muted-foreground">{label}</Label>
+                <Label htmlFor={key} className="text-xs text-muted-foreground">
+                  {label}
+                </Label>
                 <Input
                   id={key}
                   value={getValue(key)}
                   onChange={(e) => handleChange(key, e.target.value)}
-                  className={draft[key] !== undefined ? "border-primary ring-1 ring-primary/20" : ""}
+                  className={
+                    draft[key] !== undefined ? "border-primary ring-1 ring-primary/20" : ""
+                  }
                 />
               </div>
             ))}
@@ -307,7 +325,9 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {group.keys.map(({ key, label }) => (
               <div key={key} className="space-y-2">
-                <Label htmlFor={key} className="text-xs text-muted-foreground">{label}</Label>
+                <Label htmlFor={key} className="text-xs text-muted-foreground">
+                  {label}
+                </Label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -323,7 +343,10 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
                     placeholder="#000000"
                   />
                 </div>
-                <div className="h-6 rounded-md border border-border/50" style={{ backgroundColor: getValue(key) }} />
+                <div
+                  className="h-6 rounded-md border border-border/50"
+                  style={{ backgroundColor: getValue(key) }}
+                />
               </div>
             ))}
           </div>
@@ -342,10 +365,12 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleReset}>
-              <RotateCcw className="h-4 w-4 mr-2" />Revert
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Revert
             </Button>
             <Button size="sm" onClick={handleSave} disabled={isSaving}>
-              <Save className="h-4 w-4 mr-2" />{isSaving ? "Saving..." : "Save All Changes"}
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? "Saving..." : "Save All Changes"}
             </Button>
           </div>
         </div>
@@ -355,40 +380,52 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
         {!activeSubTab && (
           <TabsList className="flex flex-wrap h-auto gap-1 mb-4">
             <TabsTrigger value="general" className="gap-1.5">
-              <Settings className="h-3.5 w-3.5" />General
+              <Settings className="h-3.5 w-3.5" />
+              General
             </TabsTrigger>
             <TabsTrigger value="fields" className="gap-1.5">
-              <Tags className="h-3.5 w-3.5" />Field Labels
+              <Tags className="h-3.5 w-3.5" />
+              Field Labels
             </TabsTrigger>
             <TabsTrigger value="custom-fields" className="gap-1.5">
-              <Layers className="h-3.5 w-3.5" />Custom Fields
+              <Layers className="h-3.5 w-3.5" />
+              Custom Fields
             </TabsTrigger>
             <TabsTrigger value="checklist-forms" className="gap-1.5">
-              <FileText className="h-3.5 w-3.5" />Checklist Forms
+              <FileText className="h-3.5 w-3.5" />
+              Checklist Forms
             </TabsTrigger>
             <TabsTrigger value="colours" className="gap-1.5">
-              <Palette className="h-3.5 w-3.5" />Colours
+              <Palette className="h-3.5 w-3.5" />
+              Colours
             </TabsTrigger>
             <TabsTrigger value="email" className="gap-1.5">
-              <Mail className="h-3.5 w-3.5" />Add New Projects
+              <Mail className="h-3.5 w-3.5" />
+              Add New Projects
             </TabsTrigger>
             <TabsTrigger value="workflows" className="gap-1.5">
-              <Zap className="h-3.5 w-3.5" />Workflows
+              <Zap className="h-3.5 w-3.5" />
+              Workflows
             </TabsTrigger>
             <TabsTrigger value="slack-alerts" className="gap-1.5">
-              <Bell className="h-3.5 w-3.5" />Slack Alerts
+              <Bell className="h-3.5 w-3.5" />
+              Slack Alerts
             </TabsTrigger>
             <TabsTrigger value="funnel" className="gap-1.5">
-              <Layers className="h-3.5 w-3.5" />Project Stages
+              <Layers className="h-3.5 w-3.5" />
+              Project Stages
             </TabsTrigger>
             <TabsTrigger value="integrations" className="gap-1.5">
-              <Plug className="h-3.5 w-3.5" />Integrations
+              <Plug className="h-3.5 w-3.5" />
+              Integrations
             </TabsTrigger>
             <TabsTrigger value="activity-log" className="gap-1.5">
-              <Activity className="h-3.5 w-3.5" />Activity Log
+              <Activity className="h-3.5 w-3.5" />
+              Activity Log
             </TabsTrigger>
             <TabsTrigger value="buddy" className="gap-1.5">
-              <Zap className="h-3.5 w-3.5" />Buddy
+              <Zap className="h-3.5 w-3.5" />
+              Buddy
             </TabsTrigger>
           </TabsList>
         )}
@@ -399,16 +436,20 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="portal-heading flex items-center gap-2">
-                <Settings className="h-4 w-4 text-primary" />General & Teams
+                <Settings className="h-4 w-4 text-primary" />
+                General & Teams
               </CardTitle>
-              <CardDescription>Application branding, team names, and responsibility labels</CardDescription>
+              <CardDescription>
+                Application branding, team names, and responsibility labels
+              </CardDescription>
             </CardHeader>
             <CardContent>{renderLabelGroups(GENERAL_GROUPS)}</CardContent>
           </Card>
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="portal-heading flex items-center gap-2">
-                <Tags className="h-4 w-4 text-primary" />Project States
+                <Tags className="h-4 w-4 text-primary" />
+                Project States
               </CardTitle>
               <CardDescription>Configure project state labels</CardDescription>
             </CardHeader>
@@ -418,18 +459,24 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
 
         {/* Integrations Tab */}
         <TabsContent value="integrations">
-          {perms.canManageIntegrations ? <IntegrationsSettings /> : <NoAccessCard message="Integration credentials and API keys are managed by workspace admins." />}
+          {perms.canManageIntegrations ? (
+            <IntegrationsSettings />
+          ) : (
+            <NoAccessCard message="Integration credentials and API keys are managed by workspace admins." />
+          )}
         </TabsContent>
-
 
         {/* Field Labels Tab */}
         <TabsContent value="fields">
-           <Card className="shadow-sm">
+          <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="portal-heading flex items-center gap-2">
-                 <Tags className="h-4 w-4 text-primary" />Field Labels
+                <Tags className="h-4 w-4 text-primary" />
+                Field Labels
               </CardTitle>
-              <CardDescription>Customise labels for built-in project fields, links, dates, and notes</CardDescription>
+              <CardDescription>
+                Customise labels for built-in project fields, links, dates, and notes
+              </CardDescription>
             </CardHeader>
             <CardContent>{renderLabelGroups(FIELD_GROUPS)}</CardContent>
           </Card>
@@ -455,15 +502,18 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
               });
             }}
             currentColors={Object.fromEntries(
-              COLOR_GROUPS.flatMap(g => g.keys).map(({ key }) => [key, getValue(key)])
+              COLOR_GROUPS.flatMap((g) => g.keys).map(({ key }) => [key, getValue(key)]),
             )}
           />
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="portal-heading flex items-center gap-2">
-                <Palette className="h-4 w-4 text-primary" />Colours & Branding
+                <Palette className="h-4 w-4 text-primary" />
+                Colours & Branding
               </CardTitle>
-              <CardDescription>Fine-tune individual colours for team badges, card backgrounds, and state indicators</CardDescription>
+              <CardDescription>
+                Fine-tune individual colours for team badges, card backgrounds, and state indicators
+              </CardDescription>
             </CardHeader>
             <CardContent>{renderColorGroups(COLOR_GROUPS)}</CardContent>
           </Card>
@@ -474,9 +524,12 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="portal-heading flex items-center gap-2">
-                <Mail className="h-4 w-4 text-primary" />Email Monitoring
+                <Mail className="h-4 w-4 text-primary" />
+                Email Monitoring
               </CardTitle>
-              <CardDescription>Configure email parsing for auto-creating projects from emails</CardDescription>
+              <CardDescription>
+                Configure email parsing for auto-creating projects from emails
+              </CardDescription>
             </CardHeader>
             <CardContent>{renderLabelGroups(EMAIL_GROUPS)}</CardContent>
           </Card>

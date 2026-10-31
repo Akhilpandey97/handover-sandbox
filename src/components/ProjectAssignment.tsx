@@ -2,8 +2,21 @@ import { useState, useEffect } from "react";
 import { useProjects } from "@/contexts/ProjectContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -42,7 +55,7 @@ export const ProjectAssignment = () => {
     const fetchTeamMembers = async () => {
       setIsLoadingMembers(true);
       setTargetOwner(""); // Reset owner when team changes
-      
+
       try {
         // Get profiles for the selected team
         const { data: profiles, error: profilesError } = await supabase
@@ -62,9 +75,9 @@ export const ProjectAssignment = () => {
         if (rolesError) throw rolesError;
 
         // Combine: get all profiles that match either by team or by role
-        const roleUserIds = userRoles?.map(r => r.user_id) || [];
+        const roleUserIds = userRoles?.map((r) => r.user_id) || [];
         const allProfiles = profiles || [];
-        
+
         // Get additional profiles for users with roles but different team in profile
         if (roleUserIds.length > 0) {
           const { data: additionalProfiles } = await supabase
@@ -72,10 +85,10 @@ export const ProjectAssignment = () => {
             .select("id, name, email, team")
             .eq("tenant_id", tenantId)
             .in("id", roleUserIds);
-          
+
           if (additionalProfiles) {
-            additionalProfiles.forEach(p => {
-              if (!allProfiles.find(ap => ap.id === p.id)) {
+            additionalProfiles.forEach((p) => {
+              if (!allProfiles.find((ap) => ap.id === p.id)) {
                 allProfiles.push({ ...p, team: targetTeam });
               }
             });
@@ -149,16 +162,16 @@ export const ProjectAssignment = () => {
 
       // Refresh projects
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
-      
-      const ownerName = teamMembers.find(m => m.id === targetOwner)?.name;
+
+      const ownerName = teamMembers.find((m) => m.id === targetOwner)?.name;
 
       // Send email notifications to assigned owner
       if (targetOwner) {
-        const owner = teamMembers.find(m => m.id === targetOwner);
+        const owner = teamMembers.find((m) => m.id === targetOwner);
         if (owner) {
           const selectedProjectNames = assignableProjects
-            .filter(p => selectedProjects.has(p.id))
-            .map(p => p.merchantName);
+            .filter((p) => selectedProjects.has(p.id))
+            .map((p) => p.merchantName);
           for (const name of selectedProjectNames) {
             sendNotification({
               type: "project_assignment",
@@ -171,10 +184,10 @@ export const ProjectAssignment = () => {
         }
       }
 
-      const assignmentMsg = targetOwner 
+      const assignmentMsg = targetOwner
         ? `Assigned ${selectedProjects.size} projects to ${ownerName} (${teamLabels[targetTeam]})`
         : `Assigned ${selectedProjects.size} projects to ${teamLabels[targetTeam]}`;
-      
+
       toast.success(assignmentMsg);
       setSelectedProjects(new Set());
     } catch (error: any) {
@@ -188,7 +201,7 @@ export const ProjectAssignment = () => {
   // Get owner name for display
   const getOwnerName = (ownerId: string | undefined) => {
     if (!ownerId) return null;
-    const owner = teamMembers.find(m => m.id === ownerId);
+    const owner = teamMembers.find((m) => m.id === ownerId);
     return owner?.name;
   };
 
@@ -223,23 +236,25 @@ export const ProjectAssignment = () => {
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Owner:</span>
-          <Select 
-            value={targetOwner || "none"} 
-            onValueChange={(v) => setTargetOwner(v === "none" ? "" : v)}
-            disabled={isLoadingMembers}
-          >
-            <SelectTrigger className="w-56">
-              <SelectValue placeholder={isLoadingMembers ? "Loading..." : "Select owner (optional)"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No specific owner</SelectItem>
-              {teamMembers.map((member) => (
-                <SelectItem key={member.id} value={member.id}>
-                  {member.name} ({member.email})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select
+              value={targetOwner || "none"}
+              onValueChange={(v) => setTargetOwner(v === "none" ? "" : v)}
+              disabled={isLoadingMembers}
+            >
+              <SelectTrigger className="w-56">
+                <SelectValue
+                  placeholder={isLoadingMembers ? "Loading..." : "Select owner (optional)"}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No specific owner</SelectItem>
+                {teamMembers.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name} ({member.email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -266,7 +281,10 @@ export const ProjectAssignment = () => {
                 <TableRow>
                   <TableHead className="w-12">
                     <Checkbox
-                      checked={selectedProjects.size === assignableProjects.length && assignableProjects.length > 0}
+                      checked={
+                        selectedProjects.size === assignableProjects.length &&
+                        assignableProjects.length > 0
+                      }
                       onCheckedChange={toggleAll}
                     />
                   </TableHead>
@@ -291,9 +309,7 @@ export const ProjectAssignment = () => {
                     <TableCell>{project.platform || "-"}</TableCell>
                     <TableCell>
                       {project.currentOwnerTeam ? (
-                        <Badge variant="outline">
-                          {teamLabels[project.currentOwnerTeam]}
-                        </Badge>
+                        <Badge variant="outline">{teamLabels[project.currentOwnerTeam]}</Badge>
                       ) : (
                         <Badge variant="secondary">Unassigned</Badge>
                       )}

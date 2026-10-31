@@ -49,7 +49,9 @@ export const useFunnelConfig = () => {
   const stages = data || DEFAULT_FUNNEL_STAGES;
 
   // Keep the runtime registry in sync so non-hook helpers stay tenant-aware
-  useEffect(() => { setActiveFunnelStages(stages); }, [stages]);
+  useEffect(() => {
+    setActiveFunnelStages(stages);
+  }, [stages]);
 
   return { stages, isLoading, saveStages };
 };

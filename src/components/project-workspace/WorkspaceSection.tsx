@@ -27,7 +27,10 @@ export const WorkspaceSection = ({
 
   return (
     <Card
-      className={cn("overflow-hidden rounded-[2rem] shadow-[0_28px_70px_-42px_hsl(var(--foreground)/0.16)]", className)}
+      className={cn(
+        "overflow-hidden rounded-[2rem] shadow-[0_28px_70px_-42px_hsl(var(--foreground)/0.16)]",
+        className,
+      )}
       style={{
         backgroundColor: hexToRgba(sectionBackground, 0.95),
         border: `1px solid ${hexToRgba(sectionBorder, 0.92)}`,

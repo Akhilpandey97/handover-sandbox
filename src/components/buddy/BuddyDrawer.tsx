@@ -39,7 +39,9 @@ export const BuddyDrawer = () => {
 
   const onBuddyTab = pathname.startsWith("/hi-there");
   // Customer-facing pages are not ours to put an internal assistant on.
-  const customerPage = ["/portal", "/brd", "/reset-password"].some((path) => pathname.startsWith(path));
+  const customerPage = ["/portal", "/brd", "/reset-password"].some((path) =>
+    pathname.startsWith(path),
+  );
 
   useEffect(() => {
     if (onBuddyTab) return;
@@ -56,7 +58,11 @@ export const BuddyDrawer = () => {
   }, [open, onBuddyTab, setOpenPersist]);
 
   useEffect(() => {
-    if (open) window.setTimeout(() => panelRef.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus(), 50);
+    if (open)
+      window.setTimeout(
+        () => panelRef.current?.querySelector<HTMLTextAreaElement>("textarea")?.focus(),
+        50,
+      );
   }, [open, pathname]);
 
   if (!currentUser || onBuddyTab || customerPage) return null;
@@ -86,7 +92,13 @@ export const BuddyDrawer = () => {
           open ? "translate-x-0" : "pointer-events-none translate-x-full",
         )}
       >
-        {open && <BuddyChat variant="drawer" page={{ path: pathname, projectId }} onClose={() => setOpenPersist(false)} />}
+        {open && (
+          <BuddyChat
+            variant="drawer"
+            page={{ path: pathname, projectId }}
+            onClose={() => setOpenPersist(false)}
+          />
+        )}
       </div>
     </>
   );

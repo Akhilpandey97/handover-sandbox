@@ -44,7 +44,10 @@ async function POST({ request }: { request: Request }): Promise<Response> {
   const parsed = projectInputSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return apiJson(
-      { error: "Validation failed", fields: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })) },
+      {
+        error: "Validation failed",
+        fields: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
+      },
       400,
     );
   }
@@ -92,7 +95,10 @@ async function POST({ request }: { request: Request }): Promise<Response> {
       .maybeSingle();
     if (dupe) {
       return apiJson(
-        { error: "A project with this merchant_name already exists", project_id: (dupe as { id: string }).id },
+        {
+          error: "A project with this merchant_name already exists",
+          project_id: (dupe as { id: string }).id,
+        },
         409,
       );
     }
@@ -108,7 +114,11 @@ async function POST({ request }: { request: Request }): Promise<Response> {
     current_owner_team: "mint",
   };
 
-  const { data: created, error } = await admin.from("projects").insert(row).select("id, mid").single();
+  const { data: created, error } = await admin
+    .from("projects")
+    .insert(row)
+    .select("id, mid")
+    .single();
   if (error) return apiJson({ error: error.message }, 500);
   const project = created as { id: string; mid: string };
 

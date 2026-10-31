@@ -19,9 +19,12 @@ export const useLastChecklistActivity = () => {
     gcTime: 15 * 60_000,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<Record<string, string>> => {
-      const { data, error } = await supabase.rpc("project_last_activity" as never, {
-        _tenant_id: tenantId,
-      } as never);
+      const { data, error } = await supabase.rpc(
+        "project_last_activity" as never,
+        {
+          _tenant_id: tenantId,
+        } as never,
+      );
       if (error) throw error;
       const map: Record<string, string> = {};
       for (const row of (data || []) as { project_id: string; last_comment_at: string }[]) {

@@ -38,7 +38,8 @@ export function parseBuddySettings(raw: unknown): BuddySettings {
   const limit = Number(v.bulk_limit);
   return {
     disabled_actions: Array.isArray(v.disabled_actions) ? v.disabled_actions.map(String) : [],
-    bulk_limit: Number.isFinite(limit) && limit >= 1 ? Math.min(Math.round(limit), 500) : DEFAULT_BULK_LIMIT,
+    bulk_limit:
+      Number.isFinite(limit) && limit >= 1 ? Math.min(Math.round(limit), 500) : DEFAULT_BULK_LIMIT,
     instructions: typeof v.instructions === "string" ? v.instructions.slice(0, 2000) : "",
     brief_enabled: v.brief_enabled !== false,
   };

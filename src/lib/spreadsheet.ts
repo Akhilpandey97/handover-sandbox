@@ -11,23 +11,34 @@ export interface Sheet {
   rows: string[][];
 }
 
-export const SPREADSHEET_ACCEPT = ".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+export const SPREADSHEET_ACCEPT =
+  ".csv,.xlsx,.xls,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const MAX_BYTES = 10 * 1024 * 1024;
 
 export async function readSpreadsheet(file: File): Promise<Sheet[]> {
-  if (file.size > MAX_BYTES) throw new Error("That file is over 10 MB. Split it into smaller files.");
-  if (!/\.(csv|xlsx|xls)$/i.test(file.name)) throw new Error("Choose an Excel (.xlsx, .xls) or CSV file.");
+  if (file.size > MAX_BYTES)
+    throw new Error("That file is over 10 MB. Split it into smaller files.");
+  if (!/\.(csv|xlsx|xls)$/i.test(file.name))
+    throw new Error("Choose an Excel (.xlsx, .xls) or CSV file.");
   const XLSX = await import("xlsx");
   const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: true });
   const sheets: Sheet[] = [];
   for (const name of workbook.SheetNames) {
-    const grid = XLSX.utils.sheet_to_json<unknown[]>(workbook.Sheets[name], { header: 1, raw: false, defval: "", blankrows: false });
+    const grid = XLSX.utils.sheet_to_json<unknown[]>(workbook.Sheets[name], {
+      header: 1,
+      raw: false,
+      defval: "",
+      blankrows: false,
+    });
     const cells = grid.map((row) => row.map((v) => String(v ?? "").trim()));
     // The header is the first row with anything in it.
     const headerAt = cells.findIndex((row) => row.some(Boolean));
     if (headerAt === -1) continue;
     const headers = cells[headerAt].map((h, i) => h || `Column ${i + 1}`);
-    const rows = cells.slice(headerAt + 1).filter((row) => row.some(Boolean)).map((row) => headers.map((_, i) => row[i] ?? ""));
+    const rows = cells
+      .slice(headerAt + 1)
+      .filter((row) => row.some(Boolean))
+      .map((row) => headers.map((_, i) => row[i] ?? ""));
     sheets.push({ name, headers, rows });
   }
   if (sheets.length === 0) throw new Error("That file has no rows.");

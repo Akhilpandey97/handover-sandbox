@@ -29,6 +29,7 @@ From a read of `AiChatBot.tsx`, `BuddyBubble.tsx`, `ai-chat.ts`, `ai-actions.ts`
 - [x] Answer styling: full-width assistant text, no read ticks or pattern background, steps and sources lines, markdown tables, copy / ask again / 👍👎, stop button, slash commands
 
 Done when:
+
 - [ ] Questions about project 21+ answer correctly on a 60-project workspace
 - [ ] Buddy opened on a project page needs no project name
 - [ ] No IDs or database field names in any approval
@@ -53,6 +54,7 @@ Done when:
 Not undoable by design: transfers (the receiving team accepts or returns), emails, notifications, meeting links, BRD forms, automations, new projects.
 
 Done when:
+
 - [ ] Brief counts match the dashboard's overdue and go-live figures (definitions in `buddy-brief.ts`)
 - [ ] Merchant email cannot send without preview and approval
 - [ ] Undo restores previous values and logs both steps
@@ -67,6 +69,7 @@ Done when:
 - [x] Per-workspace settings (admins): switch actions off, bulk limit, instructions for Buddy, daily brief on/off — all enforced on the server
 
 Done when:
+
 - [ ] "Go-lives by month" builds a chart that matches the Reports tab counts
 - [ ] Switching off an action stops Buddy offering or running it
 - [ ] 👎 answers are reviewable with the question and answer

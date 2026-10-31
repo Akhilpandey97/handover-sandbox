@@ -1,25 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+} from "@/lib/tenant-integrations.server";
 import { aiText } from "@/lib/ai-gateway.server";
 import Anthropic from "@anthropic-ai/sdk";
 import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
 
-
 /** Maps an SDK error onto the HTTP shape this route has always returned. */
-function aiErrorResponse(e: unknown, corsHeaders: Record<string, string>, rateMessage: string): Response | null {
+function aiErrorResponse(
+  e: unknown,
+  corsHeaders: Record<string, string>,
+  rateMessage: string,
+): Response | null {
   if (e instanceof Anthropic.RateLimitError) {
     return new Response(JSON.stringify({ error: rateMessage }), {
-      status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
   if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
     return new Response(JSON.stringify({ error: "AI credits exhausted" }), {
-      status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 402,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
   if (e instanceof Anthropic.APIError) {
     return new Response(JSON.stringify({ error: `AI error: ${e.status}` }), {
-      status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 502,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
   return null;
@@ -29,8 +39,6 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-
 
 const hdr = (headers: any[], name: string) =>
   headers?.find((h: any) => h.name?.toLowerCase() === name.toLowerCase())?.value || "";
@@ -114,11 +122,7 @@ const LIVE_MARKERS = [
   "your account has been successfully activated",
 ];
 function isLiveThread(texts: string[]): boolean {
-  const flat = texts
-    .join(" ")
-    .replace(/[’‘]/g, "'")
-    .replace(/\s+/g, " ")
-    .toLowerCase();
+  const flat = texts.join(" ").replace(/[’‘]/g, "'").replace(/\s+/g, " ").toLowerCase();
   return LIVE_MARKERS.every((m) => flat.includes(m));
 }
 
@@ -134,16 +138,19 @@ function parseMerchantName(subject: string): string {
     .replace(/^\s*((re|fw|fwd)\s*:\s*)+/i, "")
     .replace(/\s+/g, " ")
     .trim();
-  const clean = (value: string) => value
-    .replace(/^[\s|<>:\-–—]+|[\s|<>:\-–—]+$/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  const clean = (value: string) =>
+    value
+      .replace(/^[\s|<>:\-–—]+|[\s|<>:\-–—]+$/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
   // Parenthesised templates place the merchant either immediately after
   // "GoKwik" or at the end of "Let's Begin Your Onboarding Journey".
   const inParens = s.match(/welcome\s+to\s+gokwik\s*\(([^)]+)\)/i);
   if (inParens?.[1]) return clean(inParens[1]);
-  const journeyParens = s.match(/let(?:'|’)?s\s+begin\s+your\s+onboarding\s+journey\s*\(([^)]+)\)/i);
+  const journeyParens = s.match(
+    /let(?:'|’)?s\s+begin\s+your\s+onboarding\s+journey\s*\(([^)]+)\)/i,
+  );
   if (journeyParens?.[1]) return clean(journeyParens[1]);
 
   // Merchant-led templates: Merchant | Welcome to GoKwik / Merchant <> GoKwik.
@@ -153,13 +160,17 @@ function parseMerchantName(subject: string): string {
   if (beforeGokwik?.[1]) return clean(beforeGokwik[1]);
 
   // Less common dash/colon variants in either direction.
-  const welcomeThenMerchant = s.match(/welcome\s+to\s+gokwik\s*(?:\||:|\-|–|—)\s*(?!let(?:'|’)?s\s+begin)(.+?)(?=\s*(?:\||<>|\-|–|—)\s*let(?:'|’)?s\s+begin|$)/i);
+  const welcomeThenMerchant = s.match(
+    /welcome\s+to\s+gokwik\s*(?:\||:|\-|–|—)\s*(?!let(?:'|’)?s\s+begin)(.+?)(?=\s*(?:\||<>|\-|–|—)\s*let(?:'|’)?s\s+begin|$)/i,
+  );
   if (welcomeThenMerchant?.[1]) return clean(welcomeThenMerchant[1]);
   const merchantThenWelcome = s.match(/^(.+?)\s*(?:\||:|\-|–|—)\s*welcome\s+to\s+gokwik\b/i);
   if (merchantThenWelcome?.[1]) return clean(merchantThenWelcome[1]);
 
   // Reversed onboarding title: Let's Begin Your Onboarding Journey | Merchant.
-  const afterJourney = s.match(/let(?:'|’)?s\s+begin\s+your\s+onboarding\s+journey\s*(?:\||:|\-|–|—)\s*(.+)$/i);
+  const afterJourney = s.match(
+    /let(?:'|’)?s\s+begin\s+your\s+onboarding\s+journey\s*(?:\||:|\-|–|—)\s*(.+)$/i,
+  );
   if (afterJourney?.[1]) return clean(afterJourney[1]);
   return "";
 }
@@ -189,7 +200,8 @@ async function handler(req: Request): Promise<Response> {
       headers = await gmailHeaders(creds);
     } catch (e) {
       return new Response(JSON.stringify({ error: (e as Error).message }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -203,7 +215,8 @@ async function handler(req: Request): Promise<Response> {
         : [];
       if (!accountNames.length || !merchantNames.length) {
         return new Response(JSON.stringify({ error: "accountNames and merchantNames required" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -233,7 +246,9 @@ async function handler(req: Request): Promise<Response> {
       let matches: Record<string, string | null> = {};
       try {
         const jsonText = content.replace(/```json|```/g, "").trim();
-        const parsed = JSON.parse(jsonText.slice(jsonText.indexOf("{"), jsonText.lastIndexOf("}") + 1));
+        const parsed = JSON.parse(
+          jsonText.slice(jsonText.indexOf("{"), jsonText.lastIndexOf("}") + 1),
+        );
         if (parsed?.matches && typeof parsed.matches === "object") {
           // Symbol-insensitive canonicalisation: map both lowercase and fully
           // normalised (symbols/spaces stripped) forms back to the exact candidate
@@ -265,14 +280,17 @@ async function handler(req: Request): Promise<Response> {
         : [];
       if (!threadIds.length) {
         return new Response(JSON.stringify({ error: "threadIds required" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       const items = await Promise.all(
         threadIds.map(async (id) => {
           try {
-            const tRes = await fetch(`${GMAIL_API}/users/me/threads/${id}?format=full`, { headers });
+            const tRes = await fetch(`${GMAIL_API}/users/me/threads/${id}?format=full`, {
+              headers,
+            });
             const tData = await tRes.json();
             if (!tRes.ok || tData.error) return null;
             const msgs = tData.messages || [];
@@ -281,7 +299,9 @@ async function handler(req: Request): Promise<Response> {
             const subject = hdr(msgs[0].payload?.headers, "Subject");
             const from = hdr(last.payload?.headers, "From");
             const text = `${last.snippet || ""} ${extractBody(last.payload)}`
-              .replace(/\s+/g, " ").trim().slice(0, 1500);
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 1500);
             if (!text) return null;
             return { threadId: id, subject, from, text };
           } catch {
@@ -359,7 +379,9 @@ async function handler(req: Request): Promise<Response> {
       let summaries: any[] = [];
       try {
         const jsonText = content.replace(/```json|```/g, "").trim();
-        const parsed = JSON.parse(jsonText.slice(jsonText.indexOf("{"), jsonText.lastIndexOf("}") + 1));
+        const parsed = JSON.parse(
+          jsonText.slice(jsonText.indexOf("{"), jsonText.lastIndexOf("}") + 1),
+        );
         summaries = Array.isArray(parsed?.summaries) ? parsed.summaries : [];
       } catch {
         summaries = [];
@@ -369,7 +391,13 @@ async function handler(req: Request): Promise<Response> {
       const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
       summaries = summaries
-        .filter((s) => s && typeof s.threadId === "string" && typeof s.summary === "string" && s.summary.trim())
+        .filter(
+          (s) =>
+            s &&
+            typeof s.threadId === "string" &&
+            typeof s.summary === "string" &&
+            s.summary.trim(),
+        )
         .map((s) => {
           let status = STATUSES.includes(s.status) ? s.status : "Needs Review";
           const evidence = typeof s.evidence === "string" ? s.evidence.trim() : "";
@@ -433,7 +461,8 @@ async function handler(req: Request): Promise<Response> {
         console.error(`Gmail list failed [${listRes.status}]: ${details}`);
         if (allThreads.length === 0) {
           return new Response(JSON.stringify({ error: "Gmail request failed", details }), {
-            status: listRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: listRes.status,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         break;
@@ -441,7 +470,6 @@ async function handler(req: Request): Promise<Response> {
       allThreads.push(...(listData.threads || []));
       pageToken = listData.nextPageToken;
       if (!pageToken) break;
-      
     }
 
     // Gmail-side lookup of threads that already got the activation ("live") email.
@@ -464,7 +492,9 @@ async function handler(req: Request): Promise<Response> {
         livePageToken = liveData.nextPageToken;
         if (!livePageToken) break;
       }
-    } catch (_) { /* non-fatal */ }
+    } catch (_) {
+      /* non-fatal */
+    }
 
     const threadsToLoad = includeLive
       ? allThreads
@@ -476,88 +506,100 @@ async function handler(req: Request): Promise<Response> {
     let truncated = allThreads.length > threadsToLoad.length;
     const CHUNK = light ? 20 : 5;
     for (let i = 0; i < threadsToLoad.length; i += CHUNK) {
-      if (Date.now() - startedAt > TIME_BUDGET_MS) { truncated = true; break; }
+      if (Date.now() - startedAt > TIME_BUDGET_MS) {
+        truncated = true;
+        break;
+      }
       const chunk = threadsToLoad.slice(i, i + CHUNK);
       const res = await Promise.all(
         chunk.map(async (t: any) => {
-        try {
-          const tRes = await fetch(
-            `${GMAIL_API}/users/me/threads/${t.id}?${light ? "format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date" : "format=full"}`,
-            { headers },
-          );
-          const tData = await tRes.json();
-          if (!tRes.ok || tData.error) return null;
-          const msgs = tData.messages || [];
-          if (!msgs.length) return null;
+          try {
+            const tRes = await fetch(
+              `${GMAIL_API}/users/me/threads/${t.id}?${light ? "format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date" : "format=full"}`,
+              { headers },
+            );
+            const tData = await tRes.json();
+            if (!tRes.ok || tData.error) return null;
+            const msgs = tData.messages || [];
+            if (!msgs.length) return null;
 
-          const first = msgs[0];
-          const last = msgs[msgs.length - 1];
-          const subject = hdr(first.payload?.headers, "Subject");
-          const lastFrom = hdr(last.payload?.headers, "From");
-          const lastTs = Number(last.internalDate) || Date.parse(hdr(last.payload?.headers, "Date"));
-          const firstTs = Number(first.internalDate) || Date.parse(hdr(first.payload?.headers, "Date"));
+            const first = msgs[0];
+            const last = msgs[msgs.length - 1];
+            const subject = hdr(first.payload?.headers, "Subject");
+            const lastFrom = hdr(last.payload?.headers, "From");
+            const lastTs =
+              Number(last.internalDate) || Date.parse(hdr(last.payload?.headers, "Date"));
+            const firstTs =
+              Number(first.internalDate) || Date.parse(hdr(first.payload?.headers, "Date"));
 
-          // Safety net: check only the first/last message bodies for the activation copy
-          // (skipped in light mode — liveThreadIds from the Gmail-side lookup is authoritative)
-          const firstText = light ? (first.snippet || "") : `${first.snippet || ""} ${extractBody(first.payload)}`;
-          const lastText = !light && msgs.length > 1 ? `${last.snippet || ""} ${extractBody(last.payload)}` : "";
-          const liveDetected =
-            liveThreadIds.has(t.id) ||
-            (!light && (isLiveThread([firstText]) ||
-            (lastText ? isLiveThread([lastText]) : false)));
-          if (liveDetected && !includeLive) return null;
+            // Safety net: check only the first/last message bodies for the activation copy
+            // (skipped in light mode — liveThreadIds from the Gmail-side lookup is authoritative)
+            const firstText = light
+              ? first.snippet || ""
+              : `${first.snippet || ""} ${extractBody(first.payload)}`;
+            const lastText =
+              !light && msgs.length > 1 ? `${last.snippet || ""} ${extractBody(last.payload)}` : "";
+            const liveDetected =
+              liveThreadIds.has(t.id) ||
+              (!light &&
+                (isLiveThread([firstText]) || (lastText ? isLiveThread([lastText]) : false)));
+            if (liveDetected && !includeLive) return null;
 
-          // Onboarding Manager comes from the welcome email body (not available in light mode)
-          let om = light ? { name: "", email: "" } : parseOnboardingManager(firstText);
-          if (!light && !om.email && lastText) om = parseOnboardingManager(lastText);
+            // Onboarding Manager comes from the welcome email body (not available in light mode)
+            let om = light ? { name: "", email: "" } : parseOnboardingManager(firstText);
+            if (!light && !om.email && lastText) om = parseOnboardingManager(lastText);
 
+            const lastEmail = emailOf(lastFrom);
+            const isInternal = lastEmail.includes(INTERNAL_DOMAIN);
+            const lastReplyRole =
+              om.email && lastEmail === om.email
+                ? "Onboarding Manager"
+                : isInternal
+                  ? "GoKwik (Other)"
+                  : "Merchant";
 
-
-          const lastEmail = emailOf(lastFrom);
-          const isInternal = lastEmail.includes(INTERNAL_DOMAIN);
-          const lastReplyRole = om.email && lastEmail === om.email
-            ? "Onboarding Manager"
-            : isInternal
-              ? "GoKwik (Other)"
-              : "Merchant";
-
-          return {
-            threadId: t.id,
-            isLive: liveDetected,
-            subject,
-            merchantName: parseMerchantName(subject),
-            firstSentAt: firstTs ? new Date(firstTs).toISOString() : null,
-            messageCount: msgs.length,
-            lastReplyFrom: lastFrom,
-            lastReplyEmail: lastEmail,
-            lastReplyAt: lastTs ? new Date(lastTs).toISOString() : null,
-            ageingDays: lastTs ? Math.floor((now - lastTs) / 86400000) : null,
-            lastReplyIsInternal: isInternal,
-            lastReplyRole,
-            onboardingManager: om.name || "",
-            onboardingManagerEmail: om.email || "",
-            awaitingMerchant: isInternal,
-            snippet: last.snippet || t.snippet || "",
-            url: `https://mail.google.com/mail/u/0/#all/${t.id}`,
-          };
-        } catch {
-          return null;
-        }
-      }),
+            return {
+              threadId: t.id,
+              isLive: liveDetected,
+              subject,
+              merchantName: parseMerchantName(subject),
+              firstSentAt: firstTs ? new Date(firstTs).toISOString() : null,
+              messageCount: msgs.length,
+              lastReplyFrom: lastFrom,
+              lastReplyEmail: lastEmail,
+              lastReplyAt: lastTs ? new Date(lastTs).toISOString() : null,
+              ageingDays: lastTs ? Math.floor((now - lastTs) / 86400000) : null,
+              lastReplyIsInternal: isInternal,
+              lastReplyRole,
+              onboardingManager: om.name || "",
+              onboardingManagerEmail: om.email || "",
+              awaitingMerchant: isInternal,
+              snippet: last.snippet || t.snippet || "",
+              url: `https://mail.google.com/mail/u/0/#all/${t.id}`,
+            };
+          } catch {
+            return null;
+          }
+        }),
       );
       rows.push(...res);
     }
 
-    const data = rows.filter(Boolean).sort((a: any, b: any) =>
-      (b.lastReplyAt || "").localeCompare(a.lastReplyAt || ""));
+    const data = rows
+      .filter(Boolean)
+      .sort((a: any, b: any) => (b.lastReplyAt || "").localeCompare(a.lastReplyAt || ""));
 
-    return new Response(JSON.stringify({ query: q, count: data.length, truncated, threads: data }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ query: q, count: data.length, truncated, threads: data }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error) {
     console.error("shopify-lt-email-comms error:", error);
     return new Response(JSON.stringify({ error: (error as Error).message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 }

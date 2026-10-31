@@ -3,7 +3,13 @@ import { apiAuthHeaders } from "@/lib/api-invoke";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { tenantScope } from "@/lib/tenant-scope";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +49,9 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
   // New form
   const [name, setName] = useState(`${timeframe === "daily" ? "Daily" : "Weekly"} Movement Report`);
   const [time, setTime] = useState(timeframe === "daily" ? "09:00" : "09:00");
-  const [days, setDays] = useState<string[]>(timeframe === "daily" ? ["Mon", "Tue", "Wed", "Thu", "Fri"] : ["Mon"]);
+  const [days, setDays] = useState<string[]>(
+    timeframe === "daily" ? ["Mon", "Tue", "Wed", "Thu", "Fri"] : ["Mon"],
+  );
   const [recipients, setRecipients] = useState<string[]>([]);
   const [emailInput, setEmailInput] = useState("");
   const [subjectPrefix, setSubjectPrefix] = useState("");
@@ -70,7 +78,10 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
   }, [open, timeframe, load]);
 
   const addEmail = (raw: string) => {
-    const parts = raw.split(/[,;\s]+/).map((p) => p.trim()).filter(Boolean);
+    const parts = raw
+      .split(/[,;\s]+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
     const valid: string[] = [];
     const invalid: string[] = [];
     for (const p of parts) {
@@ -110,7 +121,10 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
   };
 
   const toggleEnabled = async (s: Schedule) => {
-    await (supabase as any).from("movement_report_schedules").update({ enabled: !s.enabled }).eq("id", s.id);
+    await (supabase as any)
+      .from("movement_report_schedules")
+      .update({ enabled: !s.enabled })
+      .eq("id", s.id);
     await load();
   };
 
@@ -123,14 +137,11 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
   const sendNow = async (s: Schedule) => {
     setBusyId(s.id);
     try {
-      const res = await fetch(
-        `/api/public/send-scheduled-movement-report`,
-        {
-          method: "POST",
-          headers: await apiAuthHeaders(),
-          body: JSON.stringify({ schedule_id: s.id }),
-        }
-      );
+      const res = await fetch(`/api/public/send-scheduled-movement-report`, {
+        method: "POST",
+        headers: await apiAuthHeaders(),
+        body: JSON.stringify({ schedule_id: s.id }),
+      });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Send failed");
       toast.success(`Sent to ${s.recipients.length} recipient(s)`);
@@ -166,7 +177,10 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
           ) : (
             <div className="space-y-2">
               {schedules.map((s) => (
-                <div key={s.id} className="flex items-start justify-between gap-3 border rounded-lg p-3">
+                <div
+                  key={s.id}
+                  className="flex items-start justify-between gap-3 border rounded-lg p-3"
+                >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">{s.name}</span>
@@ -174,7 +188,11 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
                         <Clock className="h-3 w-3 mr-0.5 inline" />
                         {s.days.join(", ")} @ {s.time_ist} IST
                       </Badge>
-                      {!s.enabled && <Badge variant="outline" className="text-2xs">Paused</Badge>}
+                      {!s.enabled && (
+                        <Badge variant="outline" className="text-2xs">
+                          Paused
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1 truncate">
                       To: {s.recipients.join(", ")}
@@ -194,10 +212,19 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
                       onClick={() => sendNow(s)}
                       disabled={busyId === s.id}
                     >
-                      {busyId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                      {busyId === s.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Send className="h-3 w-3" />
+                      )}
                       Send now
                     </Button>
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => remove(s.id)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 w-7 p-0"
+                      onClick={() => remove(s.id)}
+                    >
                       <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>
                   </div>
@@ -211,7 +238,9 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
 
         {/* New schedule form */}
         <div className="space-y-3">
-          <p className="text-xs font-semibold tracking-normal text-muted-foreground">New schedule</p>
+          <p className="text-xs font-semibold tracking-normal text-muted-foreground">
+            New schedule
+          </p>
           <div>
             <Label>Name</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -223,7 +252,11 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
             </div>
             <div>
               <Label>Subject prefix (optional)</Label>
-              <Input value={subjectPrefix} onChange={(e) => setSubjectPrefix(e.target.value)} placeholder="[MINT]" />
+              <Input
+                value={subjectPrefix}
+                onChange={(e) => setSubjectPrefix(e.target.value)}
+                placeholder="[MINT]"
+              />
             </div>
           </div>
           <div>
@@ -274,7 +307,9 @@ export const ScheduleMovementReportDialog = ({ open, onOpenChange, timeframe }: 
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
           <Button onClick={handleCreate} disabled={saving} className="gap-1">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             Create schedule

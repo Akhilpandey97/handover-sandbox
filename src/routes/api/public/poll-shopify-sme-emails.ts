@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+} from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
@@ -9,8 +13,6 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-
 
 function parseNum(str: string): number {
   if (!str) return 0;
@@ -23,7 +25,10 @@ function parseEmailTable(html: string): Record<string, string> {
   const rowRegex = /<tr[^>]*>\s*<td[^>]*>(.*?)<\/td>\s*<td[^>]*>(.*?)<\/td>\s*<\/tr>/gis;
   let m;
   while ((m = rowRegex.exec(html)) !== null) {
-    const key = m[1].replace(/<[^>]*>/g, "").replace(/\s*:\s*$/, "").trim();
+    const key = m[1]
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s*:\s*$/, "")
+      .trim();
     const value = m[2].replace(/<[^>]*>/g, "").trim();
     if (key) fields[key] = value;
   }
@@ -49,11 +54,28 @@ function decodeBase64Url(data: string): string {
 }
 
 const COMMERCIAL_KEYS = [
-  "UPI %", "UPI on CC%", "COD %", "CC %", "BNPL %",
-  "DC above 2k %", "DC below 2k %", "Net Banking %", "Amex %", "Diners %",
-  "Corporate CC %", "Wallets %", "International Card %", "Cardless EMI %",
-  "Card EMI %", "Snapmint %", "Twidpay %", "PPCOD %", "Minimum Guarantee",
-  "Bharat X", "Platform Fee %", "COD Share %",
+  "UPI %",
+  "UPI on CC%",
+  "COD %",
+  "CC %",
+  "BNPL %",
+  "DC above 2k %",
+  "DC below 2k %",
+  "Net Banking %",
+  "Amex %",
+  "Diners %",
+  "Corporate CC %",
+  "Wallets %",
+  "International Card %",
+  "Cardless EMI %",
+  "Card EMI %",
+  "Snapmint %",
+  "Twidpay %",
+  "PPCOD %",
+  "Minimum Guarantee",
+  "Bharat X",
+  "Platform Fee %",
+  "COD Share %",
 ];
 
 async function handler(req: Request): Promise<Response> {
@@ -63,24 +85,27 @@ async function handler(req: Request): Promise<Response> {
   if (denied) return denied;
 
   try {
-    const SUPABASE_URL = process.env['SUPABASE_URL']!;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+    const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const body = await req.json().catch(() => ({}));
     const tenantId = body.tenant_id;
     if (!tenantId) {
       return new Response(JSON.stringify({ error: "tenant_id is required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     let headers: Record<string, string>;
-    try { const creds = await getTenantIntegrations(tenantId);
-      headers = await gmailHeaders(creds); }
-    catch (e) {
+    try {
+      const creds = await getTenantIntegrations(tenantId);
+      headers = await gmailHeaders(creds);
+    } catch (e) {
       return new Response(JSON.stringify({ error: (e as Error).message }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -94,14 +119,20 @@ async function handler(req: Request): Promise<Response> {
     const searchRes = await fetch(searchUrl, { headers });
     const searchData = await searchRes.json();
     if (!searchRes.ok || searchData.error) {
-      return new Response(JSON.stringify({ error: `Gmail API error: ${searchData?.error?.message || JSON.stringify(searchData)}` }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(
+        JSON.stringify({
+          error: `Gmail API error: ${searchData?.error?.message || JSON.stringify(searchData)}`,
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const messages = searchData.messages || [];
     if (messages.length === 0) {
-      return new Response(JSON.stringify({ message: "No matching emails found", query }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ message: "No matching emails found", query }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const messageIds = messages.map((m: any) => m.id);
@@ -111,14 +142,32 @@ async function handler(req: Request): Promise<Response> {
       .select("gmail_message_id, gmail_thread_id, shopify_url, brand_name, merchant_email")
       .eq("tenant_id", tenantId);
     const existingMsgIds = new Set((existing || []).map((e: any) => e.gmail_message_id));
-    const existingThreadIds = new Set((existing || []).map((e: any) => e.gmail_thread_id).filter(Boolean));
-    const existingShopUrls = new Set((existing || []).map((e: any) => (e.shopify_url || "").toLowerCase()).filter(Boolean));
-    const existingBrandEmail = new Set((existing || []).map((e: any) => `${(e.brand_name || "").toLowerCase()}|${(e.merchant_email || "").toLowerCase()}`).filter((k: string) => k !== "|"));
-    const newMessages = messages.filter((m: any) => !existingMsgIds.has(m.id) && !existingThreadIds.has(m.threadId));
+    const existingThreadIds = new Set(
+      (existing || []).map((e: any) => e.gmail_thread_id).filter(Boolean),
+    );
+    const existingShopUrls = new Set(
+      (existing || []).map((e: any) => (e.shopify_url || "").toLowerCase()).filter(Boolean),
+    );
+    const existingBrandEmail = new Set(
+      (existing || [])
+        .map(
+          (e: any) =>
+            `${(e.brand_name || "").toLowerCase()}|${(e.merchant_email || "").toLowerCase()}`,
+        )
+        .filter((k: string) => k !== "|"),
+    );
+    const newMessages = messages.filter(
+      (m: any) => !existingMsgIds.has(m.id) && !existingThreadIds.has(m.threadId),
+    );
 
     if (newMessages.length === 0) {
-      return new Response(JSON.stringify({ message: "All matching emails already processed", total: messages.length }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(
+        JSON.stringify({
+          message: "All matching emails already processed",
+          total: messages.length,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const results: any[] = [];
@@ -129,7 +178,9 @@ async function handler(req: Request): Promise<Response> {
 
     for (const msg of newMessages) {
       try {
-        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, { headers });
+        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, {
+          headers,
+        });
         const msgData = await msgRes.json();
         if (!msgRes.ok || msgData.error) continue;
 
@@ -137,14 +188,16 @@ async function handler(req: Request): Promise<Response> {
         const subject = hdrs.find((h: any) => h.name.toLowerCase() === "subject")?.value || "";
         const sender = hdrs.find((h: any) => h.name.toLowerCase() === "from")?.value || "";
         const dateHeader = hdrs.find((h: any) => h.name.toLowerCase() === "date")?.value || "";
-        const receivedAt = dateHeader ? new Date(dateHeader).toISOString() : new Date().toISOString();
+        const receivedAt = dateHeader
+          ? new Date(dateHeader).toISOString()
+          : new Date().toISOString();
 
         if (!/new brand on board/i.test(subject)) continue;
 
-
         let htmlBody = "";
         const extract = (part: any) => {
-          if (part.mimeType === "text/html" && part.body?.data) htmlBody = decodeBase64Url(part.body.data);
+          if (part.mimeType === "text/html" && part.body?.data)
+            htmlBody = decodeBase64Url(part.body.data);
           if (part.parts) for (const p of part.parts) extract(p);
         };
         extract(msgData.payload);
@@ -152,19 +205,24 @@ async function handler(req: Request): Promise<Response> {
         const fields = parseEmailTable(htmlBody);
         const pick = (...keys: string[]) => {
           for (const k of keys) {
-            const v = fields[k]; if (v && String(v).trim()) return String(v).trim();
+            const v = fields[k];
+            if (v && String(v).trim()) return String(v).trim();
           }
           return "";
         };
 
         const merchantSize = pick("Merchant Size");
         const sizeUpper = merchantSize.toUpperCase();
-        if (sizeUpper !== "SME" && sizeUpper !== "ENTERPRISE" && sizeUpper !== "ENT") { skippedNonSme++; continue; }
+        if (sizeUpper !== "SME" && sizeUpper !== "ENTERPRISE" && sizeUpper !== "ENT") {
+          skippedNonSme++;
+          continue;
+        }
 
         const commercials: Record<string, number | string> = {};
         for (const k of COMMERCIAL_KEYS) {
           const v = fields[k];
-          if (v && String(v).trim()) commercials[k] = /^[0-9.\-]+$/.test(String(v).trim()) ? parseNum(v) : String(v).trim();
+          if (v && String(v).trim())
+            commercials[k] = /^[0-9.\-]+$/.test(String(v).trim()) ? parseNum(v) : String(v).trim();
         }
 
         const brandName = pick("Brand Name") || extractBrandFromSubject(subject);
@@ -190,7 +248,9 @@ async function handler(req: Request): Promise<Response> {
           tenant_id: tenantId,
           gmail_message_id: msg.id,
           gmail_thread_id: msg.threadId || null,
-          subject, sender, received_at: receivedAt,
+          subject,
+          sender,
+          received_at: receivedAt,
           brand_name: brandName,
           merchant_poc_name: pick("Merchant POC Name"),
           merchant_email: merchantEmail,
@@ -201,7 +261,8 @@ async function handler(req: Request): Promise<Response> {
           sub_platform: pick("Sub Platform"),
           expected_arr: parseNum(pick("Expected ARR")),
           category: pick("Merchant Category"),
-          txns_per_day: parseInt(pick("Expected Transactions/day", "Expected Transactions/Day") || "0") || 0,
+          txns_per_day:
+            parseInt(pick("Expected Transactions/day", "Expected Transactions/Day") || "0") || 0,
           aov: parseNum(pick("AOV (Average Order Value)", "AOV")),
           merchant_size: merchantSize,
           city: pick("City"),
@@ -218,8 +279,14 @@ async function handler(req: Request): Promise<Response> {
         };
 
         const { data: inserted, error: insertError } = await supabase
-          .from("shopify_sme_merchants").insert(row).select().single();
-        if (insertError) { console.error("Insert error:", insertError); continue; }
+          .from("shopify_sme_merchants")
+          .insert(row)
+          .select()
+          .single();
+        if (insertError) {
+          console.error("Insert error:", insertError);
+          continue;
+        }
         results.push(inserted);
 
         // Auto-assign owner based on Merchant Size + Expected ARR bucket (in Lakhs)
@@ -232,8 +299,8 @@ async function handler(req: Request): Promise<Response> {
           if (!shopifyUrl || !String(shopifyUrl).trim()) {
             console.log("Skipping auto-assign: no Shopify URL for", row.brand_name);
           } else if (sizeUpper === "ENTERPRISE" || sizeUpper === "ENT") owner = "ankit@gokwik.co";
-          else if (sizeUpper === "SME") owner = arrL < 15 ? "deepak.sharma@gokwik.co" : "rohit.singh@gokwik.co";
-
+          else if (sizeUpper === "SME")
+            owner = arrL < 15 ? "deepak.sharma@gokwik.co" : "rohit.singh@gokwik.co";
 
           if (owner) {
             const assignRes = await fetch(`${SUPABASE_URL}/functions/v1/assign-shopify-sme-owner`, {
@@ -249,24 +316,27 @@ async function handler(req: Request): Promise<Response> {
         } catch (assignErr) {
           console.error("Auto-assign error:", assignErr);
         }
-
       } catch (err) {
         console.error(`Error processing ${msg.id}:`, err);
       }
     }
 
-    return new Response(JSON.stringify({
-      message: `Processed ${results.length} new merchant(s); skipped ${skippedNonSme} non-SME/Ent, ${skippedDuplicate} duplicates`,
-      total_found: messages.length,
-      new_processed: results.length,
-      skipped_non_sme: skippedNonSme,
-      skipped_duplicate: skippedDuplicate,
-    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
+    return new Response(
+      JSON.stringify({
+        message: `Processed ${results.length} new merchant(s); skipped ${skippedNonSme} non-SME/Ent, ${skippedDuplicate} duplicates`,
+        total_found: messages.length,
+        new_processed: results.length,
+        skipped_non_sme: skippedNonSme,
+        skipped_duplicate: skippedDuplicate,
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (error) {
     console.error("Error in poll-shopify-sme-emails:", error);
-    return new Response(JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 }
 

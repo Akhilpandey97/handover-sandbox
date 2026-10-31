@@ -218,9 +218,7 @@ export const ThemePresets = ({ onApply, currentColors }: ThemePresetsProps) => {
 
   // Check if current colors match a preset
   const isActive = (preset: ThemePreset) => {
-    return Object.entries(preset.colors).every(
-      ([key, val]) => currentColors[key] === val
-    );
+    return Object.entries(preset.colors).every(([key, val]) => currentColors[key] === val);
   };
 
   return (
@@ -231,7 +229,8 @@ export const ThemePresets = ({ onApply, currentColors }: ThemePresetsProps) => {
           Theme Presets
         </CardTitle>
         <CardDescription>
-          Apply a pre-designed colour theme across all UI elements. You can customise individual colours below after applying.
+          Apply a pre-designed colour theme across all UI elements. You can customise individual
+          colours below after applying.
         </CardDescription>
       </CardHeader>
       <CardContent>

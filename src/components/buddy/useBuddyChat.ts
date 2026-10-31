@@ -172,7 +172,10 @@ export function useBuddyChat({
 
   const patchAction = useCallback(
     (messageId: string, callId: string, fn: (a: BuddyAction) => BuddyAction) => {
-      patchMessage(messageId, (m) => ({ ...m, actions: m.actions?.map((a) => (a.callId === callId ? fn(a) : a)) }));
+      patchMessage(messageId, (m) => ({
+        ...m,
+        actions: m.actions?.map((a) => (a.callId === callId ? fn(a) : a)),
+      }));
     },
     [patchMessage],
   );
@@ -184,7 +187,10 @@ export function useBuddyChat({
       const build = (cols: string) => {
         let q = (supabase as any).from("chat_messages").select(cols).eq("user_id", userId);
         if (conversation !== undefined) {
-          q = conversation === null ? q.is("conversation_id", null) : q.eq("conversation_id", conversation);
+          q =
+            conversation === null
+              ? q.is("conversation_id", null)
+              : q.eq("conversation_id", conversation);
           return q.order("created_at", { ascending: true });
         }
         return q.order("created_at", { ascending: false }).limit(RECENT_WINDOW);
@@ -251,7 +257,11 @@ export function useBuddyChat({
       if (conversationRef.current === null) setConversationId(convo);
       const base = { user_id: userId, role: m.role, content: m.content, conversation_id: convo };
       let res = metadataSupported.current
-        ? await (supabase as any).from("chat_messages").insert({ ...base, metadata: metaOf(m) }).select("id").single()
+        ? await (supabase as any)
+            .from("chat_messages")
+            .insert({ ...base, metadata: metaOf(m) })
+            .select("id")
+            .single()
         : await (supabase as any).from("chat_messages").insert(base).select("id").single();
       if (res.error && metadataSupported.current) {
         metadataSupported.current = false;
@@ -270,7 +280,10 @@ export function useBuddyChat({
     window.setTimeout(() => {
       const m = messagesRef.current.find((x) => x.id === messageId);
       if (!m?.dbId) return;
-      void (supabase as any).from("chat_messages").update({ metadata: metaOf(m) }).eq("id", m.dbId);
+      void (supabase as any)
+        .from("chat_messages")
+        .update({ metadata: metaOf(m) })
+        .eq("id", m.dbId);
     }, 0);
   }, []);
 
@@ -283,7 +296,11 @@ export function useBuddyChat({
             const preview = await previewAction(a.name, a.arguments);
             patchAction(messageId, a.callId, (x) => ({ ...x, status: "pending", preview }));
           } catch (e) {
-            patchAction(messageId, a.callId, (x) => ({ ...x, status: "failed", error: (e as Error).message }));
+            patchAction(messageId, a.callId, (x) => ({
+              ...x,
+              status: "failed",
+              error: (e as Error).message,
+            }));
           }
         }),
       );
@@ -293,7 +310,11 @@ export function useBuddyChat({
 
   const send = useCallback(
     async (text: string, mentions: Mention[] = [], attachments: BuddyAttachment[] = []) => {
-      const content = text.trim() || (attachments.length ? `Here's ${attachments.length === 1 ? `"${attachments[0].name}"` : "a spreadsheet"}. Set up what's in it.` : "");
+      const content =
+        text.trim() ||
+        (attachments.length
+          ? `Here's ${attachments.length === 1 ? `"${attachments[0].name}"` : "a spreadsheet"}. Set up what's in it.`
+          : "");
       if (!content || isLoading || !userId) return;
 
       const userMsg: BuddyMessage = {
@@ -335,16 +356,30 @@ export function useBuddyChat({
                 patchMessage(assistant.id, (m) => ({ ...m, content: m.content + evt.content }));
                 break;
               case "step":
-                patchMessage(assistant.id, (m) => ({ ...m, steps: [...(m.steps || []), evt.label] }));
+                patchMessage(assistant.id, (m) => ({
+                  ...m,
+                  steps: [...(m.steps || []), evt.label],
+                }));
                 break;
               case "sources":
-                patchMessage(assistant.id, (m) => ({ ...m, sources: mergeSources(m.sources, evt.items) }));
+                patchMessage(assistant.id, (m) => ({
+                  ...m,
+                  sources: mergeSources(m.sources, evt.items),
+                }));
                 break;
               case "report":
-                patchMessage(assistant.id, (m) => ({ ...m, reports: [...(m.reports || []), evt.report] }));
+                patchMessage(assistant.id, (m) => ({
+                  ...m,
+                  reports: [...(m.reports || []), evt.report],
+                }));
                 break;
               case "actions":
-                proposed = evt.calls.map((c) => ({ callId: c.id, name: c.name, arguments: c.arguments || {}, status: "previewing" }));
+                proposed = evt.calls.map((c) => ({
+                  callId: c.id,
+                  name: c.name,
+                  arguments: c.arguments || {},
+                  status: "previewing",
+                }));
                 patchMessage(assistant.id, (m) => ({ ...m, actions: proposed }));
                 break;
               case "error":
@@ -408,19 +443,37 @@ export function useBuddyChat({
           ...a,
           arguments: { ...a.arguments, ...overrides },
           status: "done",
-          result: { message: res.message, link: res.link, logId: res.log_id, undoable: res.undoable, undoUntil: res.undo_until },
+          result: {
+            message: res.message,
+            link: res.link,
+            logId: res.log_id,
+            undoable: res.undoable,
+            undoUntil: res.undo_until,
+          },
         }));
         if (res.redact?.length) {
           // Pasted keys stay out of the open conversation and anything saved from it later.
           const secrets = res.redact;
-          const mask = (text: string) => secrets.reduce((t, sec) => (sec.length >= 6 ? t.split(sec).join(`•••• ${sec.slice(-4)}`) : t), text);
-          setMessages((prev) => prev.map((msg) => JSON.parse(mask(JSON.stringify(msg))) as BuddyMessage));
-          messagesRef.current = messagesRef.current.map((msg) => JSON.parse(mask(JSON.stringify(msg))) as BuddyMessage);
+          const mask = (text: string) =>
+            secrets.reduce(
+              (t, sec) => (sec.length >= 6 ? t.split(sec).join(`•••• ${sec.slice(-4)}`) : t),
+              text,
+            );
+          setMessages((prev) =>
+            prev.map((msg) => JSON.parse(mask(JSON.stringify(msg))) as BuddyMessage),
+          );
+          messagesRef.current = messagesRef.current.map(
+            (msg) => JSON.parse(mask(JSON.stringify(msg))) as BuddyMessage,
+          );
         }
         toast.success(res.message);
         refreshData();
       } catch (e) {
-        patchAction(messageId, callId, (a) => ({ ...a, status: "failed", error: (e as Error).message }));
+        patchAction(messageId, callId, (a) => ({
+          ...a,
+          status: "failed",
+          error: (e as Error).message,
+        }));
         toast.error((e as Error).message);
       }
       persistMeta(messageId);
@@ -430,7 +483,9 @@ export function useBuddyChat({
 
   const cancel = useCallback(
     (messageId: string, callId: string) => {
-      const action = messagesRef.current.find((x) => x.id === messageId)?.actions?.find((a) => a.callId === callId);
+      const action = messagesRef.current
+        .find((x) => x.id === messageId)
+        ?.actions?.find((a) => a.callId === callId);
       patchAction(messageId, callId, (a) => ({ ...a, status: "cancelled" }));
       persistMeta(messageId);
       if (action) {

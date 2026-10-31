@@ -21,6 +21,7 @@ This project runs TanStack Start (React 19, TanStack Router, Tailwind v4). The s
 ## Phases
 
 ### Phase 1 — Backend (first)
+
 1. Enable Lovable Cloud.
 2. Apply the full schema as consolidated migrations: enums, 42 tables with grants, RLS policies, `has_role`-style security-definer functions, triggers, views, 4 storage buckets + their policies.
 3. Port user/auth backend: profiles + user_roles, signup trigger, admin create/update/delete user, set-password.
@@ -30,6 +31,7 @@ This project runs TanStack Start (React 19, TanStack Router, Tailwind v4). The s
 7. Verify: run each endpoint once and confirm responses.
 
 ### Phase 2 — UI
+
 1. Auth/login screen and route guards.
 2. Core: Index shell, kanban, project dialogs, project details, calendar.
 3. Dashboards: manager, team, sales, executive, risk, monthly go-live tracker.

@@ -1,5 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Project, projectStateLabels, formatDuration, calculateTimeFromChecklist } from "@/data/projectsData";
+import {
+  Project,
+  projectStateLabels,
+  formatDuration,
+  calculateTimeFromChecklist,
+} from "@/data/projectsData";
 import { CustomField } from "@/hooks/useCustomFields";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,17 +15,54 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Save, Trash2, Play, Plus, Clock, Calendar, FileText, X, ChevronRight, ChevronDown, Sigma, GripVertical } from "lucide-react";
+import {
+  Save,
+  Trash2,
+  Play,
+  Plus,
+  Clock,
+  Calendar,
+  FileText,
+  X,
+  ChevronRight,
+  ChevronDown,
+  Sigma,
+  GripVertical,
+} from "lucide-react";
 import { useReportFilters } from "@/hooks/useReportFilters";
 import { ReportFilterBar } from "@/components/reports/ReportFilterBar";
 import { SortableHeader } from "@/components/filters/SortableHeader";
-import { ChartView, CHART_META, type ChartRow, type ChartType } from "@/components/charts/ReportChartView";
+import {
+  ChartView,
+  CHART_META,
+  type ChartRow,
+  type ChartType,
+} from "@/components/charts/ReportChartView";
 import { cn } from "@/lib/utils";
 
 // All available columns for report builder
@@ -56,10 +98,30 @@ const AVAILABLE_COLUMNS: { key: string; label: string; group: string }[] = [
   { key: "transferCount", label: "Transfer Count", group: "Metrics" },
 ];
 
-const BASE_GROUPABLE_COLUMNS = ["projectState", "currentOwnerTeam", "platform", "category", "assignedOwnerName", "currentResponsibility", "integrationType", "pgOnboarding", "salesSpoc"];
+const BASE_GROUPABLE_COLUMNS = [
+  "projectState",
+  "currentOwnerTeam",
+  "platform",
+  "category",
+  "assignedOwnerName",
+  "currentResponsibility",
+  "integrationType",
+  "pgOnboarding",
+  "salesSpoc",
+];
 const NUMERIC_COLUMNS = ["arr", "txnsPerDay", "aov", "goLivePercent", "transferCount"];
 
-const DEFAULT_GROUP_ORDER = ["Basic", "Financial", "Status", "Dates", "Details", "Links", "Notes", "Metrics", "Custom Fields"];
+const DEFAULT_GROUP_ORDER = [
+  "Basic",
+  "Financial",
+  "Status",
+  "Dates",
+  "Details",
+  "Links",
+  "Notes",
+  "Metrics",
+  "Custom Fields",
+];
 
 /** Palette slots, never cycled: an eighth value is the last one drawn in its own hue. */
 const SERIES_SLOTS = 8;
@@ -72,7 +134,15 @@ const SINGLE_VIEWS: ChartType[] = ["table", "column", "bar", "line", "area", "pi
  * With a split, every form has to carry a second dimension. Bar, pie and donut
  * can only draw one series, so they drop out; stacked, grouped and lines arrive.
  */
-const SPLIT_VIEWS: ChartType[] = ["table", "stacked", "grouped", "column", "line", "multiline", "area"];
+const SPLIT_VIEWS: ChartType[] = [
+  "table",
+  "stacked",
+  "grouped",
+  "column",
+  "line",
+  "multiline",
+  "area",
+];
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -89,39 +159,70 @@ type AggType = "sum" | "avg" | "count" | "min" | "max";
 
 function getCellValue(project: Project, key: string, labels: any): string {
   switch (key) {
-    case "merchantName": return project.merchantName;
-    case "mid": return project.mid;
-    case "platform": return project.platform;
-    case "category": return project.category;
-    case "arr": return project.arr.toFixed(2);
-    case "txnsPerDay": return String(project.txnsPerDay);
-    case "aov": return String(project.aov);
-    case "projectState": return labels.stateLabels[project.projectState] || project.projectState;
-    case "currentPhase": return labels.phaseLabels[project.currentPhase] || project.currentPhase;
-    case "currentOwnerTeam": return labels.teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam;
-    case "assignedOwnerName": return project.assignedOwnerName || "Unassigned";
-    case "currentResponsibility": return labels.responsibilityLabels[project.currentResponsibility] || project.currentResponsibility;
-    case "goLivePercent": return `${project.goLivePercent}%`;
-    case "pendingAcceptance": return project.pendingAcceptance ? "Yes" : "No";
-    case "kickOffDate": return project.dates.kickOffDate;
-    case "expectedGoLiveDate": return project.dates.expectedGoLiveDate || "";
-    case "goLiveDate": return project.dates.goLiveDate || "";
-    case "salesSpoc": return project.salesSpoc;
-    case "integrationType": return project.integrationType;
-    case "pgOnboarding": return project.pgOnboarding;
-    case "brandUrl": return project.links.brandUrl;
-    case "jiraLink": return project.links.jiraLink || "";
-    case "brdLink": return project.links.brdLink || "";
-    case "mintNotes": return project.notes.mintNotes || "";
-    case "projectNotes": return project.notes.projectNotes || "";
-    case "currentPhaseComment": return project.notes.currentPhaseComment || "";
+    case "merchantName":
+      return project.merchantName;
+    case "mid":
+      return project.mid;
+    case "platform":
+      return project.platform;
+    case "category":
+      return project.category;
+    case "arr":
+      return project.arr.toFixed(2);
+    case "txnsPerDay":
+      return String(project.txnsPerDay);
+    case "aov":
+      return String(project.aov);
+    case "projectState":
+      return labels.stateLabels[project.projectState] || project.projectState;
+    case "currentPhase":
+      return labels.phaseLabels[project.currentPhase] || project.currentPhase;
+    case "currentOwnerTeam":
+      return labels.teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam;
+    case "assignedOwnerName":
+      return project.assignedOwnerName || "Unassigned";
+    case "currentResponsibility":
+      return (
+        labels.responsibilityLabels[project.currentResponsibility] || project.currentResponsibility
+      );
+    case "goLivePercent":
+      return `${project.goLivePercent}%`;
+    case "pendingAcceptance":
+      return project.pendingAcceptance ? "Yes" : "No";
+    case "kickOffDate":
+      return project.dates.kickOffDate;
+    case "expectedGoLiveDate":
+      return project.dates.expectedGoLiveDate || "";
+    case "goLiveDate":
+      return project.dates.goLiveDate || "";
+    case "salesSpoc":
+      return project.salesSpoc;
+    case "integrationType":
+      return project.integrationType;
+    case "pgOnboarding":
+      return project.pgOnboarding;
+    case "brandUrl":
+      return project.links.brandUrl;
+    case "jiraLink":
+      return project.links.jiraLink || "";
+    case "brdLink":
+      return project.links.brdLink || "";
+    case "mintNotes":
+      return project.notes.mintNotes || "";
+    case "projectNotes":
+      return project.notes.projectNotes || "";
+    case "currentPhaseComment":
+      return project.notes.currentPhaseComment || "";
     case "checklistProgress": {
-      const done = project.checklist.filter(c => c.completed).length;
+      const done = project.checklist.filter((c) => c.completed).length;
       return `${done}/${project.checklist.length}`;
     }
-    case "gokwikTime": return formatDuration(calculateTimeFromChecklist(project.checklist).gokwik);
-    case "merchantTime": return formatDuration(calculateTimeFromChecklist(project.checklist).merchant);
-    case "transferCount": return String(project.transferHistory.length);
+    case "gokwikTime":
+      return formatDuration(calculateTimeFromChecklist(project.checklist).gokwik);
+    case "merchantTime":
+      return formatDuration(calculateTimeFromChecklist(project.checklist).merchant);
+    case "transferCount":
+      return String(project.transferHistory.length);
     default: {
       // Check for custom field values
       if (key.startsWith("custom_field_") && labels.customValuesMap) {
@@ -135,23 +236,34 @@ function getCellValue(project: Project, key: string, labels: any): string {
 
 function getNumericValue(project: Project, key: string): number {
   switch (key) {
-    case "arr": return project.arr;
-    case "txnsPerDay": return project.txnsPerDay;
-    case "aov": return project.aov;
-    case "goLivePercent": return project.goLivePercent;
-    case "transferCount": return project.transferHistory.length;
-    default: return 0;
+    case "arr":
+      return project.arr;
+    case "txnsPerDay":
+      return project.txnsPerDay;
+    case "aov":
+      return project.aov;
+    case "goLivePercent":
+      return project.goLivePercent;
+    case "transferCount":
+      return project.transferHistory.length;
+    default:
+      return 0;
   }
 }
 
 function computeAgg(values: number[], type: AggType): number {
   if (values.length === 0) return 0;
   switch (type) {
-    case "sum": return values.reduce((a, b) => a + b, 0);
-    case "avg": return values.reduce((a, b) => a + b, 0) / values.length;
-    case "count": return values.length;
-    case "min": return Math.min(...values);
-    case "max": return Math.max(...values);
+    case "sum":
+      return values.reduce((a, b) => a + b, 0);
+    case "avg":
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    case "count":
+      return values.length;
+    case "min":
+      return Math.min(...values);
+    case "max":
+      return Math.max(...values);
   }
 }
 
@@ -169,7 +281,17 @@ interface PivotGroup {
   aggregates: Record<string, number>;
 }
 
-export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = {}, initialPivot = false }: { projects: Project[]; customFields?: CustomField[]; customValuesMap?: Record<string, Record<string, string>>; initialPivot?: boolean }) => {
+export const ReportsBuilder = ({
+  projects,
+  customFields = [],
+  customValuesMap = {},
+  initialPivot = false,
+}: {
+  projects: Project[];
+  customFields?: CustomField[];
+  customValuesMap?: Record<string, Record<string, string>>;
+  initialPivot?: boolean;
+}) => {
   const { teamLabels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
   const { currentUser } = useAuth();
   // Rebuilt on every render this re-ran every aggregation below it, grouping and
@@ -179,7 +301,12 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     [teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap],
   );
 
-  const [selectedColumns, setSelectedColumns] = useState<string[]>(["merchantName", "projectState", "arr", "goLivePercent"]);
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([
+    "merchantName",
+    "projectState",
+    "arr",
+    "goLivePercent",
+  ]);
   const [reportAggType, setReportAggType] = useState<AggType>("sum");
 
   // Pivot
@@ -206,13 +333,22 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   const filterState = useReportFilters(projects);
   const { filteredProjects } = filterState;
   const toggleSort = (field: string) => {
-    if (filterState.sortField === field) filterState.setSortDir(d => d === "asc" ? "desc" : "asc");
-    else { filterState.setSortField(field); filterState.setSortDir("asc"); }
+    if (filterState.sortField === field)
+      filterState.setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
+      filterState.setSortField(field);
+      filterState.setSortDir("asc");
+    }
   };
   const SORTABLE_REPORT_KEYS: Record<string, string> = {
-    merchantName: "merchantName", arr: "arr", platform: "platform",
-    owner: "owner", projectState: "state", kickOffDate: "kickOffDate",
-    expectedGoLiveDate: "expectedGoLiveDate", goLiveDate: "goLiveDate",
+    merchantName: "merchantName",
+    arr: "arr",
+    platform: "platform",
+    owner: "owner",
+    projectState: "state",
+    kickOffDate: "kickOffDate",
+    expectedGoLiveDate: "expectedGoLiveDate",
+    goLiveDate: "goLiveDate",
   };
 
   const [groupByColumn, setGroupByColumn] = useState<string>("none");
@@ -222,7 +358,9 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     try {
       const saved = localStorage.getItem("report_group_order");
       return saved ? JSON.parse(saved) : DEFAULT_GROUP_ORDER;
-    } catch { return DEFAULT_GROUP_ORDER; }
+    } catch {
+      return DEFAULT_GROUP_ORDER;
+    }
   });
   const [draggedGroup, setDraggedGroup] = useState<string | null>(null);
 
@@ -234,20 +372,28 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
         .eq("tenant_id", tenantScope(currentUser?.tenantId))
         .order("created_at", { ascending: false });
       if (data) {
-        setSavedReports(data.map((r: any) => ({
-          id: r.id, name: r.name, columns: r.columns || [], schedule: r.schedule || "none", recipients: r.recipients || [],
-        })));
+        setSavedReports(
+          data.map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            columns: r.columns || [],
+            schedule: r.schedule || "none",
+            recipients: r.recipients || [],
+          })),
+        );
       }
     };
     fetchReports();
   }, [currentUser?.tenantId]);
 
   const toggleColumn = (key: string) => {
-    setSelectedColumns(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+    setSelectedColumns((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    );
   };
 
   const allColumns = useMemo(() => {
-    const customCols = customFields.map(f => ({
+    const customCols = customFields.map((f) => ({
       key: `custom_field_${f.id}`,
       label: f.field_label,
       group: "Custom Fields",
@@ -256,13 +402,13 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   }, [customFields]);
 
   const groupableColumns = useMemo(() => {
-    const customGroupableColumns = customFields.map(f => `custom_field_${f.id}`);
+    const customGroupableColumns = customFields.map((f) => `custom_field_${f.id}`);
     return [...BASE_GROUPABLE_COLUMNS, ...customGroupableColumns];
   }, [customFields]);
 
   const columnGroups = useMemo(() => {
     const groups: Record<string, { key: string; label: string; group: string }[]> = {};
-    allColumns.forEach(col => {
+    allColumns.forEach((col) => {
       if (!groups[col.group]) groups[col.group] = [];
       groups[col.group].push(col);
     });
@@ -273,7 +419,7 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   const handleGroupDragOver = (e: React.DragEvent, targetGroup: string) => {
     e.preventDefault();
     if (!draggedGroup || draggedGroup === targetGroup) return;
-    setGroupOrder(prev => {
+    setGroupOrder((prev) => {
       const newOrder = [...prev];
       const fromIdx = newOrder.indexOf(draggedGroup);
       const toIdx = newOrder.indexOf(targetGroup);
@@ -289,13 +435,16 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   };
 
   // Selected numeric columns for agg footer
-  const selectedNumericCols = useMemo(() => selectedColumns.filter(k => NUMERIC_COLUMNS.includes(k)), [selectedColumns]);
+  const selectedNumericCols = useMemo(
+    () => selectedColumns.filter((k) => NUMERIC_COLUMNS.includes(k)),
+    [selectedColumns],
+  );
 
   // Grouped table data
   const pivotGroups = useMemo<PivotGroup[]>(() => {
     if (groupByColumn === "none") return [];
     const groupMap = new Map<string, Project[]>();
-    filteredProjects.forEach(p => {
+    filteredProjects.forEach((p) => {
       const val = getCellValue(p, groupByColumn, labels);
       const existing = groupMap.get(val) || [];
       existing.push(p);
@@ -303,18 +452,26 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     });
     return Array.from(groupMap.entries()).map(([key, groupProjects]) => {
       const aggregates: Record<string, number> = {};
-      selectedNumericCols.forEach(col => {
-        const values = groupProjects.map(p => getNumericValue(p, col));
+      selectedNumericCols.forEach((col) => {
+        const values = groupProjects.map((p) => getNumericValue(p, col));
         aggregates[col] = computeAgg(values, reportAggType);
       });
       return { key, label: key || "—", projects: groupProjects, aggregates };
     });
-  }, [groupByColumn, filteredProjects, selectedColumns, labels, reportAggType, selectedNumericCols]);
+  }, [
+    groupByColumn,
+    filteredProjects,
+    selectedColumns,
+    labels,
+    reportAggType,
+    selectedNumericCols,
+  ]);
 
   const toggleGroup = (key: string) => {
-    setExpandedGroups(prev => {
+    setExpandedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
@@ -324,15 +481,20 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     if (!showPivot || pivotRowField === "none") return null;
     const rowValues = new Set<string>();
     const colValues = new Set<string>();
-    filteredProjects.forEach(p => {
+    filteredProjects.forEach((p) => {
       rowValues.add(getCellValue(p, pivotRowField, labels));
       if (pivotColField !== "none") colValues.add(getCellValue(p, pivotColField, labels));
     });
     const sortedRows = Array.from(rowValues).sort();
     const sortedCols = pivotColField !== "none" ? Array.from(colValues).sort() : ["Total"];
     const grid: Record<string, Record<string, number[]>> = {};
-    sortedRows.forEach(r => { grid[r] = {}; sortedCols.forEach(c => { grid[r][c] = []; }); });
-    filteredProjects.forEach(p => {
+    sortedRows.forEach((r) => {
+      grid[r] = {};
+      sortedCols.forEach((c) => {
+        grid[r][c] = [];
+      });
+    });
+    filteredProjects.forEach((p) => {
       const rowVal = getCellValue(p, pivotRowField, labels);
       const colVal = pivotColField !== "none" ? getCellValue(p, pivotColField, labels) : "Total";
       const numVal = getNumericValue(p, pivotValueField);
@@ -340,25 +502,38 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     });
     const result: Record<string, Record<string, number>> = {};
     const colTotals: Record<string, number[]> = {};
-    sortedCols.forEach(c => { colTotals[c] = []; });
-    sortedRows.forEach(r => {
+    sortedCols.forEach((c) => {
+      colTotals[c] = [];
+    });
+    sortedRows.forEach((r) => {
       result[r] = {};
-      sortedCols.forEach(c => {
+      sortedCols.forEach((c) => {
         result[r][c] = computeAgg(grid[r][c], pivotAggType);
         colTotals[c].push(...grid[r][c]);
       });
     });
     const grandTotals: Record<string, number> = {};
-    sortedCols.forEach(c => { grandTotals[c] = computeAgg(colTotals[c], pivotAggType); });
+    sortedCols.forEach((c) => {
+      grandTotals[c] = computeAgg(colTotals[c], pivotAggType);
+    });
     return { rows: sortedRows, cols: sortedCols, data: result, grandTotals };
-  }, [showPivot, pivotRowField, pivotColField, pivotValueField, pivotAggType, filteredProjects, labels]);
+  }, [
+    showPivot,
+    pivotRowField,
+    pivotColField,
+    pivotValueField,
+    pivotAggType,
+    filteredProjects,
+    labels,
+  ]);
 
   const formatPivotVal = (val: number) => formatAggVal(pivotValueField, val, pivotAggType);
 
   const toggleScheduleDay = (day: string) => {
-    setScheduleDays(prev => {
+    setScheduleDays((prev) => {
       const next = new Set(prev);
-      if (next.has(day)) next.delete(day); else next.add(day);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
       return next;
     });
   };
@@ -366,22 +541,26 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   const addRecipient = () => {
     const email = recipientInput.trim();
     if (email && email.includes("@") && !recipients.includes(email)) {
-      setRecipients(prev => [...prev, email]);
+      setRecipients((prev) => [...prev, email]);
       setRecipientInput("");
     }
   };
 
   const removeRecipient = (email: string) => {
-    setRecipients(prev => prev.filter(e => e !== email));
+    setRecipients((prev) => prev.filter((e) => e !== email));
   };
 
   const handleSaveReport = async () => {
-    if (!reportName.trim()) { toast.error("Please enter a report name"); return; }
+    if (!reportName.trim()) {
+      toast.error("Please enter a report name");
+      return;
+    }
     setLoading(true);
     try {
-      const scheduleValue = scheduleDays.size > 0
-        ? `${Array.from(scheduleDays).join(",")}@${String(scheduleHour).padStart(2, "0")}:${String(scheduleMinute).padStart(2, "0")}`
-        : "none";
+      const scheduleValue =
+        scheduleDays.size > 0
+          ? `${Array.from(scheduleDays).join(",")}@${String(scheduleHour).padStart(2, "0")}:${String(scheduleMinute).padStart(2, "0")}`
+          : "none";
 
       // Encode active filters + sort into columns so they're persisted and applied in scheduled emails
       const filterSnapshot = {
@@ -408,26 +587,52 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
         ? [...selectedColumns, `__FILTER_STATE__:${JSON.stringify(filterSnapshot)}`]
         : selectedColumns;
 
-      const { data, error } = await supabase.from("saved_reports").insert({
-        name: reportName.trim(), columns: columnsToSave, schedule: scheduleValue, recipients,
-        tenant_id: currentUser?.tenantId, created_by: currentUser?.id,
-      }).select().single();
+      const { data, error } = await supabase
+        .from("saved_reports")
+        .insert({
+          name: reportName.trim(),
+          columns: columnsToSave,
+          schedule: scheduleValue,
+          recipients,
+          tenant_id: currentUser?.tenantId,
+          created_by: currentUser?.id,
+        })
+        .select()
+        .single();
       if (error) throw error;
-      setSavedReports(prev => [{ id: data.id, name: data.name, columns: data.columns || [], schedule: data.schedule || "none", recipients: data.recipients || [] }, ...prev]);
+      setSavedReports((prev) => [
+        {
+          id: data.id,
+          name: data.name,
+          columns: data.columns || [],
+          schedule: data.schedule || "none",
+          recipients: data.recipients || [],
+        },
+        ...prev,
+      ]);
       toast.success(`Report "${reportName}" saved`);
-      setSaveDialogOpen(false); setReportName(""); setScheduleDays(new Set()); setRecipients([]);
-    } catch (err: any) { toast.error(err.message || "Failed to save report"); }
-    finally { setLoading(false); }
+      setSaveDialogOpen(false);
+      setReportName("");
+      setScheduleDays(new Set());
+      setRecipients([]);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save report");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteReport = async (id: string) => {
     const { error } = await supabase.from("saved_reports").delete().eq("id", id);
-    if (!error) { setSavedReports(prev => prev.filter(r => r.id !== id)); toast.success("Report deleted"); }
+    if (!error) {
+      setSavedReports((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Report deleted");
+    }
   };
 
   const loadReport = (report: SavedReport) => {
-    const filterEl = report.columns.find(c => c.startsWith("__FILTER_STATE__:"));
-    const actualCols = report.columns.filter(c => !c.startsWith("__FILTER_STATE__:"));
+    const filterEl = report.columns.find((c) => c.startsWith("__FILTER_STATE__:"));
+    const actualCols = report.columns.filter((c) => !c.startsWith("__FILTER_STATE__:"));
     setSelectedColumns(actualCols);
     if (filterEl) {
       try {
@@ -444,98 +649,129 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
         if (fs.kickOffTo !== undefined) filterState.setKickOffTo(fs.kickOffTo);
         if (fs.goLiveFrom !== undefined) filterState.setGoLiveFrom(fs.goLiveFrom);
         if (fs.goLiveTo !== undefined) filterState.setGoLiveTo(fs.goLiveTo);
-        if (fs.expectedGoLiveFrom !== undefined) filterState.setExpectedGoLiveFrom(fs.expectedGoLiveFrom);
+        if (fs.expectedGoLiveFrom !== undefined)
+          filterState.setExpectedGoLiveFrom(fs.expectedGoLiveFrom);
         if (fs.expectedGoLiveTo !== undefined) filterState.setExpectedGoLiveTo(fs.expectedGoLiveTo);
-        if (fs.expectedGoLiveNone !== undefined) filterState.setExpectedGoLiveNone(fs.expectedGoLiveNone);
+        if (fs.expectedGoLiveNone !== undefined)
+          filterState.setExpectedGoLiveNone(fs.expectedGoLiveNone);
         if (fs.sortField) filterState.setSortField(fs.sortField);
         if (fs.sortDir) filterState.setSortDir(fs.sortDir);
-      } catch { /* ignore malformed filter state */ }
+      } catch {
+        /* ignore malformed filter state */
+      }
     }
     toast.info(`Loaded "${report.name}"`);
   };
 
   const exportReportCSV = () => {
-    const headers = selectedColumns.map(k => allColumns.find(c => c.key === k)?.label || k);
-    const rows = filteredProjects.map(p => selectedColumns.map(k => {
-      const val = getCellValue(p, k, labels);
-      return val.includes(",") || val.includes('"') ? `"${val.replace(/"/g, '""')}"` : val;
-    }));
-    const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const headers = selectedColumns.map((k) => allColumns.find((c) => c.key === k)?.label || k);
+    const rows = filteredProjects.map((p) =>
+      selectedColumns.map((k) => {
+        const val = getCellValue(p, k, labels);
+        return val.includes(",") || val.includes('"') ? `"${val.replace(/"/g, '""')}"` : val;
+      }),
+    );
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url; link.download = `custom-report-${new Date().toISOString().split("T")[0]}.csv`;
-    document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+    link.href = url;
+    link.download = `custom-report-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     toast.success("Report exported");
   };
 
   // Compute footer aggregates for flat table
   const footerAggregates = useMemo(() => {
     const agg: Record<string, number> = {};
-    selectedNumericCols.forEach(col => {
-      const values = filteredProjects.map(p => getNumericValue(p, col));
+    selectedNumericCols.forEach((col) => {
+      const values = filteredProjects.map((p) => getNumericValue(p, col));
       agg[col] = computeAgg(values, reportAggType);
     });
     return agg;
   }, [filteredProjects, selectedNumericCols, reportAggType]);
 
   const renderGroupedTable = () => {
-    const displayCols = selectedColumns.filter(k => k !== groupByColumn);
+    const displayCols = selectedColumns.filter((k) => k !== groupByColumn);
     return (
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="text-xs w-8"></TableHead>
-            {displayCols.map(key => {
-              const col = allColumns.find(c => c.key === key);
-              return <TableHead key={key} className="text-xs whitespace-nowrap">{col?.label || key}</TableHead>;
+            {displayCols.map((key) => {
+              const col = allColumns.find((c) => c.key === key);
+              return (
+                <TableHead key={key} className="text-xs whitespace-nowrap">
+                  {col?.label || key}
+                </TableHead>
+              );
             })}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pivotGroups.map(group => {
+          {pivotGroups.map((group) => {
             const isExpanded = expandedGroups.has(group.key);
-            const groupLabel = allColumns.find(c => c.key === groupByColumn)?.label || groupByColumn;
+            const groupLabel =
+              allColumns.find((c) => c.key === groupByColumn)?.label || groupByColumn;
             return (
-              <> 
+              <>
                 <TableRow
                   key={`group-${group.key}`}
                   className="bg-muted/60 hover:bg-muted/80 cursor-pointer font-medium"
                   onClick={() => toggleGroup(group.key)}
                 >
                   <TableCell className="py-2 px-2">
-                    {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+                    {isExpanded ? (
+                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
                   </TableCell>
                   <TableCell colSpan={1} className="text-xs font-semibold py-2">
                     <span className="text-muted-foreground mr-1">{groupLabel}:</span>
                     {group.label}
-                    <Badge variant="secondary" className="ml-2 text-2xs px-1.5 py-0">{group.projects.length}</Badge>
+                    <Badge variant="secondary" className="ml-2 text-2xs px-1.5 py-0">
+                      {group.projects.length}
+                    </Badge>
                   </TableCell>
-                  {displayCols.slice(1).map(col => {
+                  {displayCols.slice(1).map((col) => {
                     const agg = group.aggregates[col];
                     if (agg !== undefined) {
                       return (
                         <TableCell key={col} className="text-xs py-2">
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Sigma className="h-3 w-3" />
-                            <span className="font-mono font-semibold text-foreground">{formatAggVal(col, agg, reportAggType)}</span>
+                            <span className="font-mono font-semibold text-foreground">
+                              {formatAggVal(col, agg, reportAggType)}
+                            </span>
                           </div>
                         </TableCell>
                       );
                     }
-                    return <TableCell key={col} className="text-xs py-2 text-muted-foreground">—</TableCell>;
+                    return (
+                      <TableCell key={col} className="text-xs py-2 text-muted-foreground">
+                        —
+                      </TableCell>
+                    );
                   })}
                 </TableRow>
-                {isExpanded && group.projects.map(project => (
-                  <TableRow key={project.id} className="bg-background">
-                    <TableCell></TableCell>
-                    {displayCols.map(key => (
-                      <TableCell key={key} className="text-xs whitespace-nowrap max-w-[200px] truncate">
-                        {getCellValue(project, key, labels)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
+                {isExpanded &&
+                  group.projects.map((project) => (
+                    <TableRow key={project.id} className="bg-background">
+                      <TableCell></TableCell>
+                      {displayCols.map((key) => (
+                        <TableCell
+                          key={key}
+                          className="text-xs whitespace-nowrap max-w-[200px] truncate"
+                        >
+                          {getCellValue(project, key, labels)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
               </>
             );
           })}
@@ -548,8 +784,8 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     <Table>
       <TableHeader>
         <TableRow>
-          {selectedColumns.map(key => {
-            const col = allColumns.find(c => c.key === key);
+          {selectedColumns.map((key) => {
+            const col = allColumns.find((c) => c.key === key);
             const label = col?.label || key;
             const sortKey = SORTABLE_REPORT_KEYS[key];
             if (sortKey) {
@@ -564,14 +800,18 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
                 />
               );
             }
-            return <TableHead key={key} className="text-xs whitespace-nowrap">{label}</TableHead>;
+            return (
+              <TableHead key={key} className="text-xs whitespace-nowrap">
+                {label}
+              </TableHead>
+            );
           })}
         </TableRow>
       </TableHeader>
       <TableBody>
-        {filteredProjects.map(project => (
+        {filteredProjects.map((project) => (
           <TableRow key={project.id}>
-            {selectedColumns.map(key => (
+            {selectedColumns.map((key) => (
               <TableCell key={key} className="text-xs whitespace-nowrap max-w-[200px] truncate">
                 {getCellValue(project, key, labels)}
               </TableCell>
@@ -581,19 +821,25 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
         {/* Aggregate footer row */}
         {selectedNumericCols.length > 0 && (
           <TableRow className="bg-muted/60 font-semibold border-t-2">
-            {selectedColumns.map(key => {
+            {selectedColumns.map((key) => {
               const agg = footerAggregates[key];
               if (agg !== undefined) {
                 return (
                   <TableCell key={key} className="text-xs py-2">
                     <div className="flex items-center gap-1">
                       <Sigma className="h-3 w-3 text-muted-foreground" />
-                      <span className="font-mono font-semibold">{formatAggVal(key, agg, reportAggType)}</span>
+                      <span className="font-mono font-semibold">
+                        {formatAggVal(key, agg, reportAggType)}
+                      </span>
                     </div>
                   </TableCell>
                 );
               }
-              return <TableCell key={key} className="text-xs py-2 text-muted-foreground">{key === selectedColumns[0] ? `${reportAggType.toUpperCase()}` : ""}</TableCell>;
+              return (
+                <TableCell key={key} className="text-xs py-2 text-muted-foreground">
+                  {key === selectedColumns[0] ? `${reportAggType.toUpperCase()}` : ""}
+                </TableCell>
+              );
             })}
           </TableRow>
         )}
@@ -602,29 +848,47 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   );
 
   const renderExcelPivot = () => {
-    if (!excelPivot) return <p className="text-sm text-muted-foreground p-4">Select a Row field to create a pivot table.</p>;
+    if (!excelPivot)
+      return (
+        <p className="text-sm text-muted-foreground p-4">
+          Select a Row field to create a pivot table.
+        </p>
+      );
     const { rows, cols, data, grandTotals } = excelPivot;
-    const rowLabel = allColumns.find(c => c.key === pivotRowField)?.label || pivotRowField;
+    const rowLabel = allColumns.find((c) => c.key === pivotRowField)?.label || pivotRowField;
 
     return (
       <div className="overflow-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="text-xs font-semibold whitespace-nowrap sticky left-0 bg-muted/50 z-10">{rowLabel}</TableHead>
-              {cols.map(col => (
-                <TableHead key={col} className="text-xs font-semibold whitespace-nowrap text-center">{col}</TableHead>
+              <TableHead className="text-xs font-semibold whitespace-nowrap sticky left-0 bg-muted/50 z-10">
+                {rowLabel}
+              </TableHead>
+              {cols.map((col) => (
+                <TableHead
+                  key={col}
+                  className="text-xs font-semibold whitespace-nowrap text-center"
+                >
+                  {col}
+                </TableHead>
               ))}
-              {cols.length > 1 && <TableHead className="text-xs font-semibold whitespace-nowrap text-center bg-muted/80">Grand Total</TableHead>}
+              {cols.length > 1 && (
+                <TableHead className="text-xs font-semibold whitespace-nowrap text-center bg-muted/80">
+                  Grand Total
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map(row => {
+            {rows.map((row) => {
               const rowTotal = cols.reduce((s, c) => s + (data[row]?.[c] || 0), 0);
               return (
                 <TableRow key={row} className="hover:bg-muted/20">
-                  <TableCell className="text-xs font-medium whitespace-nowrap sticky left-0 bg-background z-10">{row}</TableCell>
-                  {cols.map(col => (
+                  <TableCell className="text-xs font-medium whitespace-nowrap sticky left-0 bg-background z-10">
+                    {row}
+                  </TableCell>
+                  {cols.map((col) => (
                     <TableCell key={col} className="text-xs text-center font-mono">
                       {formatPivotVal(data[row]?.[col] || 0)}
                     </TableCell>
@@ -638,8 +902,10 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
               );
             })}
             <TableRow className="bg-muted/60 font-semibold">
-              <TableCell className="text-xs font-semibold sticky left-0 bg-muted/60 z-10">Grand Total</TableCell>
-              {cols.map(col => (
+              <TableCell className="text-xs font-semibold sticky left-0 bg-muted/60 z-10">
+                Grand Total
+              </TableCell>
+              {cols.map((col) => (
                 <TableCell key={col} className="text-xs text-center font-mono font-semibold">
                   {formatPivotVal(grandTotals[col] || 0)}
                 </TableCell>
@@ -672,7 +938,8 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
   }, [splitByColumn, groupByColumn]);
 
   useEffect(() => {
-    if (chartMeasure !== "count" && !selectedNumericCols.includes(chartMeasure)) setChartMeasure("count");
+    if (chartMeasure !== "count" && !selectedNumericCols.includes(chartMeasure))
+      setChartMeasure("count");
   }, [chartMeasure, selectedNumericCols]);
 
   const measureLabel = useMemo(() => {
@@ -693,11 +960,17 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     const measure = (list: Project[]) =>
       chartMeasure === "count"
         ? list.length
-        : computeAgg(list.map((p) => getNumericValue(p, chartMeasure)), reportAggType);
+        : computeAgg(
+            list.map((p) => getNumericValue(p, chartMeasure)),
+            reportAggType,
+          );
 
     if (splitByColumn === "none") {
       return {
-        chartRows: pivotGroups.map((group) => ({ name: group.label, s0: measure(group.projects) })) as ChartRow[],
+        chartRows: pivotGroups.map((group) => ({
+          name: group.label,
+          s0: measure(group.projects),
+        })) as ChartRow[],
         chartSeries: [{ key: "s0", label: measureLabel }],
       };
     }
@@ -707,7 +980,10 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
     const totals = new Map<string, number>();
     filteredProjects.forEach((p) => {
       const val = getCellValue(p, splitByColumn, labels) || "—";
-      totals.set(val, (totals.get(val) || 0) + (chartMeasure === "count" ? 1 : getNumericValue(p, chartMeasure)));
+      totals.set(
+        val,
+        (totals.get(val) || 0) + (chartMeasure === "count" ? 1 : getNumericValue(p, chartMeasure)),
+      );
     });
     const ranked = [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k);
     const kept = ranked.slice(0, SERIES_SLOTS - (ranked.length > SERIES_SLOTS ? 1 : 0));
@@ -732,7 +1008,15 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
       chartRows: rows,
       chartSeries: labelsInOrder.map((label) => ({ key: keyFor.get(label)!, label })),
     };
-  }, [pivotGroups, filteredProjects, splitByColumn, chartMeasure, reportAggType, measureLabel, labels]);
+  }, [
+    pivotGroups,
+    filteredProjects,
+    splitByColumn,
+    chartMeasure,
+    reportAggType,
+    measureLabel,
+    labels,
+  ]);
 
   const chartSpec = useMemo(
     () => ({ x: "name", series: chartSeries, valueLabel: measureLabel }),
@@ -746,32 +1030,48 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
         <Card>
           <CardHeader className="px-4 py-3">
             <CardTitle className="portal-heading text-sm">
-              Columns <span className="ml-1 text-2xs font-normal text-muted-foreground">({selectedColumns.length} selected)</span>
+              Columns{" "}
+              <span className="ml-1 text-2xs font-normal text-muted-foreground">
+                ({selectedColumns.length} selected)
+              </span>
             </CardTitle>
-            <CardDescription className="text-2xs">Drag a group to reorder it in the report.</CardDescription>
+            <CardDescription className="text-2xs">
+              Drag a group to reorder it in the report.
+            </CardDescription>
           </CardHeader>
           <CardContent className="max-h-[52vh] space-y-2 overflow-y-auto px-4 pb-3 pt-0">
-            {groupOrder.filter(g => columnGroups[g]).map(group => (
-              <div
-                key={group}
-                draggable
-                onDragStart={() => handleGroupDragStart(group)}
-                onDragOver={(e) => handleGroupDragOver(e, group)}
-                onDragEnd={handleGroupDragEnd}
-                className={`cursor-grab rounded-md p-1.5 transition-opacity active:cursor-grabbing ${draggedGroup === group ? "bg-primary/10 opacity-50" : "hover:bg-muted/40"}`}
-              >
-                <div className="mb-1 flex items-center gap-1">
-                  <GripVertical className="h-3 w-3 text-muted-foreground/50" />
-                  <p className="text-2xs font-semibold tracking-normal text-muted-foreground">{group}</p>
+            {groupOrder
+              .filter((g) => columnGroups[g])
+              .map((group) => (
+                <div
+                  key={group}
+                  draggable
+                  onDragStart={() => handleGroupDragStart(group)}
+                  onDragOver={(e) => handleGroupDragOver(e, group)}
+                  onDragEnd={handleGroupDragEnd}
+                  className={`cursor-grab rounded-md p-1.5 transition-opacity active:cursor-grabbing ${draggedGroup === group ? "bg-primary/10 opacity-50" : "hover:bg-muted/40"}`}
+                >
+                  <div className="mb-1 flex items-center gap-1">
+                    <GripVertical className="h-3 w-3 text-muted-foreground/50" />
+                    <p className="text-2xs font-semibold tracking-normal text-muted-foreground">
+                      {group}
+                    </p>
+                  </div>
+                  {columnGroups[group].map((col) => (
+                    <label
+                      key={col.key}
+                      className="flex cursor-pointer items-center gap-1.5 py-0.5 text-xs transition-colors hover:text-primary"
+                    >
+                      <Checkbox
+                        checked={selectedColumns.includes(col.key)}
+                        onCheckedChange={() => toggleColumn(col.key)}
+                        className="h-3.5 w-3.5"
+                      />
+                      {col.label}
+                    </label>
+                  ))}
                 </div>
-                {columnGroups[group].map(col => (
-                  <label key={col.key} className="flex cursor-pointer items-center gap-1.5 py-0.5 text-xs transition-colors hover:text-primary">
-                    <Checkbox checked={selectedColumns.includes(col.key)} onCheckedChange={() => toggleColumn(col.key)} className="h-3.5 w-3.5" />
-                    {col.label}
-                  </label>
-                ))}
-              </div>
-            ))}
+              ))}
           </CardContent>
         </Card>
 
@@ -789,17 +1089,33 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
               </p>
             ) : (
               <div className="space-y-1">
-                {savedReports.map(report => (
-                  <div key={report.id} className="flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 px-2 py-1.5">
-                    <button onClick={() => loadReport(report)} className="min-w-0 flex-1 truncate text-left text-xs font-medium transition-colors hover:text-primary">
+                {savedReports.map((report) => (
+                  <div
+                    key={report.id}
+                    className="flex items-center gap-1 rounded-md border border-border/60 bg-muted/20 px-2 py-1.5"
+                  >
+                    <button
+                      onClick={() => loadReport(report)}
+                      className="min-w-0 flex-1 truncate text-left text-xs font-medium transition-colors hover:text-primary"
+                    >
                       {report.name}
                     </button>
                     {report.schedule !== "none" && (
-                      <Badge variant="secondary" className="shrink-0 px-1.5 py-0 text-2xs" title="Scheduled">
+                      <Badge
+                        variant="secondary"
+                        className="shrink-0 px-1.5 py-0 text-2xs"
+                        title="Scheduled"
+                      >
                         <Calendar className="h-3 w-3" />
                       </Badge>
                     )}
-                    <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={() => handleDeleteReport(report.id)} aria-label={`Delete ${report.name}`}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 shrink-0"
+                      onClick={() => handleDeleteReport(report.id)}
+                      aria-label={`Delete ${report.name}`}
+                    >
                       <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
                     </Button>
                   </div>
@@ -817,10 +1133,12 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-3">
                 <CardTitle className="portal-heading">
-                  Report ({filteredProjects.length}{filteredProjects.length !== projects.length ? ` of ${projects.length}` : ""} projects)
+                  Report ({filteredProjects.length}
+                  {filteredProjects.length !== projects.length ? ` of ${projects.length}` : ""}{" "}
+                  projects)
                   {groupByColumn !== "none" && (
                     <Badge variant="outline" className="ml-2 px-1.5 py-0 text-2xs">
-                      Grouped by {allColumns.find(c => c.key === groupByColumn)?.label}
+                      Grouped by {allColumns.find((c) => c.key === groupByColumn)?.label}
                     </Badge>
                   )}
                 </CardTitle>
@@ -828,8 +1146,13 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
               <div className="flex flex-wrap items-center gap-2">
                 <div className="flex items-center gap-1.5">
                   <Label className="whitespace-nowrap text-xs text-muted-foreground">Agg:</Label>
-                  <Select value={reportAggType} onValueChange={(v) => setReportAggType(v as AggType)}>
-                    <SelectTrigger className="h-7 w-[90px] text-xs"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={reportAggType}
+                    onValueChange={(v) => setReportAggType(v as AggType)}
+                  >
+                    <SelectTrigger className="h-7 w-[90px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="sum">Sum</SelectItem>
                       <SelectItem value="avg">Average</SelectItem>
@@ -840,23 +1163,44 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
                   </Select>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Label className="whitespace-nowrap text-xs text-muted-foreground">Group By:</Label>
+                  <Label className="whitespace-nowrap text-xs text-muted-foreground">
+                    Group By:
+                  </Label>
                   <Select value={groupByColumn} onValueChange={setGroupByColumn}>
-                    <SelectTrigger className="h-7 w-[140px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-7 w-[140px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">No Grouping</SelectItem>
-                      {groupableColumns.filter(k => selectedColumns.includes(k)).map(k => {
-                        const col = allColumns.find(c => c.key === k);
-                        return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
-                      })}
+                      {groupableColumns
+                        .filter((k) => selectedColumns.includes(k))
+                        .map((k) => {
+                          const col = allColumns.find((c) => c.key === k);
+                          return (
+                            <SelectItem key={k} value={k}>
+                              {col?.label || k}
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
                 </div>
-                <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={exportReportCSV}>
-                  <Play className="h-3 w-3" />Export CSV
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 gap-1 text-xs"
+                  onClick={exportReportCSV}
+                >
+                  <Play className="h-3 w-3" />
+                  Export CSV
                 </Button>
-                <Button size="sm" className="h-7 gap-1 text-xs" onClick={() => setSaveDialogOpen(true)}>
-                  <Save className="h-3 w-3" />Save &amp; Schedule
+                <Button
+                  size="sm"
+                  className="h-7 gap-1 text-xs"
+                  onClick={() => setSaveDialogOpen(true)}
+                >
+                  <Save className="h-3 w-3" />
+                  Save &amp; Schedule
                 </Button>
               </div>
             </div>
@@ -864,7 +1208,11 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
             {/* How the report is drawn. A chart needs a dimension to draw along,
                 so the forms stay disabled until Group By names one. */}
             <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
-              <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Report view">
+              <div
+                className="flex flex-wrap items-center gap-1"
+                role="tablist"
+                aria-label="Report view"
+              >
                 {availableViews.map((type) => {
                   const Icon = CHART_META[type].icon;
                   const disabled = type !== "table" && groupByColumn === "none";
@@ -875,12 +1223,19 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
                       role="tab"
                       aria-selected={view === type}
                       disabled={disabled}
-                      title={disabled ? "Choose a Group By column to chart the report" : CHART_META[type].label}
+                      title={
+                        disabled
+                          ? "Choose a Group By column to chart the report"
+                          : CHART_META[type].label
+                      }
                       onClick={() => setView(type)}
                       className={cn(
                         "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                        view === type ? "bg-primary-soft text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                        disabled && "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-muted-foreground",
+                        view === type
+                          ? "bg-primary-soft text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                        disabled &&
+                          "cursor-not-allowed opacity-40 hover:bg-transparent hover:text-muted-foreground",
                       )}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -891,39 +1246,64 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
               </div>
               {view !== "table" && (
                 <div className="flex items-center gap-1.5">
-                  <Label className="whitespace-nowrap text-xs text-muted-foreground">Split by:</Label>
-                  <Select value={splitByColumn} onValueChange={setSplitByColumn} disabled={groupByColumn === "none"}>
-                    <SelectTrigger className="h-7 w-[150px] text-xs"><SelectValue /></SelectTrigger>
+                  <Label className="whitespace-nowrap text-xs text-muted-foreground">
+                    Split by:
+                  </Label>
+                  <Select
+                    value={splitByColumn}
+                    onValueChange={setSplitByColumn}
+                    disabled={groupByColumn === "none"}
+                  >
+                    <SelectTrigger className="h-7 w-[150px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">No split</SelectItem>
-                      {groupableColumns.filter(k => selectedColumns.includes(k) && k !== groupByColumn).map(k => {
-                        const col = allColumns.find(c => c.key === k);
-                        return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
-                      })}
+                      {groupableColumns
+                        .filter((k) => selectedColumns.includes(k) && k !== groupByColumn)
+                        .map((k) => {
+                          const col = allColumns.find((c) => c.key === k);
+                          return (
+                            <SelectItem key={k} value={k}>
+                              {col?.label || k}
+                            </SelectItem>
+                          );
+                        })}
                     </SelectContent>
                   </Select>
                 </div>
               )}
               {view !== "table" && (
                 <div className="flex items-center gap-1.5">
-                  <Label className="whitespace-nowrap text-xs text-muted-foreground">Measure:</Label>
+                  <Label className="whitespace-nowrap text-xs text-muted-foreground">
+                    Measure:
+                  </Label>
                   <Select value={chartMeasure} onValueChange={setChartMeasure}>
-                    <SelectTrigger className="h-7 w-[150px] text-xs"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-7 w-[150px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="count">Projects</SelectItem>
-                      {selectedNumericCols.map(k => {
-                        const col = allColumns.find(c => c.key === k);
-                        return <SelectItem key={k} value={k}>{col?.label || k}</SelectItem>;
+                      {selectedNumericCols.map((k) => {
+                        const col = allColumns.find((c) => c.key === k);
+                        return (
+                          <SelectItem key={k} value={k}>
+                            {col?.label || k}
+                          </SelectItem>
+                        );
                       })}
                     </SelectContent>
                   </Select>
                 </div>
               )}
               {groupByColumn !== "none" && view === "table" && (
-                <Button variant="ghost" size="sm" className="ml-auto h-6 text-2xs"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto h-6 text-2xs"
                   onClick={() => {
                     if (expandedGroups.size === pivotGroups.length) setExpandedGroups(new Set());
-                    else setExpandedGroups(new Set(pivotGroups.map(g => g.key)));
+                    else setExpandedGroups(new Set(pivotGroups.map((g) => g.key)));
                   }}
                 >
                   {expandedGroups.size === pivotGroups.length ? "Collapse All" : "Expand All"}
@@ -951,19 +1331,28 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
       {/* Save & Schedule Dialog - Google Calendar style */}
       <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Save & Schedule Report</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Save & Schedule Report</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
             <div>
               <Label className="text-sm">Report Name</Label>
-              <Input value={reportName} onChange={e => setReportName(e.target.value)} placeholder="e.g. Weekly ARR Summary" className="mt-1" />
+              <Input
+                value={reportName}
+                onChange={(e) => setReportName(e.target.value)}
+                placeholder="e.g. Weekly ARR Summary"
+                className="mt-1"
+              />
             </div>
 
             {/* Calendar-style day + time picker */}
             <div>
               <Label className="text-sm">Schedule</Label>
-              <p className="text-xs text-muted-foreground mb-2">Select days and time for the report to be triggered</p>
+              <p className="text-xs text-muted-foreground mb-2">
+                Select days and time for the report to be triggered
+              </p>
               <div className="flex gap-1.5 mb-3">
-                {DAYS_OF_WEEK.map(day => (
+                {DAYS_OF_WEEK.map((day) => (
                   <button
                     key={day}
                     onClick={() => toggleScheduleDay(day)}
@@ -980,20 +1369,34 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
               {scheduleDays.size > 0 && (
                 <div className="flex items-center gap-2">
                   <Label className="text-xs text-muted-foreground whitespace-nowrap">Time:</Label>
-                  <Select value={String(scheduleHour)} onValueChange={(v) => setScheduleHour(Number(v))}>
-                    <SelectTrigger className="h-8 w-[70px] text-xs"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={String(scheduleHour)}
+                    onValueChange={(v) => setScheduleHour(Number(v))}
+                  >
+                    <SelectTrigger className="h-8 w-[70px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {HOURS.map(h => (
-                        <SelectItem key={h} value={String(h)}>{String(h).padStart(2, "0")}</SelectItem>
+                      {HOURS.map((h) => (
+                        <SelectItem key={h} value={String(h)}>
+                          {String(h).padStart(2, "0")}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <span className="text-sm font-medium">:</span>
-                  <Select value={String(scheduleMinute)} onValueChange={(v) => setScheduleMinute(Number(v))}>
-                    <SelectTrigger className="h-8 w-[70px] text-xs"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={String(scheduleMinute)}
+                    onValueChange={(v) => setScheduleMinute(Number(v))}
+                  >
+                    <SelectTrigger className="h-8 w-[70px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
-                      {[0, 15, 30, 45].map(m => (
-                        <SelectItem key={m} value={String(m)}>{String(m).padStart(2, "0")}</SelectItem>
+                      {[0, 15, 30, 45].map((m) => (
+                        <SelectItem key={m} value={String(m)}>
+                          {String(m).padStart(2, "0")}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -1008,16 +1411,27 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
               <div>
                 <Label className="text-sm">Email Recipients</Label>
                 <div className="flex gap-2 mt-1">
-                  <Input value={recipientInput} onChange={e => setRecipientInput(e.target.value)} placeholder="email@example.com"
-                    onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addRecipient())} />
-                  <Button size="sm" variant="outline" onClick={addRecipient} className="shrink-0"><Plus className="h-4 w-4" /></Button>
+                  <Input
+                    value={recipientInput}
+                    onChange={(e) => setRecipientInput(e.target.value)}
+                    placeholder="email@example.com"
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addRecipient())}
+                  />
+                  <Button size="sm" variant="outline" onClick={addRecipient} className="shrink-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
                 {recipients.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-2">
-                    {recipients.map(email => (
+                    {recipients.map((email) => (
                       <Badge key={email} variant="secondary" className="text-xs gap-1 pr-1">
                         {email}
-                        <button onClick={() => removeRecipient(email)} className="hover:text-destructive"><X className="h-3 w-3" /></button>
+                        <button
+                          onClick={() => removeRecipient(email)}
+                          className="hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
                       </Badge>
                     ))}
                   </div>
@@ -1026,8 +1440,12 @@ export const ReportsBuilder = ({ projects, customFields = [], customValuesMap = 
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveReport} disabled={loading}>{loading ? "Saving..." : "Save Report"}</Button>
+            <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveReport} disabled={loading}>
+              {loading ? "Saving..." : "Save Report"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

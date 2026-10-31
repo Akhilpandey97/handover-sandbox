@@ -15,7 +15,10 @@ export const useProfilesLookup = () => {
     gcTime: 30 * 60_000,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("id, name").eq("tenant_id", tenantId);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, name")
+        .eq("tenant_id", tenantId);
       if (error) throw error;
       return (data || []) as { id: string; name: string }[];
     },
@@ -35,10 +38,15 @@ export const useChecklistTemplateTitles = () => {
     gcTime: 30 * 60_000,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      const { data, error } = await supabase.from("checklist_templates").select("id, title").eq("tenant_id", tenantId);
+      const { data, error } = await supabase
+        .from("checklist_templates")
+        .select("id, title")
+        .eq("tenant_id", tenantId);
       if (error) throw error;
       const map: Record<string, string> = {};
-      (data || []).forEach((t: any) => { map[t.title] = t.id; });
+      (data || []).forEach((t: any) => {
+        map[t.title] = t.id;
+      });
       return map;
     },
   });

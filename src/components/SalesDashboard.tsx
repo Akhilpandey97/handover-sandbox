@@ -2,7 +2,11 @@ import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
-import { calculateTimeFromChecklist, formatDuration, projectStateLabels } from "@/data/projectsData";
+import {
+  calculateTimeFromChecklist,
+  formatDuration,
+  projectStateLabels,
+} from "@/data/projectsData";
 import { supabase } from "@/integrations/supabase/client";
 import { tenantScope } from "@/lib/tenant-scope";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -36,7 +40,12 @@ export const SalesDashboard = () => {
   const { currentUser, logout } = useAuth();
   const { projects, isLoading } = useProjects();
   const { labels: appLabels, teamLabels, stateLabels } = useLabels();
-  const [taskStats, setTaskStats] = useState<TaskStats>({ open: 0, in_progress: 0, completed: 0, total: 0 });
+  const [taskStats, setTaskStats] = useState<TaskStats>({
+    open: 0,
+    in_progress: 0,
+    completed: 0,
+    total: 0,
+  });
   const [tasksLoading, setTasksLoading] = useState(true);
 
   // Fetch task stats
@@ -49,9 +58,9 @@ export const SalesDashboard = () => {
           .select("status")
           .eq("tenant_id", tenantScope(currentUser?.tenantId));
         if (!error && data) {
-          const open = data.filter(t => t.status === "open").length;
-          const inProgress = data.filter(t => t.status === "in_progress").length;
-          const completed = data.filter(t => t.status === "completed").length;
+          const open = data.filter((t) => t.status === "open").length;
+          const inProgress = data.filter((t) => t.status === "in_progress").length;
+          const completed = data.filter((t) => t.status === "completed").length;
           setTaskStats({ open, in_progress: inProgress, completed, total: data.length });
         }
       } catch {
@@ -76,23 +85,24 @@ export const SalesDashboard = () => {
     );
   }
 
-  const activeP = projects.filter(p => !p.archived);
+  const activeP = projects.filter((p) => !p.archived);
   const totalProjects = activeP.length;
-  const liveProjects = activeP.filter(p => p.projectState === "live").length;
-  const activeProjects = activeP.filter(p => p.projectState === "in_progress").length;
-  const blockedProjects = activeP.filter(p => p.projectState === "blocked").length;
+  const liveProjects = activeP.filter((p) => p.projectState === "live").length;
+  const activeProjects = activeP.filter((p) => p.projectState === "in_progress").length;
+  const blockedProjects = activeP.filter((p) => p.projectState === "blocked").length;
   const totalArr = activeP.reduce((s, p) => s + p.arr, 0);
-  const liveArr = activeP.filter(p => p.projectState === "live").reduce((s, p) => s + p.arr, 0);
+  const liveArr = activeP.filter((p) => p.projectState === "live").reduce((s, p) => s + p.arr, 0);
 
   let totalGokwikTime = 0;
   let totalMerchantTime = 0;
-  activeP.forEach(p => {
+  activeP.forEach((p) => {
     const time = calculateTimeFromChecklist(p.checklist);
     totalGokwikTime += time.gokwik;
     totalMerchantTime += time.merchant;
   });
 
-  const taskPercent = taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0;
+  const taskPercent =
+    taskStats.total > 0 ? Math.round((taskStats.completed / taskStats.total) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -110,7 +120,7 @@ export const SalesDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <NotificationCenter />
-              <ThemeToggle />
+            <ThemeToggle />
             <Button variant="outline" size="sm" onClick={logout} className="gap-2">
               <LogOut className="h-4 w-4" /> Logout
             </Button>
@@ -124,7 +134,9 @@ export const SalesDashboard = () => {
           <Card className="shadow-lg border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground tracking-normal">Total ARR</span>
+                <span className="text-xs font-medium text-muted-foreground tracking-normal">
+                  Total ARR
+                </span>
                 <TrendingUp className="h-4 w-4 text-primary" />
               </div>
               <p className="text-2xl font-bold text-foreground">₹{formatArrCr(totalArr)}</p>
@@ -134,7 +146,9 @@ export const SalesDashboard = () => {
           <Card className="shadow-lg border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground tracking-normal">Live ARR</span>
+                <span className="text-xs font-medium text-muted-foreground tracking-normal">
+                  Live ARR
+                </span>
                 <Rocket className="h-4 w-4 text-success-strong" />
               </div>
               <p className="text-2xl font-bold text-success-strong">₹{formatArrCr(liveArr)}</p>
@@ -144,7 +158,9 @@ export const SalesDashboard = () => {
           <Card className="shadow-lg border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground tracking-normal">Active</span>
+                <span className="text-xs font-medium text-muted-foreground tracking-normal">
+                  Active
+                </span>
                 <Clock className="h-4 w-4 text-warning-strong" />
               </div>
               <p className="text-2xl font-bold text-foreground">{activeProjects}</p>
@@ -154,11 +170,18 @@ export const SalesDashboard = () => {
           <Card className="shadow-lg border-border/50">
             <CardContent className="pt-5 pb-4 px-5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-muted-foreground tracking-normal">Progress</span>
+                <span className="text-xs font-medium text-muted-foreground tracking-normal">
+                  Progress
+                </span>
                 <CheckCircle2 className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-2xl font-bold text-foreground">{totalProjects > 0 ? Math.round((liveProjects / totalProjects) * 100) : 0}%</p>
-              <Progress value={totalProjects > 0 ? (liveProjects / totalProjects) * 100 : 0} className="h-1.5 mt-2" />
+              <p className="text-2xl font-bold text-foreground">
+                {totalProjects > 0 ? Math.round((liveProjects / totalProjects) * 100) : 0}%
+              </p>
+              <Progress
+                value={totalProjects > 0 ? (liveProjects / totalProjects) * 100 : 0}
+                className="h-1.5 mt-2"
+              />
             </CardContent>
           </Card>
         </div>
@@ -195,7 +218,9 @@ export const SalesDashboard = () => {
                       <p className="text-xs text-info-strong/80 font-medium mt-1">In Progress</p>
                     </div>
                     <div className="text-center p-3 rounded-lg bg-success-soft border border-success/30">
-                      <p className="text-2xl font-bold text-success-strong">{taskStats.completed}</p>
+                      <p className="text-2xl font-bold text-success-strong">
+                        {taskStats.completed}
+                      </p>
                       <p className="text-xs text-success-strong/80 font-medium mt-1">Completed</p>
                     </div>
                   </div>
@@ -222,7 +247,9 @@ export const SalesDashboard = () => {
                   <div className="h-3 rounded-full bg-muted overflow-hidden">
                     <div
                       className="h-full bg-primary rounded-full transition-all"
-                      style={{ width: `${totalGokwikTime + totalMerchantTime > 0 ? (totalGokwikTime / (totalGokwikTime + totalMerchantTime)) * 100 : 0}%` }}
+                      style={{
+                        width: `${totalGokwikTime + totalMerchantTime > 0 ? (totalGokwikTime / (totalGokwikTime + totalMerchantTime)) * 100 : 0}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -234,7 +261,9 @@ export const SalesDashboard = () => {
                   <div className="h-3 rounded-full bg-muted overflow-hidden">
                     <div
                       className="h-full bg-warning rounded-full transition-all"
-                      style={{ width: `${totalGokwikTime + totalMerchantTime > 0 ? (totalMerchantTime / (totalGokwikTime + totalMerchantTime)) * 100 : 0}%` }}
+                      style={{
+                        width: `${totalGokwikTime + totalMerchantTime > 0 ? (totalMerchantTime / (totalGokwikTime + totalMerchantTime)) * 100 : 0}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -242,7 +271,9 @@ export const SalesDashboard = () => {
               <div className="pt-3 border-t">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total Time</span>
-                  <span className="font-semibold">{formatDuration(totalGokwikTime + totalMerchantTime)}</span>
+                  <span className="font-semibold">
+                    {formatDuration(totalGokwikTime + totalMerchantTime)}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -259,22 +290,29 @@ export const SalesDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {(["not_started", "in_progress", "on_hold", "blocked", "live"] as const).map(state => {
-                const count = projects.filter(p => p.projectState === state).length;
-                const stateColors: Record<string, string> = {
-                  not_started: "bg-muted text-muted-foreground",
-                  in_progress: "bg-info-soft text-info-strong",
-                  on_hold: "bg-warning-soft text-warning-strong",
-                  blocked: "bg-destructive-soft text-destructive-strong",
-                  live: "bg-success-soft text-success-strong",
-                };
-                return (
-                  <div key={state} className={cn("rounded-lg p-4 text-center", stateColors[state])}>
-                    <p className="text-2xl font-bold">{count}</p>
-                    <p className="text-xs font-medium mt-1">{stateLabels[state] || projectStateLabels[state]}</p>
-                  </div>
-                );
-              })}
+              {(["not_started", "in_progress", "on_hold", "blocked", "live"] as const).map(
+                (state) => {
+                  const count = projects.filter((p) => p.projectState === state).length;
+                  const stateColors: Record<string, string> = {
+                    not_started: "bg-muted text-muted-foreground",
+                    in_progress: "bg-info-soft text-info-strong",
+                    on_hold: "bg-warning-soft text-warning-strong",
+                    blocked: "bg-destructive-soft text-destructive-strong",
+                    live: "bg-success-soft text-success-strong",
+                  };
+                  return (
+                    <div
+                      key={state}
+                      className={cn("rounded-lg p-4 text-center", stateColors[state])}
+                    >
+                      <p className="text-2xl font-bold">{count}</p>
+                      <p className="text-xs font-medium mt-1">
+                        {stateLabels[state] || projectStateLabels[state]}
+                      </p>
+                    </div>
+                  );
+                },
+              )}
             </div>
           </CardContent>
         </Card>

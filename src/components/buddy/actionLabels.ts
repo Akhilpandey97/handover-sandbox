@@ -37,4 +37,5 @@ export const ACTION_LABELS: Record<string, string> = {
 };
 
 /** The card title for an action: the server's preview title, or a readable fallback. */
-export const actionTitle = (a: BuddyAction) => a.preview?.title || ACTION_LABELS[a.name] || a.name.replace(/_/g, " ");
+export const actionTitle = (a: BuddyAction) =>
+  a.preview?.title || ACTION_LABELS[a.name] || a.name.replace(/_/g, " ");

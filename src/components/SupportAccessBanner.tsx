@@ -42,7 +42,9 @@ export const SupportAccessBanner = () => {
       setExpiresAt((grant as { expires_at?: string } | null)?.expires_at ?? null);
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [supportTenantId, currentUser]);
 
   if (!supportTenantId) return null;
@@ -56,10 +58,12 @@ export const SupportAccessBanner = () => {
       <div className="flex min-w-0 items-center gap-2">
         <ShieldAlert className="h-4 w-4 shrink-0" />
         <p className="min-w-0 truncate text-xs font-medium">
-          You are working inside <strong>{tenantName}</strong>. Everything you change belongs to them.
+          You are working inside <strong>{tenantName}</strong>. Everything you change belongs to
+          them.
           {daysLeft !== null && (
             <span className="font-normal">
-              {" "}Access ends in {daysLeft} day{daysLeft === 1 ? "" : "s"}.
+              {" "}
+              Access ends in {daysLeft} day{daysLeft === 1 ? "" : "s"}.
             </span>
           )}
         </p>

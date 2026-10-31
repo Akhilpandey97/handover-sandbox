@@ -4,11 +4,7 @@ import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface DatePickerFieldProps {
   value: string;
@@ -17,7 +13,12 @@ interface DatePickerFieldProps {
   id?: string;
 }
 
-export function DatePickerField({ value, onChange, placeholder = "Pick a date", id }: DatePickerFieldProps) {
+export function DatePickerField({
+  value,
+  onChange,
+  placeholder = "Pick a date",
+  id,
+}: DatePickerFieldProps) {
   const [open, setOpen] = React.useState(false);
 
   const dateValue = React.useMemo(() => {
@@ -54,7 +55,7 @@ export function DatePickerField({ value, onChange, placeholder = "Pick a date", 
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal h-10",
-            !value && "text-muted-foreground"
+            !value && "text-muted-foreground",
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -74,7 +75,12 @@ export function DatePickerField({ value, onChange, placeholder = "Pick a date", 
           className={cn("p-3 pointer-events-auto")}
         />
         <div className="flex items-center justify-between px-3 pb-3">
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={handleClear}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-muted-foreground"
+            onClick={handleClear}
+          >
             Clear
           </Button>
           <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={handleToday}>

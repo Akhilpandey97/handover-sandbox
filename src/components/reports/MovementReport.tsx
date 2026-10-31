@@ -19,8 +19,26 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronDown, RefreshCw, X, Mail, ExternalLink, Loader2, Sparkles, CalendarClock, Columns3, Download, Search } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  ChevronDown,
+  RefreshCw,
+  X,
+  Mail,
+  ExternalLink,
+  Loader2,
+  Sparkles,
+  CalendarClock,
+  Columns3,
+  Download,
+  Search,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { ProjectDialog } from "@/components/ProjectDialog";
 import { EmailReportDialog } from "./EmailReportDialog";
@@ -52,8 +70,7 @@ const formatEgl = (d: string | undefined | null): string => {
   return format(dt, "dd MMM");
 };
 
-const cleanDescription = (s: string): string =>
-  (s || "").replace(/\s+/g, " ").trim();
+const cleanDescription = (s: string): string => (s || "").replace(/\s+/g, " ").trim();
 
 // A project can resolve to a stage that was since renamed or deleted in
 // Settings → Project Stages, so anything unrecognised falls back to "none".
@@ -92,18 +109,31 @@ const COLUMN_KEYS: { key: string; label: string }[] = [
 ];
 
 const initials = (name: string) =>
-  name.split(/\s+/).slice(0, 2).map(w => w[0] || "").join("").toUpperCase() || "?";
+  name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0] || "")
+    .join("")
+    .toUpperCase() || "?";
 
 const PHASE_RANK: Record<string, number> = {
-  sales: 0, pre_integration: 1, mint: 2, integration: 2, under_integration: 2, ms: 2, live: 3,
+  sales: 0,
+  pre_integration: 1,
+  mint: 2,
+  integration: 2,
+  under_integration: 2,
+  ms: 2,
+  live: 3,
 };
 const phaseRank = (v: string | undefined | null): number => {
   if (!v) return -1;
   const k = String(v).toLowerCase().trim();
   return PHASE_RANK[k] ?? -1;
 };
-const LOWLIGHT_KEYWORDS_RX = /\b(not getting any update|no response|no responses|unresponsive|following up|awaiting response|chasing|reminder sent|haven't heard|still waiting|no eta)\b/i;
-const WIN_RESOLVED_RX = /\b(resolved|unblocked|cleared|sign(ed)?[- ]off|approved|pg done|sandbox cleared|api(s)? validated)\b/i;
+const LOWLIGHT_KEYWORDS_RX =
+  /\b(not getting any update|no response|no responses|unresponsive|following up|awaiting response|chasing|reminder sent|haven't heard|still waiting|no eta)\b/i;
+const WIN_RESOLVED_RX =
+  /\b(resolved|unblocked|cleared|sign(ed)?[- ]off|approved|pg done|sandbox cleared|api(s)? validated)\b/i;
 const EGL_FIELD_RX = /expected.?go.?live/i;
 const PHASE_FIELD_RX = /^(current_phase|phase|project_state|state|funnel|stage)$/i;
 
@@ -111,11 +141,14 @@ const classifyProject = (p: Project, entries: MovementEntry[]): Bucket => {
   if (p.projectState === "on_hold" || p.projectState === "blocked") return "lowlights";
   if (!entries || entries.length === 0) return "lowlights";
 
-  let funnelForward = false, funnelRegressed = false, wentLive = false, eglPushed = false;
+  let funnelForward = false,
+    funnelRegressed = false,
+    wentLive = false,
+    eglPushed = false;
   let checklistCompleted = 0;
 
   for (const e of entries) {
-    for (const c of (e.changes || [])) {
+    for (const c of e.changes || []) {
       if (PHASE_FIELD_RX.test(c.field)) {
         const fr = phaseRank(c.from);
         const tr = phaseRank(c.to);
@@ -132,14 +165,16 @@ const classifyProject = (p: Project, entries: MovementEntry[]): Bucket => {
       }
     }
     if (e.category === "checklist") {
-      if ((e.actionType && /complet/i.test(e.actionType)) ||
-          /\b(completed|marked complete|checked off|ticked off)\b/i.test(e.description || "")) {
+      if (
+        (e.actionType && /complet/i.test(e.actionType)) ||
+        /\b(completed|marked complete|checked off|ticked off)\b/i.test(e.description || "")
+      ) {
         checklistCompleted++;
       }
     }
   }
 
-  const allText = entries.map(e => (e.description || "")).join(" ");
+  const allText = entries.map((e) => e.description || "").join(" ");
 
   // Lowlights (hard signals)
   if (eglPushed) return "lowlights";
@@ -155,7 +190,11 @@ const classifyProject = (p: Project, entries: MovementEntry[]): Bucket => {
   return "updates";
 };
 
-export interface AiSummary { bucket: Bucket; line1: string; line2: string; }
+export interface AiSummary {
+  bucket: Bucket;
+  line1: string;
+  line2: string;
+}
 
 // ---------- Email HTML builder (funnel-wise) ----------
 
@@ -196,10 +235,10 @@ const buildFunnelEmailHtml = (
   </div>`;
 
   for (const stage of funnelOrder) {
-    const list = filtered.filter(p => resolveStageKey(p, funnelOrder) === stage);
+    const list = filtered.filter((p) => resolveStageKey(p, funnelOrder) === stage);
     if (list.length === 0) continue;
     const active = list.filter(isActive);
-    const inactive = list.filter(p => !isActive(p));
+    const inactive = list.filter((p) => !isActive(p));
 
     html += `<div style="margin-bottom:26px;">
       <h2 style="font-size:14px;margin:0 0 10px;padding:8px 12px;background:${brandColor};color:#ffffff;border-radius:4px;">
@@ -212,7 +251,7 @@ const buildFunnelEmailHtml = (
     }
     if (inactive.length > 0) {
       html += `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #d5e0e6;font-size:12px;color:#546978;">
-        <strong style="color:#546978;">Inactive (${inactive.length}):</strong> ${inactive.map(p => escapeHtml(p.merchantName)).join(", ")}
+        <strong style="color:#546978;">Inactive (${inactive.length}):</strong> ${inactive.map((p) => escapeHtml(p.merchantName)).join(", ")}
       </div>`;
     }
     html += `</div>`;
@@ -249,9 +288,10 @@ const buildBucketedEmailHtml = (
   };
 
   const section = (label: string, color: string, list: Project[], emptyText: string) => {
-    const body = list.length === 0
-      ? `<p style="color:#546978;font-size:12px;margin:0;">${emptyText}</p>`
-      : list.map(renderLine).join("");
+    const body =
+      list.length === 0
+        ? `<p style="color:#546978;font-size:12px;margin:0;">${emptyText}</p>`
+        : list.map(renderLine).join("");
     return `<div style="margin-bottom:24px;">
       <h2 style="font-size:15px;margin:0 0 8px;padding:6px 10px;background:${color};color:#ffffff;border-radius:4px;display:inline-block;">${label} (${list.length})</h2>
       ${body}
@@ -267,7 +307,7 @@ const buildBucketedEmailHtml = (
   if (inactive.length > 0) {
     html += `<div style="margin-top:32px;">
       <h2 style="font-size:14px;color:#546978;margin:0 0 8px;border-top:1px solid #d5e0e6;padding-top:14px;">Inactive (${inactive.length})</h2>
-      <p style="margin:0;font-size:12px;color:#546978;">${inactive.map(p => escapeHtml(p.merchantName)).join(", ")}</p>
+      <p style="margin:0;font-size:12px;color:#546978;">${inactive.map((p) => escapeHtml(p.merchantName)).join(", ")}</p>
     </div>`;
   }
   html += `</div>`;
@@ -282,16 +322,33 @@ export const MovementReport = ({ timeframe }: Props) => {
   const brandColor = labels["color_brand"] || "#0074F8";
   const { currentUser } = useAuth();
   const { stages } = useFunnelConfig();
-  const { data: movementMap = {}, isLoading, refetch, isFetching, dataUpdatedAt } = useMovementReport(timeframe);
+  const {
+    data: movementMap = {},
+    isLoading,
+    refetch,
+    isFetching,
+    dataUpdatedAt,
+  } = useMovementReport(timeframe);
 
   // Stages are configured most-advanced-first (first rule to match wins), so the
   // report reverses them to read earliest-first and appends the unmatched bucket.
   const funnelOrder = useMemo<FunnelStage[]>(
-    () => [...stages].reverse().map(s => s.id).concat("none"),
+    () =>
+      [...stages]
+        .reverse()
+        .map((s) => s.id)
+        .concat("none"),
     [stages],
   );
   const funnelRank = useMemo(
-    () => funnelOrder.reduce((acc, s, i) => { acc[s] = i; return acc; }, {} as Record<FunnelStage, number>),
+    () =>
+      funnelOrder.reduce(
+        (acc, s, i) => {
+          acc[s] = i;
+          return acc;
+        },
+        {} as Record<FunnelStage, number>,
+      ),
     [funnelOrder],
   );
 
@@ -300,7 +357,7 @@ export const MovementReport = ({ timeframe }: Props) => {
   const [quickGroup, setQuickGroup] = useState("all");
   const [quickState, setQuickState] = useState("all");
   const [quickOwner, setQuickOwner] = useState("all");
-  const [visibleCols, setVisibleCols] = useState<string[]>(COLUMN_KEYS.map(c => c.key));
+  const [visibleCols, setVisibleCols] = useState<string[]>(COLUMN_KEYS.map((c) => c.key));
 
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -318,55 +375,105 @@ export const MovementReport = ({ timeframe }: Props) => {
   const [arrMax, setArrMax] = useState("");
 
   const toggle = (setter: React.Dispatch<React.SetStateAction<string[]>>, v: string) =>
-    setter(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+    setter((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
 
   const resetFilters = () => {
-    setFunnelFilter([]); setTeamFilter([]); setStateFilter([]); setResponsibilityFilter([]);
-    setPlatformFilter([]); setStatusFilter([]); setArrMin(""); setArrMax("");
+    setFunnelFilter([]);
+    setTeamFilter([]);
+    setStateFilter([]);
+    setResponsibilityFilter([]);
+    setPlatformFilter([]);
+    setStatusFilter([]);
+    setArrMin("");
+    setArrMax("");
   };
 
-  const activeFilterCount = [funnelFilter, teamFilter, stateFilter, responsibilityFilter, platformFilter, statusFilter]
-    .reduce((s, a) => s + a.length, 0) + (arrMin ? 1 : 0) + (arrMax ? 1 : 0);
+  const activeFilterCount =
+    [
+      funnelFilter,
+      teamFilter,
+      stateFilter,
+      responsibilityFilter,
+      platformFilter,
+      statusFilter,
+    ].reduce((s, a) => s + a.length, 0) +
+    (arrMin ? 1 : 0) +
+    (arrMax ? 1 : 0);
 
   const platforms = useMemo(
-    () => Array.from(new Set(projects.map(p => p.platform).filter(Boolean))).sort(),
-    [projects]
+    () => Array.from(new Set(projects.map((p) => p.platform).filter(Boolean))).sort(),
+    [projects],
   );
   const teams = useMemo(
-    () => Array.from(new Set(projects.map(p => p.currentOwnerTeam).filter(Boolean))).sort(),
-    [projects]
+    () => Array.from(new Set(projects.map((p) => p.currentOwnerTeam).filter(Boolean))).sort(),
+    [projects],
   );
 
   const filteredProjects = useMemo(() => {
-    return projects.filter(p => {
+    return projects.filter((p) => {
       if (p.archived) return false;
       const isActive = (movementMap[p.id]?.length ?? 0) > 0;
       const status = isActive ? "active" : "inactive";
       if (statusFilter.length && !statusFilter.includes(status)) return false;
-      if (funnelFilter.length && !funnelFilter.includes(resolveStageKey(p, funnelOrder))) return false;
+      if (funnelFilter.length && !funnelFilter.includes(resolveStageKey(p, funnelOrder)))
+        return false;
       if (teamFilter.length && !teamFilter.includes(p.currentOwnerTeam)) return false;
       if (stateFilter.length && !stateFilter.includes(p.projectState)) return false;
-      if (responsibilityFilter.length && !responsibilityFilter.includes(p.currentResponsibility)) return false;
+      if (responsibilityFilter.length && !responsibilityFilter.includes(p.currentResponsibility))
+        return false;
       if (platformFilter.length && !platformFilter.includes(p.platform)) return false;
       if (arrMin && p.arr < parseFloat(arrMin)) return false;
       if (arrMax && p.arr > parseFloat(arrMax)) return false;
       if (quickGroup !== "all" && resolveStageKey(p, funnelOrder) !== quickGroup) return false;
       if (quickState !== "all" && p.projectState !== quickState) return false;
-      if (quickOwner !== "all" && (p.assignedOwnerName || "Unassigned") !== quickOwner) return false;
+      if (quickOwner !== "all" && (p.assignedOwnerName || "Unassigned") !== quickOwner)
+        return false;
       if (search.trim()) {
         const q = search.trim().toLowerCase();
-        if (!p.merchantName.toLowerCase().includes(q) && !(p.mid || "").toLowerCase().includes(q)) return false;
+        if (!p.merchantName.toLowerCase().includes(q) && !(p.mid || "").toLowerCase().includes(q))
+          return false;
       }
       return true;
     });
-  }, [projects, movementMap, funnelOrder, funnelFilter, teamFilter, stateFilter, responsibilityFilter, platformFilter, statusFilter, arrMin, arrMax, quickGroup, quickState, quickOwner, search]);
+  }, [
+    projects,
+    movementMap,
+    funnelOrder,
+    funnelFilter,
+    teamFilter,
+    stateFilter,
+    responsibilityFilter,
+    platformFilter,
+    statusFilter,
+    arrMin,
+    arrMax,
+    quickGroup,
+    quickState,
+    quickOwner,
+    search,
+  ]);
 
   const ownerOptions = useMemo(
-    () => Array.from(new Set(projects.filter(p => !p.archived).map(p => p.assignedOwnerName || "Unassigned"))).sort(),
+    () =>
+      Array.from(
+        new Set(
+          projects.filter((p) => !p.archived).map((p) => p.assignedOwnerName || "Unassigned"),
+        ),
+      ).sort(),
     [projects],
   );
-  const quickFilterCount = [search.trim() !== "", quickGroup !== "all", quickState !== "all", quickOwner !== "all"].filter(Boolean).length;
-  const clearQuickFilters = () => { setSearch(""); setQuickGroup("all"); setQuickState("all"); setQuickOwner("all"); };
+  const quickFilterCount = [
+    search.trim() !== "",
+    quickGroup !== "all",
+    quickState !== "all",
+    quickOwner !== "all",
+  ].filter(Boolean).length;
+  const clearQuickFilters = () => {
+    setSearch("");
+    setQuickGroup("all");
+    setQuickState("all");
+    setQuickOwner("all");
+  };
   const showCol = (key: string) => visibleCols.includes(key);
 
   const grouped = useMemo(() => {
@@ -379,7 +486,8 @@ export const MovementReport = ({ timeframe }: Props) => {
   }, [filteredProjects, funnelOrder]);
 
   const totals = useMemo(() => {
-    let active = 0, total = 0;
+    let active = 0,
+      total = 0;
     for (const p of filteredProjects) {
       total++;
       if ((movementMap[p.id]?.length ?? 0) > 0) active++;
@@ -389,14 +497,26 @@ export const MovementReport = ({ timeframe }: Props) => {
 
   // Daily = funnel-wise; Weekly = Wins/Updates/Lowlights
   const buildHtml = () => {
-    const windowLabel = timeframe === "daily" ? `Today (IST) · ${startLabel}` : `This week (Mon–today IST) · ${startLabel}`;
+    const windowLabel =
+      timeframe === "daily"
+        ? `Today (IST) · ${startLabel}`
+        : `This week (Mon–today IST) · ${startLabel}`;
     const reportTitle = `${timeframe === "daily" ? "Daily" : "Weekly"} Movement Report`;
     const byFunnel = (a: Project, b: Project) =>
-      (funnelRank[resolveStageKey(a, funnelOrder)] ?? 99) - (funnelRank[resolveStageKey(b, funnelOrder)] ?? 99);
+      (funnelRank[resolveStageKey(a, funnelOrder)] ?? 99) -
+      (funnelRank[resolveStageKey(b, funnelOrder)] ?? 99);
 
     if (timeframe === "daily") {
       const sorted = [...filteredProjects].sort(byFunnel);
-      return buildFunnelEmailHtml(reportTitle, windowLabel, sorted, movementMap, aiMap, funnelOrder, brandColor);
+      return buildFunnelEmailHtml(
+        reportTitle,
+        windowLabel,
+        sorted,
+        movementMap,
+        aiMap,
+        funnelOrder,
+        brandColor,
+      );
     }
 
     const activeBuckets: Record<Bucket, Project[]> = { wins: [], updates: [], lowlights: [] };
@@ -410,15 +530,23 @@ export const MovementReport = ({ timeframe }: Props) => {
     activeBuckets.wins.sort(byArrDesc);
     activeBuckets.updates.sort(byArrDesc);
     activeBuckets.lowlights.sort(byArrDesc);
-    return buildBucketedEmailHtml(reportTitle, windowLabel, activeBuckets, [], movementMap, aiMap, brandColor);
+    return buildBucketedEmailHtml(
+      reportTitle,
+      windowLabel,
+      activeBuckets,
+      [],
+      movementMap,
+      aiMap,
+      brandColor,
+    );
   };
 
   const generateAiSummaries = async () => {
-    const activeProjects = filteredProjects.filter(p => (movementMap[p.id]?.length ?? 0) > 0);
+    const activeProjects = filteredProjects.filter((p) => (movementMap[p.id]?.length ?? 0) > 0);
     if (activeProjects.length === 0) return;
     setAiLoading(true);
     try {
-      const items = activeProjects.map(p => ({
+      const items = activeProjects.map((p) => ({
         id: p.id,
         merchantName: p.merchantName,
         funnel: funnelStageLabels[getProjectFunnelStage(p)],
@@ -426,8 +554,10 @@ export const MovementReport = ({ timeframe }: Props) => {
         arr: formatArr(p.arr),
         egl: formatEgl(p.dates?.expectedGoLiveDate),
         bucket: classifyProject(p, movementMap[p.id] || []),
-        entries: (movementMap[p.id] || []).slice(0, 25).map(e => ({
-          ts: e.timestamp, category: e.category, description: cleanDescription(e.description),
+        entries: (movementMap[p.id] || []).slice(0, 25).map((e) => ({
+          ts: e.timestamp,
+          category: e.category,
+          description: cleanDescription(e.description),
         })),
       }));
 
@@ -442,15 +572,25 @@ export const MovementReport = ({ timeframe }: Props) => {
             "Content-Type": "application/json",
             ...(await apiAuthHeaders()),
           },
-          body: JSON.stringify({ type: "movement_summary", timeframe, items: chunk, tenant_id: currentUser?.tenantId ?? null }),
+          body: JSON.stringify({
+            type: "movement_summary",
+            timeframe,
+            items: chunk,
+            tenant_id: currentUser?.tenantId ?? null,
+          }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "AI request failed");
-        for (const r of (data.result || []) as Array<{ id: string; bucket: Bucket; line1: string; line2: string }>) {
+        for (const r of (data.result || []) as Array<{
+          id: string;
+          bucket: Bucket;
+          line1: string;
+          line2: string;
+        }>) {
           merged[r.id] = { bucket: r.bucket, line1: r.line1, line2: r.line2 };
         }
       }
-      setAiMap(prev => ({ ...prev, ...merged }));
+      setAiMap((prev) => ({ ...prev, ...merged }));
       toast.success(`AI summaries generated for ${Object.keys(merged).length} projects`);
     } catch (err: any) {
       toast.error(err.message || "Failed to generate AI summaries");
@@ -459,27 +599,41 @@ export const MovementReport = ({ timeframe }: Props) => {
     }
   };
 
-
   const exportCsv = () => {
-    const cols = [{ key: "project", label: "Project / Merchant" }, ...COLUMN_KEYS.filter(c => showCol(c.key))];
+    const cols = [
+      { key: "project", label: "Project / Merchant" },
+      ...COLUMN_KEYS.filter((c) => showCol(c.key)),
+    ];
     const cell = (p: Project, key: string): string => {
       const isActive = (movementMap[p.id]?.length ?? 0) > 0;
       switch (key) {
-        case "project": return p.merchantName;
-        case "status": return isActive ? "Active" : "Inactive";
-        case "arr": return formatArr(p.arr);
-        case "egl": return formatEgl(p.dates?.expectedGoLiveDate);
-        case "owner": return p.assignedOwnerName || "Unassigned";
-        case "progress": return `${p.goLivePercent ?? 0}%`;
-        case "updated": return p.updatedAt ? format(new Date(p.updatedAt), "dd MMM yyyy HH:mm") : "—";
-        default: return "";
+        case "project":
+          return p.merchantName;
+        case "status":
+          return isActive ? "Active" : "Inactive";
+        case "arr":
+          return formatArr(p.arr);
+        case "egl":
+          return formatEgl(p.dates?.expectedGoLiveDate);
+        case "owner":
+          return p.assignedOwnerName || "Unassigned";
+        case "progress":
+          return `${p.goLivePercent ?? 0}%`;
+        case "updated":
+          return p.updatedAt ? format(new Date(p.updatedAt), "dd MMM yyyy HH:mm") : "—";
+        default:
+          return "";
       }
     };
     const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
-    const lines = [["Group", ...cols.map(c => c.label)].map(esc).join(",")];
+    const lines = [["Group", ...cols.map((c) => c.label)].map(esc).join(",")];
     for (const stage of funnelOrder) {
       for (const p of grouped[stage] || []) {
-        lines.push([funnelStageLabels[stage] || stage, ...cols.map(c => cell(p, c.key))].map(esc).join(","));
+        lines.push(
+          [funnelStageLabels[stage] || stage, ...cols.map((c) => cell(p, c.key))]
+            .map(esc)
+            .join(","),
+        );
       }
     }
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
@@ -493,15 +647,19 @@ export const MovementReport = ({ timeframe }: Props) => {
 
   const title = timeframe === "daily" ? "Daily Report" : "Weekly Report";
   const istNow = new Date(Date.now() + 5.5 * 3600 * 1000);
-  const istY = istNow.getUTCFullYear(), istM = istNow.getUTCMonth(), istD = istNow.getUTCDate();
+  const istY = istNow.getUTCFullYear(),
+    istM = istNow.getUTCMonth(),
+    istD = istNow.getUTCDate();
   const istDow = istNow.getUTCDay();
   const mondayD = istD - ((istDow + 6) % 7);
-  const startLabel = timeframe === "daily"
-    ? format(new Date(Date.UTC(istY, istM, istD)), "dd MMM yyyy")
-    : `${format(new Date(Date.UTC(istY, istM, mondayD)), "dd MMM")} – ${format(new Date(Date.UTC(istY, istM, istD)), "dd MMM yyyy")}`;
-  const windowLabel = timeframe === "daily"
-    ? `Today (IST) · ${startLabel}`
-    : `This week (Mon–today IST) · ${startLabel}`;
+  const startLabel =
+    timeframe === "daily"
+      ? format(new Date(Date.UTC(istY, istM, istD)), "dd MMM yyyy")
+      : `${format(new Date(Date.UTC(istY, istM, mondayD)), "dd MMM")} – ${format(new Date(Date.UTC(istY, istM, istD)), "dd MMM yyyy")}`;
+  const windowLabel =
+    timeframe === "daily"
+      ? `Today (IST) · ${startLabel}`
+      : `This week (Mon–today IST) · ${startLabel}`;
 
   return (
     <Card className="shadow-sm border-border">
@@ -510,7 +668,8 @@ export const MovementReport = ({ timeframe }: Props) => {
           <div>
             <CardTitle className="portal-heading">{title}</CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
-              {windowLabel} · {totals.total} projects · {totals.active} active / {totals.inactive} inactive
+              {windowLabel} · {totals.total} projects · {totals.active} active / {totals.inactive}{" "}
+              inactive
               {dataUpdatedAt ? ` · Updated ${format(new Date(dataUpdatedAt), "HH:mm")}` : ""}
             </p>
           </div>
@@ -523,13 +682,22 @@ export const MovementReport = ({ timeframe }: Props) => {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-48 p-2" align="end">
-                <p className="px-1 pb-1.5 text-xs font-semibold text-muted-foreground">Show columns</p>
-                {COLUMN_KEYS.map(col => (
-                  <label key={col.key} className="flex cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-sm hover:bg-muted">
+                <p className="px-1 pb-1.5 text-xs font-semibold text-muted-foreground">
+                  Show columns
+                </p>
+                {COLUMN_KEYS.map((col) => (
+                  <label
+                    key={col.key}
+                    className="flex cursor-pointer items-center gap-2 rounded-md px-1 py-1 text-sm hover:bg-muted"
+                  >
                     <Checkbox
                       checked={visibleCols.includes(col.key)}
                       onCheckedChange={() =>
-                        setVisibleCols(prev => prev.includes(col.key) ? prev.filter(k => k !== col.key) : [...prev, col.key])
+                        setVisibleCols((prev) =>
+                          prev.includes(col.key)
+                            ? prev.filter((k) => k !== col.key)
+                            : [...prev, col.key],
+                        )
                       }
                       className="h-3.5 w-3.5"
                     />
@@ -542,21 +710,51 @@ export const MovementReport = ({ timeframe }: Props) => {
               <Download className="h-4 w-4" />
               Export
             </Button>
-            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching} className="gap-2">
-              {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="gap-2"
+            >
+              {isFetching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
               Refresh
             </Button>
-            <Button variant="outline" size="sm" onClick={generateAiSummaries} disabled={aiLoading || isLoading} className="gap-2">
-              {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generateAiSummaries}
+              disabled={aiLoading || isLoading}
+              className="gap-2"
+            >
+              {aiLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
               {Object.keys(aiMap).length > 0 ? "Re-run AI" : "AI Summaries"}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setScheduleOpen(true)} className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setScheduleOpen(true)}
+              className="gap-2"
+            >
               <CalendarClock className="h-4 w-4" /> Schedule
             </Button>
-            <Button size="sm" onClick={async () => {
-              if (Object.keys(aiMap).length === 0) await generateAiSummaries();
-              setEmailOpen(true);
-            }} disabled={aiLoading} className="gap-2">
+            <Button
+              size="sm"
+              onClick={async () => {
+                if (Object.keys(aiMap).length === 0) await generateAiSummaries();
+                setEmailOpen(true);
+              }}
+              disabled={aiLoading}
+              className="gap-2"
+            >
               <Mail className="h-4 w-4" /> Send via Email
             </Button>
           </div>
@@ -566,64 +764,164 @@ export const MovementReport = ({ timeframe }: Props) => {
       {/* Inline filter strip */}
       <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
         {[
-          { label: "Status", values: statusFilter, setter: setStatusFilter, options: [{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }] },
-          { label: "Stage", values: funnelFilter, setter: setFunnelFilter, options: funnelOrder.map(st => ({ value: st, label: funnelStageLabels[st] || st })) },
-          { label: "Team", values: teamFilter, setter: setTeamFilter, options: teams.map(t => ({ value: t, label: teamLabels[t] || t })) },
-          { label: "State", values: stateFilter, setter: setStateFilter, options: (Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>).map(st => ({ value: st, label: projectStateLabels[st] })) },
-          { label: "Responsibility", values: responsibilityFilter, setter: setResponsibilityFilter, options: ["gokwik", "merchant", "neutral"].map(r => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) })) },
-          { label: "Platform", values: platformFilter, setter: setPlatformFilter, options: platforms.map(pl => ({ value: pl, label: pl })) },
-        ].filter(g => g.options.length > 0).map(({ label, values, setter, options }) => (
-          <Popover key={label}>
-            <PopoverTrigger asChild>
-              <button type="button" className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
-                values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
-              )}>
-                {values.length > 0 ? `${label}: ${values.length}` : label}
-                <ChevronDown className="h-2.5 w-2.5 opacity-50" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-52 p-2">
-              <div className="max-h-48 overflow-y-auto space-y-0.5">
-                {options.map(opt => (
-                  <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
-                    <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggle(setter, opt.value)} />
-                    <span className="truncate">{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-              {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>}
-            </PopoverContent>
-          </Popover>
-        ))}
+          {
+            label: "Status",
+            values: statusFilter,
+            setter: setStatusFilter,
+            options: [
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+            ],
+          },
+          {
+            label: "Stage",
+            values: funnelFilter,
+            setter: setFunnelFilter,
+            options: funnelOrder.map((st) => ({ value: st, label: funnelStageLabels[st] || st })),
+          },
+          {
+            label: "Team",
+            values: teamFilter,
+            setter: setTeamFilter,
+            options: teams.map((t) => ({ value: t, label: teamLabels[t] || t })),
+          },
+          {
+            label: "State",
+            values: stateFilter,
+            setter: setStateFilter,
+            options: (
+              Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>
+            ).map((st) => ({ value: st, label: projectStateLabels[st] })),
+          },
+          {
+            label: "Responsibility",
+            values: responsibilityFilter,
+            setter: setResponsibilityFilter,
+            options: ["gokwik", "merchant", "neutral"].map((r) => ({
+              value: r,
+              label: r.charAt(0).toUpperCase() + r.slice(1),
+            })),
+          },
+          {
+            label: "Platform",
+            values: platformFilter,
+            setter: setPlatformFilter,
+            options: platforms.map((pl) => ({ value: pl, label: pl })),
+          },
+        ]
+          .filter((g) => g.options.length > 0)
+          .map(({ label, values, setter, options }) => (
+            <Popover key={label}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                    values.length > 0
+                      ? "bg-primary/10 text-primary border-primary/30"
+                      : "bg-background text-muted-foreground border-border hover:bg-muted",
+                  )}
+                >
+                  {values.length > 0 ? `${label}: ${values.length}` : label}
+                  <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-52 p-2">
+                <div className="max-h-48 overflow-y-auto space-y-0.5">
+                  {options.map((opt) => (
+                    <label
+                      key={opt.value}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs"
+                    >
+                      <Checkbox
+                        checked={values.includes(opt.value)}
+                        onCheckedChange={() => toggle(setter, opt.value)}
+                      />
+                      <span className="truncate">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {values.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-1 h-7 text-xs"
+                    onClick={() => setter([])}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </PopoverContent>
+            </Popover>
+          ))}
 
         {/* ARR range */}
         <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
           <span className="whitespace-nowrap">ARR:</span>
-          <input type="number" placeholder="min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+          <input
+            type="number"
+            placeholder="min"
+            value={arrMin}
+            onChange={(e) => setArrMin(e.target.value)}
+            className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50"
+          />
           <span>–</span>
-          <input type="number" placeholder="max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+          <input
+            type="number"
+            placeholder="max"
+            value={arrMax}
+            onChange={(e) => setArrMax(e.target.value)}
+            className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50"
+          />
           <span>Cr</span>
         </div>
 
         {/* Active chips */}
         {[
-          ...statusFilter.map(v => ({ label: v.charAt(0).toUpperCase() + v.slice(1), clear: () => setStatusFilter(p => p.filter(x => x !== v)) })),
-          ...funnelFilter.map(v => ({ label: funnelStageLabels[v as FunnelStage] || v, clear: () => setFunnelFilter(p => p.filter(x => x !== v)) })),
-          ...teamFilter.map(v => ({ label: teamLabels[v] || v, clear: () => setTeamFilter(p => p.filter(x => x !== v)) })),
-          ...stateFilter.map(v => ({ label: projectStateLabels[v as keyof typeof projectStateLabels] || v, clear: () => setStateFilter(p => p.filter(x => x !== v)) })),
-          ...responsibilityFilter.map(v => ({ label: v.charAt(0).toUpperCase() + v.slice(1), clear: () => setResponsibilityFilter(p => p.filter(x => x !== v)) })),
-          ...platformFilter.map(v => ({ label: v, clear: () => setPlatformFilter(p => p.filter(x => x !== v)) })),
+          ...statusFilter.map((v) => ({
+            label: v.charAt(0).toUpperCase() + v.slice(1),
+            clear: () => setStatusFilter((p) => p.filter((x) => x !== v)),
+          })),
+          ...funnelFilter.map((v) => ({
+            label: funnelStageLabels[v as FunnelStage] || v,
+            clear: () => setFunnelFilter((p) => p.filter((x) => x !== v)),
+          })),
+          ...teamFilter.map((v) => ({
+            label: teamLabels[v] || v,
+            clear: () => setTeamFilter((p) => p.filter((x) => x !== v)),
+          })),
+          ...stateFilter.map((v) => ({
+            label: projectStateLabels[v as keyof typeof projectStateLabels] || v,
+            clear: () => setStateFilter((p) => p.filter((x) => x !== v)),
+          })),
+          ...responsibilityFilter.map((v) => ({
+            label: v.charAt(0).toUpperCase() + v.slice(1),
+            clear: () => setResponsibilityFilter((p) => p.filter((x) => x !== v)),
+          })),
+          ...platformFilter.map((v) => ({
+            label: v,
+            clear: () => setPlatformFilter((p) => p.filter((x) => x !== v)),
+          })),
         ].map(({ label, clear }) => (
-          <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30">
+          <span
+            key={label}
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30"
+          >
             {label}
-            <button type="button" onClick={clear} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+            <button type="button" onClick={clear} className="opacity-60 hover:opacity-100">
+              <X className="h-2.5 w-2.5" />
+            </button>
           </span>
         ))}
 
         {activeFilterCount > 0 && (
-          <button type="button" onClick={resetFilters} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <X className="h-2.5 w-2.5" />Clear all
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-2.5 w-2.5" />
+            Clear all
           </button>
         )}
       </div>
@@ -640,26 +938,44 @@ export const MovementReport = ({ timeframe }: Props) => {
           />
         </div>
         <Select value={quickGroup} onValueChange={setQuickGroup}>
-          <SelectTrigger className="h-9 w-[170px] text-sm"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[170px] text-sm">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Groups</SelectItem>
-            {funnelOrder.map(s => <SelectItem key={s} value={s}>{funnelStageLabels[s] || s}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={quickState} onValueChange={setQuickState}>
-          <SelectTrigger className="h-9 w-[150px] text-sm"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            {(Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>).map(st => (
-              <SelectItem key={st} value={st}>{projectStateLabels[st]}</SelectItem>
+            {funnelOrder.map((s) => (
+              <SelectItem key={s} value={s}>
+                {funnelStageLabels[s] || s}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        <Select value={quickState} onValueChange={setQuickState}>
+          <SelectTrigger className="h-9 w-[150px] text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            {(Object.keys(projectStateLabels) as Array<keyof typeof projectStateLabels>).map(
+              (st) => (
+                <SelectItem key={st} value={st}>
+                  {projectStateLabels[st]}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
         <Select value={quickOwner} onValueChange={setQuickOwner}>
-          <SelectTrigger className="h-9 w-[170px] text-sm"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[170px] text-sm">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Owners</SelectItem>
-            {ownerOptions.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+            {ownerOptions.map((o) => (
+              <SelectItem key={o} value={o}>
+                {o}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button
@@ -675,10 +991,15 @@ export const MovementReport = ({ timeframe }: Props) => {
 
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="py-20 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Loading report...</div>
+          <div className="py-20 text-center text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" /> Loading report...
+          </div>
         ) : filteredProjects.length === 0 ? (
           <FilteredEmptyState
-            onClear={() => { resetFilters(); clearQuickFilters(); }}
+            onClear={() => {
+              resetFilters();
+              clearQuickFilters();
+            }}
             noun="projects"
           />
         ) : (
@@ -687,20 +1008,48 @@ export const MovementReport = ({ timeframe }: Props) => {
               <thead className="border-b border-border bg-muted/40 text-xs text-muted-foreground">
                 <tr>
                   <th scope="col" className="w-10 px-3 py-2.5" aria-label="Select" />
-                  <th scope="col" className="w-[24%] px-3 py-2.5 text-left font-medium">Project / Merchant</th>
-                  {showCol("status") && <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">Status</th>}
-                  {showCol("arr") && <th scope="col" className="w-[12%] px-3 py-2.5 text-left font-medium">ARR</th>}
-                  {showCol("egl") && <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">Exp. Go-Live</th>}
-                  {showCol("owner") && <th scope="col" className="w-[15%] px-3 py-2.5 text-left font-medium">Owner</th>}
-                  {showCol("progress") && <th scope="col" className="w-[13%] px-3 py-2.5 text-left font-medium">Progress</th>}
-                  {showCol("updated") && <th scope="col" className="w-[12%] px-3 py-2.5 text-left font-medium">Last Update</th>}
-                  <th scope="col" className="w-12 px-3 py-2.5 text-left font-medium">Actions</th>
+                  <th scope="col" className="w-[24%] px-3 py-2.5 text-left font-medium">
+                    Project / Merchant
+                  </th>
+                  {showCol("status") && (
+                    <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">
+                      Status
+                    </th>
+                  )}
+                  {showCol("arr") && (
+                    <th scope="col" className="w-[12%] px-3 py-2.5 text-left font-medium">
+                      ARR
+                    </th>
+                  )}
+                  {showCol("egl") && (
+                    <th scope="col" className="w-[11%] px-3 py-2.5 text-left font-medium">
+                      Exp. Go-Live
+                    </th>
+                  )}
+                  {showCol("owner") && (
+                    <th scope="col" className="w-[15%] px-3 py-2.5 text-left font-medium">
+                      Owner
+                    </th>
+                  )}
+                  {showCol("progress") && (
+                    <th scope="col" className="w-[13%] px-3 py-2.5 text-left font-medium">
+                      Progress
+                    </th>
+                  )}
+                  {showCol("updated") && (
+                    <th scope="col" className="w-[12%] px-3 py-2.5 text-left font-medium">
+                      Last Update
+                    </th>
+                  )}
+                  <th scope="col" className="w-12 px-3 py-2.5 text-left font-medium">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              {funnelOrder.map(stage => {
+              {funnelOrder.map((stage) => {
                 const list = grouped[stage];
                 if (!list || list.length === 0) return null;
-                const activeCount = list.filter(p => (movementMap[p.id]?.length ?? 0) > 0).length;
+                const activeCount = list.filter((p) => (movementMap[p.id]?.length ?? 0) > 0).length;
                 return (
                   <FunnelSection
                     key={stage}
@@ -711,7 +1060,7 @@ export const MovementReport = ({ timeframe }: Props) => {
                     activeCount={activeCount}
                     onOpenProject={setSelectedProject}
                     showCol={showCol}
-                    colCount={3 + COLUMN_KEYS.filter(c => showCol(c.key)).length}
+                    colCount={3 + COLUMN_KEYS.filter((c) => showCol(c.key)).length}
                   />
                 );
               })}
@@ -746,14 +1095,24 @@ const bucketBadge = (b: Bucket) => {
   const map: Record<Bucket, { label: string; cls: string }> = {
     wins: { label: "Win", cls: "bg-success hover:bg-success text-success-foreground" },
     updates: { label: "Update", cls: "bg-info hover:bg-info text-info-foreground" },
-    lowlights: { label: "Lowlight", cls: "bg-destructive hover:bg-destructive text-destructive-foreground" },
+    lowlights: {
+      label: "Lowlight",
+      cls: "bg-destructive hover:bg-destructive text-destructive-foreground",
+    },
   };
   const m = map[b];
   return <Badge className={m.cls}>{m.label}</Badge>;
 };
 
 const FunnelSection = ({
-  stage, projects, movementMap, aiMap, activeCount, onOpenProject, showCol, colCount,
+  stage,
+  projects,
+  movementMap,
+  aiMap,
+  activeCount,
+  onOpenProject,
+  showCol,
+  colCount,
 }: {
   stage: FunnelStage;
   projects: Project[];
@@ -772,14 +1131,21 @@ const FunnelSection = ({
         <td colSpan={colCount} className="px-3 py-2">
           <button
             type="button"
-            onClick={() => setOpen(v => !v)}
+            onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             className="flex w-full items-center justify-between gap-3 text-left"
           >
             <span className="flex items-center gap-2">
-              <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", open ? "" : "-rotate-90")} />
+              <ChevronDown
+                className={cn(
+                  "h-3.5 w-3.5 text-muted-foreground transition-transform",
+                  open ? "" : "-rotate-90",
+                )}
+              />
               <span className="text-sm font-semibold">{funnelStageLabels[stage]}</span>
-              <span className="text-xs text-muted-foreground">{projects.length} project{projects.length === 1 ? "" : "s"}</span>
+              <span className="text-xs text-muted-foreground">
+                {projects.length} project{projects.length === 1 ? "" : "s"}
+              </span>
             </span>
             <span className="text-xs text-muted-foreground">
               <span className="font-medium text-success-strong">{activeCount} active</span>
@@ -789,98 +1155,121 @@ const FunnelSection = ({
         </td>
       </tr>
 
-      {open && projects.map(p => {
-        const entries = movementMap[p.id] || [];
-        const isActive = entries.length > 0;
-        const ai = aiMap[p.id];
-        const fallback = isActive ? buildSummary(entries, 3) : "";
-        const percent = Math.max(0, Math.min(100, p.goLivePercent ?? 0));
-        const owner = p.assignedOwnerName || "Unassigned";
-        return (
-          <Fragment key={p.id}>
-            <tr className="border-t border-border/40 align-middle transition-colors hover:bg-muted/30">
-              <td className="px-3 py-2.5">
-                <Checkbox aria-label={`Select ${p.merchantName}`} className="h-4 w-4" />
-              </td>
-              <td className="px-3 py-2.5">
-                <button
-                  onClick={() => onOpenProject(p)}
-                  className="block max-w-full truncate text-left font-semibold text-foreground hover:underline"
-                  title={p.merchantName}
-                >
-                  {p.merchantName}
-                </button>
-                <span className="block truncate text-xs text-muted-foreground">{funnelStageLabels[getProjectFunnelStage(p)]}</span>
-              </td>
-              {showCol("status") && (
+      {open &&
+        projects.map((p) => {
+          const entries = movementMap[p.id] || [];
+          const isActive = entries.length > 0;
+          const ai = aiMap[p.id];
+          const fallback = isActive ? buildSummary(entries, 3) : "";
+          const percent = Math.max(0, Math.min(100, p.goLivePercent ?? 0));
+          const owner = p.assignedOwnerName || "Unassigned";
+          return (
+            <Fragment key={p.id}>
+              <tr className="border-t border-border/40 align-middle transition-colors hover:bg-muted/30">
                 <td className="px-3 py-2.5">
-                  {isActive && ai ? bucketBadge(ai.bucket) : (
-                    <Badge variant="secondary" className="whitespace-nowrap text-2xs font-medium">
-                      {projectStateLabels[p.projectState] || p.projectState}
-                    </Badge>
-                  )}
+                  <Checkbox aria-label={`Select ${p.merchantName}`} className="h-4 w-4" />
                 </td>
-              )}
-              {showCol("arr") && <td className="truncate px-3 py-2.5 text-sm">{formatArr(p.arr)}</td>}
-              {showCol("egl") && <td className="truncate px-3 py-2.5 text-sm">{formatEgl(p.dates?.expectedGoLiveDate)}</td>}
-              {showCol("owner") && (
                 <td className="px-3 py-2.5">
-                  <span className="flex min-w-0 items-center gap-2">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
-                      {initials(owner)}
-                    </span>
-                    <span className="truncate text-sm">{owner}</span>
+                  <button
+                    onClick={() => onOpenProject(p)}
+                    className="block max-w-full truncate text-left font-semibold text-foreground hover:underline"
+                    title={p.merchantName}
+                  >
+                    {p.merchantName}
+                  </button>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {funnelStageLabels[getProjectFunnelStage(p)]}
                   </span>
                 </td>
-              )}
-              {showCol("progress") && (
-                <td className="px-3 py-2.5">
-                  <span className="flex items-center gap-2">
-                    <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
-                      <span className="block h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+                {showCol("status") && (
+                  <td className="px-3 py-2.5">
+                    {isActive && ai ? (
+                      bucketBadge(ai.bucket)
+                    ) : (
+                      <Badge variant="secondary" className="whitespace-nowrap text-2xs font-medium">
+                        {projectStateLabels[p.projectState] || p.projectState}
+                      </Badge>
+                    )}
+                  </td>
+                )}
+                {showCol("arr") && (
+                  <td className="truncate px-3 py-2.5 text-sm">{formatArr(p.arr)}</td>
+                )}
+                {showCol("egl") && (
+                  <td className="truncate px-3 py-2.5 text-sm">
+                    {formatEgl(p.dates?.expectedGoLiveDate)}
+                  </td>
+                )}
+                {showCol("owner") && (
+                  <td className="px-3 py-2.5">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
+                        {initials(owner)}
+                      </span>
+                      <span className="truncate text-sm">{owner}</span>
                     </span>
-                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{percent}%</span>
-                  </span>
-                </td>
-              )}
-              {showCol("updated") && (
-                <td className="px-3 py-2.5 text-xs text-muted-foreground">
-                  {p.updatedAt ? (
-                    <>
-                      <span className="block">{format(new Date(p.updatedAt), "dd MMM yyyy")}</span>
-                      <span className="block">{format(new Date(p.updatedAt), "HH:mm")}</span>
-                    </>
-                  ) : "—"}
-                </td>
-              )}
-              <td className="px-3 py-2.5">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground"
-                  onClick={() => onOpenProject(p)}
-                  aria-label={`Open ${p.merchantName}`}
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Button>
-              </td>
-            </tr>
-            {/* What actually moved, under the row it belongs to. */}
-            {isActive && (ai || fallback) && (
-              <tr className="bg-muted/10">
-                <td />
-                <td colSpan={colCount - 1} className="px-3 pb-2.5 text-xs leading-relaxed">
-                  <span className="block text-foreground/90">{ai?.line1 || fallback}</span>
-                  {ai?.line2 && <span className="block text-muted-foreground">{ai.line2}</span>}
+                  </td>
+                )}
+                {showCol("progress") && (
+                  <td className="px-3 py-2.5">
+                    <span className="flex items-center gap-2">
+                      <span className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+                        <span
+                          className="block h-full rounded-full bg-primary"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </span>
+                      <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                        {percent}%
+                      </span>
+                    </span>
+                  </td>
+                )}
+                {showCol("updated") && (
+                  <td className="px-3 py-2.5 text-xs text-muted-foreground">
+                    {p.updatedAt ? (
+                      <>
+                        <span className="block">
+                          {format(new Date(p.updatedAt), "dd MMM yyyy")}
+                        </span>
+                        <span className="block">{format(new Date(p.updatedAt), "HH:mm")}</span>
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                )}
+                <td className="px-3 py-2.5">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground"
+                    onClick={() => onOpenProject(p)}
+                    aria-label={`Open ${p.merchantName}`}
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Button>
                 </td>
               </tr>
-            )}
-          </Fragment>
-        );
-      })}
+              {/* What actually moved, under the row it belongs to. */}
+              {isActive && (ai || fallback) && (
+                <tr className="bg-muted/10">
+                  <td />
+                  <td colSpan={colCount - 1} className="px-3 pb-2.5 text-xs leading-relaxed">
+                    <span className="block text-foreground/90">{ai?.line1 || fallback}</span>
+                    {ai?.line2 && <span className="block text-muted-foreground">{ai.line2}</span>}
+                  </td>
+                </tr>
+              )}
+            </Fragment>
+          );
+        })}
     </tbody>
   );
 };
 
 const escapeHtml = (s: string) =>
-  String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+  String(s ?? "").replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  );

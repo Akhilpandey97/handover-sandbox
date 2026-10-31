@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+  resendFrom,
+  resendReplyTo,
+} from "@/lib/tenant-integrations.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { requireInternalCaller } from "@/lib/api-auth.server";
 
@@ -48,9 +54,9 @@ async function handler(req: Request): Promise<Response> {
     const to = (brandPocEmails as string[]).filter(Boolean);
     const ccSet = new Set<string>((platformPocEmails as string[]).filter(Boolean));
     if (csmEmail && typeof csmEmail === "string" && csmEmail.trim()) ccSet.add(csmEmail.trim());
-    GLOBAL_CC.forEach(e => ccSet.add(e));
+    GLOBAL_CC.forEach((e) => ccSet.add(e));
     // Ensure no overlap between To and CC
-    to.forEach(e => ccSet.delete(e));
+    to.forEach((e) => ccSet.delete(e));
     const cc = Array.from(ccSet);
 
     if (to.length === 0) {
@@ -60,22 +66,60 @@ async function handler(req: Request): Promise<Response> {
     const subject = `Welcome to ${orgName}, ${brandName}! | Dashboard Access & Next Steps`;
 
     const walkthroughVideos = [
-      { title: "Executive Dashboard", url: "https://app.trupeer.ai/view/PAwyCbXEk/go-kwik-dashboard-overview-executive-summary" },
-      { title: "Orders Page", url: "https://app.trupeer.ai/view/cFxn7rVKw/order-management-dashboard-guide" },
-      { title: "Kwik Store Analytics (Checkout & Payments)", url: "https://app.trupeer.ai/view/wf5AhcccA/kwik-store-analytics-checkout-payments-guide" },
-      { title: "Kwik Checkout - Abandoned Cart", url: "https://app.trupeer.ai/view/BXcrkFbAP/kwik-checkout-abandoned-cart-recovery-guide" },
-      { title: "Kwik Checkout Settings", url: "https://app.trupeer.ai/view/b5NWMncU8/kwik-checkout-settings-user-guide" },
-      { title: "Kwik Payments - Transactions", url: "https://app.trupeer.ai/view/98KnDu0v5/kwik-payments-transactions-guide" },
-      { title: "Kwik Payments - Payment links", url: "https://app.trupeer.ai/view/BYGDiTZsO/kwik-payments-payment-links-user-guide" },
-      { title: "Kwik Payments - Settlements", url: "https://app.trupeer.ai/view/JQjFSSEef/kwik-payments-settlement-tracking-guide" },
+      {
+        title: "Executive Dashboard",
+        url: "https://app.trupeer.ai/view/PAwyCbXEk/go-kwik-dashboard-overview-executive-summary",
+      },
+      {
+        title: "Orders Page",
+        url: "https://app.trupeer.ai/view/cFxn7rVKw/order-management-dashboard-guide",
+      },
+      {
+        title: "Kwik Store Analytics (Checkout & Payments)",
+        url: "https://app.trupeer.ai/view/wf5AhcccA/kwik-store-analytics-checkout-payments-guide",
+      },
+      {
+        title: "Kwik Checkout - Abandoned Cart",
+        url: "https://app.trupeer.ai/view/BXcrkFbAP/kwik-checkout-abandoned-cart-recovery-guide",
+      },
+      {
+        title: "Kwik Checkout Settings",
+        url: "https://app.trupeer.ai/view/b5NWMncU8/kwik-checkout-settings-user-guide",
+      },
+      {
+        title: "Kwik Payments - Transactions",
+        url: "https://app.trupeer.ai/view/98KnDu0v5/kwik-payments-transactions-guide",
+      },
+      {
+        title: "Kwik Payments - Payment links",
+        url: "https://app.trupeer.ai/view/BYGDiTZsO/kwik-payments-payment-links-user-guide",
+      },
+      {
+        title: "Kwik Payments - Settlements",
+        url: "https://app.trupeer.ai/view/JQjFSSEef/kwik-payments-settlement-tracking-guide",
+      },
       { title: "Kwik Payments - Refunds", url: "https://app.trupeer.ai/embed/BYGDiTZsO" },
-      { title: "Kwik Payments - Settings", url: "https://app.trupeer.ai/view/eKWhUWMIv/kwik-payment-settings-guide" },
-      { title: "Kwik RTO - Summary & Deep Dive", url: "https://app.trupeer.ai/view/3HT0jULmA/go-kwik-rto-dashboard-summary-deep-dive-user-guide" },
-      { title: "Kwik RTO - RCA", url: "https://app.trupeer.ai/view/FWW9PX09O/rto-rca-view-analysis-user-guide" },
-      { title: "Kwik Flows", url: "https://app.trupeer.ai/view/ktEt8sq5K/kwik-flows-dashboard-user-guide" },
+      {
+        title: "Kwik Payments - Settings",
+        url: "https://app.trupeer.ai/view/eKWhUWMIv/kwik-payment-settings-guide",
+      },
+      {
+        title: "Kwik RTO - Summary & Deep Dive",
+        url: "https://app.trupeer.ai/view/3HT0jULmA/go-kwik-rto-dashboard-summary-deep-dive-user-guide",
+      },
+      {
+        title: "Kwik RTO - RCA",
+        url: "https://app.trupeer.ai/view/FWW9PX09O/rto-rca-view-analysis-user-guide",
+      },
+      {
+        title: "Kwik Flows",
+        url: "https://app.trupeer.ai/view/ktEt8sq5K/kwik-flows-dashboard-user-guide",
+      },
     ];
 
-    const videosText = walkthroughVideos.map((v, i) => `${i + 1}. ${v.title}\n   ${v.url}`).join("\n");
+    const videosText = walkthroughVideos
+      .map((v, i) => `${i + 1}. ${v.title}\n   ${v.url}`)
+      .join("\n");
     const videosHtml = walkthroughVideos
       .map((v) => `<li style="margin-bottom:6px;"><a href="${v.url}">${v.title}</a></li>`)
       .join("");
@@ -131,7 +175,6 @@ ${senderMobile || ""}`;
         ${senderMobile || ""}</p>
       </div>
     `;
-
 
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",

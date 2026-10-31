@@ -1,6 +1,14 @@
 import { useMemo, useEffect, useRef, useState, Fragment } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Project, calculateTimeByParty, formatDuration, ResponsibilityParty, projectStateLabels, ProjectState, ProjectChecklist } from "@/data/projectsData";
+import {
+  Project,
+  calculateTimeByParty,
+  formatDuration,
+  ResponsibilityParty,
+  projectStateLabels,
+  ProjectState,
+  ProjectChecklist,
+} from "@/data/projectsData";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
@@ -10,12 +18,7 @@ import { useTeams } from "@/hooks/useTeams";
 import { useProfilesLookup, useChecklistTemplateTitles } from "@/hooks/useLookups";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,14 +38,36 @@ import { ChecklistFormDialog } from "@/components/ChecklistFormDialog";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { ChecklistItemMeetings } from "@/components/ChecklistItemMeetings";
-import { useChecklistTasks, useAddChecklistTask, useUpdateChecklistTask, useDeleteChecklistTask } from "@/hooks/useChecklistTasks";
+import {
+  useChecklistTasks,
+  useAddChecklistTask,
+  useUpdateChecklistTask,
+  useDeleteChecklistTask,
+} from "@/hooks/useChecklistTasks";
 import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
 import { formatArrCr } from "@/lib/arr";
 import { cn } from "@/lib/utils";
 import {
-  CheckCircle2, ClipboardList, Minus, FileText, ListTodo, Trash2, Calendar, Video,
-  Building2, Users, Plus, MoreHorizontal, MessageSquare, Pencil,
-  ExternalLink, IndianRupee, UserRound, ChevronDown, FileStack, Paperclip,
+  CheckCircle2,
+  ClipboardList,
+  Minus,
+  FileText,
+  ListTodo,
+  Trash2,
+  Calendar,
+  Video,
+  Building2,
+  Users,
+  Plus,
+  MoreHorizontal,
+  MessageSquare,
+  Pencil,
+  ExternalLink,
+  IndianRupee,
+  UserRound,
+  ChevronDown,
+  FileStack,
+  Paperclip,
 } from "lucide-react";
 
 /** "9 Sep 2026" */
@@ -89,7 +114,12 @@ const getItemStatus = (item: ProjectChecklist): ItemStatus => {
 const StatusBadge = ({ status }: { status: ItemStatus }) => {
   const config = STATUS_CONFIG[status];
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap", config.className)}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        config.className,
+      )}
+    >
       {config.label}
     </span>
   );
@@ -108,7 +138,9 @@ const daysRelative = (v?: string | null) => {
 };
 
 const friendlyDate = (v?: string | null) =>
-  v ? new Date(v).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
+  v
+    ? new Date(v).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : "—";
 
 interface GroupData {
   key: string;
@@ -209,9 +241,10 @@ export const ChecklistDialog = ({
 
   const formsByChecklistTemplateId = useMemo(() => {
     const map = new Map<string, { formTemplateId: string; formTemplateName: string }>();
-    assignments.forEach(a => {
-      const ft = formTemplates.find(t => t.id === a.form_template_id);
-      if (ft) map.set(a.checklist_template_id, { formTemplateId: ft.id, formTemplateName: ft.name });
+    assignments.forEach((a) => {
+      const ft = formTemplates.find((t) => t.id === a.form_template_id);
+      if (ft)
+        map.set(a.checklist_template_id, { formTemplateId: ft.id, formTemplateName: ft.name });
     });
     return map;
   }, [assignments, formTemplates]);
@@ -225,8 +258,11 @@ export const ChecklistDialog = ({
 
   const checklist = project?.checklist || [];
 
-  const currentTeamChecklist = project ? checklist.filter(c => c.ownerTeam === project.currentOwnerTeam) : [];
-  const allCurrentTeamDone = currentTeamChecklist.length > 0 && currentTeamChecklist.every(c => c.completed);
+  const currentTeamChecklist = project
+    ? checklist.filter((c) => c.ownerTeam === project.currentOwnerTeam)
+    : [];
+  const allCurrentTeamDone =
+    currentTeamChecklist.length > 0 && currentTeamChecklist.every((c) => c.completed);
   const prevAllDoneRef = useRef(allCurrentTeamDone);
 
   useEffect(() => {
@@ -239,35 +275,51 @@ export const ChecklistDialog = ({
     prevAllDoneRef.current = allCurrentTeamDone;
   }, [allCurrentTeamDone, open]);
 
-  if (!project || !currentUser) return null;
-
   // ── Grouping logic (shared) ──
-  const groupedByTeam = project.checklist.reduce((acc, item) => {
-    const team = (item.ownerTeam || "").toLowerCase();
-    if (!acc[team]) acc[team] = [];
-    acc[team].push(item);
-    return acc;
-  }, {} as Record<string, typeof project.checklist>);
+  // Note: early return moved below the hooks to satisfy rules-of-hooks
+  const groupedByTeam = (project?.checklist || []).reduce(
+    (acc, item) => {
+      const team = (item.ownerTeam || "").toLowerCase();
+      if (!acc[team]) acc[team] = [];
+      acc[team].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof project.checklist>,
+  );
 
-  const userTeam = (currentUser.team || "").toLowerCase();
-  const hasFullChecklistAccess = ["manager", "admin", "super_admin", "superadmin"].includes(userTeam);
+  const userTeam = (currentUser?.team || "").toLowerCase();
+  const hasFullChecklistAccess = ["manager", "admin", "super_admin", "superadmin"].includes(
+    userTeam,
+  );
 
   const systemSlugs = ["mint", "integration", "ms"];
   const allSlugsInChecklist = Object.keys(groupedByTeam);
 
   const orderedTeams: string[] = [];
-  if (userTeam && allSlugsInChecklist.includes(userTeam) && !hasFullChecklistAccess) orderedTeams.push(userTeam);
-  systemSlugs.forEach(s => { if (allSlugsInChecklist.includes(s) && !orderedTeams.includes(s)) orderedTeams.push(s); });
-  allSlugsInChecklist.forEach(s => { if (!orderedTeams.includes(s) && !systemSlugs.includes(s)) orderedTeams.push(s); });
+  if (userTeam && allSlugsInChecklist.includes(userTeam) && !hasFullChecklistAccess)
+    orderedTeams.push(userTeam);
+  systemSlugs.forEach((s) => {
+    if (allSlugsInChecklist.includes(s) && !orderedTeams.includes(s)) orderedTeams.push(s);
+  });
+  allSlugsInChecklist.forEach((s) => {
+    if (!orderedTeams.includes(s) && !systemSlugs.includes(s)) orderedTeams.push(s);
+  });
   if (hasFullChecklistAccess && orderedTeams.length === 0) {
-    systemSlugs.forEach(s => { if (allSlugsInChecklist.includes(s)) orderedTeams.push(s); });
-    allSlugsInChecklist.forEach(s => { if (!orderedTeams.includes(s)) orderedTeams.push(s); });
+    systemSlugs.forEach((s) => {
+      if (allSlugsInChecklist.includes(s)) orderedTeams.push(s);
+    });
+    allSlugsInChecklist.forEach((s) => {
+      if (!orderedTeams.includes(s)) orderedTeams.push(s);
+    });
   }
 
-  const teamCounts = Object.entries(groupedByTeam).reduce((acc, [team, items]) => {
-    acc[team] = { completed: items.filter(i => i.completed).length, total: items.length };
-    return acc;
-  }, {} as Record<string, { completed: number; total: number }>);
+  const teamCounts = Object.entries(groupedByTeam).reduce(
+    (acc, [team, items]) => {
+      acc[team] = { completed: items.filter((i) => i.completed).length, total: items.length };
+      return acc;
+    },
+    {} as Record<string, { completed: number; total: number }>,
+  );
 
   const canEditChecklistItem = (ownerTeam: string) =>
     hasFullChecklistAccess || userTeam === (ownerTeam || "").toLowerCase();
@@ -280,42 +332,43 @@ export const ChecklistDialog = ({
 
   // ── Groups for inline sidebar ──
   const activeGroups: GroupData[] = useMemo(() => {
-    const items = checklist.filter(i => !i.isTask);
+    const items = checklist.filter((i) => !i.isTask);
 
     if (groupBy === "stages") {
       const map: Record<string, ProjectChecklist[]> = {};
-      items.forEach(item => {
-        const phase = PHASE_ORDER.includes(item.phase as string) ? (item.phase as string) : "integration";
+      items.forEach((item) => {
+        const phase = PHASE_ORDER.includes(item.phase as string)
+          ? (item.phase as string)
+          : "integration";
         if (!map[phase]) map[phase] = [];
         map[phase].push(item);
       });
-      return PHASE_ORDER
-        .filter(p => map[p]?.length > 0)
-        .map(p => ({
-          key: p,
-          label: PHASE_STAGE_LABELS[p] || p,
-          color: getTeamColor(p),
-          items: map[p],
-          completed: map[p].filter(i => i.completed).length,
-          total: map[p].length,
-        }));
+      return PHASE_ORDER.filter((p) => map[p]?.length > 0).map((p) => ({
+        key: p,
+        label: PHASE_STAGE_LABELS[p] || p,
+        color: getTeamColor(p),
+        items: map[p],
+        completed: map[p].filter((i) => i.completed).length,
+        total: map[p].length,
+      }));
     }
 
-    return orderedTeams.map(team => ({
+    return orderedTeams.map((team) => ({
       key: team,
       label: getTeamLabel(team),
       color: getTeamColor(team),
-      items: (groupedByTeam[team] || []).filter(i => !i.isTask),
-      completed: (groupedByTeam[team] || []).filter(i => !i.isTask && i.completed).length,
-      total: (groupedByTeam[team] || []).filter(i => !i.isTask).length,
+      items: (groupedByTeam[team] || []).filter((i) => !i.isTask),
+      completed: (groupedByTeam[team] || []).filter((i) => !i.isTask && i.completed).length,
+      total: (groupedByTeam[team] || []).filter((i) => !i.isTask).length,
     }));
   }, [groupBy, checklist, orderedTeams, groupedByTeam]);
 
-  const effectiveSelectedGroup = selectedGroup && activeGroups.some(g => g.key === selectedGroup)
-    ? selectedGroup
-    : activeGroups[0]?.key ?? null;
+  const effectiveSelectedGroup =
+    selectedGroup && activeGroups.some((g) => g.key === selectedGroup)
+      ? selectedGroup
+      : (activeGroups[0]?.key ?? null);
 
-  const selectedGroupData = activeGroups.find(g => g.key === effectiveSelectedGroup) ?? null;
+  const selectedGroupData = activeGroups.find((g) => g.key === effectiveSelectedGroup) ?? null;
 
   const getAssignee = (item: ProjectChecklist): string => {
     if (item.completedBy) return item.completedBy;
@@ -324,24 +377,37 @@ export const ChecklistDialog = ({
 
   const filteredItems = useMemo(() => selectedGroupData?.items || [], [selectedGroupData]);
 
-
   // Next action for the right panel
   const nextStep = useMemo(() => {
-    const open = project.checklist.filter(item => !item.completed && !item.isTask);
-    if (open.length === 0) return { label: "All checklist items complete", hint: undefined as string | undefined };
-    const ownTeam = open.filter(item => (item.ownerTeam || "").toLowerCase() === project.currentOwnerTeam);
+    const open = (project?.checklist || []).filter((item) => !item.completed && !item.isTask);
+    if (open.length === 0)
+      return { label: "All checklist items complete", hint: undefined as string | undefined };
+    const ownTeam = open.filter(
+      (item) => (item.ownerTeam || "").toLowerCase() === project?.currentOwnerTeam,
+    );
     if (ownTeam.length === 0) {
-      const next = project.currentOwnerTeam === "mint" ? "integration" : project.currentOwnerTeam === "integration" ? "ms" : null;
+      const next =
+        project?.currentOwnerTeam === "mint"
+          ? "integration"
+          : project?.currentOwnerTeam === "integration"
+            ? "ms"
+            : null;
       if (next) return { label: `Transfer to ${getTeamLabel(next)}`, hint: undefined };
     }
     const pool = ownTeam.length > 0 ? ownTeam : open;
-    const pick = [...pool].sort((a, b) =>
-      (a.dueDate ? new Date(a.dueDate).getTime() : Infinity) - (b.dueDate ? new Date(b.dueDate).getTime() : Infinity),
+    const pick = [...pool].sort(
+      (a, b) =>
+        (a.dueDate ? new Date(a.dueDate).getTime() : Infinity) -
+        (b.dueDate ? new Date(b.dueDate).getTime() : Infinity),
     )[0];
     const overdue = pick.dueDate ? new Date(pick.dueDate) < new Date() : false;
-    return { label: pick.title, hint: overdue ? "Overdue" : pick.dueDate ? `due ${shortDate(pick.dueDate)}` : undefined };
+    return {
+      label: pick.title,
+      hint: overdue ? "Overdue" : pick.dueDate ? `due ${shortDate(pick.dueDate)}` : undefined,
+    };
   }, [project]);
 
+  if (!project || !currentUser) return null;
 
   // ── Shared sub-dialogs JSX ──
   const subDialogs = (
@@ -349,7 +415,9 @@ export const ChecklistDialog = ({
       {formDialogState && project && (
         <ChecklistFormDialog
           open={formDialogState.open}
-          onOpenChange={(o) => { if (!o) setFormDialogState(null); }}
+          onOpenChange={(o) => {
+            if (!o) setFormDialogState(null);
+          }}
           projectId={project.id}
           projectName={project.merchantName}
           checklistItemId={formDialogState.checklistItemId}
@@ -361,7 +429,9 @@ export const ChecklistDialog = ({
       {taskDialogState && project && (
         <TaskManagementDialog
           open={taskDialogState.open}
-          onOpenChange={(o) => { if (!o) setTaskDialogState(null); }}
+          onOpenChange={(o) => {
+            if (!o) setTaskDialogState(null);
+          }}
           checklistItemId={taskDialogState.checklistItemId}
           checklistItemTitle={taskDialogState.checklistItemTitle}
           projectId={project.id}
@@ -371,7 +441,9 @@ export const ChecklistDialog = ({
       {meetingDialogState && project && (
         <MeetingSchedulerDialog
           open={meetingDialogState.open}
-          onOpenChange={(o) => { if (!o) setMeetingDialogState(null); }}
+          onOpenChange={(o) => {
+            if (!o) setMeetingDialogState(null);
+          }}
           checklistItemId={meetingDialogState.checklistItemId}
           checklistItemTitle={meetingDialogState.checklistItemTitle}
           projectId={project.id}
@@ -394,7 +466,9 @@ export const ChecklistDialog = ({
             </div>
             <div className="flex-1">
               <span className="text-xl">Project Checklist</span>
-              <p className="text-sm font-normal text-muted-foreground mt-0.5">{project.merchantName}</p>
+              <p className="text-sm font-normal text-muted-foreground mt-0.5">
+                {project.merchantName}
+              </p>
             </div>
           </DialogTitle>
         </DialogHeader>
@@ -406,16 +480,23 @@ export const ChecklistDialog = ({
               const isOwnTeam = team === userTeam;
               const canEditSection = hasFullChecklistAccess || isOwnTeam;
               const teamCount = teamCounts[team];
-              const checklistItems = items.filter(i => !i.isTask);
+              const checklistItems = items.filter((i) => !i.isTask);
 
               return (
                 <div key={team} className={canEditSection ? "" : "opacity-60"}>
                   <div className="mb-2 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: getTeamColor(team) }} />
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{ backgroundColor: getTeamColor(team) }}
+                      />
                       <div>
-                        <h3 className="text-sm font-semibold text-foreground">{getTeamLabel(team)}</h3>
-                        <p className="text-xs text-muted-foreground">{teamCount?.completed} of {teamCount?.total} done</p>
+                        <h3 className="text-sm font-semibold text-foreground">
+                          {getTeamLabel(team)}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {teamCount?.completed} of {teamCount?.total} done
+                        </p>
                       </div>
                     </div>
                     {isOwnTeam && <span className="text-xs text-muted-foreground">Your team</span>}
@@ -425,49 +506,246 @@ export const ChecklistDialog = ({
                     {checklistItems.map((item, index) => {
                       const timeStats = calculateTimeByParty(item.responsibilityLog);
                       const canEdit = canEditChecklistItem(item.ownerTeam || "");
-                      const itemTasks = allTasks.filter(t => t.checklist_item_id === item.id);
-                      const itemMeetings = allMeetings.filter(m => m.checklist_item_id === item.id);
+                      const itemTasks = allTasks.filter((t) => t.checklist_item_id === item.id);
+                      const itemMeetings = allMeetings.filter(
+                        (m) => m.checklist_item_id === item.id,
+                      );
 
                       return (
-                        <div key={item.id} id={`checklist-item-${item.id}`}
+                        <div
+                          key={item.id}
+                          id={`checklist-item-${item.id}`}
                           className={`p-4 rounded-xl border transition-all scroll-mt-24 ${item.completed ? "bg-success/5 border-success/30" : "bg-card border-border hover:border-primary/30 hover:shadow-md"}`}
                         >
                           <div className="flex items-start gap-4">
                             <div className="flex flex-col items-center gap-1">
-                              <Badge variant="outline" className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-mono p-0">{index + 1}</Badge>
-                              <TooltipProvider><Tooltip><TooltipTrigger asChild>
-                                <div><Checkbox checked={item.completed} onCheckedChange={(checked) => { if (canEdit) updateChecklist(project.id, item.id, checked as boolean); }} disabled={!canEdit} className="h-5 w-5" /></div>
-                              </TooltipTrigger><TooltipContent>{!canEdit ? "Only team members can complete this" : item.completed ? "Click to mark as incomplete" : "Click to mark as complete"}</TooltipContent></Tooltip></TooltipProvider>
+                              <Badge
+                                variant="outline"
+                                className="h-7 w-7 rounded-full flex items-center justify-center text-xs font-mono p-0"
+                              >
+                                {index + 1}
+                              </Badge>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div>
+                                      <Checkbox
+                                        checked={item.completed}
+                                        onCheckedChange={(checked) => {
+                                          if (canEdit)
+                                            updateChecklist(
+                                              project.id,
+                                              item.id,
+                                              checked as boolean,
+                                            );
+                                        }}
+                                        disabled={!canEdit}
+                                        className="h-5 w-5"
+                                      />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {!canEdit
+                                      ? "Only team members can complete this"
+                                      : item.completed
+                                        ? "Click to mark as incomplete"
+                                        : "Click to mark as complete"}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className={`font-medium ${item.completed ? "line-through text-muted-foreground" : ""}`}>{item.title}</span>
-                                {item.completed && <CheckCircle2 className="h-4 w-4 shrink-0 text-success-strong" />}
+                                <span
+                                  className={`font-medium ${item.completed ? "line-through text-muted-foreground" : ""}`}
+                                >
+                                  {item.title}
+                                </span>
+                                {item.completed && (
+                                  <CheckCircle2 className="h-4 w-4 shrink-0 text-success-strong" />
+                                )}
                                 <div className="ml-auto flex shrink-0 items-center gap-2">
-                                  {(() => { const tid = checklistTemplatesByTitle[item.title]; const fi = tid ? formsByChecklistTemplateId.get(tid) : undefined; if (!fi) return null; return (<Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium" onClick={(e) => { e.stopPropagation(); setFormDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title, formTemplateId: fi.formTemplateId, formTemplateName: fi.formTemplateName }); }}><FileText className="h-3 w-3" />{fi.formTemplateName}</Button>); })()}
-                                  {(() => { const tc = allTasks.filter(t => t.checklist_item_id === item.id).length; const oc = allTasks.filter(t => t.checklist_item_id === item.id && t.status !== "done").length; return (<Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium" onClick={(e) => { e.stopPropagation(); setTaskDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title }); }}><Plus className="h-3 w-3" />Task{tc > 0 ? ` (${oc}/${tc})` : ""}</Button>); })()}
-                                  {(() => { const im = allMeetings.filter(m => m.checklist_item_id === item.id); const up = im.filter(m => m.status === "scheduled" && new Date(m.scheduled_at) >= new Date()).length; return (<Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium" onClick={(e) => { e.stopPropagation(); setMeetingDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title }); }}><Plus className="h-3 w-3" />Meeting{im.length > 0 ? ` (${up}/${im.length})` : ""}</Button>); })()}
+                                  {(() => {
+                                    const tid = checklistTemplatesByTitle[item.title];
+                                    const fi = tid
+                                      ? formsByChecklistTemplateId.get(tid)
+                                      : undefined;
+                                    if (!fi) return null;
+                                    return (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setFormDialogState({
+                                            open: true,
+                                            checklistItemId: item.id,
+                                            checklistItemTitle: item.title,
+                                            formTemplateId: fi.formTemplateId,
+                                            formTemplateName: fi.formTemplateName,
+                                          });
+                                        }}
+                                      >
+                                        <FileText className="h-3 w-3" />
+                                        {fi.formTemplateName}
+                                      </Button>
+                                    );
+                                  })()}
+                                  {(() => {
+                                    const tc = allTasks.filter(
+                                      (t) => t.checklist_item_id === item.id,
+                                    ).length;
+                                    const oc = allTasks.filter(
+                                      (t) => t.checklist_item_id === item.id && t.status !== "done",
+                                    ).length;
+                                    return (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setTaskDialogState({
+                                            open: true,
+                                            checklistItemId: item.id,
+                                            checklistItemTitle: item.title,
+                                          });
+                                        }}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                        Task{tc > 0 ? ` (${oc}/${tc})` : ""}
+                                      </Button>
+                                    );
+                                  })()}
+                                  {(() => {
+                                    const im = allMeetings.filter(
+                                      (m) => m.checklist_item_id === item.id,
+                                    );
+                                    const up = im.filter(
+                                      (m) =>
+                                        m.status === "scheduled" &&
+                                        new Date(m.scheduled_at) >= new Date(),
+                                    ).length;
+                                    return (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 gap-1.5 rounded-lg px-3 text-xs font-medium"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setMeetingDialogState({
+                                            open: true,
+                                            checklistItemId: item.id,
+                                            checklistItemTitle: item.title,
+                                          });
+                                        }}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                        Meeting{im.length > 0 ? ` (${up}/${im.length})` : ""}
+                                      </Button>
+                                    );
+                                  })()}
                                 </div>
                               </div>
                               {(item.dueDate || (canEdit && !item.completed)) && (
                                 <div className="flex items-center gap-2 mb-2">
                                   <Calendar className="h-3 w-3 text-muted-foreground" />
-                                  {item.dueDate ? (<span className={`text-xs ${!item.completed && new Date(item.dueDate) < new Date() ? "text-destructive font-medium" : "text-muted-foreground"}`}>Due: {shortDate(item.dueDate)}{!item.completed && new Date(item.dueDate) < new Date() && " (Overdue)"}</span>) : (<span className="text-xs text-muted-foreground">No due date</span>)}
-                                  {canEdit && !item.completed && (<Input type="date" defaultValue={item.dueDate || ""} aria-label="Due date" className="h-6 w-32 text-xs px-1" onChange={async (e) => { const nd = e.target.value || null; await supabase.from("checklist_items").update({ due_date: nd }).eq("id", item.id); queryClient.invalidateQueries({ queryKey: ["projects"] }); }} />)}
+                                  {item.dueDate ? (
+                                    <span
+                                      className={`text-xs ${!item.completed && new Date(item.dueDate) < new Date() ? "text-destructive font-medium" : "text-muted-foreground"}`}
+                                    >
+                                      Due: {shortDate(item.dueDate)}
+                                      {!item.completed &&
+                                        new Date(item.dueDate) < new Date() &&
+                                        " (Overdue)"}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">
+                                      No due date
+                                    </span>
+                                  )}
+                                  {canEdit && !item.completed && (
+                                    <Input
+                                      type="date"
+                                      defaultValue={item.dueDate || ""}
+                                      aria-label="Due date"
+                                      className="h-6 w-32 text-xs px-1"
+                                      onChange={async (e) => {
+                                        const nd = e.target.value || null;
+                                        await supabase
+                                          .from("checklist_items")
+                                          .update({ due_date: nd })
+                                          .eq("id", item.id);
+                                        queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                      }}
+                                    />
+                                  )}
                                 </div>
                               )}
-                              {item.completedBy && (<p className="text-xs text-muted-foreground mb-2">✓ Completed by {item.completedBy}{item.completedAt && ` on ${shortDate(item.completedAt)}`}</p>)}
+                              {item.completedBy && (
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  ✓ Completed by {item.completedBy}
+                                  {item.completedAt && ` on ${shortDate(item.completedAt)}`}
+                                </p>
+                              )}
                               <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <div className="flex items-center gap-1"><Building2 className="h-3 w-3 text-primary" /><span>{responsibilityLabels.gokwik}: {formatDuration(timeStats.gokwik)}</span></div>
-                                <div className="flex items-center gap-1"><Users className="h-3 w-3 text-warning-strong" /><span>{responsibilityLabels.merchant}: {formatDuration(timeStats.merchant)}</span></div>
+                                <div className="flex items-center gap-1">
+                                  <Building2 className="h-3 w-3 text-primary" />
+                                  <span>
+                                    {responsibilityLabels.gokwik}:{" "}
+                                    {formatDuration(timeStats.gokwik)}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3 text-warning-strong" />
+                                  <span>
+                                    {responsibilityLabels.merchant}:{" "}
+                                    {formatDuration(timeStats.merchant)}
+                                  </span>
+                                </div>
                               </div>
-                              <ChecklistCommentThread checklistItemId={item.id} checklistItemTitle={item.title} projectId={project.id} projectName={project.merchantName} focusSignal={commentPrompt?.itemId === item.id ? commentPrompt.at : undefined} />
+                              <ChecklistCommentThread
+                                checklistItemId={item.id}
+                                checklistItemTitle={item.title}
+                                projectId={project.id}
+                                projectName={project.merchantName}
+                                focusSignal={
+                                  commentPrompt?.itemId === item.id ? commentPrompt.at : undefined
+                                }
+                              />
                             </div>
                             <div className="flex shrink-0 items-center gap-2">
-                              <ToggleGroup type="single" value={item.currentResponsibility} onValueChange={(v) => handleResponsibilityChange(item.id, v)} disabled={item.completed || !canEdit} className="gap-0 border rounded-lg overflow-hidden">
-                                <ToggleGroupItem value="gokwik" aria-label={responsibilityLabels.gokwik} className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white"><Building2 className="h-3 w-3 mr-1" />{responsibilityLabels.gokwik}</ToggleGroupItem>
-                                <ToggleGroupItem value="neutral" aria-label={responsibilityLabels.neutral} className="text-xs px-3 py-1.5 h-8 rounded-none border-x data-[state=on]:bg-muted"><Minus className="h-3 w-3" /></ToggleGroupItem>
-                                <ToggleGroupItem value="merchant" aria-label={responsibilityLabels.merchant} className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"><Users className="h-3 w-3 mr-1" />{responsibilityLabels.merchant}</ToggleGroupItem>
+                              <ToggleGroup
+                                type="single"
+                                value={item.currentResponsibility}
+                                onValueChange={(v) => handleResponsibilityChange(item.id, v)}
+                                disabled={item.completed || !canEdit}
+                                className="gap-0 border rounded-lg overflow-hidden"
+                              >
+                                <ToggleGroupItem
+                                  value="gokwik"
+                                  aria-label={responsibilityLabels.gokwik}
+                                  className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white"
+                                >
+                                  <Building2 className="h-3 w-3 mr-1" />
+                                  {responsibilityLabels.gokwik}
+                                </ToggleGroupItem>
+                                <ToggleGroupItem
+                                  value="neutral"
+                                  aria-label={responsibilityLabels.neutral}
+                                  className="text-xs px-3 py-1.5 h-8 rounded-none border-x data-[state=on]:bg-muted"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </ToggleGroupItem>
+                                <ToggleGroupItem
+                                  value="merchant"
+                                  aria-label={responsibilityLabels.merchant}
+                                  className="text-xs px-3 py-1.5 h-8 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
+                                >
+                                  <Users className="h-3 w-3 mr-1" />
+                                  {responsibilityLabels.merchant}
+                                </ToggleGroupItem>
                               </ToggleGroup>
                             </div>
                           </div>
@@ -478,20 +756,91 @@ export const ChecklistDialog = ({
                               <div className="mt-3 grid gap-2 rounded-lg border border-border/60 bg-muted/20 p-2 md:grid-cols-2">
                                 <div className="min-w-0">
                                   <div className="mb-1.5 flex items-center gap-2 px-1">
-                                    <ListTodo className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tasks</span>
-                                    <span className="text-xs text-muted-foreground">{itemTasks.filter(t => t.status === "done").length} of {itemTasks.length} done</span>
-                                    <Button variant="ghost" size="sm" className="ml-auto h-6 gap-1 px-2 text-xs" onClick={(e) => { e.stopPropagation(); setTaskDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title }); }}><Plus className="h-3 w-3" />Add task</Button>
+                                    <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                      Tasks
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {itemTasks.filter((t) => t.status === "done").length} of{" "}
+                                      {itemTasks.length} done
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="ml-auto h-6 gap-1 px-2 text-xs"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setTaskDialogState({
+                                          open: true,
+                                          checklistItemId: item.id,
+                                          checklistItemTitle: item.title,
+                                        });
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                      Add task
+                                    </Button>
                                   </div>
                                   <div className="space-y-1">
-                                    {itemTasks.map(task => {
-                                      const od = task.due_date && task.status !== "done" && new Date(task.due_date) < new Date();
+                                    {itemTasks.map((task) => {
+                                      const od =
+                                        task.due_date &&
+                                        task.status !== "done" &&
+                                        new Date(task.due_date) < new Date();
                                       return (
-                                        <div key={task.id} id={`task-${task.id}`} className="group flex items-center gap-2 rounded-md border border-border/50 bg-card px-2 py-1.5 transition-colors hover:border-primary/30">
-                                          <Checkbox checked={task.status === "done"} onCheckedChange={(checked) => { updateTaskMutation.mutate({ id: task.id, status: checked ? "done" : "open" }); if (checked) toast.success(`Completed "${task.title}"`, { action: { label: "Add comment", onClick: () => setCommentPrompt({ itemId: item.id, at: Date.now() }) } }); }} className="h-4 w-4 shrink-0" />
-                                          <span className={`flex-1 truncate text-sm ${task.status === "done" ? "text-muted-foreground line-through" : "text-foreground"}`}>{task.title}</span>
-                                          {task.assigned_to && <span className="shrink-0 text-2xs text-muted-foreground">{profiles.find(p => p.id === task.assigned_to)?.name || task.assigned_to}</span>}
-                                          {task.due_date && <span className={`flex shrink-0 items-center gap-0.5 text-2xs ${od ? "font-medium text-destructive" : "text-muted-foreground"}`}><Calendar className="h-2.5 w-2.5" />{shortDate(task.due_date)}</span>}
-                                          <Button variant="ghost" size="sm" className="h-5 w-5 shrink-0 p-0 text-destructive opacity-0 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100" onClick={() => deleteTaskMutation.mutate(task.id)}><Trash2 className="h-3 w-3" /></Button>
+                                        <div
+                                          key={task.id}
+                                          id={`task-${task.id}`}
+                                          className="group flex items-center gap-2 rounded-md border border-border/50 bg-card px-2 py-1.5 transition-colors hover:border-primary/30"
+                                        >
+                                          <Checkbox
+                                            checked={task.status === "done"}
+                                            onCheckedChange={(checked) => {
+                                              updateTaskMutation.mutate({
+                                                id: task.id,
+                                                status: checked ? "done" : "open",
+                                              });
+                                              if (checked)
+                                                toast.success(`Completed "${task.title}"`, {
+                                                  action: {
+                                                    label: "Add comment",
+                                                    onClick: () =>
+                                                      setCommentPrompt({
+                                                        itemId: item.id,
+                                                        at: Date.now(),
+                                                      }),
+                                                  },
+                                                });
+                                            }}
+                                            className="h-4 w-4 shrink-0"
+                                          />
+                                          <span
+                                            className={`flex-1 truncate text-sm ${task.status === "done" ? "text-muted-foreground line-through" : "text-foreground"}`}
+                                          >
+                                            {task.title}
+                                          </span>
+                                          {task.assigned_to && (
+                                            <span className="shrink-0 text-2xs text-muted-foreground">
+                                              {profiles.find((p) => p.id === task.assigned_to)
+                                                ?.name || task.assigned_to}
+                                            </span>
+                                          )}
+                                          {task.due_date && (
+                                            <span
+                                              className={`flex shrink-0 items-center gap-0.5 text-2xs ${od ? "font-medium text-destructive" : "text-muted-foreground"}`}
+                                            >
+                                              <Calendar className="h-2.5 w-2.5" />
+                                              {shortDate(task.due_date)}
+                                            </span>
+                                          )}
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-5 w-5 shrink-0 p-0 text-destructive opacity-0 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+                                            onClick={() => deleteTaskMutation.mutate(task.id)}
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
                                         </div>
                                       );
                                     })}
@@ -499,11 +848,37 @@ export const ChecklistDialog = ({
                                 </div>
                                 <div className="min-w-0 md:border-l md:border-border/60 md:pl-2">
                                   <div className="mb-1.5 flex items-center gap-2 px-1">
-                                    <Video className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Meetings</span>
-                                    <span className="text-xs text-muted-foreground">{itemMeetings.length}</span>
-                                    <Button variant="ghost" size="sm" className="ml-auto h-6 gap-1 px-2 text-xs" onClick={(e) => { e.stopPropagation(); setMeetingDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title }); }}><Plus className="h-3 w-3" />Schedule</Button>
+                                    <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                      Meetings
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {itemMeetings.length}
+                                    </span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="ml-auto h-6 gap-1 px-2 text-xs"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMeetingDialogState({
+                                          open: true,
+                                          checklistItemId: item.id,
+                                          checklistItemTitle: item.title,
+                                        });
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                      Schedule
+                                    </Button>
                                   </div>
-                                  {itemMeetings.length === 0 ? <p className="px-1 py-2 text-xs text-muted-foreground">No meetings for this step yet.</p> : <ChecklistItemMeetings meetings={itemMeetings} />}
+                                  {itemMeetings.length === 0 ? (
+                                    <p className="px-1 py-2 text-xs text-muted-foreground">
+                                      No meetings for this step yet.
+                                    </p>
+                                  ) : (
+                                    <ChecklistItemMeetings meetings={itemMeetings} />
+                                  )}
                                 </div>
                               </div>
                             );
@@ -532,7 +907,6 @@ export const ChecklistDialog = ({
 
   return (
     <div className="flex h-full min-h-0 overflow-hidden">
-
       {/* ── Column A: Groups sidebar ──────────────────────────────── */}
       <div className="w-52 shrink-0 border-r border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
         {/* Sidebar header */}
@@ -540,13 +914,24 @@ export const ChecklistDialog = ({
           <ToggleGroup
             type="single"
             value={groupBy}
-            onValueChange={(v) => { if (v) { setGroupBy(v as "teams" | "stages"); setSelectedGroup(null); } }}
+            onValueChange={(v) => {
+              if (v) {
+                setGroupBy(v as "teams" | "stages");
+                setSelectedGroup(null);
+              }
+            }}
             className="w-full"
           >
-            <ToggleGroupItem value="stages" className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+            <ToggleGroupItem
+              value="stages"
+              className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
               Stages
             </ToggleGroupItem>
-            <ToggleGroupItem value="teams" className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+            <ToggleGroupItem
+              value="teams"
+              className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
               Teams
             </ToggleGroupItem>
           </ToggleGroup>
@@ -569,17 +954,25 @@ export const ChecklistDialog = ({
                   onClick={() => setSelectedGroup(group.key)}
                   className={cn(
                     "w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors border-l-2",
-                    isSelected
-                      ? "border-primary"
-                      : "border-transparent hover:bg-muted/50",
+                    isSelected ? "border-primary" : "border-transparent hover:bg-muted/50",
                   )}
                 >
                   {/* Circle progress */}
                   <svg className="h-5 w-5 shrink-0" viewBox="0 0 18 18">
-                    <circle cx="9" cy="9" r={r} fill="none" stroke="currentColor" strokeOpacity="0.15" strokeWidth="1.5" />
+                    <circle
+                      cx="9"
+                      cy="9"
+                      r={r}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeOpacity="0.15"
+                      strokeWidth="1.5"
+                    />
                     {group.completed > 0 && (
                       <circle
-                        cx="9" cy="9" r={r}
+                        cx="9"
+                        cy="9"
+                        r={r}
                         fill="none"
                         stroke={allDone ? "#10b981" : isSelected ? "#2166F3" : group.color}
                         strokeWidth="1.5"
@@ -589,16 +982,37 @@ export const ChecklistDialog = ({
                       />
                     )}
                     {allDone && (
-                      <path d="M6.5 9.2l1.8 1.8 3.2-3.6" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                      <path
+                        d="M6.5 9.2l1.8 1.8 3.2-3.6"
+                        stroke="#10b981"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill="none"
+                      />
                     )}
                   </svg>
 
                   <div className="flex-1 min-w-0">
-                    <p className={cn("text-sm font-medium truncate", isSelected ? "text-primary" : "text-foreground")}>{group.label}</p>
-                    <p className="text-xs text-muted-foreground">{group.completed} / {group.total} done</p>
+                    <p
+                      className={cn(
+                        "text-sm font-medium truncate",
+                        isSelected ? "text-primary" : "text-foreground",
+                      )}
+                    >
+                      {group.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {group.completed} / {group.total} done
+                    </p>
                   </div>
 
-                  <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-muted-foreground/50 transition-transform", isSelected && "rotate-180")} />
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 shrink-0 text-muted-foreground/50 transition-transform",
+                      isSelected && "rotate-180",
+                    )}
+                  />
                 </button>
               );
             })}
@@ -612,29 +1026,56 @@ export const ChecklistDialog = ({
         <div className="shrink-0 border-b border-border/50 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-semibold text-foreground">{selectedGroupData?.label ?? "—"}</h2>
+              <h2 className="text-base font-semibold text-foreground">
+                {selectedGroupData?.label ?? "—"}
+              </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {selectedGroupData?.completed ?? 0} of {selectedGroupData?.total ?? 0} tasks done
               </p>
             </div>
             <div className="flex items-center gap-1.5">
-              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={() => {
-                const first = selectedGroupData?.items?.[0];
-                if (first) setTaskDialogState({ open: true, checklistItemId: first.id, checklistItemTitle: first.title });
-              }}>
-                <Plus className="h-3 w-3" />Task
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => {
+                  const first = selectedGroupData?.items?.[0];
+                  if (first)
+                    setTaskDialogState({
+                      open: true,
+                      checklistItemId: first.id,
+                      checklistItemTitle: first.title,
+                    });
+                }}
+              >
+                <Plus className="h-3 w-3" />
+                Task
               </Button>
-              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={() => {
-                const first = selectedGroupData?.items?.[0];
-                if (first) setMeetingDialogState({ open: true, checklistItemId: first.id, checklistItemTitle: first.title });
-              }}>
-                <Plus className="h-3 w-3" />Meeting
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => {
+                  const first = selectedGroupData?.items?.[0];
+                  if (first)
+                    setMeetingDialogState({
+                      open: true,
+                      checklistItemId: first.id,
+                      checklistItemTitle: first.title,
+                    });
+                }}
+              >
+                <Plus className="h-3 w-3" />
+                Meeting
               </Button>
             </div>
           </div>
           {/* Progress bar */}
           <div className="mt-2.5 h-1.5 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progressPct}%` }} />
+            <div
+              className="h-full bg-primary rounded-full transition-all"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
         </div>
 
@@ -643,12 +1084,24 @@ export const ChecklistDialog = ({
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-muted/40">
               <tr className="border-b border-border/50">
-                <th className="w-10 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">#</th>
-                <th className="text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Checklist</th>
-                <th className="w-28 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Due date</th>
-                <th className="w-36 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Assignee</th>
-                <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Status</th>
-                <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">Actions</th>
+                <th className="w-10 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
+                  #
+                </th>
+                <th className="text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
+                  Checklist
+                </th>
+                <th className="w-28 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
+                  Due date
+                </th>
+                <th className="w-36 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
+                  Assignee
+                </th>
+                <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
+                  Status
+                </th>
+                <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -656,11 +1109,13 @@ export const ChecklistDialog = ({
                 const status = getItemStatus(item);
                 const assignee = getAssignee(item);
                 const canEdit = canEditChecklistItem(item.ownerTeam || "");
-                const taskCount = allTasks.filter(t => t.checklist_item_id === item.id).length;
+                const taskCount = allTasks.filter((t) => t.checklist_item_id === item.id).length;
                 const commentCount = item.comment ? 1 : 0;
                 const isExpanded = expandedItemId === item.id;
                 const templateId = checklistTemplatesByTitle[item.title];
-                const formInfo = templateId ? formsByChecklistTemplateId.get(templateId) : undefined;
+                const formInfo = templateId
+                  ? formsByChecklistTemplateId.get(templateId)
+                  : undefined;
 
                 return (
                   <Fragment key={item.id}>
@@ -673,7 +1128,9 @@ export const ChecklistDialog = ({
                       )}
                     >
                       {/* Row number */}
-                      <td className="px-3 py-2.5 text-xs text-muted-foreground align-middle">{index + 1}</td>
+                      <td className="px-3 py-2.5 text-xs text-muted-foreground align-middle">
+                        {index + 1}
+                      </td>
 
                       {/* Checkbox + Title */}
                       <td className="px-3 py-2.5 align-middle">
@@ -681,25 +1138,45 @@ export const ChecklistDialog = ({
                           <span onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={item.completed}
-                              onCheckedChange={(checked) => { if (canEdit) updateChecklist(project.id, item.id, checked as boolean); }}
+                              onCheckedChange={(checked) => {
+                                if (canEdit)
+                                  updateChecklist(project.id, item.id, checked as boolean);
+                              }}
                               disabled={!canEdit}
                               className="h-4 w-4 shrink-0"
                             />
                           </span>
-                          <span className={cn("font-medium", item.completed && "line-through text-muted-foreground")}>{item.title}</span>
+                          <span
+                            className={cn(
+                              "font-medium",
+                              item.completed && "line-through text-muted-foreground",
+                            )}
+                          >
+                            {item.title}
+                          </span>
                           {taskCount > 0 && (
                             <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                              <MessageSquare className="h-3 w-3" />{taskCount}
+                              <MessageSquare className="h-3 w-3" />
+                              {taskCount}
                             </span>
                           )}
-                          {commentCount > 0 && <Paperclip className="h-3 w-3 text-muted-foreground" />}
+                          {commentCount > 0 && (
+                            <Paperclip className="h-3 w-3 text-muted-foreground" />
+                          )}
                         </div>
                       </td>
 
                       {/* Due date */}
                       <td className="px-3 py-2.5 align-middle">
                         {item.dueDate ? (
-                          <span className={cn("text-xs", status === "overdue" ? "text-destructive font-medium" : "text-muted-foreground")}>
+                          <span
+                            className={cn(
+                              "text-xs",
+                              status === "overdue"
+                                ? "text-destructive font-medium"
+                                : "text-muted-foreground",
+                            )}
+                          >
                             {shortDate(item.dueDate)}
                           </span>
                         ) : (
@@ -711,7 +1188,8 @@ export const ChecklistDialog = ({
                       <td className="px-3 py-2.5 align-middle">
                         <div className="flex items-center gap-1.5">
                           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
-                            {assignee.charAt(0).toUpperCase()}{assignee.split(" ")[1]?.[0]?.toUpperCase() || ""}
+                            {assignee.charAt(0).toUpperCase()}
+                            {assignee.split(" ")[1]?.[0]?.toUpperCase() || ""}
                           </span>
                           <span className="text-xs truncate max-w-24">{assignee}</span>
                         </div>
@@ -724,18 +1202,30 @@ export const ChecklistDialog = ({
 
                       {/* Actions */}
                       <td className="px-3 py-2.5 align-middle">
-                        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                        <div
+                          className="flex items-center gap-0.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             type="button"
                             onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
-                            className={cn("p-1 rounded hover:bg-muted transition-colors", isExpanded && "bg-muted")}
+                            className={cn(
+                              "p-1 rounded hover:bg-muted transition-colors",
+                              isExpanded && "bg-muted",
+                            )}
                             title="Toggle details"
                           >
                             <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
                           <button
                             type="button"
-                            onClick={() => setTaskDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title })}
+                            onClick={() =>
+                              setTaskDialogState({
+                                open: true,
+                                checklistItemId: item.id,
+                                checklistItemTitle: item.title,
+                              })
+                            }
                             className="p-1 rounded hover:bg-muted"
                             title="Manage tasks"
                           >
@@ -749,19 +1239,45 @@ export const ChecklistDialog = ({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-44">
                               {formInfo && (
-                                <DropdownMenuItem onSelect={() => setFormDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title, formTemplateId: formInfo.formTemplateId, formTemplateName: formInfo.formTemplateName })}>
-                                  <FileText className="mr-2 h-3.5 w-3.5" />{formInfo.formTemplateName}
+                                <DropdownMenuItem
+                                  onSelect={() =>
+                                    setFormDialogState({
+                                      open: true,
+                                      checklistItemId: item.id,
+                                      checklistItemTitle: item.title,
+                                      formTemplateId: formInfo.formTemplateId,
+                                      formTemplateName: formInfo.formTemplateName,
+                                    })
+                                  }
+                                >
+                                  <FileText className="mr-2 h-3.5 w-3.5" />
+                                  {formInfo.formTemplateName}
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem onSelect={() => setMeetingDialogState({ open: true, checklistItemId: item.id, checklistItemTitle: item.title })}>
-                                <Video className="mr-2 h-3.5 w-3.5" />Schedule meeting
+                              <DropdownMenuItem
+                                onSelect={() =>
+                                  setMeetingDialogState({
+                                    open: true,
+                                    checklistItemId: item.id,
+                                    checklistItemTitle: item.title,
+                                  })
+                                }
+                              >
+                                <Video className="mr-2 h-3.5 w-3.5" />
+                                Schedule meeting
                               </DropdownMenuItem>
                               {!item.completed && canEdit && item.dueDate && (
-                                <DropdownMenuItem onSelect={async () => {
-                                  await supabase.from("checklist_items").update({ due_date: null }).eq("id", item.id);
-                                  queryClient.invalidateQueries({ queryKey: ["projects"] });
-                                }}>
-                                  <Calendar className="mr-2 h-3.5 w-3.5" />Clear due date
+                                <DropdownMenuItem
+                                  onSelect={async () => {
+                                    await supabase
+                                      .from("checklist_items")
+                                      .update({ due_date: null })
+                                      .eq("id", item.id);
+                                    queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                  }}
+                                >
+                                  <Calendar className="mr-2 h-3.5 w-3.5" />
+                                  Clear due date
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
@@ -778,9 +1294,19 @@ export const ChecklistDialog = ({
                             {/* Row 1: Responsibility + Due date + Time stats — all inline */}
                             <div className="flex items-center gap-4 flex-wrap">
                               <div className="flex items-center gap-2">
-                                <TooltipProvider><Tooltip><TooltipTrigger asChild>
-                                  <span className="text-xs text-muted-foreground flex items-center gap-1 cursor-default">Waiting on <span className="text-muted-foreground/60 text-2xs">ⓘ</span></span>
-                                </TooltipTrigger><TooltipContent>Who is currently responsible for this task</TooltipContent></Tooltip></TooltipProvider>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="text-xs text-muted-foreground flex items-center gap-1 cursor-default">
+                                        Waiting on{" "}
+                                        <span className="text-muted-foreground/60 text-2xs">ⓘ</span>
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      Who is currently responsible for this task
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                                 <ToggleGroup
                                   type="single"
                                   value={item.currentResponsibility}
@@ -788,14 +1314,25 @@ export const ChecklistDialog = ({
                                   disabled={item.completed || !canEdit}
                                   className="gap-0 border rounded-lg overflow-hidden"
                                 >
-                                  <ToggleGroupItem value="gokwik" className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white">
-                                    <Building2 className="h-3 w-3 mr-1" />{responsibilityLabels.gokwik}
+                                  <ToggleGroupItem
+                                    value="gokwik"
+                                    className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white"
+                                  >
+                                    <Building2 className="h-3 w-3 mr-1" />
+                                    {responsibilityLabels.gokwik}
                                   </ToggleGroupItem>
-                                  <ToggleGroupItem value="neutral" className="text-xs px-2.5 py-1 h-7 rounded-none border-x data-[state=on]:bg-muted">
+                                  <ToggleGroupItem
+                                    value="neutral"
+                                    className="text-xs px-2.5 py-1 h-7 rounded-none border-x data-[state=on]:bg-muted"
+                                  >
                                     <Minus className="h-3 w-3" />
                                   </ToggleGroupItem>
-                                  <ToggleGroupItem value="merchant" className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground">
-                                    <Users className="h-3 w-3 mr-1" />{responsibilityLabels.merchant}
+                                  <ToggleGroupItem
+                                    value="merchant"
+                                    className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
+                                  >
+                                    <Users className="h-3 w-3 mr-1" />
+                                    {responsibilityLabels.merchant}
                                   </ToggleGroupItem>
                                 </ToggleGroup>
                               </div>
@@ -812,12 +1349,17 @@ export const ChecklistDialog = ({
                                     className="h-7 w-36 text-xs px-2 border-border/60"
                                     onChange={async (e) => {
                                       const nd = e.target.value || null;
-                                      await supabase.from("checklist_items").update({ due_date: nd }).eq("id", item.id);
+                                      await supabase
+                                        .from("checklist_items")
+                                        .update({ due_date: nd })
+                                        .eq("id", item.id);
                                       queryClient.invalidateQueries({ queryKey: ["projects"] });
                                     }}
                                   />
                                 ) : (
-                                  <span className="text-xs font-medium text-foreground">{item.dueDate ? shortDate(item.dueDate) : "—"}</span>
+                                  <span className="text-xs font-medium text-foreground">
+                                    {item.dueDate ? shortDate(item.dueDate) : "—"}
+                                  </span>
                                 )}
                               </div>
 
@@ -827,8 +1369,20 @@ export const ChecklistDialog = ({
                                 const ts = calculateTimeByParty(item.responsibilityLog);
                                 return (
                                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                    <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5 text-primary" />{responsibilityLabels.gokwik}: <span className="font-semibold text-foreground">{formatDuration(ts.gokwik)}</span></span>
-                                    <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5 text-warning-strong" />{responsibilityLabels.merchant}: <span className="font-semibold text-foreground">{formatDuration(ts.merchant)}</span></span>
+                                    <span className="flex items-center gap-1">
+                                      <Building2 className="h-3.5 w-3.5 text-primary" />
+                                      {responsibilityLabels.gokwik}:{" "}
+                                      <span className="font-semibold text-foreground">
+                                        {formatDuration(ts.gokwik)}
+                                      </span>
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Users className="h-3.5 w-3.5 text-warning-strong" />
+                                      {responsibilityLabels.merchant}:{" "}
+                                      <span className="font-semibold text-foreground">
+                                        {formatDuration(ts.merchant)}
+                                      </span>
+                                    </span>
                                   </div>
                                 );
                               })()}
@@ -840,33 +1394,71 @@ export const ChecklistDialog = ({
                               checklistItemTitle={item.title}
                               projectId={project.id}
                               projectName={project.merchantName}
-                              focusSignal={commentPrompt?.itemId === item.id ? commentPrompt.at : undefined}
+                              focusSignal={
+                                commentPrompt?.itemId === item.id ? commentPrompt.at : undefined
+                              }
                             />
 
                             {/* Sub-tasks (only if any exist) */}
                             {(() => {
-                              const itemTasks = allTasks.filter(t => t.checklist_item_id === item.id);
+                              const itemTasks = allTasks.filter(
+                                (t) => t.checklist_item_id === item.id,
+                              );
                               if (itemTasks.length === 0) return null;
                               return (
                                 <div className="rounded-lg border border-border/50 bg-white dark:bg-background p-2">
                                   <div className="flex items-center gap-2 mb-1.5 px-1">
                                     <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
-                                    <span className="text-xs font-semibold text-muted-foreground">Tasks</span>
-                                    <span className="text-xs text-muted-foreground">{itemTasks.filter(t => t.status === "done").length}/{itemTasks.length}</span>
+                                    <span className="text-xs font-semibold text-muted-foreground">
+                                      Tasks
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {itemTasks.filter((t) => t.status === "done").length}/
+                                      {itemTasks.length}
+                                    </span>
                                   </div>
                                   <div className="space-y-1">
-                                    {itemTasks.map(task => (
-                                      <div key={task.id} id={`task-${task.id}`} className="group flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/30">
+                                    {itemTasks.map((task) => (
+                                      <div
+                                        key={task.id}
+                                        id={`task-${task.id}`}
+                                        className="group flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/30"
+                                      >
                                         <Checkbox
                                           checked={task.status === "done"}
                                           onCheckedChange={(checked) => {
-                                            updateTaskMutation.mutate({ id: task.id, status: checked ? "done" : "open" });
-                                            if (checked) toast.success(`Completed "${task.title}"`, { action: { label: "Add comment", onClick: () => setCommentPrompt({ itemId: item.id, at: Date.now() }) } });
+                                            updateTaskMutation.mutate({
+                                              id: task.id,
+                                              status: checked ? "done" : "open",
+                                            });
+                                            if (checked)
+                                              toast.success(`Completed "${task.title}"`, {
+                                                action: {
+                                                  label: "Add comment",
+                                                  onClick: () =>
+                                                    setCommentPrompt({
+                                                      itemId: item.id,
+                                                      at: Date.now(),
+                                                    }),
+                                                },
+                                              });
                                           }}
                                           className="h-3.5 w-3.5 shrink-0"
                                         />
-                                        <span className={cn("flex-1 truncate text-xs", task.status === "done" && "text-muted-foreground line-through")}>{task.title}</span>
-                                        {task.due_date && <span className="text-2xs text-muted-foreground">{shortDate(task.due_date)}</span>}
+                                        <span
+                                          className={cn(
+                                            "flex-1 truncate text-xs",
+                                            task.status === "done" &&
+                                              "text-muted-foreground line-through",
+                                          )}
+                                        >
+                                          {task.title}
+                                        </span>
+                                        {task.due_date && (
+                                          <span className="text-2xs text-muted-foreground">
+                                            {shortDate(task.due_date)}
+                                          </span>
+                                        )}
                                       </div>
                                     ))}
                                   </div>
@@ -882,18 +1474,27 @@ export const ChecklistDialog = ({
               })}
             </tbody>
           </table>
-
         </ScrollArea>
       </div>
 
       {/* ── Column C: Project details panel ───────────────────────── */}
       <div className="w-64 shrink-0 border-l border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
-        <Tabs value={detailsTab} onValueChange={(v) => setDetailsTab(v as typeof detailsTab)} className="flex flex-1 flex-col overflow-hidden">
+        <Tabs
+          value={detailsTab}
+          onValueChange={(v) => setDetailsTab(v as typeof detailsTab)}
+          className="flex flex-1 flex-col overflow-hidden"
+        >
           <TabsList className="shrink-0 rounded-none border-b border-border/50 bg-transparent px-1 justify-start gap-0 h-auto">
-            <TabsTrigger value="details" className="rounded-none border-b-2 border-transparent px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+            <TabsTrigger
+              value="details"
+              className="rounded-none border-b-2 border-transparent px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
               Details
             </TabsTrigger>
-            <TabsTrigger value="people" className="rounded-none border-b-2 border-transparent px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
+            <TabsTrigger
+              value="people"
+              className="rounded-none border-b-2 border-transparent px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
               People
             </TabsTrigger>
           </TabsList>
@@ -904,8 +1505,14 @@ export const ChecklistDialog = ({
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-foreground">Project details</span>
                 {onEditProject && (
-                  <Button size="sm" variant="outline" className="h-6 text-xs gap-1 px-2" onClick={onEditProject}>
-                    <Pencil className="h-3 w-3" />Edit
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-xs gap-1 px-2"
+                    onClick={onEditProject}
+                  >
+                    <Pencil className="h-3 w-3" />
+                    Edit
                   </Button>
                 )}
               </div>
@@ -915,8 +1522,14 @@ export const ChecklistDialog = ({
                 <div>
                   <dt className="text-2xs text-muted-foreground mb-0.5">Project state</dt>
                   <dd>
-                    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", STATE_TONE[project.projectState] || "bg-muted text-muted-foreground")}>
-                      {projectStateLabels[project.projectState as ProjectState] || project.projectState}
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                        STATE_TONE[project.projectState] || "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {projectStateLabels[project.projectState as ProjectState] ||
+                        project.projectState}
                     </span>
                   </dd>
                 </div>
@@ -927,7 +1540,9 @@ export const ChecklistDialog = ({
                   <dd className="text-xs font-medium text-foreground">
                     {friendlyDate(project.dates.expectedGoLiveDate)}
                     {project.dates.expectedGoLiveDate && (
-                      <span className="text-muted-foreground ml-1">({daysRelative(project.dates.expectedGoLiveDate)})</span>
+                      <span className="text-muted-foreground ml-1">
+                        ({daysRelative(project.dates.expectedGoLiveDate)})
+                      </span>
                     )}
                   </dd>
                 </div>
@@ -938,7 +1553,14 @@ export const ChecklistDialog = ({
                   <dd className="text-xs font-medium text-foreground">
                     {nextStep.label}
                     {nextStep.hint && (
-                      <span className={cn("block text-2xs mt-0.5", nextStep.hint === "Overdue" ? "text-destructive font-medium" : "text-muted-foreground")}>
+                      <span
+                        className={cn(
+                          "block text-2xs mt-0.5",
+                          nextStep.hint === "Overdue"
+                            ? "text-destructive font-medium"
+                            : "text-muted-foreground",
+                        )}
+                      >
                         {nextStep.hint === "Overdue" ? "◆ Overdue" : nextStep.hint}
                       </span>
                     )}
@@ -948,7 +1570,9 @@ export const ChecklistDialog = ({
                 {/* Revenue */}
                 <div>
                   <dt className="text-2xs text-muted-foreground mb-0.5">Revenue</dt>
-                  <dd className="text-xs font-medium text-foreground">₹{formatArrCr(project.arr)}</dd>
+                  <dd className="text-xs font-medium text-foreground">
+                    ₹{formatArrCr(project.arr)}
+                  </dd>
                 </div>
 
                 {/* Project owner */}
@@ -972,7 +1596,9 @@ export const ChecklistDialog = ({
                 {project.notes.projectNotes && (
                   <div>
                     <dt className="text-2xs text-muted-foreground mb-0.5">Description</dt>
-                    <dd className="text-xs text-muted-foreground whitespace-pre-line">{project.notes.projectNotes}</dd>
+                    <dd className="text-xs text-muted-foreground whitespace-pre-line">
+                      {project.notes.projectNotes}
+                    </dd>
                   </div>
                 )}
               </dl>
@@ -981,14 +1607,27 @@ export const ChecklistDialog = ({
               <div className="mt-4 border-t border-border/50 pt-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-foreground">
-                    Attachments ({(project.links.brdLink ? 1 : 0) + (project.links.sowLink ? 1 : 0)})
+                    Attachments ({(project.links.brdLink ? 1 : 0) + (project.links.sowLink ? 1 : 0)}
+                    )
                   </span>
                   {onEditProject && (
-                    <Button size="sm" variant="ghost" className="h-5 text-xs px-1 text-primary" onClick={onEditProject}>+ Add</Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-5 text-xs px-1 text-primary"
+                      onClick={onEditProject}
+                    >
+                      + Add
+                    </Button>
                   )}
                 </div>
                 {project.links.brdLink && (
-                  <a href={project.links.brdLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
+                  <a
+                    href={project.links.brdLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors"
+                  >
                     <FileStack className="h-4 w-4 text-destructive shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium truncate">BRD Document</p>
@@ -997,7 +1636,12 @@ export const ChecklistDialog = ({
                   </a>
                 )}
                 {project.links.sowLink && (
-                  <a href={project.links.sowLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
+                  <a
+                    href={project.links.sowLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors"
+                  >
                     <FileText className="h-4 w-4 text-info shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium truncate">SOW Document</p>
@@ -1016,8 +1660,14 @@ export const ChecklistDialog = ({
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-foreground">People</span>
                 {onAssignOwner && (
-                  <Button size="sm" variant="outline" className="h-6 text-xs gap-1 px-2" onClick={onAssignOwner}>
-                    <UserRound className="h-3 w-3" />Assign
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-xs gap-1 px-2"
+                    onClick={onAssignOwner}
+                  >
+                    <UserRound className="h-3 w-3" />
+                    Assign
                   </Button>
                 )}
               </div>
@@ -1033,19 +1683,24 @@ export const ChecklistDialog = ({
                 </div>
                 <div>
                   <dt className="text-2xs text-muted-foreground mb-0.5">Sales SPOC</dt>
-                  <dd className="text-xs font-medium text-foreground">{project.salesSpoc || "—"}</dd>
+                  <dd className="text-xs font-medium text-foreground">
+                    {project.salesSpoc || "—"}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-2xs text-muted-foreground mb-0.5">Contact email</dt>
-                  <dd className="text-xs font-medium text-foreground">{project.contactEmail || "—"}</dd>
+                  <dd className="text-xs font-medium text-foreground">
+                    {project.contactEmail || "—"}
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-2xs text-muted-foreground mb-0.5">Current team</dt>
-                  <dd className="text-xs font-medium text-foreground">{getTeamLabel(project.currentOwnerTeam)}</dd>
+                  <dd className="text-xs font-medium text-foreground">
+                    {getTeamLabel(project.currentOwnerTeam)}
+                  </dd>
                 </div>
               </dl>
             </TabsContent>
-
           </ScrollArea>
         </Tabs>
       </div>

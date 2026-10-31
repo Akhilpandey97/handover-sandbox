@@ -102,9 +102,17 @@ export const useAddChecklistTask = () => {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["checklist-tasks", variables.project_id] });
-      queryClient.invalidateQueries({ queryKey: ["checklist-tasks-item", variables.checklist_item_id] });
+      queryClient.invalidateQueries({
+        queryKey: ["checklist-tasks-item", variables.checklist_item_id],
+      });
       toast.success("Task created");
-      logActivity({ action_type: "user", category: "checklist", description: `Created task "${variables.title}"`, entity_type: "project", entity_id: variables.project_id });
+      logActivity({
+        action_type: "user",
+        category: "checklist",
+        description: `Created task "${variables.title}"`,
+        entity_type: "project",
+        entity_id: variables.project_id,
+      });
     },
     onError: (err: any) => toast.error(err.message || "Failed to create task"),
   });
@@ -120,17 +128,18 @@ export const useUpdateChecklistTask = () => {
       project_name,
       checklist_item_title,
       ...updates
-    }: Partial<ChecklistTask> & { id: string; project_name?: string; checklist_item_title?: string }) => {
+    }: Partial<ChecklistTask> & {
+      id: string;
+      project_name?: string;
+      checklist_item_title?: string;
+    }) => {
       const { data: existing } = await supabase
         .from("checklist_tasks")
         .select("assigned_to, title, project_id, checklist_item_id")
         .eq("id", id)
         .maybeSingle();
 
-      const { error } = await supabase
-        .from("checklist_tasks")
-        .update(updates)
-        .eq("id", id);
+      const { error } = await supabase.from("checklist_tasks").update(updates).eq("id", id);
       if (error) throw error;
 
       const newAssignee = updates.assigned_to;
@@ -165,10 +174,7 @@ export const useDeleteChecklistTask = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("checklist_tasks")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("checklist_tasks").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

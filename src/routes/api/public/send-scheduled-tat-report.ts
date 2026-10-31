@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo, type TenantIntegrations } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  requireCred,
+  resendFrom,
+  resendReplyTo,
+  type TenantIntegrations,
+} from "@/lib/tenant-integrations.server";
 import { getTenantBranding, type TenantBranding } from "@/lib/tenant-branding.server";
 
 // Dispatches scheduled TAT (Turn-around Time) reports.
@@ -12,14 +18,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SUPABASE_URL = process.env['SUPABASE_URL']!;
-const SERVICE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+const SERVICE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
 const MS_PER_DAY = 86400_000;
 
 const escapeHtml = (s: string) =>
-  (s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+  (s || "").replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  );
 
 const diffDays = (from: string, to: string) => {
   const a = new Date(from).getTime();
@@ -48,19 +57,30 @@ const monthKey = (d: string) => {
 };
 const monthLabel = (key: string) => {
   const [y, m] = key.split("-");
-  return new Date(Number(y), Number(m) - 1, 1).toLocaleString("en-US", { month: "long", year: "numeric" });
+  return new Date(Number(y), Number(m) - 1, 1).toLocaleString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
 };
 const quarterKey = (d: string) => {
   const dt = new Date(d);
   return `${dt.getFullYear()}-Q${Math.floor(dt.getMonth() / 3) + 1}`;
 };
 
-async function fetchAll<T>(supa: any, table: string, select: string, filters: (q: any) => any): Promise<T[]> {
+async function fetchAll<T>(
+  supa: any,
+  table: string,
+  select: string,
+  filters: (q: any) => any,
+): Promise<T[]> {
   const out: T[] = [];
   let from = 0;
   const size = 1000;
   while (true) {
-    let q = supa.from(table).select(select).range(from, from + size - 1);
+    let q = supa
+      .from(table)
+      .select(select)
+      .range(from, from + size - 1);
     q = filters(q);
     const { data, error } = await q;
     if (error) throw error;
@@ -84,7 +104,10 @@ function buildReport(projects: any[], granularity: "monthly" | "quarterly") {
       id: p.id,
       merchant: p.merchant_name,
       platform: p.platform || "—",
-      arr: (() => { const n = Number(p.arr) || 0; return Math.abs(n) >= 100000 ? n / 1e7 : n; })(),
+      arr: (() => {
+        const n = Number(p.arr) || 0;
+        return Math.abs(n) >= 100000 ? n / 1e7 : n;
+      })(),
       kickOff: kick,
       goLive: live,
       tat: diffDays(kick, live),
@@ -100,7 +123,13 @@ function buildReport(projects: any[], granularity: "monthly" | "quarterly") {
       const totalArr = g.rows.reduce((s: number, r: any) => s + r.arr, 0);
       const avgTat = n ? g.rows.reduce((s: number, r: any) => s + r.tat, 0) / n : 0;
       const avgNet = n ? g.rows.reduce((s: number, r: any) => s + r.netDays, 0) / n : 0;
-      return { ...g, totalArr, avgTat, avgNet, rows: g.rows.sort((a: any, b: any) => b.tat - a.tat) };
+      return {
+        ...g,
+        totalArr,
+        avgTat,
+        avgNet,
+        rows: g.rows.sort((a: any, b: any) => b.tat - a.tat),
+      };
     })
     .sort((a: any, b: any) => b.key.localeCompare(a.key));
 
@@ -115,7 +144,12 @@ function buildReport(projects: any[], granularity: "monthly" | "quarterly") {
   return { groups, overall };
 }
 
-function renderHtml(title: string, granularity: "monthly" | "quarterly", data: ReturnType<typeof buildReport>, names: TenantBranding) {
+function renderHtml(
+  title: string,
+  granularity: "monthly" | "quarterly",
+  data: ReturnType<typeof buildReport>,
+  names: TenantBranding,
+) {
   const th = `background:#eef3f6;padding:8px 10px;text-align:left;font-size:12px;color:#3b5466;border-bottom:1px solid #c3d1d9;`;
   const td = `padding:8px 10px;font-size:13px;color:#11263b;border-bottom:1px solid #d5e0e6;`;
   let html = `<div style="font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:900px;margin:0 auto;padding:20px;color:#11263b;">`;
@@ -175,7 +209,13 @@ function renderHtml(title: string, granularity: "monthly" | "quarterly", data: R
   return html;
 }
 
-async function sendEmail(subject: string, html: string, recipients: string[], RESEND_API_KEY: string, creds: TenantIntegrations) {
+async function sendEmail(
+  subject: string,
+  html: string,
+  recipients: string[],
+  RESEND_API_KEY: string,
+  creds: TenantIntegrations,
+) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -206,12 +246,20 @@ async function runSchedule(supa: any, schedule: any) {
   );
   const data = buildReport(projects, schedule.granularity);
   const title = schedule.name || "TAT Report";
-  const html = renderHtml(title, schedule.granularity, data, await getTenantBranding(schedule.tenant_id));
+  const html = renderHtml(
+    title,
+    schedule.granularity,
+    data,
+    await getTenantBranding(schedule.tenant_id),
+  );
   const subject = `${schedule.subject_prefix ? schedule.subject_prefix + " " : ""}${title} — ${new Date().toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" })}`;
   const creds = await getTenantIntegrations(schedule.tenant_id);
   const resendKey = requireCred(creds, "resend_api_key", "Resend email");
   await sendEmail(subject, html, schedule.recipients, resendKey, creds);
-  await supa.from("tat_report_schedules").update({ last_sent_at: new Date().toISOString() }).eq("id", schedule.id);
+  await supa
+    .from("tat_report_schedules")
+    .update({ last_sent_at: new Date().toISOString() })
+    .eq("id", schedule.id);
 }
 
 async function handler(req: Request): Promise<Response> {
@@ -227,7 +275,11 @@ async function handler(req: Request): Promise<Response> {
     const scheduleId = body?.schedule_id as string | undefined;
 
     if (scheduleId) {
-      const { data: sched, error } = await supa.from("tat_report_schedules").select("*").eq("id", scheduleId).maybeSingle();
+      const { data: sched, error } = await supa
+        .from("tat_report_schedules")
+        .select("*")
+        .eq("id", scheduleId)
+        .maybeSingle();
       if (error || !sched) throw new Error(error?.message || "Schedule not found");
       await runSchedule(supa, sched);
       return new Response(JSON.stringify({ ok: true, sent: 1 }), {
@@ -248,7 +300,9 @@ async function handler(req: Request): Promise<Response> {
       .eq("time_ist", hhmm);
     if (error) throw error;
 
-    const due = (schedules || []).filter((s: any) => Array.isArray(s.days) && s.days.includes(dayName));
+    const due = (schedules || []).filter(
+      (s: any) => Array.isArray(s.days) && s.days.includes(dayName),
+    );
     let sent = 0;
     for (const s of due) {
       try {

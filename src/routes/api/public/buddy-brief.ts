@@ -1,5 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { STATE_LABELS, buddyCaller, corsHeaders, json, todayIso, type BuddyCaller } from "@/lib/buddy/scope.server";
+import {
+  STATE_LABELS,
+  buddyCaller,
+  corsHeaders,
+  json,
+  todayIso,
+  type BuddyCaller,
+} from "@/lib/buddy/scope.server";
 import { loadBuddySettings } from "@/lib/buddy/settings.server";
 import {
   RISK_SETTINGS_KEY,
@@ -12,7 +19,14 @@ import {
 } from "@/data/riskRules";
 import { sumArrCrore } from "@/lib/arr";
 import { setupOverview } from "@/lib/buddy/setup-read.server";
-import { EGL_SETTINGS_KEY, describeEglRisk, evaluateEglRisk, isInWindow, parseEglRules, type EglRiskVerdict } from "@/data/eglRisk";
+import {
+  EGL_SETTINGS_KEY,
+  describeEglRisk,
+  evaluateEglRisk,
+  isInWindow,
+  parseEglRules,
+  type EglRiskVerdict,
+} from "@/data/eglRisk";
 
 /**
  * The daily brief and project-page suggestions.
@@ -49,11 +63,16 @@ const MAX_ITEMS = 5;
 /** Same handoff order as TransferDialog; no other transfer exists in the app. */
 const NEXT_TEAM: Record<string, string> = { mint: "integration", integration: "ms" };
 /** useTeams' fallback names, used until a workspace saves its own. */
-const DEFAULT_TEAM_NAMES: Record<string, string> = { mint: "Sales", integration: "MINT", ms: "Merchant Success" };
+const DEFAULT_TEAM_NAMES: Record<string, string> = {
+  mint: "Sales",
+  integration: "MINT",
+  ms: "Merchant Success",
+};
 
 const SEVERITY_RANK: Record<RiskSeverity, number> = { low: 0, medium: 1, high: 2, critical: 3 };
 
-const stateName = (state: string) => (STATE_LABELS[state] || state.replace(/_/g, " ")).toLowerCase();
+const stateName = (state: string) =>
+  (STATE_LABELS[state] || state.replace(/_/g, " ")).toLowerCase();
 
 const shortDate = (d: string) =>
   new Date(d).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
@@ -69,15 +88,22 @@ async function loadSetting(caller: BuddyCaller, key: string): Promise<string | n
 }
 
 async function loadTeamNames(caller: BuddyCaller): Promise<Record<string, string>> {
-  const { data } = await caller.client.from("teams").select("slug, name").eq("tenant_id", caller.tenantId);
+  const { data } = await caller.client
+    .from("teams")
+    .select("slug, name")
+    .eq("tenant_id", caller.tenantId);
   const names = { ...DEFAULT_TEAM_NAMES };
-  for (const t of (data || []) as { slug: string; name: string }[]) if (t.name) names[t.slug] = t.name;
+  for (const t of (data || []) as { slug: string; name: string }[])
+    if (t.name) names[t.slug] = t.name;
   return names;
 }
 
 /** Latest checklist comment per project — the dashboard's activity signal. */
 async function loadLastActivity(caller: BuddyCaller): Promise<Map<string, string>> {
-  const { data } = await caller.client.rpc("project_last_activity" as never, { _tenant_id: caller.tenantId } as never);
+  const { data } = await caller.client.rpc(
+    "project_last_activity" as never,
+    { _tenant_id: caller.tenantId } as never,
+  );
   const map = new Map<string, string>();
   for (const row of (data || []) as { project_id: string; last_comment_at: string }[]) {
     if (row.last_comment_at) map.set(row.project_id, row.last_comment_at);
@@ -104,7 +130,9 @@ async function handler(req: Request): Promise<Response> {
   if (body.project_id) {
     const { data: projectRow } = await c
       .from("projects")
-      .select("id, merchant_name, assigned_owner, current_owner_team, project_state, expected_go_live_date, contact_email")
+      .select(
+        "id, merchant_name, assigned_owner, current_owner_team, project_state, expected_go_live_date, contact_email",
+      )
       .eq("tenant_id", caller.tenantId)
       .eq("id", body.project_id)
       .maybeSingle();
@@ -114,9 +142,24 @@ async function handler(req: Request): Promise<Response> {
     }
 
     const [items, meetings, risks, teamNames] = await Promise.all([
-      c.from("checklist_items").select("completed, due_date, current_responsibility, owner_team").eq("tenant_id", caller.tenantId).eq("project_id", p.id),
-      c.from("checklist_meetings").select("title, scheduled_at, status, analysis_status").eq("tenant_id", caller.tenantId).eq("project_id", p.id).order("scheduled_at", { ascending: false }).limit(10),
-      c.from("project_risks").select("id").eq("tenant_id", caller.tenantId).eq("project_id", p.id).in("status", ["open", "mitigating"]),
+      c
+        .from("checklist_items")
+        .select("completed, due_date, current_responsibility, owner_team")
+        .eq("tenant_id", caller.tenantId)
+        .eq("project_id", p.id),
+      c
+        .from("checklist_meetings")
+        .select("title, scheduled_at, status, analysis_status")
+        .eq("tenant_id", caller.tenantId)
+        .eq("project_id", p.id)
+        .order("scheduled_at", { ascending: false })
+        .limit(10),
+      c
+        .from("project_risks")
+        .select("id")
+        .eq("tenant_id", caller.tenantId)
+        .eq("project_id", p.id)
+        .in("status", ["open", "mitigating"]),
       loadTeamNames(caller),
     ]);
     const list = (items.data || []) as any[];
@@ -126,33 +169,71 @@ async function handler(req: Request): Promise<Response> {
     const teamDone = teamItems.length > 0 && teamItems.every((i) => i.completed);
     const meetingRows = (meetings.data || []) as any[];
     const upcoming = meetingRows
-      .filter((m) => m.status === "scheduled" && new Date(m.scheduled_at).getTime() > now && new Date(m.scheduled_at).getTime() < now + 3 * DAY)
+      .filter(
+        (m) =>
+          m.status === "scheduled" &&
+          new Date(m.scheduled_at).getTime() > now &&
+          new Date(m.scheduled_at).getTime() < now + 3 * DAY,
+      )
       .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))[0];
-    const recent = meetingRows.find((m) => m.analysis_status === "done" && now - new Date(m.scheduled_at).getTime() < 7 * DAY);
+    const recent = meetingRows.find(
+      (m) => m.analysis_status === "done" && now - new Date(m.scheduled_at).getTime() < 7 * DAY,
+    );
     const riskCount = (risks.data || []).length;
 
     const parts: string[] = [];
-    if (overdue.length) parts.push(`${overdue.length} overdue item${overdue.length === 1 ? "" : "s"}${merchantOverdue ? `, ${merchantOverdue} with the merchant` : ""}`);
+    if (overdue.length)
+      parts.push(
+        `${overdue.length} overdue item${overdue.length === 1 ? "" : "s"}${merchantOverdue ? `, ${merchantOverdue} with the merchant` : ""}`,
+      );
     if (riskCount) parts.push(`${riskCount} open risk${riskCount === 1 ? "" : "s"}`);
     if (upcoming) parts.push(`next meeting ${shortDate(upcoming.scheduled_at)}`);
     if (p.expected_go_live_date) parts.push(`go-live ${shortDate(p.expected_go_live_date)}`);
 
     const suggestions: { label: string; prompt: string; draft?: boolean }[] = [];
-    if (overdue.length) suggestions.push({ label: "Why is this slipping?", prompt: "Why is this project slipping, and what should I do today?" });
+    if (overdue.length)
+      suggestions.push({
+        label: "Why is this slipping?",
+        prompt: "Why is this project slipping, and what should I do today?",
+      });
     if (merchantOverdue && caller.canAct && p.contact_email) {
-      suggestions.push({ label: "Draft a follow-up to the merchant", prompt: "Draft a follow-up email to the merchant contact about the overdue items on this project." });
+      suggestions.push({
+        label: "Draft a follow-up to the merchant",
+        prompt:
+          "Draft a follow-up email to the merchant contact about the overdue items on this project.",
+      });
     }
-    if (upcoming) suggestions.push({ label: `Prep for "${upcoming.title}"`, prompt: "Prepare me for the next meeting on this project: open questions, what's overdue and who holds it." });
-    if (recent) suggestions.push({ label: "Recap the last meeting", prompt: "Recap the last meeting on this project and list the follow-ups with owners." });
+    if (upcoming)
+      suggestions.push({
+        label: `Prep for "${upcoming.title}"`,
+        prompt:
+          "Prepare me for the next meeting on this project: open questions, what's overdue and who holds it.",
+      });
+    if (recent)
+      suggestions.push({
+        label: "Recap the last meeting",
+        prompt: "Recap the last meeting on this project and list the follow-ups with owners.",
+      });
     const nextTeam = NEXT_TEAM[p.current_owner_team];
     if (teamDone && nextTeam) {
       const nextName = teamNames[nextTeam];
-      suggestions.push({ label: "Write a handover summary", prompt: `Write a handover summary of this project for the ${nextName} team.` });
-      if (caller.canAct) suggestions.push({ label: `Transfer to ${nextName}`, prompt: `Transfer this project to ${nextName} with a short handover note.` });
+      suggestions.push({
+        label: "Write a handover summary",
+        prompt: `Write a handover summary of this project for the ${nextName} team.`,
+      });
+      if (caller.canAct)
+        suggestions.push({
+          label: `Transfer to ${nextName}`,
+          prompt: `Transfer this project to ${nextName} with a short handover note.`,
+        });
     }
     suggestions.push({ label: "Summarise this project", prompt: "Summarise this project." });
 
-    return json({ summary: parts.join(" · ") || null, suggestions: suggestions.slice(0, 5) }, 200, corsHeaders);
+    return json(
+      { summary: parts.join(" · ") || null, suggestions: suggestions.slice(0, 5) },
+      200,
+      corsHeaders,
+    );
   }
 
   // ── Daily brief ─────────────────────────────────────────────────────────
@@ -168,7 +249,9 @@ async function handler(req: Request): Promise<Response> {
   // Live projects stay in the query: the dashboard counts them in its totals.
   let q = c
     .from("projects")
-    .select("id, merchant_name, project_state, current_owner_team, expected_go_live_date, expected_go_live_is_manual, updated_at, contact_email, pending_acceptance, assigned_owner, arr")
+    .select(
+      "id, merchant_name, project_state, current_owner_team, expected_go_live_date, expected_go_live_is_manual, updated_at, contact_email, pending_acceptance, assigned_owner, arr",
+    )
     .eq("tenant_id", caller.tenantId)
     .eq("archived", false);
   if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId);
@@ -185,7 +268,13 @@ async function handler(req: Request): Promise<Response> {
   const riskRules = parseRiskRules(riskRaw);
   const eglRules = parseEglRules(eglRaw);
 
-  type Item = { completed: boolean; dueDate: string | null; isTask: boolean; merchant: boolean; ownerTeam: string };
+  type Item = {
+    completed: boolean;
+    dueDate: string | null;
+    isTask: boolean;
+    merchant: boolean;
+    ownerTeam: string;
+  };
   const checklists = new Map<string, Item[]>(ids.map((id) => [id, []]));
   const manualRisks = new Map<string, { id: string; title: string; severity: string }[]>();
   if (ids.length) {
@@ -237,8 +326,13 @@ async function handler(req: Request): Promise<Response> {
       pendingAcceptance: !!p.pending_acceptance,
       now: nowDate,
     };
-    const risk = withManualRisks(evaluateRisk({ ...base, assignedOwner: p.assigned_owner ?? null }, riskRules), manualRisks.get(p.id) || []);
-    const egl: EglRiskVerdict | null = isInWindow(p.expected_go_live_date, "week", nowDate) ? evaluateEglRisk(base, eglRules) : null;
+    const risk = withManualRisks(
+      evaluateRisk({ ...base, assignedOwner: p.assigned_owner ?? null }, riskRules),
+      manualRisks.get(p.id) || [],
+    );
+    const egl: EglRiskVerdict | null = isInWindow(p.expected_go_live_date, "week", nowDate)
+      ? evaluateEglRisk(base, eglRules)
+      : null;
     const open = checklist.filter((i) => !i.completed);
     const overdue = open.filter((i) => i.dueDate && i.dueDate < today);
     return {
@@ -262,27 +356,46 @@ async function handler(req: Request): Promise<Response> {
     switch (finding.type) {
       case "project_state":
         return {
-          label: r.p.project_state === "blocked" ? "Ask what's blocking it" : "Ask what's holding it up",
+          label:
+            r.p.project_state === "blocked" ? "Ask what's blocking it" : "Ask what's holding it up",
           prompt: `Why is ${name} ${stateName(r.p.project_state)}, and what would move it forward?`,
         };
       case "checklist_overdue":
         return r.merchantOverdue && caller.canAct && r.p.contact_email
-          ? { label: "Draft follow-up", prompt: `Draft a follow-up email to the merchant contact for ${name} about their overdue checklist items.` }
-          : { label: "See what's overdue", prompt: `What's overdue on ${name}, and who holds each item?` };
+          ? {
+              label: "Draft follow-up",
+              prompt: `Draft a follow-up email to the merchant contact for ${name} about their overdue checklist items.`,
+            }
+          : {
+              label: "See what's overdue",
+              prompt: `What's overdue on ${name}, and who holds each item?`,
+            };
       case "golive_missed":
-        return { label: "Plan a new date", prompt: `${name} missed its go-live date. What's left, who holds it, and what's a realistic new date?` };
+        return {
+          label: "Plan a new date",
+          prompt: `${name} missed its go-live date. What's left, who holds it, and what's a realistic new date?`,
+        };
       case "no_activity":
         return caller.canAct
-          ? { label: "Nudge the owner", prompt: `Send a notification to the owner of ${name} asking for a status update.` }
+          ? {
+              label: "Nudge the owner",
+              prompt: `Send a notification to the owner of ${name} asking for a status update.`,
+            }
           : { label: "Ask what's next", prompt: `What's the next step on ${name}?` };
       case "pending_acceptance":
-        return { label: "See who needs to accept", prompt: `Who needs to accept the handover of ${name}, and how long has it been waiting?` };
+        return {
+          label: "See who needs to accept",
+          prompt: `Who needs to accept the handover of ${name}, and how long has it been waiting?`,
+        };
       case "unassigned_owner":
         return caller.canAct
           ? { label: "Assign an owner", prompt: `Assign ${name} to @`, draft: true }
           : { label: "Ask who should own it", prompt: `Who should own ${name}?` };
       default:
-        return { label: "Review the risk", prompt: `Summarise the open risks on ${name} and what would mitigate them.` };
+        return {
+          label: "Review the risk",
+          prompt: `Summarise the open risks on ${name} and what would mitigate them.`,
+        };
     }
   };
 
@@ -292,7 +405,8 @@ async function handler(req: Request): Promise<Response> {
   const candidates: { rank: number; soon: number; ready?: boolean; item: BriefItem }[] = [];
   for (const r of rows) {
     const name = r.p.merchant_name;
-    const eglNote = r.eglAtRisk && r.egl ? ` Go-live ${shortDate(r.p.expected_go_live_date)} at risk.` : "";
+    const eglNote =
+      r.eglAtRisk && r.egl ? ` Go-live ${shortDate(r.p.expected_go_live_date)} at risk.` : "";
     if (r.risk.level === "high") {
       const lead = leadFinding(r.risk);
       const others = r.risk.findings.length - 1;
@@ -305,7 +419,10 @@ async function handler(req: Request): Promise<Response> {
           merchant: name,
           // A state rule's name ("Project blocked") can cover several states,
           // so say the state the project is actually in.
-          title: lead.type === "project_state" ? `${name} is ${stateName(r.p.project_state)}` : `${name}: ${lead.label.toLowerCase()}`,
+          title:
+            lead.type === "project_state"
+              ? `${name} is ${stateName(r.p.project_state)}`
+              : `${name}: ${lead.label.toLowerCase()}`,
           detail: `${lead.detail}${others > 0 ? ` (+${others} more)` : ""}.${eglNote}`,
           action: actionFor(r, lead),
         },
@@ -320,10 +437,18 @@ async function handler(req: Request): Promise<Response> {
           merchant: name,
           title: `${name}: go-live ${shortDate(r.p.expected_go_live_date)} at risk`,
           detail: `${describeEglRisk(r.egl)}.`,
-          action: { label: "Check readiness", prompt: `Is ${name} ready to go live on ${r.p.expected_go_live_date}? What's left and who holds it?` },
+          action: {
+            label: "Check readiness",
+            prompt: `Is ${name} ready to go live on ${r.p.expected_go_live_date}? What's left and who holds it?`,
+          },
         },
       });
-    } else if (r.p.project_state !== "live" && r.open > 0 && r.teamOpen === 0 && NEXT_TEAM[r.p.current_owner_team]) {
+    } else if (
+      r.p.project_state !== "live" &&
+      r.open > 0 &&
+      r.teamOpen === 0 &&
+      NEXT_TEAM[r.p.current_owner_team]
+    ) {
       const nextName = teamNames[NEXT_TEAM[r.p.current_owner_team]];
       candidates.push({
         rank: 0,
@@ -335,7 +460,10 @@ async function handler(req: Request): Promise<Response> {
           merchant: name,
           title: `${name}: ready to hand over to ${nextName}`,
           detail: `The ${teamNames[r.p.current_owner_team] || "current"} team's checklist is complete.`,
-          action: { label: "Write handover summary", prompt: `Write a handover summary of ${name} for the ${nextName} team.` },
+          action: {
+            label: "Write handover summary",
+            prompt: `Write a handover summary of ${name} for the ${nextName} team.`,
+          },
         },
       });
     }
@@ -348,7 +476,9 @@ async function handler(req: Request): Promise<Response> {
       enabled: true,
       date: today,
       first_name: caller.name.split(" ")[0],
-      scope_label: caller.portfolio ? `${projects.length} projects` : `your ${projects.length} projects`,
+      scope_label: caller.portfolio
+        ? `${projects.length} projects`
+        : `your ${projects.length} projects`,
       counts: {
         attention: needsAttention.length,
         blocked: rows.filter((r) => r.p.project_state === "blocked").length,

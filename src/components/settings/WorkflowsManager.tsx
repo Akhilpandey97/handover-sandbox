@@ -9,18 +9,54 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAiWorkflows, useToggleWorkflow, useDeleteWorkflow, useUpdateWorkflow, useCreateWorkflow, AiWorkflow } from "@/hooks/useAiWorkflows";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useAiWorkflows,
+  useToggleWorkflow,
+  useDeleteWorkflow,
+  useUpdateWorkflow,
+  useCreateWorkflow,
+  AiWorkflow,
+} from "@/hooks/useAiWorkflows";
 import { TriggerConfigFields, ActionConfigFields, type ConfigValue } from "./WorkflowConfigFields";
 import { workflowProblem } from "@/data/workflowConfig";
-import { Zap, Play, Trash2, Clock, GitBranch, Activity, MousePointerClick, Pencil, Loader2, Plus } from "lucide-react";
+import {
+  Zap,
+  Play,
+  Trash2,
+  Clock,
+  GitBranch,
+  Activity,
+  MousePointerClick,
+  Pencil,
+  Loader2,
+  Plus,
+} from "lucide-react";
 import { format } from "date-fns";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 
 type WorkflowRun = { id: string; status: string; detail: string | null; created_at: string };
@@ -132,10 +168,12 @@ export const WorkflowsManager = () => {
         <CardHeader>
           <div className="flex items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5" />AI Workflows & Rules
+              <Zap className="h-5 w-5" />
+              AI Workflows & Rules
             </CardTitle>
             <Button size="sm" className="gap-1.5" onClick={() => setEditingWorkflow(NEW_WORKFLOW)}>
-              <Plus className="h-4 w-4" />New workflow
+              <Plus className="h-4 w-4" />
+              New workflow
             </Button>
           </div>
           <CardDescription>
@@ -173,15 +211,20 @@ export const WorkflowsManager = () => {
         <EditWorkflowDialog
           workflow={editingWorkflow}
           open={!!editingWorkflow}
-          onOpenChange={(open) => { if (!open) setEditingWorkflow(null); }}
+          onOpenChange={(open) => {
+            if (!open) setEditingWorkflow(null);
+          }}
           onSave={(updates) => {
             if (!editingWorkflow.id) {
               createMutation.mutate(updates, { onSuccess: () => setEditingWorkflow(null) });
               return;
             }
-            updateMutation.mutate({ id: editingWorkflow.id, updates }, {
-              onSuccess: () => setEditingWorkflow(null),
-            });
+            updateMutation.mutate(
+              { id: editingWorkflow.id, updates },
+              {
+                onSuccess: () => setEditingWorkflow(null),
+              },
+            );
           }}
           isSaving={updateMutation.isPending || createMutation.isPending}
         />
@@ -191,7 +234,11 @@ export const WorkflowsManager = () => {
 };
 
 const WorkflowRow = ({
-  workflow, onToggle, onDelete, onEdit, onRunNow,
+  workflow,
+  onToggle,
+  onDelete,
+  onEdit,
+  onRunNow,
 }: {
   workflow: AiWorkflow;
   onToggle: (active: boolean) => void;
@@ -244,7 +291,9 @@ const WorkflowRow = ({
           <div className="mt-2 space-y-0.5">
             {runs.map((r) => (
               <p key={r.id} className="text-2xs text-muted-foreground">
-                <span className={r.status === "success" ? "text-success-strong" : "text-destructive"}>
+                <span
+                  className={r.status === "success" ? "text-success-strong" : "text-destructive"}
+                >
                   {r.status === "success" ? "Ran" : "Failed"}
                 </span>{" "}
                 {format(new Date(r.created_at), "dd MMM HH:mm")}
@@ -256,7 +305,13 @@ const WorkflowRow = ({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Button variant="ghost" size="icon" className="h-8 w-8" title="Run pending workflows now" onClick={onRunNow}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          title="Run pending workflows now"
+          onClick={onRunNow}
+        >
           <Play className="h-4 w-4" />
         </Button>
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit}>
@@ -265,7 +320,11 @@ const WorkflowRow = ({
         <Switch checked={workflow.is_active} onCheckedChange={onToggle} />
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </AlertDialogTrigger>
@@ -278,7 +337,10 @@ const WorkflowRow = ({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground">
+              <AlertDialogAction
+                onClick={onDelete}
+                className="bg-destructive text-destructive-foreground"
+              >
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -290,7 +352,11 @@ const WorkflowRow = ({
 };
 
 const EditWorkflowDialog = ({
-  workflow, open, onOpenChange, onSave, isSaving,
+  workflow,
+  open,
+  onOpenChange,
+  onSave,
+  isSaving,
 }: {
   workflow: AiWorkflow;
   open: boolean;
@@ -314,7 +380,12 @@ const EditWorkflowDialog = ({
   // The fields can no longer produce malformed JSON, so this checks the thing
   // that actually matters: that the settings the runtime needs are present.
   const missingSetting = (): string | null =>
-    workflowProblem({ trigger_type: triggerType, trigger_config: triggerConfig, action_type: actionType, action_config: actionConfig });
+    workflowProblem({
+      trigger_type: triggerType,
+      trigger_config: triggerConfig,
+      action_type: actionType,
+      action_config: actionConfig,
+    });
 
   const handleSave = () => {
     const problem = missingSetting();
@@ -336,7 +407,11 @@ const EditWorkflowDialog = ({
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{workflow.id ? "Edit workflow" : "New workflow"}</DialogTitle>
-          <DialogDescription>{workflow.id ? "Change when this workflow runs and what it does." : "Choose when this workflow runs and what it does."}</DialogDescription>
+          <DialogDescription>
+            {workflow.id
+              ? "Change when this workflow runs and what it does."
+              : "Choose when this workflow runs and what it does."}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
@@ -347,14 +422,26 @@ const EditWorkflowDialog = ({
 
           <div className="space-y-1.5">
             <Label>Description</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Trigger Type</Label>
-              <Select value={triggerType} onValueChange={(v) => { setTriggerType(v); setTriggerConfig({}); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={triggerType}
+                onValueChange={(v) => {
+                  setTriggerType(v);
+                  setTriggerConfig({});
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="time_based">Time-Based</SelectItem>
                   <SelectItem value="field_change">Field Change</SelectItem>
@@ -365,8 +452,16 @@ const EditWorkflowDialog = ({
             </div>
             <div className="space-y-1.5">
               <Label>Action Type</Label>
-              <Select value={actionType} onValueChange={(v) => { setActionType(v); setActionConfig({}); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={actionType}
+                onValueChange={(v) => {
+                  setActionType(v);
+                  setActionConfig({});
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="assign_owner">Assign Owner</SelectItem>
                   <SelectItem value="update_field">Update Field</SelectItem>
@@ -379,12 +474,20 @@ const EditWorkflowDialog = ({
 
           <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
             <Label className="text-xs font-semibold">Trigger</Label>
-            <TriggerConfigFields triggerType={triggerType} value={triggerConfig} onChange={setTriggerConfig} />
+            <TriggerConfigFields
+              triggerType={triggerType}
+              value={triggerConfig}
+              onChange={setTriggerConfig}
+            />
           </div>
 
           <div className="space-y-1.5 rounded-md border bg-muted/30 p-3">
             <Label className="text-xs font-semibold">Action</Label>
-            <ActionConfigFields actionType={actionType} value={actionConfig} onChange={setActionConfig} />
+            <ActionConfigFields
+              actionType={actionType}
+              value={actionConfig}
+              onChange={setActionConfig}
+            />
           </div>
 
           <div className="flex items-center gap-3">
@@ -396,7 +499,9 @@ const EditWorkflowDialog = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button onClick={handleSave} disabled={!name.trim() || isSaving}>
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             {workflow.id ? "Save changes" : "Create workflow"}

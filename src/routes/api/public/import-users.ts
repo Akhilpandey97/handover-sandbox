@@ -9,7 +9,10 @@ const corsHeaders = {
 };
 
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
 /**
  * Bulk import from Settings → Users: a spreadsheet of name, email, role and an
@@ -44,46 +47,88 @@ async function handler(req: Request): Promise<Response> {
 
   const scope = await resolveUserScope(db as any, requester.id);
   const isSuperAdmin = scope.roles.includes("super_admin");
-  if (!scope.roles.some((r) => r === "admin" || r === "super_admin")) return json({ error: "Only workspace admins can import users." }, 403);
+  if (!scope.roles.some((r) => r === "admin" || r === "super_admin"))
+    return json({ error: "Only workspace admins can import users." }, 403);
   if (!scope.tenantId) return json({ error: "No workspace to add people to." }, 400);
   const tenantId = scope.tenantId;
 
   const body = (await req.json().catch(() => ({}))) as { people?: Person[] };
   const people = Array.isArray(body.people) ? body.people : [];
   if (people.length === 0) return json({ error: "The file has no people to import." }, 400);
-  if (people.length > MAX_ROWS) return json({ error: `Import up to ${MAX_ROWS} people at a time.` }, 400);
+  if (people.length > MAX_ROWS)
+    return json({ error: `Import up to ${MAX_ROWS} people at a time.` }, 400);
 
   const [{ data: teams }, { data: requesterProfile }] = await Promise.all([
     db.from("teams").select("slug").eq("tenant_id", tenantId),
     db.from("profiles").select("name").eq("id", requester.id).maybeSingle(),
   ]);
-  const roles = new Set(["admin", "manager", ...SYSTEM_TEAMS, ...((teams || []) as { slug: string }[]).map((t) => t.slug)]);
+  const roles = new Set([
+    "admin",
+    "manager",
+    ...SYSTEM_TEAMS,
+    ...((teams || []) as { slug: string }[]).map((t) => t.slug),
+  ]);
   if (isSuperAdmin) roles.add("super_admin");
-  const invitedBy = (requesterProfile as { name?: string } | null)?.name || requester.email || "An admin";
+  const invitedBy =
+    (requesterProfile as { name?: string } | null)?.name || requester.email || "An admin";
 
-  const emails = people.map((p) => String(p.email || "").trim().toLowerCase()).filter(Boolean);
+  const emails = people
+    .map((p) =>
+      String(p.email || "")
+        .trim()
+        .toLowerCase(),
+    )
+    .filter(Boolean);
   const { data: existing } = await db.from("profiles").select("email").in("email", emails);
-  const taken = new Set(((existing || []) as { email: string }[]).map((e) => e.email.toLowerCase()));
+  const taken = new Set(
+    ((existing || []) as { email: string }[]).map((e) => e.email.toLowerCase()),
+  );
 
-  const results: { row: number; email: string; status: "created" | "skipped" | "failed"; detail: string }[] = [];
+  const results: {
+    row: number;
+    email: string;
+    status: "created" | "skipped" | "failed";
+    detail: string;
+  }[] = [];
   const seen = new Set<string>();
 
   for (let i = 0; i < people.length; i++) {
     const p = people[i];
     const name = String(p.name || "").trim();
-    const email = String(p.email || "").trim().toLowerCase();
+    const email = String(p.email || "")
+      .trim()
+      .toLowerCase();
     const role = String(p.role || "").trim();
     const password = String(p.password || "");
     const row = i + 1;
-    const fail = (status: "skipped" | "failed", detail: string) => results.push({ row, email, status, detail });
+    const fail = (status: "skipped" | "failed", detail: string) =>
+      results.push({ row, email, status, detail });
 
-    if (!name) { fail("failed", "Name is missing"); continue; }
-    if (!EMAIL_RE.test(email)) { fail("failed", "Email isn't valid"); continue; }
-    if (seen.has(email)) { fail("skipped", "Listed twice in the file"); continue; }
+    if (!name) {
+      fail("failed", "Name is missing");
+      continue;
+    }
+    if (!EMAIL_RE.test(email)) {
+      fail("failed", "Email isn't valid");
+      continue;
+    }
+    if (seen.has(email)) {
+      fail("skipped", "Listed twice in the file");
+      continue;
+    }
     seen.add(email);
-    if (taken.has(email)) { fail("skipped", "Already has an account"); continue; }
-    if (!roles.has(role)) { fail("failed", `Role "${role || "blank"}" isn't one of this workspace's roles`); continue; }
-    if (password && password.length < 6) { fail("failed", "Password must be at least 6 characters"); continue; }
+    if (taken.has(email)) {
+      fail("skipped", "Already has an account");
+      continue;
+    }
+    if (!roles.has(role)) {
+      fail("failed", `Role "${role || "blank"}" isn't one of this workspace's roles`);
+      continue;
+    }
+    if (password && password.length < 6) {
+      fail("failed", "Password must be at least 6 characters");
+      continue;
+    }
 
     try {
       await createWorkspaceUser({
@@ -117,7 +162,9 @@ async function handler(req: Request): Promise<Response> {
     action_type: "user",
     category: "users",
     description: `Imported users from a file: ${results.filter((r) => r.status === "created").length} created, ${results.filter((r) => r.status !== "created").length} not`,
-    metadata: { results: results.map(({ row, email, status, detail }) => ({ row, email, status, detail })) },
+    metadata: {
+      results: results.map(({ row, email, status, detail }) => ({ row, email, status, detail })),
+    },
     status: "success",
   } as never);
 

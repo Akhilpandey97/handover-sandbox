@@ -1,6 +1,19 @@
 import { Project } from "@/data/projectsData";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -38,7 +51,9 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
           </DialogHeader>
           <ScrollArea className="max-h-[60vh]">
             {list.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-10 text-center">No projects in this segment.</p>
+              <p className="text-sm text-muted-foreground py-10 text-center">
+                No projects in this segment.
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -53,13 +68,33 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
                 </TableHeader>
                 <TableBody>
                   {list.map((p) => (
-                    <TableRow key={p.id} className="cursor-pointer" onClick={() => { onOpenChange(false); openProjectInNewTab(p.id); }}>
-                      <TableCell className="font-medium"><span className="inline-flex items-center gap-1.5">{p.merchantName}<RiskBadge projectId={p.id} verdict={verdicts[p.id]} /></span></TableCell>
+                    <TableRow
+                      key={p.id}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        onOpenChange(false);
+                        openProjectInNewTab(p.id);
+                      }}
+                    >
+                      <TableCell className="font-medium">
+                        <span className="inline-flex items-center gap-1.5">
+                          {p.merchantName}
+                          <RiskBadge projectId={p.id} verdict={verdicts[p.id]} />
+                        </span>
+                      </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{p.mid}</TableCell>
-                      <TableCell className="text-sm">{stateLabels[p.projectState] || p.projectState}</TableCell>
-                      <TableCell className="text-sm">{teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}</TableCell>
-                      <TableCell className="text-right font-semibold">{(p.arr || 0).toFixed(2)}</TableCell>
-                      <TableCell className="text-sm"><GoLiveDate project={p} /></TableCell>
+                      <TableCell className="text-sm">
+                        {stateLabels[p.projectState] || p.projectState}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {teamLabels[p.currentOwnerTeam] || p.currentOwnerTeam}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        {(p.arr || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <GoLiveDate project={p} />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

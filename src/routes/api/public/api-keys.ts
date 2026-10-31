@@ -43,7 +43,11 @@ async function handler({ request }: { request: Request }): Promise<Response> {
     }
 
     if (request.method === "POST") {
-      const body = (await request.json().catch(() => ({}))) as { name?: string; id?: string; action?: string };
+      const body = (await request.json().catch(() => ({}))) as {
+        name?: string;
+        id?: string;
+        action?: string;
+      };
 
       if (body.action === "revoke") {
         if (!body.id) return apiJson({ error: "id is required" }, 400);

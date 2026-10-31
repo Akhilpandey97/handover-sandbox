@@ -71,7 +71,8 @@ async function handler(req: Request): Promise<Response> {
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("x-real-ip") ||
       "unknown";
-    if (rateLimited(ip)) return json({ error: "Too many requests. Please try again shortly." }, 429);
+    if (rateLimited(ip))
+      return json({ error: "Too many requests. Please try again shortly." }, 429);
 
     const body = await req.json().catch(() => ({}));
 
@@ -89,10 +90,12 @@ async function handler(req: Request): Promise<Response> {
       city: clean(body.city),
     };
 
-    const missing = (["name", "email", "job_title", "company_name", "country", "city"] as const)
-      .filter((k) => !lead[k]);
+    const missing = (
+      ["name", "email", "job_title", "company_name", "country", "city"] as const
+    ).filter((k) => !lead[k]);
     if (missing.length) return json({ error: "Please fill in every required field." }, 400);
-    if (!looksLikeEmail(lead.email)) return json({ error: "That email address does not look right." }, 400);
+    if (!looksLikeEmail(lead.email))
+      return json({ error: "That email address does not look right." }, 400);
 
     const supabase = adminClient();
     const { data: inserted, error } = await supabase
@@ -112,8 +115,12 @@ async function handler(req: Request): Promise<Response> {
       // Say so on the row. Silence here is indistinguishable from a forward
       // that ran and did nothing, which is the wrong thing to be guessing at
       // when a lead is missing from the sheet.
-      await supabase.from("signup_leads")
-        .update({ sync_error: "No sheet webhook configured (SIGNUP_SHEET_WEBHOOK_URL or app_settings.signup_sheet_webhook_url with tenant_id NULL)" })
+      await supabase
+        .from("signup_leads")
+        .update({
+          sync_error:
+            "No sheet webhook configured (SIGNUP_SHEET_WEBHOOK_URL or app_settings.signup_sheet_webhook_url with tenant_id NULL)",
+        })
         .eq("id", (inserted as { id: string }).id);
     } else {
       try {
@@ -123,13 +130,15 @@ async function handler(req: Request): Promise<Response> {
           body: JSON.stringify({ ...lead, submitted_at: new Date().toISOString() }),
         });
         if (!res.ok) throw new Error(`Sheet responded ${res.status}`);
-        await supabase.from("signup_leads")
+        await supabase
+          .from("signup_leads")
           .update({ synced_at: new Date().toISOString(), sync_error: null })
           .eq("id", (inserted as { id: string }).id);
       } catch (err) {
         const message = (err as Error).message;
         console.error("signup-lead sheet forward failed:", message);
-        await supabase.from("signup_leads")
+        await supabase
+          .from("signup_leads")
           .update({ sync_error: message.slice(0, 300) })
           .eq("id", (inserted as { id: string }).id);
       }

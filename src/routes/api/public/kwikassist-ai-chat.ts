@@ -54,16 +54,30 @@ Use the merchant-specific FAQ content first when it answers the question. Keep a
       (await aiText({ system: systemPrompt, messages, model: BUDDY_MODEL })) ||
       "Sorry, I couldn't process that.";
 
-    return new Response(JSON.stringify({ reply }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ reply }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (e) {
     // Keep the rate-limit and billing cases distinct, as the gateway used to.
     if (e instanceof Anthropic.RateLimitError) {
-      return new Response(JSON.stringify({ error: "Rate limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Rate limited" }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
-      return new Response(JSON.stringify({ error: "AI credentials rejected" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (
+      e instanceof Anthropic.AuthenticationError ||
+      e instanceof Anthropic.PermissionDeniedError
+    ) {
+      return new Response(JSON.stringify({ error: "AI credentials rejected" }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-    return new Response(JSON.stringify({ error: (e as Error).message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: (e as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 }
 

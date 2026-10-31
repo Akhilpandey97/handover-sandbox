@@ -85,7 +85,13 @@ export const useCreateWorkflow = () => {
 export const useUpdateWorkflow = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Omit<AiWorkflow, "id" | "created_at" | "updated_at">> }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<Omit<AiWorkflow, "id" | "created_at" | "updated_at">>;
+    }) => {
       const { error } = await supabase
         .from("ai_workflows")
         .update({ ...updates, updated_at: new Date().toISOString() })
@@ -104,10 +110,7 @@ export const useDeleteWorkflow = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("ai_workflows")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("ai_workflows").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

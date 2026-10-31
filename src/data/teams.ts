@@ -1,4 +1,12 @@
-export type TeamRole = "mint" | "integration" | "ms" | "manager" | "admin" | "super_admin" | "gokwik_general" | (string & {});
+export type TeamRole =
+  | "mint"
+  | "integration"
+  | "ms"
+  | "manager"
+  | "admin"
+  | "super_admin"
+  | "gokwik_general"
+  | (string & {});
 
 export interface TeamUser {
   id: string;
@@ -58,4 +66,3 @@ export const teamColors: Record<TeamRole, string> = {
 /** Safe colour class for any team slug, including custom teams created in Settings. */
 export const teamColorClass = (slug?: string | null): string =>
   (slug && teamColors[slug]) || "bg-slate-500";
-

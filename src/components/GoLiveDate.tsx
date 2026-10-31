@@ -45,7 +45,10 @@ export const GoLiveDate = ({
 
   return (
     <span
-      className={cn("underline decoration-dotted decoration-muted-foreground/50 underline-offset-2", className)}
+      className={cn(
+        "underline decoration-dotted decoration-muted-foreground/50 underline-offset-2",
+        className,
+      )}
       title="Estimated from the latest checklist due date — no go-live date has been set on this project"
     >
       {text}

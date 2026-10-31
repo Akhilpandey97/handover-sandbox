@@ -19,7 +19,11 @@ interface VisitRow {
   user_agent: string | null;
 }
 
-interface ProjectMini { id: string; merchant_name: string; mid: string | null }
+interface ProjectMini {
+  id: string;
+  merchant_name: string;
+  mid: string | null;
+}
 
 type RangeKey = "7" | "30" | "90" | "all" | "custom";
 
@@ -66,12 +70,16 @@ export function PortalVisitsReport() {
         .limit(2000);
       const rows = (v || []) as VisitRow[];
       setVisits(rows);
-      const ids = Array.from(new Set(rows.map(r => r.project_id)));
+      const ids = Array.from(new Set(rows.map((r) => r.project_id)));
       if (ids.length) {
         const { data: p } = await supabase
-          .from("projects").select("id, merchant_name, mid").in("id", ids);
+          .from("projects")
+          .select("id, merchant_name, mid")
+          .in("id", ids);
         const map: Record<string, ProjectMini> = {};
-        (p || []).forEach((x: any) => { map[x.id] = x; });
+        (p || []).forEach((x: any) => {
+          map[x.id] = x;
+        });
         setProjects(map);
       }
       setLoading(false);
@@ -95,7 +103,7 @@ export function PortalVisitsReport() {
   }, [range, from, to]);
 
   const filtered = useMemo(() => {
-    return visits.filter(v => {
+    return visits.filter((v) => {
       const at = new Date(v.visited_at).getTime();
       if (bounds.start !== null && at < bounds.start) return false;
       if (bounds.end !== null && at > bounds.end) return false;
@@ -103,40 +111,52 @@ export function PortalVisitsReport() {
       if (search) {
         const s = search.toLowerCase();
         const merchant = projects[v.project_id]?.merchant_name?.toLowerCase() || "";
-        if (!v.email.toLowerCase().includes(s) && !merchant.includes(s) && !v.page.toLowerCase().includes(s)) return false;
+        if (
+          !v.email.toLowerCase().includes(s) &&
+          !merchant.includes(s) &&
+          !v.page.toLowerCase().includes(s)
+        )
+          return false;
       }
       return true;
     });
   }, [visits, search, pageFilter, bounds, projects]);
 
   const pageOptions = useMemo(
-    () => Array.from(new Set(visits.map(v => v.page))).sort(),
+    () => Array.from(new Set(visits.map((v) => v.page))).sort(),
     [visits],
   );
 
   // What the numbers under the filters describe: how much of the traffic in this
   // window came from distinct people and distinct merchants.
-  const summary = useMemo(() => ({
-    visits: filtered.length,
-    people: new Set(filtered.map(v => v.email.toLowerCase())).size,
-    merchants: new Set(filtered.map(v => v.project_id)).size,
-  }), [filtered]);
+  const summary = useMemo(
+    () => ({
+      visits: filtered.length,
+      people: new Set(filtered.map((v) => v.email.toLowerCase())).size,
+      merchants: new Set(filtered.map((v) => v.project_id)).size,
+    }),
+    [filtered],
+  );
 
   const exportCsv = () => {
     const header = ["Visited At", "Email", merchantLabel, getLabel("field_mid"), "Page"];
-    const rows = filtered.map(v => [
+    const rows = filtered.map((v) => [
       new Date(v.visited_at).toISOString(),
       v.email,
       projects[v.project_id]?.merchant_name || "",
       projects[v.project_id]?.mid || "",
       PAGE_LABEL[v.page] || v.page,
     ]);
-    const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = [header, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `portal-visits-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click(); URL.revokeObjectURL(url);
+    a.href = url;
+    a.download = `portal-visits-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -144,13 +164,22 @@ export function PortalVisitsReport() {
       <Card>
         <CardHeader className="space-y-3">
           <div className="flex flex-row items-center justify-between gap-2">
-            <CardTitle className="portal-heading flex items-center gap-2"><Eye className="w-4 h-4" /> {merchantLabel} Portal Visits</CardTitle>
+            <CardTitle className="portal-heading flex items-center gap-2">
+              <Eye className="w-4 h-4" /> {merchantLabel} Portal Visits
+            </CardTitle>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search email, merchant, page..." className="pl-8 h-9 w-64" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search email, merchant, page..."
+                  className="pl-8 h-9 w-64"
+                />
               </div>
-              <Button size="sm" variant="outline" onClick={exportCsv}><Download className="w-3.5 h-3.5 mr-1" /> Export</Button>
+              <Button size="sm" variant="outline" onClick={exportCsv}>
+                <Download className="w-3.5 h-3.5 mr-1" /> Export
+              </Button>
             </div>
           </div>
 
@@ -172,9 +201,23 @@ export function PortalVisitsReport() {
             </div>
             {range === "custom" && (
               <div className="flex items-center gap-1.5">
-                <Input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} className="h-8 w-36 text-xs" aria-label="From date" />
+                <Input
+                  type="date"
+                  value={from}
+                  max={to || undefined}
+                  onChange={(e) => setFrom(e.target.value)}
+                  className="h-8 w-36 text-xs"
+                  aria-label="From date"
+                />
                 <span className="text-xs text-muted-foreground">to</span>
-                <Input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} className="h-8 w-36 text-xs" aria-label="To date" />
+                <Input
+                  type="date"
+                  value={to}
+                  min={from || undefined}
+                  onChange={(e) => setTo(e.target.value)}
+                  className="h-8 w-36 text-xs"
+                  aria-label="To date"
+                />
               </div>
             )}
             <select
@@ -184,21 +227,32 @@ export function PortalVisitsReport() {
               className="h-8 rounded-md border bg-background px-2 text-xs"
             >
               <option value="all">All pages</option>
-              {pageOptions.map(p => <option key={p} value={p}>{PAGE_LABEL[p] || p}</option>)}
+              {pageOptions.map((p) => (
+                <option key={p} value={p}>
+                  {PAGE_LABEL[p] || p}
+                </option>
+              ))}
             </select>
             {(range !== "30" || pageFilter !== "all" || search.trim() !== "") && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 gap-1 px-2 text-xs"
-                onClick={() => { setRange("30"); setPageFilter("all"); setSearch(""); setFrom(""); setTo(""); }}
+                onClick={() => {
+                  setRange("30");
+                  setPageFilter("all");
+                  setSearch("");
+                  setFrom("");
+                  setTo("");
+                }}
               >
                 <X className="h-3 w-3" />
                 Clear
               </Button>
             )}
             <span className="ml-auto text-xs text-muted-foreground">
-              {summary.visits} visits · {summary.people} people · {summary.merchants} {merchantLabel.toLowerCase()}
+              {summary.visits} visits · {summary.people} people · {summary.merchants}{" "}
+              {merchantLabel.toLowerCase()}
             </span>
           </div>
         </CardHeader>
@@ -208,11 +262,19 @@ export function PortalVisitsReport() {
           ) : filtered.length === 0 ? (
             visits.length > 0 ? (
               <FilteredEmptyState
-                onClear={() => { setRange("all"); setPageFilter("all"); setSearch(""); setFrom(""); setTo(""); }}
+                onClear={() => {
+                  setRange("all");
+                  setPageFilter("all");
+                  setSearch("");
+                  setFrom("");
+                  setTo("");
+                }}
                 noun="visits"
               />
             ) : (
-              <div className="text-sm text-muted-foreground py-8 text-center">No portal visits recorded yet.</div>
+              <div className="text-sm text-muted-foreground py-8 text-center">
+                No portal visits recorded yet.
+              </div>
             )
           ) : (
             <div className="overflow-auto max-h-[600px] border rounded-md">
@@ -226,12 +288,20 @@ export function PortalVisitsReport() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map(v => (
+                  {filtered.map((v) => (
                     <tr key={v.id} className="border-t hover:bg-muted/40">
-                      <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">{new Date(v.visited_at).toLocaleString()}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
+                        {new Date(v.visited_at).toLocaleString()}
+                      </td>
                       <td className="px-3 py-2 font-medium">{v.email}</td>
-                      <td className="px-3 py-2">{projects[v.project_id]?.merchant_name || <span className="text-muted-foreground">—</span>}</td>
-                      <td className="px-3 py-2"><Badge variant="secondary">{PAGE_LABEL[v.page] || v.page}</Badge></td>
+                      <td className="px-3 py-2">
+                        {projects[v.project_id]?.merchant_name || (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        <Badge variant="secondary">{PAGE_LABEL[v.page] || v.page}</Badge>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

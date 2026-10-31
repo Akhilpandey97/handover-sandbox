@@ -12,7 +12,6 @@ import { apiAuthHeaders } from "@/lib/api-invoke";
  */
 const db = supabase as unknown as SupabaseClient;
 
-
 export type MeetingProvider = "google_meet" | "zoom" | "teams";
 
 export const MEETING_PROVIDERS: { value: MeetingProvider; label: string; hint: string }[] = [

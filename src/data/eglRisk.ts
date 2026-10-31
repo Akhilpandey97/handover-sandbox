@@ -176,9 +176,10 @@ export const evaluateEglRisk = (
     const state = input.projectState.replace(/_/g, " ");
     findings.push({
       ruleId: "state",
-      detail: daysRemaining >= 0
-        ? `Project is ${state} with ${plural(daysRemaining, "day")} to go-live`
-        : `Project is ${state}`,
+      detail:
+        daysRemaining >= 0
+          ? `Project is ${state} with ${plural(daysRemaining, "day")} to go-live`
+          : `Project is ${state}`,
     });
   }
 

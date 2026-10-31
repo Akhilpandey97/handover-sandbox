@@ -31,8 +31,8 @@ async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const SUPABASE_URL = process.env['SUPABASE_URL'];
-    const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY'];
+    const SUPABASE_URL = process.env["SUPABASE_URL"];
+    const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error("Missing Supabase configuration");
     }
@@ -45,29 +45,45 @@ async function handler(req: Request): Promise<Response> {
     const field = formData.get("field") as string | null;
 
     if (!file || !projectId || !field) {
-      return new Response(JSON.stringify({ error: "Missing required fields: file, project_id, field" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: file, project_id, field" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const ALLOWED_FIELDS = [
-      "sow_link", "brd_link", "jira_link",
-      "mint_checklist_link", "integration_checklist_link", "brand_url",
+      "sow_link",
+      "brd_link",
+      "jira_link",
+      "mint_checklist_link",
+      "integration_checklist_link",
+      "brand_url",
     ];
     if (!ALLOWED_FIELDS.includes(field)) {
-      return new Response(JSON.stringify({ error: `Invalid field: ${field}. Allowed: ${ALLOWED_FIELDS.join(", ")}` }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: `Invalid field: ${field}. Allowed: ${ALLOWED_FIELDS.join(", ")}` }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Validate file type
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      return new Response(JSON.stringify({ error: "Unsupported file type. Allowed: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, images, CSV, TXT, JSON, ZIP." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          error:
+            "Unsupported file type. Allowed: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, images, CSV, TXT, JSON, ZIP.",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Validate file size (max 20MB)

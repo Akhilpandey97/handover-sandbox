@@ -1,9 +1,22 @@
 import { useMemo, useState } from "react";
-import { Project, calculateTimeByParty, formatDuration, projectStateLabels, ProjectState } from "@/data/projectsData";
+import {
+  Project,
+  calculateTimeByParty,
+  formatDuration,
+  projectStateLabels,
+  ProjectState,
+} from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -21,40 +34,60 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
 
   // Revenue Realization Forecast
   const revenueForecast = useMemo(() => {
-    const nonLive = projects.filter(p => p.projectState !== "live" && p.dates.expectedGoLiveDate);
-    const byMonth = new Map<string, { month: string; totalArr: number; count: number; projects: { name: string; arr: number; state: ProjectState; expectedDate: string }[] }>();
+    const nonLive = projects.filter((p) => p.projectState !== "live" && p.dates.expectedGoLiveDate);
+    const byMonth = new Map<
+      string,
+      {
+        month: string;
+        totalArr: number;
+        count: number;
+        projects: { name: string; arr: number; state: ProjectState; expectedDate: string }[];
+      }
+    >();
 
-    nonLive.forEach(p => {
+    nonLive.forEach((p) => {
       const date = new Date(p.dates.expectedGoLiveDate!);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
       const label = date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
-      const existing = byMonth.get(monthKey) || { month: label, totalArr: 0, count: 0, projects: [] };
+      const existing = byMonth.get(monthKey) || {
+        month: label,
+        totalArr: 0,
+        count: 0,
+        projects: [],
+      };
       existing.totalArr += p.arr;
       existing.count++;
-      existing.projects.push({ name: p.merchantName, arr: p.arr, state: p.projectState, expectedDate: p.dates.expectedGoLiveDate! });
+      existing.projects.push({
+        name: p.merchantName,
+        arr: p.arr,
+        state: p.projectState,
+        expectedDate: p.dates.expectedGoLiveDate!,
+      });
       byMonth.set(monthKey, existing);
     });
 
-    return Array.from(byMonth.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([, v]) => v);
+    return Array.from(byMonth.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, v]) => v);
   }, [projects]);
 
   const totalPipelineArr = revenueForecast.reduce((s, m) => s + m.totalArr, 0);
 
   // Pipeline Funnel
   const pipelineFunnel = useMemo(() => {
-    return phaseOrder.map(phase => {
-      const count = projects.filter(p => p.currentPhase === phase).length;
+    return phaseOrder.map((phase) => {
+      const count = projects.filter((p) => p.currentPhase === phase).length;
       return { phase, label: phaseLabels[phase] || phase, count };
     });
   }, [projects, phaseLabels]);
 
-  const maxFunnelCount = Math.max(...pipelineFunnel.map(f => f.count), 1);
+  const maxFunnelCount = Math.max(...pipelineFunnel.map((f) => f.count), 1);
 
   // Go-Live Velocity
   const goLiveVelocity = useMemo(() => {
     const months = new Map<string, { month: string; goLive: number; kickOffs: number }>();
 
-    projects.forEach(p => {
+    projects.forEach((p) => {
       const koDate = new Date(p.dates.kickOffDate);
       const koKey = `${koDate.getFullYear()}-${String(koDate.getMonth() + 1).padStart(2, "0")}`;
       const koLabel = koDate.toLocaleDateString("en-US", { month: "short", year: "numeric" });
@@ -78,12 +111,13 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
       .map(([, v]) => v);
   }, [projects]);
 
-
   return (
     <div className="space-y-6">
-
       {/* Revenue Realization Forecast */}
-      <Collapsible open={expandedSection === "revenue"} onOpenChange={() => setExpandedSection(expandedSection === "revenue" ? null : "revenue")}>
+      <Collapsible
+        open={expandedSection === "revenue"}
+        onOpenChange={() => setExpandedSection(expandedSection === "revenue" ? null : "revenue")}
+      >
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
@@ -93,15 +127,25 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                   Revenue Realization Forecast
                   <Badge variant="secondary">{totalPipelineArr.toFixed(2)} Cr in pipeline</Badge>
                 </CardTitle>
-                {expandedSection === "revenue" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expandedSection === "revenue" ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </div>
-              <CardDescription>Potential {getLabel("field_arr")} sorted by {getLabel("field_expected_go_live_date")} ({getLabel("field_kick_off_date")} = Start Date)</CardDescription>
+              <CardDescription>
+                Potential {getLabel("field_arr")} sorted by{" "}
+                {getLabel("field_expected_go_live_date")} ({getLabel("field_kick_off_date")} = Start
+                Date)
+              </CardDescription>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
             <CardContent>
               {revenueForecast.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No projects with expected go-live dates in pipeline.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No projects with expected go-live dates in pipeline.
+                </p>
               ) : (
                 <Table>
                   <TableHeader>
@@ -117,7 +161,9 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                       <TableRow key={i}>
                         <TableCell className="font-medium">{row.month}</TableCell>
                         <TableCell>{row.count}</TableCell>
-                        <TableCell className="font-semibold text-success-strong">{row.totalArr.toFixed(2)}</TableCell>
+                        <TableCell className="font-semibold text-success-strong">
+                          {row.totalArr.toFixed(2)}
+                        </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {row.projects.map((p, j) => (
@@ -138,7 +184,10 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
       </Collapsible>
 
       {/* Go-Live Velocity */}
-      <Collapsible open={expandedSection === "velocity"} onOpenChange={() => setExpandedSection(expandedSection === "velocity" ? null : "velocity")}>
+      <Collapsible
+        open={expandedSection === "velocity"}
+        onOpenChange={() => setExpandedSection(expandedSection === "velocity" ? null : "velocity")}
+      >
         <Card>
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
@@ -147,9 +196,15 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                   <Rocket className="h-4 w-4 text-warning-strong" />
                   Go-Live Velocity
                 </CardTitle>
-                {expandedSection === "velocity" ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {expandedSection === "velocity" ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
               </div>
-              <CardDescription>Projects going Live per month vs. new {getLabel("field_kick_off_date")}s</CardDescription>
+              <CardDescription>
+                Projects going Live per month vs. new {getLabel("field_kick_off_date")}s
+              </CardDescription>
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -171,10 +226,16 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                       <TableRow key={i}>
                         <TableCell className="font-medium">{row.month}</TableCell>
                         <TableCell>{row.kickOffs}</TableCell>
-                        <TableCell className="text-success-strong font-semibold">{row.goLive}</TableCell>
+                        <TableCell className="text-success-strong font-semibold">
+                          {row.goLive}
+                        </TableCell>
                         <TableCell>
-                          <Badge variant={row.goLive >= row.kickOffs ? "default" : "destructive"} className="text-xs">
-                            {row.goLive >= row.kickOffs ? "+" : ""}{row.goLive - row.kickOffs}
+                          <Badge
+                            variant={row.goLive >= row.kickOffs ? "default" : "destructive"}
+                            className="text-xs"
+                          >
+                            {row.goLive >= row.kickOffs ? "+" : ""}
+                            {row.goLive - row.kickOffs}
                           </Badge>
                         </TableCell>
                       </TableRow>

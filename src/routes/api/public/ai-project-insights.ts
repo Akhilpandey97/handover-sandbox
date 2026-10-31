@@ -7,11 +7,13 @@ import { requireInternalCaller } from "@/lib/api-auth.server";
 import { aiText, aiStructured, BACKGROUND_MODEL } from "@/lib/ai-gateway.server";
 import Anthropic from "@anthropic-ai/sdk";
 
-
 /** The HTTP shape this route has always returned, from an SDK error. */
 function aiError(e: unknown, corsHeaders: Record<string, string>): Response | null {
   const body = (error: string, status: number) =>
-    new Response(JSON.stringify({ error }), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    new Response(JSON.stringify({ error }), {
+      status,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   if (e instanceof Anthropic.RateLimitError) return body("Rate limit exceeded.", 429);
   if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
     return body("AI credits exhausted.", 402);
@@ -35,7 +37,6 @@ async function handler(req: Request): Promise<Response> {
   try {
     const body = await req.json();
     const { project, projects, type } = body;
-
 
     // Movement report summarizer (Daily/Weekly): classify and 2-line summary per project
     if (type === "movement_summary" && Array.isArray(body.items)) {
@@ -69,14 +70,19 @@ Rules:
 
 Return ONLY a JSON object via the tool call.`;
 
-      const userContent = items.map((it) => {
-        const entriesTxt = (it.entries || []).slice(0, 25)
-          .map(e => `- [${e.category}] ${e.description}`).join("\n") || "- (no activity captured)";
-        return `### ${it.merchantName} (id:${it.id}) [bucket:${it.bucket || "updates"}]
+      const userContent = items
+        .map((it) => {
+          const entriesTxt =
+            (it.entries || [])
+              .slice(0, 25)
+              .map((e) => `- [${e.category}] ${e.description}`)
+              .join("\n") || "- (no activity captured)";
+          return `### ${it.merchantName} (id:${it.id}) [bucket:${it.bucket || "updates"}]
 Funnel: ${it.funnel} | State: ${it.projectState} | ARR: ${it.arr} | EGL: ${it.egl}
 Recent activity:
 ${entriesTxt}`;
-      }).join("\n\n");
+        })
+        .join("\n\n");
 
       let results: any[] = [];
       try {
@@ -114,9 +120,10 @@ ${entriesTxt}`;
         if (res) return res;
         throw e;
       }
-      return new Response(JSON.stringify({ result: results }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ result: results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-
 
     // Risk explanations. The rule engine has already decided high/low; the model
     // only writes prose, exactly as movement_summary does.
@@ -136,8 +143,9 @@ For EACH merchant, produce:
 2. "recommendation": ONE sentence naming the single most useful next action, and who should take it. Be specific and practical — no generic advice like "monitor closely".`;
 
       const userContent = items
-        .map((it) =>
-          `Merchant: ${it.merchantName}\nState: ${it.projectState}${it.funnel ? `\nStage: ${it.funnel}` : ""}\nRisk reasons:\n${it.reasons.map((r) => `- ${r}`).join("\n")}\nid: ${it.id}`,
+        .map(
+          (it) =>
+            `Merchant: ${it.merchantName}\nState: ${it.projectState}${it.funnel ? `\nStage: ${it.funnel}` : ""}\nRisk reasons:\n${it.reasons.map((r) => `- ${r}`).join("\n")}\nid: ${it.id}`,
         )
         .join("\n\n");
 
@@ -147,7 +155,9 @@ For EACH merchant, produce:
       const timeout = setTimeout(() => controller.abort(), 45_000);
       let results: Array<{ id: string; why: string; recommendation: string }> = [];
       try {
-        const out = await aiStructured<{ results?: Array<{ id: string; why: string; recommendation: string }> }>({
+        const out = await aiStructured<{
+          results?: Array<{ id: string; why: string; recommendation: string }>;
+        }>({
           system: systemPrompt,
           prompt: userContent,
           toolName: "submit_risk_explanations",
@@ -188,17 +198,21 @@ For EACH merchant, produce:
       const known = new Set(items.map((i) => i.id));
       results = results.filter((r) => r && known.has(r.id) && r.why && r.recommendation);
 
-      return new Response(JSON.stringify({ result: results, model: BACKGROUND_MODEL }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ result: results, model: BACKGROUND_MODEL }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Email context: generate summary, test cases, and go-live checklist context from email threads
     if (type === "email_context") {
       const { project_id, tenant_id, threads } = body;
-      const { orgName: actionsOrgName } = await getTenantBranding(tenant_id ?? (project_id ? await tenantIdForProject(project_id) : null));
+      const { orgName: actionsOrgName } = await getTenantBranding(
+        tenant_id ?? (project_id ? await tenantIdForProject(project_id) : null),
+      );
 
       const supabase = createClient(
-        process.env['SUPABASE_URL']!,
-        process.env['SUPABASE_SERVICE_ROLE_KEY']!
+        process.env["SUPABASE_URL"]!,
+        process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
       );
 
       // Fetch project details for context
@@ -208,23 +222,33 @@ For EACH merchant, produce:
         .eq("id", project_id)
         .single();
 
-      const threadsSummary = (threads || []).map((t: any, i: number) =>
-        `Thread ${i + 1}: "${t.subject}" | Date: ${t.threadDate?.split("T")[0] || "unknown"} | Messages: ${t.messageCount} | Participants: ${(t.participants || []).slice(0, 4).join(", ")} | Preview: ${t.snippet}`
-      ).join("\n");
+      const threadsSummary = (threads || [])
+        .map(
+          (t: any, i: number) =>
+            `Thread ${i + 1}: "${t.subject}" | Date: ${t.threadDate?.split("T")[0] || "unknown"} | Messages: ${t.messageCount} | Participants: ${(t.participants || []).slice(0, 4).join(", ")} | Preview: ${t.snippet}`,
+        )
+        .join("\n");
 
       // Also pull cached Jira tickets for this project to enrich action items
       const { data: jiraRows } = await supabase
         .from("project_jira_tickets")
-        .select("jira_key, summary, status, status_category, priority, assignee_name, due_date, updated")
+        .select(
+          "jira_key, summary, status, status_category, priority, assignee_name, due_date, updated",
+        )
         .eq("project_id", project_id)
         .order("updated", { ascending: false, nullsFirst: false })
         .limit(30);
 
-      const openJira = (jiraRows || []).filter((j: any) => (j.status_category || "").toLowerCase() !== "done");
+      const openJira = (jiraRows || []).filter(
+        (j: any) => (j.status_category || "").toLowerCase() !== "done",
+      );
       const jiraSummary = openJira.length
-        ? openJira.map((j: any, i: number) =>
-            `${i + 1}. [${j.jira_key}] ${j.summary || ""} | Status: ${j.status || "?"} | Priority: ${j.priority || "?"} | Assignee: ${j.assignee_name || "Unassigned"}${j.due_date ? ` | Due: ${j.due_date}` : ""}`
-          ).join("\n")
+        ? openJira
+            .map(
+              (j: any, i: number) =>
+                `${i + 1}. [${j.jira_key}] ${j.summary || ""} | Status: ${j.status || "?"} | Priority: ${j.priority || "?"} | Assignee: ${j.assignee_name || "Unassigned"}${j.due_date ? ` | Due: ${j.due_date}` : ""}`,
+            )
+            .join("\n")
         : "No open Jira tickets.";
 
       const systemPrompt = `You are a technical project management AI working for ${actionsOrgName}. Given email threads and Jira tickets for a merchant integration project, extract concrete pending ACTION ITEMS that the team or merchant must complete to move the project forward.
@@ -277,19 +301,26 @@ ${jiraSummary}`;
       }
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       let parsed: any = { summary: "", test_cases: [], checklist_context: "", action_items: [] };
-      try { parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : parsed; } catch { /* use defaults */ }
+      try {
+        parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : parsed;
+      } catch {
+        /* use defaults */
+      }
 
       // Upsert into project_email_context (one row per project)
-      await supabase.from("project_email_context").upsert({
-        project_id,
-        tenant_id,
-        summary: parsed.summary || "",
-        test_cases: Array.isArray(parsed.test_cases) ? parsed.test_cases : [],
-        checklist_context: parsed.checklist_context || "",
-        action_items: Array.isArray(parsed.action_items) ? parsed.action_items : [],
-        generated_at: new Date().toISOString(),
-        email_count: (threads || []).length,
-      }, { onConflict: "project_id" });
+      await supabase.from("project_email_context").upsert(
+        {
+          project_id,
+          tenant_id,
+          summary: parsed.summary || "",
+          test_cases: Array.isArray(parsed.test_cases) ? parsed.test_cases : [],
+          checklist_context: parsed.checklist_context || "",
+          action_items: Array.isArray(parsed.action_items) ? parsed.action_items : [],
+          generated_at: new Date().toISOString(),
+          email_count: (threads || []).length,
+        },
+        { onConflict: "project_id" },
+      );
 
       return new Response(JSON.stringify({ result: parsed }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -330,12 +361,19 @@ ${jiraSummary}`;
 
     // Batch mode: generate next actions for multiple projects
     if (type === "next_actions" && projects) {
-      const projectsSummary = projects.map((p: any) => {
-        const completed = p.checklist?.filter((c: any) => c.completed).length || 0;
-        const total = p.checklist?.length || 0;
-        const pending = p.checklist?.filter((c: any) => !c.completed).map((c: any) => c.title).slice(0, 3).join(", ") || "None";
-        return `- ${p.merchantName} (${p.currentPhase}/${p.projectState || "not_started"}): ${completed}/${total} done. Next: ${pending}`;
-      }).join("\n");
+      const projectsSummary = projects
+        .map((p: any) => {
+          const completed = p.checklist?.filter((c: any) => c.completed).length || 0;
+          const total = p.checklist?.length || 0;
+          const pending =
+            p.checklist
+              ?.filter((c: any) => !c.completed)
+              .map((c: any) => c.title)
+              .slice(0, 3)
+              .join(", ") || "None";
+          return `- ${p.merchantName} (${p.currentPhase}/${p.projectState || "not_started"}): ${completed}/${total} done. Next: ${pending}`;
+        })
+        .join("\n");
 
       let content: string;
       try {
@@ -378,7 +416,12 @@ Owner Team: ${project.currentOwnerTeam}
 Pending With: ${project.currentResponsibility}
 Assigned Owner: ${project.assignedOwnerName || "Unassigned"}
 Checklist: ${project.checklist?.filter((c: any) => c.completed).length}/${project.checklist?.length || 0} completed
-Pending Items: ${project.checklist?.filter((c: any) => !c.completed).map((c: any) => c.title).join(", ") || "None"}
+Pending Items: ${
+      project.checklist
+        ?.filter((c: any) => !c.completed)
+        .map((c: any) => c.title)
+        .join(", ") || "None"
+    }
 Transfer History: ${project.transferHistory?.length || 0} transfers
 `;
 

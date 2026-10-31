@@ -1,4 +1,9 @@
-import { adminClient, getTenantIntegrations, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import {
+  adminClient,
+  getTenantIntegrations,
+  resendFrom,
+  resendReplyTo,
+} from "@/lib/tenant-integrations.server";
 import { appBaseUrl } from "@/lib/app-links.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
 
@@ -11,12 +16,21 @@ type Db = ReturnType<typeof adminClient>;
 
 /** Roles are single-row per user (user_roles is read with .single()), so this never adds a second. */
 async function writeRole(db: Db, userId: string, role: string, tenantId: string | null) {
-  const { data: existing } = await db.from("user_roles").select("id").eq("user_id", userId).maybeSingle();
+  const { data: existing } = await db
+    .from("user_roles")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
   if (existing) {
-    const { error } = await db.from("user_roles").update({ role, tenant_id: tenantId }).eq("user_id", userId);
+    const { error } = await db
+      .from("user_roles")
+      .update({ role, tenant_id: tenantId })
+      .eq("user_id", userId);
     if (error) throw new Error(error.message);
   } else {
-    const { error } = await db.from("user_roles").insert({ user_id: userId, role, tenant_id: tenantId, created_at: new Date().toISOString() });
+    const { error } = await db
+      .from("user_roles")
+      .insert({ user_id: userId, role, tenant_id: tenantId, created_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
   }
 }
@@ -39,7 +53,15 @@ export async function createWorkspaceUser(opts: {
 
   const now = new Date().toISOString();
   const { error: profileError } = await db.from("profiles").upsert(
-    { id: created.user.id, email: opts.email, name: opts.name, team: opts.role, tenant_id: opts.tenantId, created_at: now, updated_at: now },
+    {
+      id: created.user.id,
+      email: opts.email,
+      name: opts.name,
+      team: opts.role,
+      tenant_id: opts.tenantId,
+      created_at: now,
+      updated_at: now,
+    },
     { onConflict: "id" },
   );
   // The auth trigger usually writes the profile too; a failure here is logged, not fatal.
@@ -55,7 +77,8 @@ export async function setUserRole(userId: string, role: string, tenantId: string
   await writeRole(db, userId, role, tenantId);
 }
 
-const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const escape = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /**
  * Email a new person a link to choose their own password, through the
@@ -99,7 +122,10 @@ export async function sendInviteEmail(opts: {
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${creds.resend_api_key}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${creds.resend_api_key}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       from: resendFrom(creds, orgName),
       to: [opts.email],

@@ -26,36 +26,38 @@ interface ExportCustomFields {
 export const exportProjectsToCSV = (
   projects: Project[],
   labels?: ExportLabels,
-  customFieldsData?: ExportCustomFields
+  customFieldsData?: ExportCustomFields,
 ) => {
   const teamLbls = labels?.teamLabels || defaultTeamLabels;
   const stateLbls = labels?.stateLabels || defaultStateLabels;
   const respLbls = labels?.responsibilityLabels || { gokwik: "GoKwik", merchant: "Merchant" };
-  const getLabel = labels?.getLabel || ((key: string) => {
-    const defaults: Record<string, string> = {
-      field_merchant_name: "Merchant Name",
-      field_mid: "MID",
-      field_platform: "Platform",
-      field_category: "Category",
-      field_arr: "ARR",
-      field_txns_per_day: "Txns/Day",
-      field_aov: "AOV",
-      field_go_live_percent: "Go Live %",
-      field_kick_off_date: "Start Date (Kick Off)",
-      field_expected_go_live_date: "Expected Go-Live Date",
-      field_actual_go_live_date: "Go-Live Date",
-      field_sales_spoc: "Sales SPOC",
-      field_integration_type: "Integration Type",
-      field_pg_onboarding: "PG Onboarding",
-      field_brand_url: "Brand URL",
-      field_jira_link: "JIRA Link",
-      field_brd_link: "BRD Link",
-      field_mint_notes: "MINT Notes",
-      field_project_notes: "Project Notes",
-      field_current_phase_comment: "Phase Comment",
-    };
-    return defaults[key] || key;
-  });
+  const getLabel =
+    labels?.getLabel ||
+    ((key: string) => {
+      const defaults: Record<string, string> = {
+        field_merchant_name: "Merchant Name",
+        field_mid: "MID",
+        field_platform: "Platform",
+        field_category: "Category",
+        field_arr: "ARR",
+        field_txns_per_day: "Txns/Day",
+        field_aov: "AOV",
+        field_go_live_percent: "Go Live %",
+        field_kick_off_date: "Start Date (Kick Off)",
+        field_expected_go_live_date: "Expected Go-Live Date",
+        field_actual_go_live_date: "Go-Live Date",
+        field_sales_spoc: "Sales SPOC",
+        field_integration_type: "Integration Type",
+        field_pg_onboarding: "PG Onboarding",
+        field_brand_url: "Brand URL",
+        field_jira_link: "JIRA Link",
+        field_brd_link: "BRD Link",
+        field_mint_notes: "MINT Notes",
+        field_project_notes: "Project Notes",
+        field_current_phase_comment: "Phase Comment",
+      };
+      return defaults[key] || key;
+    });
 
   const customFields = customFieldsData?.fields || [];
   const customValuesMap = customFieldsData?.valuesMap || {};
@@ -106,7 +108,7 @@ export const exportProjectsToCSV = (
     getLabel("field_project_notes"),
     "Phase Comment",
     // Custom field headers
-    ...customFields.map(f => f.field_label),
+    ...customFields.map((f) => f.field_label),
     "Checklist Total",
     "Checklist Completed",
     "Transfer Count",
@@ -141,21 +143,23 @@ export const exportProjectsToCSV = (
     const mintCompleted = mintItems.filter((c) => c.completed).length;
     const intCompleted = intItems.filter((c) => c.completed).length;
 
-    let mintGokwik = 0, mintMerchant = 0;
+    let mintGokwik = 0,
+      mintMerchant = 0;
     mintItems.forEach((item) => {
       const t = calculateTimeByParty(item.responsibilityLog);
       mintGokwik += t.gokwik;
       mintMerchant += t.merchant;
     });
 
-    let intGokwik = 0, intMerchant = 0;
+    let intGokwik = 0,
+      intMerchant = 0;
     intItems.forEach((item) => {
       const t = calculateTimeByParty(item.responsibilityLog);
       intGokwik += t.gokwik;
       intMerchant += t.merchant;
     });
 
-    const checklistMap = new Map<string, typeof p.checklist[0]>();
+    const checklistMap = new Map<string, (typeof p.checklist)[0]>();
     p.checklist.forEach((item) => {
       checklistMap.set(`${item.phase}|${item.title}`, item);
     });
@@ -174,7 +178,7 @@ export const exportProjectsToCSV = (
 
     // Custom field values for this project
     const projectCustomValues = customValuesMap[p.id] || {};
-    const customFieldColumns = customFields.map(f => {
+    const customFieldColumns = customFields.map((f) => {
       const val = projectCustomValues[f.id] || "";
       if (f.field_type === "boolean") return val === "true" ? "Yes" : val === "false" ? "No" : "";
       return val;

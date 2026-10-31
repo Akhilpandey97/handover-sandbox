@@ -29,8 +29,17 @@ const RISK_CATEGORIES: Record<string, string> = {
   internal_dependency: "Internal dependency",
   project_viability: "Project viability",
 };
-const SEVERITIES: Record<string, string> = { low: "Low", medium: "Medium", high: "High", critical: "Critical" };
-const PROVIDERS: Record<string, string> = { google_meet: "Google Meet", zoom: "Zoom", teams: "Microsoft Teams" };
+const SEVERITIES: Record<string, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+  critical: "Critical",
+};
+const PROVIDERS: Record<string, string> = {
+  google_meet: "Google Meet",
+  zoom: "Zoom",
+  teams: "Microsoft Teams",
+};
 
 const cleanEmails = (v: unknown): string[] =>
   (Array.isArray(v) ? v : typeof v === "string" ? v.split(/[,;\s]+/) : [])
@@ -86,9 +95,16 @@ const MORE: Record<string, ActionDef> = {
         target: { id: project.id, label: project.merchant_name },
         rows: [
           { label: "Item", after: item.title },
-          { label: "Status", before: item.completed ? "Done" : "Open", after: done ? "Done" : "Open" },
+          {
+            label: "Status",
+            before: item.completed ? "Done" : "Open",
+            after: done ? "Done" : "Open",
+          },
         ],
-        warnings: !!item.completed === done ? [`This item is already ${done ? "done" : "open"}.`] : undefined,
+        warnings:
+          !!item.completed === done
+            ? [`This item is already ${done ? "done" : "open"}.`]
+            : undefined,
         undoable: true,
       };
     },
@@ -97,7 +113,11 @@ const MORE: Record<string, ActionDef> = {
       const done = p.done !== false;
       const { error } = await c.client
         .from("checklist_items")
-        .update({ completed: done, completed_by: done ? c.name : null, completed_at: done ? new Date().toISOString() : null })
+        .update({
+          completed: done,
+          completed_by: done ? c.name : null,
+          completed_at: done ? new Date().toISOString() : null,
+        })
         .eq("id", item.id)
         .eq("tenant_id", c.tenantId);
       if (error) throw error;
@@ -107,9 +127,23 @@ const MORE: Record<string, ActionDef> = {
         undo: {
           table: "checklist_items",
           op: "update",
-          rows: [{ id: item.id, before: { completed: item.completed, completed_by: item.completed_by, completed_at: item.completed_at } }],
+          rows: [
+            {
+              id: item.id,
+              before: {
+                completed: item.completed,
+                completed_by: item.completed_by,
+                completed_at: item.completed_at,
+              },
+            },
+          ],
         },
-        log: { description: `Buddy marked "${item.title}" ${done ? "done" : "open"} on ${project.merchant_name}`, category: "checklist", entityType: "project", entityId: project.id },
+        log: {
+          description: `Buddy marked "${item.title}" ${done ? "done" : "open"} on ${project.merchant_name}`,
+          category: "checklist",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -118,28 +152,47 @@ const MORE: Record<string, ActionDef> = {
     label: "Change due date",
     async preview(c, p) {
       const { item, project } = await loadItem(c, p.item_id);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(p.due_date || ""))) fail("The due date must be a date (YYYY-MM-DD).");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(p.due_date || "")))
+        fail("The due date must be a date (YYYY-MM-DD).");
       return {
         action: "set_checklist_due_date",
         title: "Change due date",
         target: { id: project.id, label: project.merchant_name },
         rows: [
           { label: "Item", after: item.title },
-          { label: "Due", before: item.due_date ? fmt(item.due_date) : "Not set", after: fmt(p.due_date) },
+          {
+            label: "Due",
+            before: item.due_date ? fmt(item.due_date) : "Not set",
+            after: fmt(p.due_date),
+          },
         ],
         undoable: true,
       };
     },
     async execute(c, p) {
       const { item, project } = await loadItem(c, p.item_id);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(p.due_date || ""))) fail("The due date must be a date (YYYY-MM-DD).");
-      const { error } = await c.client.from("checklist_items").update({ due_date: p.due_date }).eq("id", item.id).eq("tenant_id", c.tenantId);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(p.due_date || "")))
+        fail("The due date must be a date (YYYY-MM-DD).");
+      const { error } = await c.client
+        .from("checklist_items")
+        .update({ due_date: p.due_date })
+        .eq("id", item.id)
+        .eq("tenant_id", c.tenantId);
       if (error) throw error;
       return {
         message: `"${item.title}" is now due ${fmt(p.due_date)}.`,
         link: { label: "Open checklist", href: `/projects/${project.id}?item=${item.id}` },
-        undo: { table: "checklist_items", op: "update", rows: [{ id: item.id, before: { due_date: item.due_date } }] },
-        log: { description: `Buddy moved "${item.title}" on ${project.merchant_name} to ${fmt(p.due_date)}`, category: "checklist", entityType: "project", entityId: project.id },
+        undo: {
+          table: "checklist_items",
+          op: "update",
+          rows: [{ id: item.id, before: { due_date: item.due_date } }],
+        },
+        log: {
+          description: `Buddy moved "${item.title}" on ${project.merchant_name} to ${fmt(p.due_date)}`,
+          category: "checklist",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -169,7 +222,8 @@ const MORE: Record<string, ActionDef> = {
       const { item, project } = await loadItem(c, p.checklist_item_id);
       if (!p.title) fail("The task needs a title.");
       const assignee = p.assignee_id ? await loadPerson(c, p.assignee_id) : null;
-      if (p.due_date && !/^\d{4}-\d{2}-\d{2}$/.test(String(p.due_date))) fail("The due date must be a date (YYYY-MM-DD).");
+      if (p.due_date && !/^\d{4}-\d{2}-\d{2}$/.test(String(p.due_date)))
+        fail("The due date must be a date (YYYY-MM-DD).");
       const { data, error } = await c.client
         .from("checklist_tasks")
         .insert({
@@ -204,9 +258,17 @@ const MORE: Record<string, ActionDef> = {
       }
       return {
         message: `Task "${p.title}" added to ${project.merchant_name}${assignee ? ` for ${assignee.name}` : ""}.`,
-        link: { label: "Open task", href: `/projects/${project.id}?item=${item.id}&task=${taskId}` },
+        link: {
+          label: "Open task",
+          href: `/projects/${project.id}?item=${item.id}&task=${taskId}`,
+        },
         undo: { table: "checklist_tasks", op: "delete", rows: [{ id: taskId }] },
-        log: { description: `Buddy added task "${p.title}" on ${project.merchant_name}`, category: "task", entityType: "project", entityId: project.id },
+        log: {
+          description: `Buddy added task "${p.title}" on ${project.merchant_name}`,
+          category: "task",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -214,18 +276,29 @@ const MORE: Record<string, ActionDef> = {
   transfer_project: {
     label: "Transfer to next team",
     async preview(c, p) {
-      const project = await loadProject(c, p.project_id, "id, merchant_name, current_owner_team, assigned_owner");
+      const project = await loadProject(
+        c,
+        p.project_id,
+        "id, merchant_name, current_owner_team, assigned_owner",
+      );
       // The workspace's own team names, not the built-in ones.
       const TEAM_LABELS = await teamNameMap(c);
       const next = TEAM_ORDER[project.current_owner_team];
-      if (!next) fail(`${project.merchant_name} is with ${TEAM_LABELS[project.current_owner_team] || project.current_owner_team}, which has no next team.`);
+      if (!next)
+        fail(
+          `${project.merchant_name} is with ${TEAM_LABELS[project.current_owner_team] || project.current_owner_team}, which has no next team.`,
+        );
       const assignee = p.assignee_id ? await loadPerson(c, p.assignee_id) : null;
       return {
         action: "transfer_project",
         title: "Transfer to next team",
         target: { id: project.id, label: project.merchant_name },
         rows: [
-          { label: "Team", before: TEAM_LABELS[project.current_owner_team] || project.current_owner_team, after: TEAM_LABELS[next!] || next! },
+          {
+            label: "Team",
+            before: TEAM_LABELS[project.current_owner_team] || project.current_owner_team,
+            after: TEAM_LABELS[next!] || next!,
+          },
           { label: "Owner", after: assignee?.name || "Picked by the receiving team" },
           ...(p.notes ? [{ label: "Notes", after: String(p.notes) }] : []),
         ],
@@ -244,7 +317,12 @@ const MORE: Record<string, ActionDef> = {
       const assignee = p.assignee_id ? await loadPerson(c, p.assignee_id) : null;
       const { error } = await c.client
         .from("projects")
-        .update({ current_owner_team: next, current_phase: next, pending_acceptance: true, assigned_owner: assignee?.id || null })
+        .update({
+          current_owner_team: next,
+          current_phase: next,
+          pending_acceptance: true,
+          assigned_owner: assignee?.id || null,
+        })
         .eq("id", project.id)
         .eq("tenant_id", c.tenantId);
       if (error) throw error;
@@ -262,7 +340,8 @@ const MORE: Record<string, ActionDef> = {
           user_id: assignee.id,
           type: "project_transfer",
           title: `Project transferred to you: ${project.merchant_name}`,
-          body: p.notes || `From ${TEAM_LABELS[project.current_owner_team]} to ${TEAM_LABELS[next!]}`,
+          body:
+            p.notes || `From ${TEAM_LABELS[project.current_owner_team]} to ${TEAM_LABELS[next!]}`,
           actor_name: c.name,
           project_id: project.id,
           project_name: project.merchant_name,
@@ -283,7 +362,12 @@ const MORE: Record<string, ActionDef> = {
       return {
         message: `${project.merchant_name} is transferred to ${TEAM_LABELS[next!]} and waiting for them to accept.`,
         link: projectLink(project.id),
-        log: { description: `Buddy transferred ${project.merchant_name} to ${TEAM_LABELS[next!]}`, category: "project", entityType: "project", entityId: project.id },
+        log: {
+          description: `Buddy transferred ${project.merchant_name} to ${TEAM_LABELS[next!]}`,
+          category: "project",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -297,13 +381,25 @@ const MORE: Record<string, ActionDef> = {
         action: "archive_project",
         title: archive ? "Archive project" : "Restore project",
         target: { id: project.id, label: project.merchant_name },
-        rows: [{ label: "Status", before: project.archived ? "Archived" : "Active", after: archive ? "Archived" : "Active" }],
-        notes: archive ? ["Archived projects leave dashboards and lists. You can restore them from Archived."] : undefined,
+        rows: [
+          {
+            label: "Status",
+            before: project.archived ? "Archived" : "Active",
+            after: archive ? "Archived" : "Active",
+          },
+        ],
+        notes: archive
+          ? ["Archived projects leave dashboards and lists. You can restore them from Archived."]
+          : undefined,
         undoable: true,
       };
     },
     async execute(c, p) {
-      const project = await loadProject(c, p.project_id, "id, merchant_name, archived, archived_at");
+      const project = await loadProject(
+        c,
+        p.project_id,
+        "id, merchant_name, archived, archived_at",
+      );
       const archive = p.archive !== false;
       const { error } = await c.client
         .from("projects")
@@ -313,9 +409,25 @@ const MORE: Record<string, ActionDef> = {
       if (error) throw error;
       return {
         message: `${project.merchant_name} is ${archive ? "archived" : "restored"}.`,
-        link: archive ? { label: "Open archived projects", href: "/archived" } : projectLink(project.id),
-        undo: { table: "projects", op: "update", rows: [{ id: project.id, before: { archived: project.archived, archived_at: project.archived_at } }] },
-        log: { description: `Buddy ${archive ? "archived" : "restored"} ${project.merchant_name}`, category: "project", entityType: "project", entityId: project.id },
+        link: archive
+          ? { label: "Open archived projects", href: "/archived" }
+          : projectLink(project.id),
+        undo: {
+          table: "projects",
+          op: "update",
+          rows: [
+            {
+              id: project.id,
+              before: { archived: project.archived, archived_at: project.archived_at },
+            },
+          ],
+        },
+        log: {
+          description: `Buddy ${archive ? "archived" : "restored"} ${project.merchant_name}`,
+          category: "project",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -375,7 +487,12 @@ const MORE: Record<string, ActionDef> = {
         message: `Risk "${p.title}" flagged on ${project.merchant_name}.`,
         link: { label: "Open risks", href: "/risks" },
         undo: { table: "project_risks", op: "delete", rows: [{ id: (data as { id: string }).id }] },
-        log: { description: `Buddy flagged a ${p.severity} risk "${p.title}" on ${project.merchant_name}`, category: "risk", entityType: "project", entityId: project.id },
+        log: {
+          description: `Buddy flagged a ${p.severity} risk "${p.title}" on ${project.merchant_name}`,
+          category: "risk",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -401,7 +518,11 @@ const MORE: Record<string, ActionDef> = {
           ? !!(creds.zoom_account_id && creds.zoom_client_id && creds.zoom_client_secret)
           : p.provider === "teams"
             ? !!(creds.teams_tenant_id && creds.teams_client_id && creds.teams_client_secret)
-            : !!(creds.google_oauth_client_id && creds.google_oauth_client_secret && (creds.google_calendar_refresh_token || creds.google_meet_refresh_token));
+            : !!(
+                creds.google_oauth_client_id &&
+                creds.google_oauth_client_secret &&
+                (creds.google_calendar_refresh_token || creds.google_meet_refresh_token)
+              );
       const invite = p.send_invite !== false && attendees.length > 0 && !!itemTitle;
       return {
         action: "create_meeting_link",
@@ -422,7 +543,11 @@ const MORE: Record<string, ActionDef> = {
               ? "The meeting is saved to the checklist item. No invite is sent."
               : "Buddy creates the link and shows it here. Name a checklist item to save the meeting and send invites.",
         ],
-        warnings: configured ? undefined : [`${PROVIDERS[p.provider]} isn't set up for this workspace. An admin can add it under Settings → Integrations.`],
+        warnings: configured
+          ? undefined
+          : [
+              `${PROVIDERS[p.provider]} isn't set up for this workspace. An admin can add it under Settings → Integrations.`,
+            ],
         undoable: false,
       };
     },
@@ -438,7 +563,8 @@ const MORE: Record<string, ActionDef> = {
         duration_minutes: duration,
         attendees,
       });
-      if (!linkRes.ok || !linkRes.data.join_url) fail(linkRes.data.error || `Couldn't create the ${PROVIDERS[p.provider]} link.`);
+      if (!linkRes.ok || !linkRes.data.join_url)
+        fail(linkRes.data.error || `Couldn't create the ${PROVIDERS[p.provider]} link.`);
       const joinUrl = String(linkRes.data.join_url);
 
       let saved = "";
@@ -473,7 +599,9 @@ const MORE: Record<string, ActionDef> = {
             project_name: project.merchant_name,
             checklist_item_title: item.title,
           });
-          saved += inviteRes.ok ? " Invites sent." : ` The invite didn't send: ${inviteRes.data.error || "unknown error"}.`;
+          saved += inviteRes.ok
+            ? " Invites sent."
+            : ` The invite didn't send: ${inviteRes.data.error || "unknown error"}.`;
         }
       }
 
@@ -503,14 +631,24 @@ const MORE: Record<string, ActionDef> = {
         rows: [],
         email: { to, cc, subject: String(p.subject), body: String(p.body) },
         notes: project ? ["A copy is added to the project's notes timeline."] : undefined,
-        warnings: creds.resend_api_key ? undefined : ["Email isn't set up for this workspace. An admin can add Resend under Settings → Integrations."],
+        warnings: creds.resend_api_key
+          ? undefined
+          : [
+              "Email isn't set up for this workspace. An admin can add Resend under Settings → Integrations.",
+            ],
         undoable: false,
       };
     },
     async execute(c, p) {
       const { to, cc } = validateEmail(p);
       const project = p.project_id ? await loadProject(c, p.project_id, "id, merchant_name") : null;
-      await sendResendEmail(c, { to, cc, subject: String(p.subject), html: plainTextToHtml(String(p.body)), fromName: c.name });
+      await sendResendEmail(c, {
+        to,
+        cc,
+        subject: String(p.subject),
+        html: plainTextToHtml(String(p.body)),
+        fromName: c.name,
+      });
       if (project) {
         await c.client.from("project_comment_logs").insert({
           project_id: project.id,
@@ -549,7 +687,11 @@ const MORE: Record<string, ActionDef> = {
           { label: "Message", after: String(p.title) },
           ...(p.body ? [{ label: "Details", after: String(p.body) }] : []),
         ],
-        notes: [p.also_email ? "Shows in their notification bell, and they get an email." : "Shows in their notification bell."],
+        notes: [
+          p.also_email
+            ? "Shows in their notification bell, and they get an email."
+            : "Shows in their notification bell.",
+        ],
         undoable: false,
       };
     },
@@ -579,7 +721,9 @@ const MORE: Record<string, ActionDef> = {
           await sendResendEmail(c, {
             to: recipients,
             subject: project ? `${p.title} · ${project.merchant_name}` : String(p.title),
-            html: plainTextToHtml(`${p.body ? `${p.body}\n\n` : ""}${link ? `Open the project: ${link}\n\n` : ""}From ${c.name}, via Handover`),
+            html: plainTextToHtml(
+              `${p.body ? `${p.body}\n\n` : ""}${link ? `Open the project: ${link}\n\n` : ""}From ${c.name}, via Handover`,
+            ),
             fromName: c.name,
           });
           emailNote = " They also got an email.";
@@ -601,11 +745,14 @@ const MORE: Record<string, ActionDef> = {
 
 function fmt(d: string) {
   const date = new Date(d);
-  return Number.isNaN(date.getTime()) ? d : date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  return Number.isNaN(date.getTime())
+    ? d
+    : date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
 function validateMeeting(p: Record<string, any>) {
-  if (!PROVIDERS[p.provider]) fail("The meeting provider must be Google Meet, Zoom or Microsoft Teams.");
+  if (!PROVIDERS[p.provider])
+    fail("The meeting provider must be Google Meet, Zoom or Microsoft Teams.");
   if (!p.title) fail("The meeting needs a title.");
   const when = new Date(String(p.scheduled_at || ""));
   if (Number.isNaN(when.getTime())) fail("The meeting needs a date and time.");
@@ -634,7 +781,11 @@ async function loadPeople(c: BuddyCaller, ids: unknown) {
   const list = (Array.isArray(ids) ? ids : [ids]).map(String).filter(Boolean);
   if (list.length === 0) fail("Nobody to notify was given.");
   if (list.length > 25) fail("Buddy can notify at most 25 people at once.");
-  const { data } = await c.client.from("profiles").select("id, name, email").eq("tenant_id", c.tenantId).in("id", list);
+  const { data } = await c.client
+    .from("profiles")
+    .select("id, name, email")
+    .eq("tenant_id", c.tenantId)
+    .in("id", list);
   const people = (data || []) as { id: string; name: string; email: string }[];
   if (people.length === 0) fail("None of those people are in this workspace.");
   return people;
@@ -645,23 +796,37 @@ const MORE_DEFS: any[] = [
     type: "function",
     function: {
       name: "complete_checklist_item",
-      description: "Mark a CHECKLIST ITEM — one of the project's standard steps, which counts towards progress — done, or reopen it (done=false). Not for tasks: a task under a checklist item uses update_task_status. Get item_id from get_project.",
-      parameters: { type: "object", properties: { item_id: { type: "string" }, done: { type: "boolean" } }, required: ["item_id"] },
+      description:
+        "Mark a CHECKLIST ITEM — one of the project's standard steps, which counts towards progress — done, or reopen it (done=false). Not for tasks: a task under a checklist item uses update_task_status. Get item_id from get_project.",
+      parameters: {
+        type: "object",
+        properties: { item_id: { type: "string" }, done: { type: "boolean" } },
+        required: ["item_id"],
+      },
     },
   },
   {
     type: "function",
     function: {
       name: "set_checklist_due_date",
-      description: "Change a CHECKLIST ITEM's due date. Not for tasks, which carry their own due date set when the task is added. Get item_id from get_project.",
-      parameters: { type: "object", properties: { item_id: { type: "string" }, due_date: { type: "string", description: "YYYY-MM-DD" } }, required: ["item_id", "due_date"] },
+      description:
+        "Change a CHECKLIST ITEM's due date. Not for tasks, which carry their own due date set when the task is added. Get item_id from get_project.",
+      parameters: {
+        type: "object",
+        properties: {
+          item_id: { type: "string" },
+          due_date: { type: "string", description: "YYYY-MM-DD" },
+        },
+        required: ["item_id", "due_date"],
+      },
     },
   },
   {
     type: "function",
     function: {
       name: "add_task",
-      description: "Add a TASK — an ad-hoc piece of work that sits underneath a checklist item and does not count towards project progress — optionally assigned to a person. This never creates a checklist step; the checklist is the same standard set on every project and is configured in Settings. Get checklist_item_id from get_project and assignee_id from list_people.",
+      description:
+        "Add a TASK — an ad-hoc piece of work that sits underneath a checklist item and does not count towards project progress — optionally assigned to a person. This never creates a checklist step; the checklist is the same standard set on every project and is configured in Settings. Get checklist_item_id from get_project and assignee_id from list_people.",
       parameters: {
         type: "object",
         properties: {
@@ -679,10 +844,15 @@ const MORE_DEFS: any[] = [
     type: "function",
     function: {
       name: "transfer_project",
-      description: "Transfer a project to the next team in the handoff order (stage 1 → stage 2 → stage 3; get their names from get_workspace_setup). The receiving team must accept it. Optionally name the new owner.",
+      description:
+        "Transfer a project to the next team in the handoff order (stage 1 → stage 2 → stage 3; get their names from get_workspace_setup). The receiving team must accept it. Optionally name the new owner.",
       parameters: {
         type: "object",
-        properties: { project_id: { type: "string" }, assignee_id: { type: "string" }, notes: { type: "string", description: "Handover notes for the receiving team" } },
+        properties: {
+          project_id: { type: "string" },
+          assignee_id: { type: "string" },
+          notes: { type: "string", description: "Handover notes for the receiving team" },
+        },
         required: ["project_id"],
       },
     },
@@ -691,8 +861,13 @@ const MORE_DEFS: any[] = [
     type: "function",
     function: {
       name: "archive_project",
-      description: "Archive a project (archive=true, default) or restore an archived one (archive=false).",
-      parameters: { type: "object", properties: { project_id: { type: "string" }, archive: { type: "boolean" } }, required: ["project_id"] },
+      description:
+        "Archive a project (archive=true, default) or restore an archived one (archive=false).",
+      parameters: {
+        type: "object",
+        properties: { project_id: { type: "string" }, archive: { type: "boolean" } },
+        required: ["project_id"],
+      },
     },
   },
   {
@@ -706,7 +881,15 @@ const MORE_DEFS: any[] = [
           project_id: { type: "string" },
           title: { type: "string" },
           severity: { type: "string", enum: ["low", "medium", "high", "critical"] },
-          category: { type: "string", enum: ["merchant_dependency", "external_dependency", "internal_dependency", "project_viability"] },
+          category: {
+            type: "string",
+            enum: [
+              "merchant_dependency",
+              "external_dependency",
+              "internal_dependency",
+              "project_viability",
+            ],
+          },
           description: { type: "string" },
           mitigation_plan: { type: "string" },
           assignee_id: { type: "string" },
@@ -732,7 +915,10 @@ const MORE_DEFS: any[] = [
           agenda: { type: "string" },
           project_id: { type: "string" },
           checklist_item_id: { type: "string" },
-          send_invite: { type: "boolean", description: "Email a calendar invite to attendees (default true)" },
+          send_invite: {
+            type: "boolean",
+            description: "Email a calendar invite to attendees (default true)",
+          },
         },
         required: ["provider", "title", "scheduled_at"],
       },
@@ -761,7 +947,8 @@ const MORE_DEFS: any[] = [
     type: "function",
     function: {
       name: "send_notification",
-      description: "Send an in-app notification to teammates in Handover (their notification bell), optionally also by email. Get user ids from list_people.",
+      description:
+        "Send an in-app notification to teammates in Handover (their notification bell), optionally also by email. Get user ids from list_people.",
       parameters: {
         type: "object",
         properties: {
@@ -779,11 +966,20 @@ const MORE_DEFS: any[] = [
 
 // ── Tasks, checklist comments and checklist responsibility ─────────────────
 
-const TASK_STATUSES: Record<string, string> = { open: "Open", in_progress: "In progress", done: "Done" };
+const TASK_STATUSES: Record<string, string> = {
+  open: "Open",
+  in_progress: "In progress",
+  done: "Done",
+};
 
 async function loadTask(c: BuddyCaller, id: string) {
   if (!id) fail("No task was given.");
-  const { data } = await c.client.from("checklist_tasks").select("*").eq("tenant_id", c.tenantId).eq("id", id).maybeSingle();
+  const { data } = await c.client
+    .from("checklist_tasks")
+    .select("*")
+    .eq("tenant_id", c.tenantId)
+    .eq("id", id)
+    .maybeSingle();
   if (!data) fail("That task isn't in this workspace.");
   const task = data as any;
   const project = await loadProject(c, task.project_id, "id, merchant_name");
@@ -802,22 +998,45 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
         target: { id: project.id, label: project.merchant_name },
         rows: [
           { label: "Task", after: task.title },
-          { label: "Status", before: TASK_STATUSES[task.status] || task.status, after: TASK_STATUSES[p.status]! },
+          {
+            label: "Status",
+            before: TASK_STATUSES[task.status] || task.status,
+            after: TASK_STATUSES[p.status]!,
+          },
         ],
-        warnings: task.status === p.status ? [`This task is already ${TASK_STATUSES[p.status]!.toLowerCase()}.`] : undefined,
+        warnings:
+          task.status === p.status
+            ? [`This task is already ${TASK_STATUSES[p.status]!.toLowerCase()}.`]
+            : undefined,
         undoable: true,
       };
     },
     async execute(c, p) {
       const { task, project } = await loadTask(c, p.task_id);
       if (!TASK_STATUSES[p.status]) fail("Task status must be open, in progress or done.");
-      const { error } = await c.client.from("checklist_tasks").update({ status: p.status }).eq("id", task.id).eq("tenant_id", c.tenantId);
+      const { error } = await c.client
+        .from("checklist_tasks")
+        .update({ status: p.status })
+        .eq("id", task.id)
+        .eq("tenant_id", c.tenantId);
       if (error) throw error;
       return {
         message: `Task "${task.title}" is ${TASK_STATUSES[p.status]!.toLowerCase()}.`,
-        link: { label: "Open task", href: `/projects/${project.id}?item=${task.checklist_item_id}&task=${task.id}` },
-        undo: { table: "checklist_tasks", op: "update", rows: [{ id: task.id, before: { status: task.status } }] },
-        log: { description: `Buddy set task "${task.title}" on ${project.merchant_name} to ${TASK_STATUSES[p.status]}`, category: "task", entityType: "project", entityId: project.id },
+        link: {
+          label: "Open task",
+          href: `/projects/${project.id}?item=${task.checklist_item_id}&task=${task.id}`,
+        },
+        undo: {
+          table: "checklist_tasks",
+          op: "update",
+          rows: [{ id: task.id, before: { status: task.status } }],
+        },
+        log: {
+          description: `Buddy set task "${task.title}" on ${project.merchant_name} to ${TASK_STATUSES[p.status]}`,
+          category: "task",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -826,7 +1045,9 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
     label: "Delete task",
     async preview(c, p) {
       const { task, project } = await loadTask(c, p.task_id);
-      const assignee = task.assigned_to ? await c.client.from("profiles").select("name").eq("id", task.assigned_to).maybeSingle() : null;
+      const assignee = task.assigned_to
+        ? await c.client.from("profiles").select("name").eq("id", task.assigned_to).maybeSingle()
+        : null;
       return {
         action: "delete_task",
         title: "Delete task",
@@ -842,13 +1063,25 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
     },
     async execute(c, p) {
       const { task, project } = await loadTask(c, p.task_id);
-      const { error } = await c.client.from("checklist_tasks").delete().eq("id", task.id).eq("tenant_id", c.tenantId);
+      const { error } = await c.client
+        .from("checklist_tasks")
+        .delete()
+        .eq("id", task.id)
+        .eq("tenant_id", c.tenantId);
       if (error) throw error;
       return {
         message: `Task "${task.title}" deleted from ${project.merchant_name}.`,
-        link: { label: "Open checklist", href: `/projects/${project.id}?item=${task.checklist_item_id}` },
+        link: {
+          label: "Open checklist",
+          href: `/projects/${project.id}?item=${task.checklist_item_id}`,
+        },
         undo: { table: "checklist_tasks", op: "insert", rows: [{ id: task.id, before: task }] },
-        log: { description: `Buddy deleted task "${task.title}" on ${project.merchant_name}`, category: "task", entityType: "project", entityId: project.id },
+        log: {
+          description: `Buddy deleted task "${task.title}" on ${project.merchant_name}`,
+          category: "task",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -876,16 +1109,30 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
       if (!text) fail("The comment is empty.");
       const { data, error } = await c.client
         .from("checklist_comments")
-        .insert({ checklist_item_id: item.id, comment: text, user_id: c.userId, user_name: c.name, tenant_id: c.tenantId })
+        .insert({
+          checklist_item_id: item.id,
+          comment: text,
+          user_id: c.userId,
+          user_name: c.name,
+          tenant_id: c.tenantId,
+        })
         .select("id")
         .single();
       if (error) throw error;
       const commentId = (data as { id: string }).id;
       return {
         message: `Comment posted on "${item.title}".`,
-        link: { label: "Open comment", href: `/projects/${project.id}?item=${item.id}&comment=${commentId}` },
+        link: {
+          label: "Open comment",
+          href: `/projects/${project.id}?item=${item.id}&comment=${commentId}`,
+        },
         undo: { table: "checklist_comments", op: "delete", rows: [{ id: commentId }] },
-        log: { description: `Buddy commented on "${item.title}" for ${project.merchant_name}`, category: "checklist", entityType: "project", entityId: project.id },
+        log: {
+          description: `Buddy commented on "${item.title}" for ${project.merchant_name}`,
+          category: "checklist",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -896,8 +1143,13 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
       const { item, project } = await loadItem(c, p.item_id);
       const labels = (await buddyLabels(c)).responsibility;
       if (!labels[p.party]) fail("Who holds it must be internal team, merchant or neutral.");
-      const { data: row } = await c.client.from("checklist_items").select("current_responsibility").eq("id", item.id).maybeSingle();
-      const before = (row as { current_responsibility?: string } | null)?.current_responsibility || "neutral";
+      const { data: row } = await c.client
+        .from("checklist_items")
+        .select("current_responsibility")
+        .eq("id", item.id)
+        .maybeSingle();
+      const before =
+        (row as { current_responsibility?: string } | null)?.current_responsibility || "neutral";
       return {
         action: "toggle_item_responsibility",
         title: "Change who holds a checklist item",
@@ -912,10 +1164,19 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
     },
     async execute(c, p) {
       const { item, project } = await loadItem(c, p.item_id);
-      const labels: Record<string, string> = { gokwik: "internal team", merchant: "merchant", neutral: "neutral" };
+      const labels: Record<string, string> = {
+        gokwik: "internal team",
+        merchant: "merchant",
+        neutral: "neutral",
+      };
       if (!labels[p.party]) fail("Who holds it must be internal team, merchant or neutral.");
-      const { data: row } = await c.client.from("checklist_items").select("current_responsibility").eq("id", item.id).maybeSingle();
-      const before = (row as { current_responsibility?: string } | null)?.current_responsibility || "neutral";
+      const { data: row } = await c.client
+        .from("checklist_items")
+        .select("current_responsibility")
+        .eq("id", item.id)
+        .maybeSingle();
+      const before =
+        (row as { current_responsibility?: string } | null)?.current_responsibility || "neutral";
       const now = new Date().toISOString();
 
       // Same bookkeeping as the checklist toggle: close the open log, start a new one.
@@ -927,16 +1188,38 @@ const CHECKLIST_MORE: Record<string, ActionDef> = {
         .order("started_at", { ascending: false })
         .limit(1);
       const openId = ((open || []) as { id: string }[])[0]?.id;
-      if (openId) await c.client.from("checklist_responsibility_logs").update({ ended_at: now }).eq("id", openId);
-      await c.client.from("checklist_responsibility_logs").insert({ checklist_item_id: item.id, party: p.party, started_at: now, tenant_id: c.tenantId });
+      if (openId)
+        await c.client
+          .from("checklist_responsibility_logs")
+          .update({ ended_at: now })
+          .eq("id", openId);
+      await c.client.from("checklist_responsibility_logs").insert({
+        checklist_item_id: item.id,
+        party: p.party,
+        started_at: now,
+        tenant_id: c.tenantId,
+      });
 
-      const { error } = await c.client.from("checklist_items").update({ current_responsibility: p.party }).eq("id", item.id).eq("tenant_id", c.tenantId);
+      const { error } = await c.client
+        .from("checklist_items")
+        .update({ current_responsibility: p.party })
+        .eq("id", item.id)
+        .eq("tenant_id", c.tenantId);
       if (error) throw error;
       return {
         message: `"${item.title}" is now held by the ${labels[p.party]}.`,
         link: { label: "Open checklist", href: `/projects/${project.id}?item=${item.id}` },
-        undo: { table: "checklist_items", op: "update", rows: [{ id: item.id, before: { current_responsibility: before } }] },
-        log: { description: `Buddy set "${item.title}" on ${project.merchant_name} to held by the ${labels[p.party]}`, category: "checklist", entityType: "project", entityId: project.id },
+        undo: {
+          table: "checklist_items",
+          op: "update",
+          rows: [{ id: item.id, before: { current_responsibility: before } }],
+        },
+        log: {
+          description: `Buddy set "${item.title}" on ${project.merchant_name} to held by the ${labels[p.party]}`,
+          category: "checklist",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -947,10 +1230,14 @@ const CHECKLIST_DEFS: any[] = [
     type: "function",
     function: {
       name: "update_task_status",
-      description: "Change a TASK's status: open, in_progress or done (use done to complete it). Not for checklist items, which use complete_checklist_item. Get task_id from get_project.",
+      description:
+        "Change a TASK's status: open, in_progress or done (use done to complete it). Not for checklist items, which use complete_checklist_item. Get task_id from get_project.",
       parameters: {
         type: "object",
-        properties: { task_id: { type: "string" }, status: { type: "string", enum: ["open", "in_progress", "done"] } },
+        properties: {
+          task_id: { type: "string" },
+          status: { type: "string", enum: ["open", "in_progress", "done"] },
+        },
         required: ["task_id", "status"],
       },
     },
@@ -959,26 +1246,40 @@ const CHECKLIST_DEFS: any[] = [
     type: "function",
     function: {
       name: "delete_task",
-      description: "Delete a TASK. A checklist item cannot be deleted here — the checklist is configured in Settings. Get task_id from get_project.",
-      parameters: { type: "object", properties: { task_id: { type: "string" } }, required: ["task_id"] },
+      description:
+        "Delete a TASK. A checklist item cannot be deleted here — the checklist is configured in Settings. Get task_id from get_project.",
+      parameters: {
+        type: "object",
+        properties: { task_id: { type: "string" } },
+        required: ["task_id"],
+      },
     },
   },
   {
     type: "function",
     function: {
       name: "add_checklist_comment",
-      description: "Post a comment on a checklist item, as the user. Get item_id from get_project or from a tagged checklist item.",
-      parameters: { type: "object", properties: { item_id: { type: "string" }, comment: { type: "string" } }, required: ["item_id", "comment"] },
+      description:
+        "Post a comment on a checklist item, as the user. Get item_id from get_project or from a tagged checklist item.",
+      parameters: {
+        type: "object",
+        properties: { item_id: { type: "string" }, comment: { type: "string" } },
+        required: ["item_id", "comment"],
+      },
     },
   },
   {
     type: "function",
     function: {
       name: "toggle_item_responsibility",
-      description: "Set who holds one checklist item: gokwik (internal team), merchant, or neutral. For the whole project, use toggle_responsibility.",
+      description:
+        "Set who holds one checklist item: gokwik (internal team), merchant, or neutral. For the whole project, use toggle_responsibility.",
       parameters: {
         type: "object",
-        properties: { item_id: { type: "string" }, party: { type: "string", enum: ["gokwik", "merchant", "neutral"] } },
+        properties: {
+          item_id: { type: "string" },
+          party: { type: "string", enum: ["gokwik", "merchant", "neutral"] },
+        },
         required: ["item_id", "party"],
       },
     },

@@ -136,7 +136,10 @@ export const BrandColorSettings = () => {
           </span>
           <span
             className="inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium"
-            style={{ color: valid ? value : DEFAULT_BRAND_COLOR, borderColor: valid ? value : DEFAULT_BRAND_COLOR }}
+            style={{
+              color: valid ? value : DEFAULT_BRAND_COLOR,
+              borderColor: valid ? value : DEFAULT_BRAND_COLOR,
+            }}
           >
             Link
           </span>

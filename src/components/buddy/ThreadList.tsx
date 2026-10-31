@@ -25,7 +25,15 @@ const groupLabel = (iso: string) => {
   return "Older";
 };
 
-export const ThreadList = ({ threads, pins, activeId, onOpen, onNew, onDelete, onTogglePin }: Props) => {
+export const ThreadList = ({
+  threads,
+  pins,
+  activeId,
+  onOpen,
+  onNew,
+  onDelete,
+  onTogglePin,
+}: Props) => {
   const [query, setQuery] = useState("");
 
   const groups = useMemo(() => {
@@ -50,7 +58,10 @@ export const ThreadList = ({ threads, pins, activeId, onOpen, onNew, onDelete, o
         <Button onClick={onNew} size="sm" className="h-9 w-full gap-2 rounded-lg">
           <Plus className="h-4 w-4" /> New chat
         </Button>
-        <label className="flex items-center gap-2 rounded-lg border border-border bg-background px-2.5" htmlFor="buddy-thread-search">
+        <label
+          className="flex items-center gap-2 rounded-lg border border-border bg-background px-2.5"
+          htmlFor="buddy-thread-search"
+        >
           <Search className="h-3.5 w-3.5 text-muted-foreground" />
           <input
             id="buddy-thread-search"
@@ -63,7 +74,9 @@ export const ThreadList = ({ threads, pins, activeId, onOpen, onNew, onDelete, o
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         {groups.length === 0 && (
-          <p className="px-2 py-2 text-xs text-muted-foreground">{query ? "No chats match." : "No conversations yet."}</p>
+          <p className="px-2 py-2 text-xs text-muted-foreground">
+            {query ? "No chats match." : "No conversations yet."}
+          </p>
         )}
         {groups.map((g) => (
           <div key={g.label} className="mb-2">
@@ -73,7 +86,10 @@ export const ThreadList = ({ threads, pins, activeId, onOpen, onNew, onDelete, o
               return (
                 <div
                   key={t.id ?? "legacy"}
-                  className={cn("group flex items-center gap-0.5 rounded-md pr-1", t.id === activeId ? "bg-primary-soft" : "hover:bg-muted")}
+                  className={cn(
+                    "group flex items-center gap-0.5 rounded-md pr-1",
+                    t.id === activeId ? "bg-primary-soft" : "hover:bg-muted",
+                  )}
                 >
                   <button
                     type="button"
@@ -81,7 +97,9 @@ export const ThreadList = ({ threads, pins, activeId, onOpen, onNew, onDelete, o
                     title={t.title}
                     className={cn(
                       "min-w-0 flex-1 truncate px-2.5 py-2 text-left text-xs",
-                      t.id === activeId ? "font-medium text-foreground" : "text-muted-foreground group-hover:text-foreground",
+                      t.id === activeId
+                        ? "font-medium text-foreground"
+                        : "text-muted-foreground group-hover:text-foreground",
                     )}
                   >
                     {t.title}
@@ -94,7 +112,11 @@ export const ThreadList = ({ threads, pins, activeId, onOpen, onNew, onDelete, o
                       aria-label={pinned ? `Unpin ${t.title}` : `Pin ${t.title}`}
                       className="shrink-0 rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus:opacity-100 group-hover:opacity-100"
                     >
-                      {pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
+                      {pinned ? (
+                        <PinOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Pin className="h-3.5 w-3.5" />
+                      )}
                     </button>
                   )}
                   <button

@@ -36,7 +36,11 @@ interface ProjectContextType {
   updateChecklist: (projectId: string, checklistId: string, completed: boolean) => void;
   updateChecklistComment: (projectId: string, checklistId: string, comment: string) => void;
   toggleResponsibility: (projectId: string, party: ResponsibilityParty) => void;
-  toggleChecklistResponsibility: (projectId: string, checklistId: string, party: ResponsibilityParty) => void;
+  toggleChecklistResponsibility: (
+    projectId: string,
+    checklistId: string,
+    party: ResponsibilityParty,
+  ) => void;
   getProjectsForTeam: (team: TeamRole) => Project[];
   getPendingProjects: (team: TeamRole) => Project[];
   getActiveProjects: (team: TeamRole) => Project[];
@@ -49,7 +53,7 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   const { currentUser } = useAuth();
   const { data: projects = [], isLoading } = useProjectsQuery();
-  
+
   const addProjectMutation = useAddProject();
   const updateProjectMutation = useUpdateProject();
   const deleteProjectMutation = useDeleteProject();
@@ -104,18 +108,22 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toggleResponsibility = (projectId: string, newParty: ResponsibilityParty) => {
-    const project = projects.find(p => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
     if (!project || project.currentResponsibility === newParty) return;
-    toggleResponsibilityMutation.mutate({ 
-      projectId, 
+    toggleResponsibilityMutation.mutate({
+      projectId,
       party: newParty,
       currentPhase: project.currentPhase,
     });
   };
 
-  const toggleChecklistResponsibility = (projectId: string, checklistId: string, newParty: ResponsibilityParty) => {
-    const project = projects.find(p => p.id === projectId);
-    const checklist = project?.checklist.find(c => c.id === checklistId);
+  const toggleChecklistResponsibility = (
+    projectId: string,
+    checklistId: string,
+    newParty: ResponsibilityParty,
+  ) => {
+    const project = projects.find((p) => p.id === projectId);
+    const checklist = project?.checklist.find((c) => c.id === checklistId);
     if (!checklist || checklist.currentResponsibility === newParty) return;
     toggleChecklistResponsibilityMutation.mutate({ checklistId, party: newParty });
   };
@@ -131,8 +139,11 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const getActiveProjects = (team: TeamRole) => {
-    if (team === "manager") return projects.filter((p) => !p.pendingAcceptance && p.currentPhase !== "completed");
-    return projects.filter((p) => p.currentOwnerTeam === team && !p.pendingAcceptance && p.currentPhase !== "completed");
+    if (team === "manager")
+      return projects.filter((p) => !p.pendingAcceptance && p.currentPhase !== "completed");
+    return projects.filter(
+      (p) => p.currentOwnerTeam === team && !p.pendingAcceptance && p.currentPhase !== "completed",
+    );
   };
 
   const getCompletedProjects = (team: TeamRole) => {

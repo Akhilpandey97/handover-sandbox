@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+} from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 import { GMAIL_API, gmailHeaders } from "@/lib/google-mail.server";
@@ -55,17 +59,22 @@ async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const SUPABASE_URL = process.env['SUPABASE_URL']!;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
-    const LOVABLE_API_KEY = process.env['LOVABLE_API_KEY'];
-    const __body0 = await req.clone().json().catch(() => ({} as any));
+    const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
+    const LOVABLE_API_KEY = process.env["LOVABLE_API_KEY"];
+    const __body0 = await req
+      .clone()
+      .json()
+      .catch(() => ({}) as any);
     const creds = await getTenantIntegrations(await tenantIdFromRequest(req, __body0.tenant_id));
-    const GOOGLE_MAIL_API_KEY = creds.google_mail_api_key || process.env['GOOGLE_MAIL_API_KEY'];
+    const GOOGLE_MAIL_API_KEY = creds.google_mail_api_key || process.env["GOOGLE_MAIL_API_KEY"];
 
     if (!LOVABLE_API_KEY || !GOOGLE_MAIL_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "Gmail connector not linked. Please connect Gmail in project settings." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Gmail connector not linked. Please connect Gmail in project settings.",
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -78,10 +87,10 @@ async function handler(req: Request): Promise<Response> {
     const { project_id, tenant_id } = body;
 
     if (!project_id || !tenant_id) {
-      return new Response(
-        JSON.stringify({ error: "project_id and tenant_id are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "project_id and tenant_id are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -94,16 +103,19 @@ async function handler(req: Request): Promise<Response> {
       .single();
 
     if (projectError || !project) {
-      return new Response(
-        JSON.stringify({ error: "Project not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Project not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (!project.merchant_name && !project.contact_email) {
       return new Response(
-        JSON.stringify({ threads: [], message: "No merchant_name or contact_email set for this project." }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          threads: [],
+          message: "No merchant_name or contact_email set for this project.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -135,7 +147,7 @@ async function handler(req: Request): Promise<Response> {
       console.error("Gmail API error:", searchData.error);
       return new Response(
         JSON.stringify({ error: `Gmail API error: ${searchData.error.message}` }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -146,7 +158,7 @@ async function handler(req: Request): Promise<Response> {
     if (threads.length === 0) {
       return new Response(
         JSON.stringify({ threads: [], message: "No email threads found in the last 180 days." }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -170,7 +182,8 @@ async function handler(req: Request): Promise<Response> {
         if (messages.length === 0) continue;
 
         const getHeader = (msg: any, name: string): string =>
-          msg?.payload?.headers?.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value || "";
+          msg?.payload?.headers?.find((h: any) => h.name.toLowerCase() === name.toLowerCase())
+            ?.value || "";
 
         const firstMsg = messages[0];
         const lastMsg = messages[messages.length - 1];
@@ -244,14 +257,14 @@ async function handler(req: Request): Promise<Response> {
         total: threadDetails.length,
         message: `Fetched ${threadDetails.length} thread(s) for ${searchLabel}`,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error in fetch-project-emails:", error);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 }
 

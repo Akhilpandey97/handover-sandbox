@@ -16,7 +16,8 @@ export const BrandColor = () => {
   const updateLabels = ctx?.updateLabels;
 
   useEffect(() => {
-    const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+    const isDark =
+      typeof document !== "undefined" && document.documentElement.classList.contains("dark");
     applyBrandColor(brand || DEFAULT_BRAND_COLOR, isDark);
   }, [brand]);
 

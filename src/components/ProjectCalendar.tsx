@@ -40,16 +40,34 @@ interface CalendarEvent {
 }
 
 const eventTypeConfig = {
-  kickoff: { icon: Rocket, color: "bg-info", text: "text-info-strong", bg: "bg-info-soft", label: "Kick-off" },
-  expected_golive: { icon: Target, color: "bg-warning", text: "text-warning-strong", bg: "bg-warning-soft", label: "Expected Go-Live" },
-  golive: { icon: Flag, color: "bg-success", text: "text-success-strong", bg: "bg-success-soft", label: "Go-Live" },
+  kickoff: {
+    icon: Rocket,
+    color: "bg-info",
+    text: "text-info-strong",
+    bg: "bg-info-soft",
+    label: "Kick-off",
+  },
+  expected_golive: {
+    icon: Target,
+    color: "bg-warning",
+    text: "text-warning-strong",
+    bg: "bg-warning-soft",
+    label: "Expected Go-Live",
+  },
+  golive: {
+    icon: Flag,
+    color: "bg-success",
+    text: "text-success-strong",
+    bg: "bg-success-soft",
+    label: "Go-Live",
+  },
 };
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export const ProjectCalendar = () => {
   const { projects: allProjects } = useProjects();
-  const projects = useMemo(() => allProjects.filter(p => !p.archived), [allProjects]);
+  const projects = useMemo(() => allProjects.filter((p) => !p.archived), [allProjects]);
   const { teamLabels, stateLabels } = useLabels();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -58,13 +76,31 @@ export const ProjectCalendar = () => {
     const evts: CalendarEvent[] = [];
     projects.forEach((p) => {
       if (p.dates.kickOffDate) {
-        evts.push({ id: `${p.id}-ko`, date: parseISO(p.dates.kickOffDate), project: p, type: "kickoff", label: "Kick-off" });
+        evts.push({
+          id: `${p.id}-ko`,
+          date: parseISO(p.dates.kickOffDate),
+          project: p,
+          type: "kickoff",
+          label: "Kick-off",
+        });
       }
       if (p.dates.expectedGoLiveDate) {
-        evts.push({ id: `${p.id}-egl`, date: parseISO(p.dates.expectedGoLiveDate), project: p, type: "expected_golive", label: "Expected Go-Live" });
+        evts.push({
+          id: `${p.id}-egl`,
+          date: parseISO(p.dates.expectedGoLiveDate),
+          project: p,
+          type: "expected_golive",
+          label: "Expected Go-Live",
+        });
       }
       if (p.dates.goLiveDate) {
-        evts.push({ id: `${p.id}-gl`, date: parseISO(p.dates.goLiveDate), project: p, type: "golive", label: "Go-Live" });
+        evts.push({
+          id: `${p.id}-gl`,
+          date: parseISO(p.dates.goLiveDate),
+          project: p,
+          type: "golive",
+          label: "Go-Live",
+        });
       }
     });
     return evts;
@@ -135,13 +171,31 @@ export const ProjectCalendar = () => {
                 {format(currentMonth, "MMMM yyyy")}
               </CardTitle>
               <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setCurrentMonth(new Date()); setSelectedDate(new Date()); }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => {
+                    setCurrentMonth(new Date());
+                    setSelectedDate(new Date());
+                  }}
+                >
                   Today
                 </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -151,7 +205,10 @@ export const ProjectCalendar = () => {
             {/* Weekday headers */}
             <div className="grid grid-cols-7 mb-1">
               {WEEKDAYS.map((d) => (
-                <div key={d} className="text-center text-xs font-semibold text-muted-foreground py-2">
+                <div
+                  key={d}
+                  className="text-center text-xs font-semibold text-muted-foreground py-2"
+                >
                   {d}
                 </div>
               ))}
@@ -178,7 +235,7 @@ export const ProjectCalendar = () => {
                       className={cn(
                         "inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
                         today && "bg-primary text-primary-foreground",
-                        !today && "text-foreground"
+                        !today && "text-foreground",
                       )}
                     >
                       {format(day, "d")}
@@ -190,7 +247,11 @@ export const ProjectCalendar = () => {
                           return (
                             <div
                               key={evt.id}
-                              className={cn("flex items-center gap-1 rounded px-1 py-0.5 text-2xs leading-tight truncate", cfg.bg, cfg.text)}
+                              className={cn(
+                                "flex items-center gap-1 rounded px-1 py-0.5 text-2xs leading-tight truncate",
+                                cfg.bg,
+                                cfg.text,
+                              )}
                             >
                               <div className={cn("h-1.5 w-1.5 rounded-full shrink-0", cfg.color)} />
                               <span className="truncate">{evt.project.merchantName}</span>
@@ -198,7 +259,9 @@ export const ProjectCalendar = () => {
                           );
                         })}
                         {dayEvents.length > 3 && (
-                          <span className="text-2xs text-muted-foreground px-1">+{dayEvents.length - 3} more</span>
+                          <span className="text-2xs text-muted-foreground px-1">
+                            +{dayEvents.length - 3} more
+                          </span>
                         )}
                       </div>
                     )}
@@ -228,10 +291,14 @@ export const ProjectCalendar = () => {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             {!selectedDate && (
-              <p className="text-xs text-muted-foreground py-8 text-center">Click on a date to see project events</p>
+              <p className="text-xs text-muted-foreground py-8 text-center">
+                Click on a date to see project events
+              </p>
             )}
             {selectedDate && selectedDayEvents.length === 0 && (
-              <p className="text-xs text-muted-foreground py-8 text-center">No events on this date</p>
+              <p className="text-xs text-muted-foreground py-8 text-center">
+                No events on this date
+              </p>
             )}
             {selectedDayEvents.length > 0 && (
               <ScrollArea className="max-h-[500px]">
@@ -242,11 +309,18 @@ export const ProjectCalendar = () => {
                     return (
                       <div key={evt.id} className="rounded-lg border p-3 space-y-2">
                         <div className="flex items-center gap-2">
-                          <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center", cfg.bg)}>
+                          <div
+                            className={cn(
+                              "h-7 w-7 rounded-lg flex items-center justify-center",
+                              cfg.bg,
+                            )}
+                          >
                             <Icon className={cn("h-3.5 w-3.5", cfg.text)} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm truncate">{evt.project.merchantName}</p>
+                            <p className="font-semibold text-sm truncate">
+                              {evt.project.merchantName}
+                            </p>
                             <p className={cn("text-2xs font-medium", cfg.text)}>{cfg.label}</p>
                           </div>
                         </div>
@@ -255,14 +329,22 @@ export const ProjectCalendar = () => {
                             {evt.project.mid}
                           </Badge>
                           <Badge variant="outline" className="text-2xs h-5">
-                            {teamLabels[evt.project.currentOwnerTeam] || evt.project.currentOwnerTeam}
+                            {teamLabels[evt.project.currentOwnerTeam] ||
+                              evt.project.currentOwnerTeam}
                           </Badge>
-                          <Badge className={cn("text-2xs h-5", projectStateColors[evt.project.projectState])}>
+                          <Badge
+                            className={cn(
+                              "text-2xs h-5",
+                              projectStateColors[evt.project.projectState],
+                            )}
+                          >
                             {stateLabels?.[evt.project.projectState] || evt.project.projectState}
                           </Badge>
                         </div>
                         {evt.project.assignedOwnerName && (
-                          <p className="text-2xs text-muted-foreground">Owner: {evt.project.assignedOwnerName}</p>
+                          <p className="text-2xs text-muted-foreground">
+                            Owner: {evt.project.assignedOwnerName}
+                          </p>
                         )}
                       </div>
                     );

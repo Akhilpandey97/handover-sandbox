@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useEglRisk } from "@/hooks/useEglRisk";
 import type { EglWindow } from "@/data/eglRisk";
@@ -29,7 +36,9 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
     <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
       <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">Projects at Risk of Missing Go-Live</p>
+          <p className="text-sm font-semibold text-foreground">
+            Projects at Risk of Missing Go-Live
+          </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5">
@@ -60,7 +69,6 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
             {showAi ? "Hide AI" : "AI insights"}
           </Button>
         </div>
-
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto">
@@ -80,7 +88,8 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center py-8 text-muted-foreground text-sm">
-                  No projects need attention before go-live {window === "week" ? "this week" : "this month"}.
+                  No projects need attention before go-live{" "}
+                  {window === "week" ? "this week" : "this month"}.
                 </TableCell>
               </TableRow>
             ) : (
@@ -114,7 +123,6 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
                       <p>{verdict.findings.map((f) => f.detail).join(" · ")}</p>
                     )}
                   </TableCell>
-
                 </TableRow>
               ))
             )}

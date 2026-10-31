@@ -124,31 +124,55 @@ const projectLink = (id: string, label = "Open project") => ({ label, href: `/pr
 async function loadProject(c: BuddyCaller, id: string, cols = "id, merchant_name, mid") {
   if (!id) fail("No project was given.");
   const select = c.ownScopeOnly ? `${cols}, assigned_owner, pending_acceptance` : cols;
-  const { data, error } = await c.client.from("projects").select(select).eq("tenant_id", c.tenantId).eq("id", id).maybeSingle();
+  const { data, error } = await c.client
+    .from("projects")
+    .select(select)
+    .eq("tenant_id", c.tenantId)
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw error;
   if (!data) fail("That project isn't in this workspace.");
   const row = data as any;
   if (c.ownScopeOnly) {
-    if (row.assigned_owner !== c.userId) fail("That project isn't assigned to you, so Buddy can't change it.");
-    if (row.pending_acceptance) fail("You haven't accepted that project yet. Accept it first and Buddy can work on it.");
+    if (row.assigned_owner !== c.userId)
+      fail("That project isn't assigned to you, so Buddy can't change it.");
+    if (row.pending_acceptance)
+      fail("You haven't accepted that project yet. Accept it first and Buddy can work on it.");
   }
   return row;
 }
 
 async function loadPerson(c: BuddyCaller, id: string) {
   if (!id) fail("No person was given.");
-  const { data } = await c.client.from("profiles").select("id, name, email, team").eq("tenant_id", c.tenantId).eq("id", id).maybeSingle();
+  const { data } = await c.client
+    .from("profiles")
+    .select("id, name, email, team")
+    .eq("tenant_id", c.tenantId)
+    .eq("id", id)
+    .maybeSingle();
   if (!data) fail("That person isn't in this workspace.");
   return data as { id: string; name: string; email: string; team: string };
 }
 
 async function personName(c: BuddyCaller, id: string | null | undefined) {
   if (!id) return null;
-  const { data } = await c.client.from("profiles").select("name").eq("tenant_id", c.tenantId).eq("id", id).maybeSingle();
+  const { data } = await c.client
+    .from("profiles")
+    .select("name")
+    .eq("tenant_id", c.tenantId)
+    .eq("id", id)
+    .maybeSingle();
   return (data as { name?: string } | null)?.name || null;
 }
 
-const FIELDS: Record<string, { label: string; kind: "enum" | "text" | "number" | "date" | "percent" | "note"; values?: Record<string, string> }> = {
+const FIELDS: Record<
+  string,
+  {
+    label: string;
+    kind: "enum" | "text" | "number" | "date" | "percent" | "note";
+    values?: Record<string, string>;
+  }
+> = {
   project_state: { label: "State", kind: "enum", values: STATE_LABELS },
   current_phase: { label: "Phase", kind: "enum", values: PHASE_LABELS },
   platform: { label: "Platform", kind: "text" },
@@ -169,7 +193,9 @@ const FIELDS: Record<string, { label: string; kind: "enum" | "text" | "number" |
 const fmtDate = (v: unknown) => {
   if (!v) return "Not set";
   const d = new Date(String(v));
-  return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  return Number.isNaN(d.getTime())
+    ? String(v)
+    : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 };
 
 function showValue(field: string, v: unknown): string {
@@ -189,7 +215,8 @@ function coerce(field: string, value: unknown): unknown {
   const s = value === null || value === undefined ? "" : String(value).trim();
   switch (f!.kind) {
     case "enum":
-      if (!f!.values![s]) fail(`${f!.label} must be one of: ${Object.values(f!.values!).join(", ")}.`);
+      if (!f!.values![s])
+        fail(`${f!.label} must be one of: ${Object.values(f!.values!).join(", ")}.`);
       return s;
     case "number": {
       const n = Number(s);
@@ -215,10 +242,16 @@ async function sendResendEmail(
   opts: { to: string[]; cc?: string[]; subject: string; html: string; fromName?: string },
 ) {
   const creds = await getTenantIntegrations(c.tenantId);
-  if (!creds.resend_api_key) fail("Email isn't set up for this workspace. An admin can add Resend under Settings → Integrations.");
+  if (!creds.resend_api_key)
+    fail(
+      "Email isn't set up for this workspace. An admin can add Resend under Settings → Integrations.",
+    );
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${creds.resend_api_key}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${creds.resend_api_key}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
       from: resendFrom(creds, opts.fromName || "Handover"),
       ...resendReplyTo(creds),
@@ -230,7 +263,9 @@ async function sendResendEmail(
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    fail(`The email service rejected the message: ${(body as { message?: string }).message || res.status}`);
+    fail(
+      `The email service rejected the message: ${(body as { message?: string }).message || res.status}`,
+    );
   }
   return creds;
 }
@@ -251,7 +286,8 @@ export const ACTION_TOOL_DEFS: any[] = [
     type: "function",
     function: {
       name: "assign_owner",
-      description: "Assign a project to a person. Get project_id from search_projects/get_project and owner_id from list_people.",
+      description:
+        "Assign a project to a person. Get project_id from search_projects/get_project and owner_id from list_people.",
       parameters: {
         type: "object",
         properties: { project_id: { type: "string" }, owner_id: { type: "string" } },
@@ -267,7 +303,11 @@ export const ACTION_TOOL_DEFS: any[] = [
         "Change one field on a project. Fields: project_state (not_started|on_hold|in_progress|live|blocked), current_phase (mint|integration|ms|completed), platform, category, arr (₹ Cr), txns_per_day, aov, sales_spoc, integration_type, pg_onboarding, go_live_percent (0-100), expected_go_live_date (YYYY-MM-DD), project_notes, mint_notes, current_phase_comment (notes are appended).",
       parameters: {
         type: "object",
-        properties: { project_id: { type: "string" }, field: { type: "string" }, value: { type: "string" } },
+        properties: {
+          project_id: { type: "string" },
+          field: { type: "string" },
+          value: { type: "string" },
+        },
         required: ["project_id", "field", "value"],
       },
     },
@@ -276,7 +316,8 @@ export const ACTION_TOOL_DEFS: any[] = [
     type: "function",
     function: {
       name: "bulk_update_projects",
-      description: "Change the same field on several projects. Same fields as update_project_field except notes.",
+      description:
+        "Change the same field on several projects. Same fields as update_project_field except notes.",
       parameters: {
         type: "object",
         properties: {
@@ -292,10 +333,14 @@ export const ACTION_TOOL_DEFS: any[] = [
     type: "function",
     function: {
       name: "toggle_responsibility",
-      description: "Set who the project is currently waiting on: gokwik (internal team), merchant, or neutral.",
+      description:
+        "Set who the project is currently waiting on: gokwik (internal team), merchant, or neutral.",
       parameters: {
         type: "object",
-        properties: { project_id: { type: "string" }, party: { type: "string", enum: ["gokwik", "merchant", "neutral"] } },
+        properties: {
+          project_id: { type: "string" },
+          party: { type: "string", enum: ["gokwik", "merchant", "neutral"] },
+        },
         required: ["project_id", "party"],
       },
     },
@@ -304,15 +349,21 @@ export const ACTION_TOOL_DEFS: any[] = [
     type: "function",
     function: {
       name: "trigger_brd",
-      description: "Email the merchant the BRD form for a project, using the workspace's BRD template and the project's contact email.",
-      parameters: { type: "object", properties: { project_id: { type: "string" } }, required: ["project_id"] },
+      description:
+        "Email the merchant the BRD form for a project, using the workspace's BRD template and the project's contact email.",
+      parameters: {
+        type: "object",
+        properties: { project_id: { type: "string" } },
+        required: ["project_id"],
+      },
     },
   },
   {
     type: "function",
     function: {
       name: "create_project",
-      description: "Create a project. Required: merchant_name, mid (unique), kick_off_date (YYYY-MM-DD, default today). Ask for the MID if missing.",
+      description:
+        "Create a project. Required: merchant_name, mid (unique), kick_off_date (YYYY-MM-DD, default today). Ask for the MID if missing.",
       parameters: {
         type: "object",
         properties: {
@@ -350,21 +401,42 @@ const ACTIONS: Record<string, ActionDef> = {
         target: { id: project.id, label: project.merchant_name },
         rows: [{ label: "Owner", before: before || "Unassigned", after: owner.name }],
         notes: [`${owner.name} gets an email about the assignment.`],
-        warnings: project.assigned_owner === owner.id ? [`${owner.name} already owns this project.`] : undefined,
+        warnings:
+          project.assigned_owner === owner.id
+            ? [`${owner.name} already owns this project.`]
+            : undefined,
         undoable: true,
       };
     },
     async execute(c, p, ctx) {
       const project = await loadProject(c, p.project_id, "id, merchant_name, assigned_owner");
       const owner = await loadPerson(c, p.owner_id);
-      const { error } = await c.client.from("projects").update({ assigned_owner: owner.id }).eq("id", project.id).eq("tenant_id", c.tenantId);
+      const { error } = await c.client
+        .from("projects")
+        .update({ assigned_owner: owner.id })
+        .eq("id", project.id)
+        .eq("tenant_id", c.tenantId);
       if (error) throw error;
-      await notifyAssignment(ctx.req, { tenantId: c.tenantId, projectId: project.id, ownerId: owner.id, assignedBy: c.name });
+      await notifyAssignment(ctx.req, {
+        tenantId: c.tenantId,
+        projectId: project.id,
+        ownerId: owner.id,
+        assignedBy: c.name,
+      });
       return {
         message: `${project.merchant_name} is now owned by ${owner.name}.`,
         link: projectLink(project.id),
-        undo: { table: "projects", op: "update", rows: [{ id: project.id, before: { assigned_owner: project.assigned_owner } }] },
-        log: { description: `Buddy assigned ${project.merchant_name} to ${owner.name}`, category: "project", entityType: "project", entityId: project.id },
+        undo: {
+          table: "projects",
+          op: "update",
+          rows: [{ id: project.id, before: { assigned_owner: project.assigned_owner } }],
+        },
+        log: {
+          description: `Buddy assigned ${project.merchant_name} to ${owner.name}`,
+          category: "project",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -390,7 +462,13 @@ const ACTIONS: Record<string, ActionDef> = {
         action: "update_project_field",
         title: `Change ${f!.label.toLowerCase()}`,
         target: { id: project.id, label: project.merchant_name },
-        rows: [{ label: f!.label, before: showValue(p.field, project[p.field]), after: showValue(p.field, value) }],
+        rows: [
+          {
+            label: f!.label,
+            before: showValue(p.field, project[p.field]),
+            after: showValue(p.field, value),
+          },
+        ],
         undoable: true,
       };
     },
@@ -410,21 +488,40 @@ const ACTIONS: Record<string, ActionDef> = {
         });
         const stamp = new Date().toLocaleString("en-IN");
         const existing = project[p.field] || "";
-        const next = existing ? `${existing}\n\n[${stamp} - Buddy] ${value}` : `[${stamp} - Buddy] ${value}`;
-        const { error } = await c.client.from("projects").update({ [p.field]: next }).eq("id", project.id).eq("tenant_id", c.tenantId);
+        const next = existing
+          ? `${existing}\n\n[${stamp} - Buddy] ${value}`
+          : `[${stamp} - Buddy] ${value}`;
+        const { error } = await c.client
+          .from("projects")
+          .update({ [p.field]: next })
+          .eq("id", project.id)
+          .eq("tenant_id", c.tenantId);
         if (error) throw error;
         return {
           message: `Added a note to ${project.merchant_name}.`,
           link: projectLink(project.id),
-          log: { description: `Buddy added ${f!.label.toLowerCase()} on ${project.merchant_name}`, category: "project", entityType: "project", entityId: project.id },
+          log: {
+            description: `Buddy added ${f!.label.toLowerCase()} on ${project.merchant_name}`,
+            category: "project",
+            entityType: "project",
+            entityId: project.id,
+          },
         };
       }
-      const { error } = await c.client.from("projects").update({ [p.field]: value }).eq("id", project.id).eq("tenant_id", c.tenantId);
+      const { error } = await c.client
+        .from("projects")
+        .update({ [p.field]: value })
+        .eq("id", project.id)
+        .eq("tenant_id", c.tenantId);
       if (error) throw error;
       return {
         message: `${f!.label} on ${project.merchant_name} is now ${showValue(p.field, value)}.`,
         link: projectLink(project.id),
-        undo: { table: "projects", op: "update", rows: [{ id: project.id, before: { [p.field]: project[p.field] ?? null } }] },
+        undo: {
+          table: "projects",
+          op: "update",
+          rows: [{ id: project.id, before: { [p.field]: project[p.field] ?? null } }],
+        },
         log: {
           description: `Buddy changed ${f!.label.toLowerCase()} on ${project.merchant_name} from ${showValue(p.field, project[p.field])} to ${showValue(p.field, value)}`,
           category: "project",
@@ -440,11 +537,16 @@ const ACTIONS: Record<string, ActionDef> = {
     portfolioOnly: true,
     async preview(c, p, ctx) {
       const f = FIELDS[p.field];
-      if (!f || f.kind === "note") fail(`${String(p.field).replace(/_/g, " ")} can't be changed in bulk.`);
+      if (!f || f.kind === "note")
+        fail(`${String(p.field).replace(/_/g, " ")} can't be changed in bulk.`);
       const value = coerce(p.field, p.value);
       const ids = Array.isArray(p.project_ids) ? p.project_ids.map(String) : [];
       if (ids.length === 0) fail("No projects were given.");
-      const { data } = await c.client.from("projects").select(`id, merchant_name, ${p.field}`).eq("tenant_id", c.tenantId).in("id", ids);
+      const { data } = await c.client
+        .from("projects")
+        .select(`id, merchant_name, ${p.field}`)
+        .eq("tenant_id", c.tenantId)
+        .in("id", ids);
       const rows = (data || []) as any[];
       const missing = ids.length - rows.length;
       return {
@@ -452,10 +554,18 @@ const ACTIONS: Record<string, ActionDef> = {
         title: `Change ${f!.label.toLowerCase()}`,
         rows: [{ label: f!.label, after: showValue(p.field, value) }],
         count: rows.length,
-        items: rows.slice(0, 12).map((r) => ({ label: r.merchant_name, detail: showValue(p.field, r[p.field]) })),
+        items: rows
+          .slice(0, 12)
+          .map((r) => ({ label: r.merchant_name, detail: showValue(p.field, r[p.field]) })),
         warnings: [
-          ...(missing > 0 ? [`${missing} of the requested projects aren't in this workspace and will be skipped.`] : []),
-          ...(rows.length > ctx.bulkLimit ? [`This changes ${rows.length} projects, above the limit of ${ctx.bulkLimit}. Type the number to approve.`] : []),
+          ...(missing > 0
+            ? [`${missing} of the requested projects aren't in this workspace and will be skipped.`]
+            : []),
+          ...(rows.length > ctx.bulkLimit
+            ? [
+                `This changes ${rows.length} projects, above the limit of ${ctx.bulkLimit}. Type the number to approve.`,
+              ]
+            : []),
         ],
         requiresTypedConfirm: rows.length > ctx.bulkLimit,
         undoable: true,
@@ -463,20 +573,36 @@ const ACTIONS: Record<string, ActionDef> = {
     },
     async execute(c, p, ctx) {
       const f = FIELDS[p.field];
-      if (!f || f.kind === "note") fail(`${String(p.field).replace(/_/g, " ")} can't be changed in bulk.`);
+      if (!f || f.kind === "note")
+        fail(`${String(p.field).replace(/_/g, " ")} can't be changed in bulk.`);
       const value = coerce(p.field, p.value);
       const ids = Array.isArray(p.project_ids) ? p.project_ids.map(String) : [];
-      const { data } = await c.client.from("projects").select(`id, merchant_name, ${p.field}`).eq("tenant_id", c.tenantId).in("id", ids);
+      const { data } = await c.client
+        .from("projects")
+        .select(`id, merchant_name, ${p.field}`)
+        .eq("tenant_id", c.tenantId)
+        .in("id", ids);
       const rows = (data || []) as any[];
       if (rows.length === 0) fail("None of those projects are in this workspace.");
       if (rows.length > ctx.bulkLimit && Number(p.confirm_count) !== rows.length) {
         fail(`Changing ${rows.length} projects needs the count typed to confirm.`);
       }
-      const { error } = await c.client.from("projects").update({ [p.field]: value }).eq("tenant_id", c.tenantId).in("id", rows.map((r) => r.id));
+      const { error } = await c.client
+        .from("projects")
+        .update({ [p.field]: value })
+        .eq("tenant_id", c.tenantId)
+        .in(
+          "id",
+          rows.map((r) => r.id),
+        );
       if (error) throw error;
       return {
         message: `${f!.label} is now ${showValue(p.field, value)} on ${rows.length} projects.`,
-        undo: { table: "projects", op: "update", rows: rows.map((r) => ({ id: r.id, before: { [p.field]: r[p.field] ?? null } })) },
+        undo: {
+          table: "projects",
+          op: "update",
+          rows: rows.map((r) => ({ id: r.id, before: { [p.field]: r[p.field] ?? null } })),
+        },
         log: {
           description: `Buddy changed ${f!.label.toLowerCase()} to ${showValue(p.field, value)} on ${rows.length} projects`,
           category: "project",
@@ -490,26 +616,57 @@ const ACTIONS: Record<string, ActionDef> = {
   toggle_responsibility: {
     label: "Change who it's waiting on",
     async preview(c, p) {
-      if (!RESPONSIBILITY_LABELS[p.party]) fail("Waiting on must be internal team, merchant or neutral.");
-      const project = await loadProject(c, p.project_id, "id, merchant_name, current_responsibility");
+      if (!RESPONSIBILITY_LABELS[p.party])
+        fail("Waiting on must be internal team, merchant or neutral.");
+      const project = await loadProject(
+        c,
+        p.project_id,
+        "id, merchant_name, current_responsibility",
+      );
       return {
         action: "toggle_responsibility",
         title: "Change who it's waiting on",
         target: { id: project.id, label: project.merchant_name },
-        rows: [{ label: "Waiting on", before: RESPONSIBILITY_LABELS[project.current_responsibility] || "Not set", after: RESPONSIBILITY_LABELS[p.party]! }],
+        rows: [
+          {
+            label: "Waiting on",
+            before: RESPONSIBILITY_LABELS[project.current_responsibility] || "Not set",
+            after: RESPONSIBILITY_LABELS[p.party]!,
+          },
+        ],
         undoable: true,
       };
     },
     async execute(c, p) {
-      if (!RESPONSIBILITY_LABELS[p.party]) fail("Waiting on must be internal team, merchant or neutral.");
-      const project = await loadProject(c, p.project_id, "id, merchant_name, current_responsibility");
-      const { error } = await c.client.from("projects").update({ current_responsibility: p.party }).eq("id", project.id).eq("tenant_id", c.tenantId);
+      if (!RESPONSIBILITY_LABELS[p.party])
+        fail("Waiting on must be internal team, merchant or neutral.");
+      const project = await loadProject(
+        c,
+        p.project_id,
+        "id, merchant_name, current_responsibility",
+      );
+      const { error } = await c.client
+        .from("projects")
+        .update({ current_responsibility: p.party })
+        .eq("id", project.id)
+        .eq("tenant_id", c.tenantId);
       if (error) throw error;
       return {
         message: `${project.merchant_name} is now waiting on ${RESPONSIBILITY_LABELS[p.party]!.toLowerCase()}.`,
         link: projectLink(project.id),
-        undo: { table: "projects", op: "update", rows: [{ id: project.id, before: { current_responsibility: project.current_responsibility } }] },
-        log: { description: `Buddy set ${project.merchant_name} to waiting on ${RESPONSIBILITY_LABELS[p.party]}`, category: "project", entityType: "project", entityId: project.id },
+        undo: {
+          table: "projects",
+          op: "update",
+          rows: [
+            { id: project.id, before: { current_responsibility: project.current_responsibility } },
+          ],
+        },
+        log: {
+          description: `Buddy set ${project.merchant_name} to waiting on ${RESPONSIBILITY_LABELS[p.party]}`,
+          category: "project",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -518,10 +675,18 @@ const ACTIONS: Record<string, ActionDef> = {
     label: "Send BRD form",
     async preview(c, p) {
       const project = await loadProject(c, p.project_id, "id, merchant_name, contact_email");
-      const { data: template } = await c.client.from("checklist_form_templates").select("name").eq("tenant_id", c.tenantId).ilike("name", "%BRD%").limit(1).maybeSingle();
+      const { data: template } = await c.client
+        .from("checklist_form_templates")
+        .select("name")
+        .eq("tenant_id", c.tenantId)
+        .ilike("name", "%BRD%")
+        .limit(1)
+        .maybeSingle();
       const warnings: string[] = [];
-      if (!project.contact_email) warnings.push("This project has no merchant contact email. Add one before sending.");
-      if (!template) warnings.push("No BRD form template found. Create one in Settings → Checklist Forms.");
+      if (!project.contact_email)
+        warnings.push("This project has no merchant contact email. Add one before sending.");
+      if (!template)
+        warnings.push("No BRD form template found. Create one in Settings → Checklist Forms.");
       return {
         action: "trigger_brd",
         title: "Send BRD form",
@@ -536,13 +701,25 @@ const ACTIONS: Record<string, ActionDef> = {
     },
     async execute(c, p) {
       const project = await loadProject(c, p.project_id, "id, merchant_name, mid, contact_email");
-      if (!project.contact_email) fail("This project has no merchant contact email. Add one before sending.");
-      const { data: template } = await c.client.from("checklist_form_templates").select("id, name").eq("tenant_id", c.tenantId).ilike("name", "%BRD%").limit(1).maybeSingle();
+      if (!project.contact_email)
+        fail("This project has no merchant contact email. Add one before sending.");
+      const { data: template } = await c.client
+        .from("checklist_form_templates")
+        .select("id, name")
+        .eq("tenant_id", c.tenantId)
+        .ilike("name", "%BRD%")
+        .limit(1)
+        .maybeSingle();
       if (!template) fail("No BRD form template found. Create one in Settings → Checklist Forms.");
       const t = template as { id: string; name: string };
       const { data: session, error } = await c.client
         .from("brd_sessions")
-        .insert({ project_id: project.id, form_template_id: t.id, merchant_email: project.contact_email, tenant_id: c.tenantId })
+        .insert({
+          project_id: project.id,
+          form_template_id: t.id,
+          merchant_email: project.contact_email,
+          tenant_id: c.tenantId,
+        })
         .select("token")
         .single();
       if (error || !session) fail("Couldn't create the BRD form link.");
@@ -559,7 +736,12 @@ const ACTIONS: Record<string, ActionDef> = {
       return {
         message: `BRD form sent to ${project.contact_email}.`,
         link: projectLink(project.id),
-        log: { description: `Buddy sent the BRD form for ${project.merchant_name} to ${project.contact_email}`, category: "project", entityType: "project", entityId: project.id },
+        log: {
+          description: `Buddy sent the BRD form for ${project.merchant_name} to ${project.contact_email}`,
+          category: "project",
+          entityType: "project",
+          entityId: project.id,
+        },
       };
     },
   },
@@ -569,7 +751,12 @@ const ACTIONS: Record<string, ActionDef> = {
     portfolioOnly: true,
     async preview(c, p) {
       if (!p.merchant_name || !p.mid) fail("A project needs a merchant name and MID.");
-      const { data: existing } = await c.client.from("projects").select("id").eq("tenant_id", c.tenantId).eq("mid", p.mid).maybeSingle();
+      const { data: existing } = await c.client
+        .from("projects")
+        .select("id")
+        .eq("tenant_id", c.tenantId)
+        .eq("mid", p.mid)
+        .maybeSingle();
       const L = await buddyLabels(c);
       return {
         action: "create_project",
@@ -579,8 +766,12 @@ const ACTIONS: Record<string, ActionDef> = {
           { label: L.label("field_mid"), after: String(p.mid) },
           { label: "Kick-off", after: fmtDate(p.kick_off_date) },
           ...(p.platform ? [{ label: "Platform", after: String(p.platform) }] : []),
-          ...(p.expected_go_live_date ? [{ label: "Expected go-live", after: fmtDate(p.expected_go_live_date) }] : []),
-          ...(p.contact_email ? [{ label: L.label("field_contact_email"), after: String(p.contact_email) }] : []),
+          ...(p.expected_go_live_date
+            ? [{ label: "Expected go-live", after: fmtDate(p.expected_go_live_date) }]
+            : []),
+          ...(p.contact_email
+            ? [{ label: L.label("field_contact_email"), after: String(p.contact_email) }]
+            : []),
         ],
         notes: ["The standard checklist is added automatically."],
         warnings: existing ? [`A project with MID ${p.mid} already exists.`] : undefined,
@@ -588,13 +779,36 @@ const ACTIONS: Record<string, ActionDef> = {
       };
     },
     async execute(c, p, ctx) {
-      const allowed = ["merchant_name", "mid", "kick_off_date", "platform", "category", "arr", "contact_email", "sales_spoc", "integration_type", "expected_go_live_date", "project_notes"];
+      const allowed = [
+        "merchant_name",
+        "mid",
+        "kick_off_date",
+        "platform",
+        "category",
+        "arr",
+        "contact_email",
+        "sales_spoc",
+        "integration_type",
+        "expected_go_live_date",
+        "project_notes",
+      ];
       const row: Record<string, unknown> = { tenant_id: c.tenantId, created_by: c.userId };
-      for (const k of allowed) if (p[k] !== undefined && p[k] !== null && p[k] !== "") row[k] = p[k];
-      if (!row.merchant_name || !row.mid || !row.kick_off_date) fail("A project needs a merchant name, MID and kick-off date.");
-      const { data: existing } = await c.client.from("projects").select("id").eq("tenant_id", c.tenantId).eq("mid", row.mid).maybeSingle();
+      for (const k of allowed)
+        if (p[k] !== undefined && p[k] !== null && p[k] !== "") row[k] = p[k];
+      if (!row.merchant_name || !row.mid || !row.kick_off_date)
+        fail("A project needs a merchant name, MID and kick-off date.");
+      const { data: existing } = await c.client
+        .from("projects")
+        .select("id")
+        .eq("tenant_id", c.tenantId)
+        .eq("mid", row.mid)
+        .maybeSingle();
       if (existing) fail(`A project with MID ${row.mid} already exists.`);
-      const { data, error } = await c.client.from("projects").insert(row).select("id, merchant_name, mid").single();
+      const { data, error } = await c.client
+        .from("projects")
+        .insert(row)
+        .select("id, merchant_name, mid")
+        .single();
       if (error) throw error;
       const created = data as { id: string; merchant_name: string; mid: string };
       // Rules on "Project created" run now, not at the scheduler's next pass.
@@ -602,7 +816,12 @@ const ACTIONS: Record<string, ActionDef> = {
       return {
         message: `${created.merchant_name} (MID ${created.mid}) is created.`,
         link: projectLink(created.id),
-        log: { description: `Buddy created project ${created.merchant_name} (MID ${created.mid})`, category: "project", entityType: "project", entityId: created.id },
+        log: {
+          description: `Buddy created project ${created.merchant_name} (MID ${created.mid})`,
+          category: "project",
+          entityType: "project",
+          entityId: created.id,
+        },
       };
     },
   },
@@ -619,10 +838,22 @@ export const actionLabel = (name: string) => ACTIONS[name]?.label || name.replac
 // ── Undo ───────────────────────────────────────────────────────────────────
 
 const UNDO_TABLES = new Set<string>([
-  "projects", "checklist_items", "checklist_tasks", "project_risks", "checklist_comments",
-  "app_settings", "teams", "custom_fields", "checklist_templates", "checklist_form_templates",
-  "checklist_form_fields", "checklist_form_assignments", "ai_workflows", "tenant_integrations",
-  "profiles", "user_roles",
+  "projects",
+  "checklist_items",
+  "checklist_tasks",
+  "project_risks",
+  "checklist_comments",
+  "app_settings",
+  "teams",
+  "custom_fields",
+  "checklist_templates",
+  "checklist_form_templates",
+  "checklist_form_fields",
+  "checklist_form_assignments",
+  "ai_workflows",
+  "tenant_integrations",
+  "profiles",
+  "user_roles",
 ]);
 
 export async function undoAction(c: BuddyCaller, logId: string) {
@@ -632,29 +863,40 @@ export async function undoAction(c: BuddyCaller, logId: string) {
     .eq("id", logId)
     .maybeSingle();
   const row = log as any;
-  if (!row || row.tenant_id !== c.tenantId || row.user_id !== c.userId) fail("That action wasn't found.");
+  if (!row || row.tenant_id !== c.tenantId || row.user_id !== c.userId)
+    fail("That action wasn't found.");
   const meta = (row.metadata || {}) as Record<string, any>;
   const raw = meta.undo as UndoPlan | UndoPlan[] | undefined;
   if (!raw) fail("That action can't be undone.");
   const plans = Array.isArray(raw) ? raw : [raw!];
   if (plans.length === 0) fail("That action can't be undone.");
   if (meta.undone_at) fail("That action was already undone.");
-  if (Date.now() - new Date(row.created_at).getTime() > UNDO_WINDOW_MS) fail("Undo is only available for 10 minutes after an action.");
+  if (Date.now() - new Date(row.created_at).getTime() > UNDO_WINDOW_MS)
+    fail("Undo is only available for 10 minutes after an action.");
   if (plans.some((p) => !UNDO_TABLES.has(p.table))) fail("That action can't be undone.");
 
   // Reverse order: the last thing changed is the first put back.
   for (const plan of [...plans].reverse()) {
     for (const r of plan.rows) {
       if (plan.op === "delete") {
-        const { error } = await c.client.from(plan.table).delete().eq("id", r.id).eq("tenant_id", c.tenantId);
+        const { error } = await c.client
+          .from(plan.table)
+          .delete()
+          .eq("id", r.id)
+          .eq("tenant_id", c.tenantId);
         if (error) throw error;
       } else if (plan.op === "insert") {
         // Put back a row the action deleted, only into this workspace.
-        if (!r.before || (r.before as { tenant_id?: string }).tenant_id !== c.tenantId) fail("That action can't be undone.");
+        if (!r.before || (r.before as { tenant_id?: string }).tenant_id !== c.tenantId)
+          fail("That action can't be undone.");
         const { error } = await c.client.from(plan.table).insert(r.before!);
         if (error) throw error;
       } else {
-        const { error } = await c.client.from(plan.table).update(r.before || {}).eq("id", r.id).eq("tenant_id", c.tenantId);
+        const { error } = await c.client
+          .from(plan.table)
+          .update(r.before || {})
+          .eq("id", r.id)
+          .eq("tenant_id", c.tenantId);
         if (error) throw error;
       }
     }

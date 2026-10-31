@@ -46,12 +46,52 @@ export const RISK_RULE_TYPE_LABELS: Record<RiskRuleType, string> = {
 };
 
 export const DEFAULT_RISK_RULES: RiskRule[] = [
-  { id: "checklist_overdue", label: "Checklist date missed", type: "checklist_overdue", enabled: true, days: 0, severity: "high" },
-  { id: "golive_missed", label: "Go-live date missed", type: "golive_missed", enabled: true, days: 0, severity: "critical" },
-  { id: "no_activity", label: "No activity", type: "no_activity", enabled: true, days: 3, severity: "medium" },
-  { id: "blocked", label: "Project blocked", type: "project_state", enabled: true, states: ["blocked"], severity: "high" },
-  { id: "pending_acceptance", label: "Handover not accepted", type: "pending_acceptance", enabled: true, severity: "medium" },
-  { id: "unassigned_owner", label: "Owner not assigned", type: "unassigned_owner", enabled: true, severity: "medium" },
+  {
+    id: "checklist_overdue",
+    label: "Checklist date missed",
+    type: "checklist_overdue",
+    enabled: true,
+    days: 0,
+    severity: "high",
+  },
+  {
+    id: "golive_missed",
+    label: "Go-live date missed",
+    type: "golive_missed",
+    enabled: true,
+    days: 0,
+    severity: "critical",
+  },
+  {
+    id: "no_activity",
+    label: "No activity",
+    type: "no_activity",
+    enabled: true,
+    days: 3,
+    severity: "medium",
+  },
+  {
+    id: "blocked",
+    label: "Project blocked",
+    type: "project_state",
+    enabled: true,
+    states: ["blocked"],
+    severity: "high",
+  },
+  {
+    id: "pending_acceptance",
+    label: "Handover not accepted",
+    type: "pending_acceptance",
+    enabled: true,
+    severity: "medium",
+  },
+  {
+    id: "unassigned_owner",
+    label: "Owner not assigned",
+    type: "unassigned_owner",
+    enabled: true,
+    severity: "medium",
+  },
 ];
 
 export interface RiskInput {
@@ -130,11 +170,15 @@ export const evaluateRisk = (input: RiskInput, rules: RiskRule[]): RiskVerdict =
       for (const item of input.checklist) {
         if (item.completed || !item.dueDate) continue;
         const overdue = daysSince(item.dueDate, now);
-        if (overdue !== null && overdue > grace && (worst === null || overdue > worst)) worst = overdue;
+        if (overdue !== null && overdue > grace && (worst === null || overdue > worst))
+          worst = overdue;
       }
       if (worst !== null) {
         findings.push({
-          ruleId: rule.id, label: rule.label, type: rule.type, severity: rule.severity,
+          ruleId: rule.id,
+          label: rule.label,
+          type: rule.type,
+          severity: rule.severity,
           detail: `A checklist item is ${plural(worst, "day")} past its due date`,
           magnitude: worst,
         });
@@ -147,7 +191,10 @@ export const evaluateRisk = (input: RiskInput, rules: RiskRule[]): RiskVerdict =
       const overdue = daysSince(input.expectedGoLiveDate, now);
       if (overdue !== null && overdue > grace) {
         findings.push({
-          ruleId: rule.id, label: rule.label, type: rule.type, severity: rule.severity,
+          ruleId: rule.id,
+          label: rule.label,
+          type: rule.type,
+          severity: rule.severity,
           detail: `Expected go-live was ${plural(overdue, "day")} ago`,
           magnitude: overdue,
         });
@@ -162,7 +209,10 @@ export const evaluateRisk = (input: RiskInput, rules: RiskRule[]): RiskVerdict =
       const silent = daysSince(input.lastActivityAt ?? input.updatedAt, now);
       if (silent !== null && silent >= threshold) {
         findings.push({
-          ruleId: rule.id, label: rule.label, type: rule.type, severity: rule.severity,
+          ruleId: rule.id,
+          label: rule.label,
+          type: rule.type,
+          severity: rule.severity,
           detail: input.lastActivityAt
             ? `No checklist comments for ${plural(silent, "day")}`
             : `No checklist comments, and nothing changed for ${plural(silent, "day")}`,
@@ -175,7 +225,10 @@ export const evaluateRisk = (input: RiskInput, rules: RiskRule[]): RiskVerdict =
     if (rule.type === "pending_acceptance") {
       if (input.pendingAcceptance) {
         findings.push({
-          ruleId: rule.id, label: rule.label, type: rule.type, severity: rule.severity,
+          ruleId: rule.id,
+          label: rule.label,
+          type: rule.type,
+          severity: rule.severity,
           detail: "Handover has not been accepted",
         });
       }
@@ -185,7 +238,10 @@ export const evaluateRisk = (input: RiskInput, rules: RiskRule[]): RiskVerdict =
     if (rule.type === "unassigned_owner") {
       if (!input.assignedOwner) {
         findings.push({
-          ruleId: rule.id, label: rule.label, type: rule.type, severity: rule.severity,
+          ruleId: rule.id,
+          label: rule.label,
+          type: rule.type,
+          severity: rule.severity,
           detail: "No owner is assigned",
         });
       }
@@ -195,14 +251,20 @@ export const evaluateRisk = (input: RiskInput, rules: RiskRule[]): RiskVerdict =
     if (rule.type === "project_state") {
       if ((rule.states || []).includes(input.projectState)) {
         findings.push({
-          ruleId: rule.id, label: rule.label, type: rule.type, severity: rule.severity,
+          ruleId: rule.id,
+          label: rule.label,
+          type: rule.type,
+          severity: rule.severity,
           detail: `Project state is ${input.projectState.replace(/_/g, " ")}`,
         });
       }
     }
   }
 
-  const score = Math.min(100, findings.reduce((sum, f) => sum + SEVERITY_WEIGHT[f.severity], 0));
+  const score = Math.min(
+    100,
+    findings.reduce((sum, f) => sum + SEVERITY_WEIGHT[f.severity], 0),
+  );
   return { level: findings.length > 0 ? "high" : "low", score, findings };
 };
 
@@ -227,7 +289,10 @@ export const withManualRisks = (
       detail: m.title,
     })),
   ];
-  const score = Math.min(100, findings.reduce((sum, f) => sum + SEVERITY_WEIGHT[f.severity], 0));
+  const score = Math.min(
+    100,
+    findings.reduce((sum, f) => sum + SEVERITY_WEIGHT[f.severity], 0),
+  );
   return { level: "high", score, findings };
 };
 
@@ -240,7 +305,8 @@ export const describeVerdict = (verdict: RiskVerdict): string =>
  * invalidate its explanation every single day.
  */
 export const findingsHash = (verdict: RiskVerdict): string => {
-  const bucket = (n?: number) => (n === undefined ? "" : n <= 1 ? "1" : n <= 3 ? "3" : n <= 7 ? "7" : n <= 14 ? "14" : "30+");
+  const bucket = (n?: number) =>
+    n === undefined ? "" : n <= 1 ? "1" : n <= 3 ? "3" : n <= 7 ? "7" : n <= 14 ? "14" : "30+";
   return [
     verdict.level,
     ...verdict.findings.map((f) => `${f.ruleId}:${bucket(f.magnitude)}`).sort(),

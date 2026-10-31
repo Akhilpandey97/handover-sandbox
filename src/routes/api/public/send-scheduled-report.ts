@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getTenantBranding, type TenantBranding } from "@/lib/tenant-branding.server";
-import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo, type TenantIntegrations } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  requireCred,
+  resendFrom,
+  resendReplyTo,
+  type TenantIntegrations,
+} from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
@@ -34,12 +40,17 @@ function isDueNow(schedule: string): boolean {
     const [h, m] = scheduledTime.split(":").map(Number);
     let utcH = h - 5;
     let utcM = m - 30;
-    if (utcM < 0) { utcM += 60; utcH -= 1; }
-    if (utcH < 0) { utcH += 24; }
+    if (utcM < 0) {
+      utcM += 60;
+      utcH -= 1;
+    }
+    if (utcH < 0) {
+      utcH += 24;
+    }
     const utcTime = `${utcH.toString().padStart(2, "0")}:${utcM.toString().padStart(2, "0")}`;
 
     if (daysPart === "daily") return currentTime === utcTime;
-    const days = daysPart.split(",").map(d => d.trim());
+    const days = daysPart.split(",").map((d) => d.trim());
     return days.includes(currentDay) && currentTime === utcTime;
   }
 
@@ -49,23 +60,42 @@ function isDueNow(schedule: string): boolean {
 // ─── Pivot helpers ────────────────────────────────────────────────────────────
 
 const PIVOT_FIELD_LABELS: Record<string, string> = {
-  projectState: "Project State", currentPhase: "Current Phase",
-  currentOwnerTeam: "Current Team", platform: "Platform", category: "Category",
-  assignedOwnerName: "Assigned Owner", currentResponsibility: "Responsibility",
-  integrationType: "Integration Type", pgOnboarding: "PG Onboarding", salesSpoc: "Sales SPOC",
-  arr: "ARR", txnsPerDay: "Txns/Day", aov: "AOV", goLivePercent: "Go Live %", transferCount: "Transfer Count",
+  projectState: "Project State",
+  currentPhase: "Current Phase",
+  currentOwnerTeam: "Current Team",
+  platform: "Platform",
+  category: "Category",
+  assignedOwnerName: "Assigned Owner",
+  currentResponsibility: "Responsibility",
+  integrationType: "Integration Type",
+  pgOnboarding: "PG Onboarding",
+  salesSpoc: "Sales SPOC",
+  arr: "ARR",
+  txnsPerDay: "Txns/Day",
+  aov: "AOV",
+  goLivePercent: "Go Live %",
+  transferCount: "Transfer Count",
 };
 
 const PIVOT_DB_COL: Record<string, string> = {
-  projectState: "project_state", currentPhase: "current_phase",
-  currentOwnerTeam: "current_owner_team", platform: "platform", category: "category",
-  assignedOwnerName: "assigned_owner_name", currentResponsibility: "current_responsibility",
-  integrationType: "integration_type", pgOnboarding: "pg_onboarding", salesSpoc: "sales_spoc",
+  projectState: "project_state",
+  currentPhase: "current_phase",
+  currentOwnerTeam: "current_owner_team",
+  platform: "platform",
+  category: "category",
+  assignedOwnerName: "assigned_owner_name",
+  currentResponsibility: "current_responsibility",
+  integrationType: "integration_type",
+  pgOnboarding: "pg_onboarding",
+  salesSpoc: "sales_spoc",
 };
 
 const PROJECT_STATE_LABELS: Record<string, string> = {
-  not_started: "Not Started", in_progress: "In Progress", on_hold: "On Hold",
-  live: "Live", blocked: "Blocked",
+  not_started: "Not Started",
+  in_progress: "In Progress",
+  on_hold: "On Hold",
+  live: "Live",
+  blocked: "Blocked",
 };
 
 function getPivotGroupValue(project: any, key: string): string {
@@ -80,7 +110,10 @@ function getPivotGroupValue(project: any, key: string): string {
 
 function getPivotNumericValue(project: any, key: string): number {
   const numMap: Record<string, string> = {
-    arr: "arr", txnsPerDay: "txns_per_day", aov: "aov", goLivePercent: "go_live_percent",
+    arr: "arr",
+    txnsPerDay: "txns_per_day",
+    aov: "aov",
+    goLivePercent: "go_live_percent",
   };
   const dbKey = numMap[key];
   if (!dbKey) return 0;
@@ -90,11 +123,16 @@ function getPivotNumericValue(project: any, key: string): number {
 function computeAgg(values: number[], type: string): number {
   if (values.length === 0) return 0;
   switch (type) {
-    case "avg": return values.reduce((a, b) => a + b, 0) / values.length;
-    case "count": return values.length;
-    case "min": return Math.min(...values);
-    case "max": return Math.max(...values);
-    default: return values.reduce((a, b) => a + b, 0); // sum
+    case "avg":
+      return values.reduce((a, b) => a + b, 0) / values.length;
+    case "count":
+      return values.length;
+    case "min":
+      return Math.min(...values);
+    case "max":
+      return Math.max(...values);
+    default:
+      return values.reduce((a, b) => a + b, 0); // sum
   }
 }
 
@@ -118,11 +156,17 @@ interface PivotResult {
   pivotAggType: string;
 }
 
-function computePivot(projects: any[], pivotRowField: string, pivotColField: string, pivotValueField: string, pivotAggType: string): PivotResult {
+function computePivot(
+  projects: any[],
+  pivotRowField: string,
+  pivotColField: string,
+  pivotValueField: string,
+  pivotAggType: string,
+): PivotResult {
   const rowValues = new Set<string>();
   const colValues = new Set<string>();
 
-  projects.forEach(p => {
+  projects.forEach((p) => {
     rowValues.add(getPivotGroupValue(p, pivotRowField));
     if (pivotColField !== "none") colValues.add(getPivotGroupValue(p, pivotColField));
   });
@@ -132,8 +176,13 @@ function computePivot(projects: any[], pivotRowField: string, pivotColField: str
   const showGrandTotal = sortedCols.length > 1;
 
   const grid: Record<string, Record<string, number[]>> = {};
-  sortedRows.forEach(r => { grid[r] = {}; sortedCols.forEach(c => { grid[r][c] = []; }); });
-  projects.forEach(p => {
+  sortedRows.forEach((r) => {
+    grid[r] = {};
+    sortedCols.forEach((c) => {
+      grid[r][c] = [];
+    });
+  });
+  projects.forEach((p) => {
     const rowVal = getPivotGroupValue(p, pivotRowField);
     const colVal = pivotColField !== "none" ? getPivotGroupValue(p, pivotColField) : "Total";
     const numVal = getPivotNumericValue(p, pivotValueField);
@@ -143,11 +192,13 @@ function computePivot(projects: any[], pivotRowField: string, pivotColField: str
   const result: Record<string, Record<string, number>> = {};
   const colTotals: Record<string, number[]> = {};
   const rowTotals: Record<string, number> = {};
-  sortedCols.forEach(c => { colTotals[c] = []; });
-  sortedRows.forEach(r => {
+  sortedCols.forEach((c) => {
+    colTotals[c] = [];
+  });
+  sortedRows.forEach((r) => {
     result[r] = {};
     let rowSum = 0;
-    sortedCols.forEach(c => {
+    sortedCols.forEach((c) => {
       const v = computeAgg(grid[r][c], pivotAggType);
       result[r][c] = v;
       rowSum += v;
@@ -156,37 +207,62 @@ function computePivot(projects: any[], pivotRowField: string, pivotColField: str
     rowTotals[r] = rowSum;
   });
   const grandTotals: Record<string, number> = {};
-  sortedCols.forEach(c => { grandTotals[c] = computeAgg(colTotals[c], pivotAggType); });
+  sortedCols.forEach((c) => {
+    grandTotals[c] = computeAgg(colTotals[c], pivotAggType);
+  });
   const overallTotal = Object.values(grandTotals).reduce((s, v) => s + v, 0);
 
   return {
     rowLabel: PIVOT_FIELD_LABELS[pivotRowField] || pivotRowField,
-    sortedRows, sortedCols, showGrandTotal, result, grandTotals, rowTotals, overallTotal,
-    pivotValueField, pivotAggType,
+    sortedRows,
+    sortedCols,
+    showGrandTotal,
+    result,
+    grandTotals,
+    rowTotals,
+    overallTotal,
+    pivotValueField,
+    pivotAggType,
   };
 }
 
 function buildPivotPlainText(p: PivotResult): string {
   const lines: string[] = [];
-  lines.push(`${p.rowLabel} | ${p.sortedCols.join(" | ")}${p.showGrandTotal ? " | Grand Total" : ""}`);
+  lines.push(
+    `${p.rowLabel} | ${p.sortedCols.join(" | ")}${p.showGrandTotal ? " | Grand Total" : ""}`,
+  );
   lines.push("-".repeat(60));
-  p.sortedRows.forEach(r => {
-    const cells = p.sortedCols.map(c => formatAggVal(p.pivotValueField, p.result[r]?.[c] || 0, p.pivotAggType));
-    const gt = p.showGrandTotal ? ` | ${formatAggVal(p.pivotValueField, p.rowTotals[r], p.pivotAggType)}` : "";
+  p.sortedRows.forEach((r) => {
+    const cells = p.sortedCols.map((c) =>
+      formatAggVal(p.pivotValueField, p.result[r]?.[c] || 0, p.pivotAggType),
+    );
+    const gt = p.showGrandTotal
+      ? ` | ${formatAggVal(p.pivotValueField, p.rowTotals[r], p.pivotAggType)}`
+      : "";
     lines.push(`${r} | ${cells.join(" | ")}${gt}`);
   });
   lines.push("-".repeat(60));
-  const totalCells = p.sortedCols.map(c => formatAggVal(p.pivotValueField, p.grandTotals[c] || 0, p.pivotAggType));
-  const overall = p.showGrandTotal ? ` | ${formatAggVal(p.pivotValueField, p.overallTotal, p.pivotAggType)}` : "";
+  const totalCells = p.sortedCols.map((c) =>
+    formatAggVal(p.pivotValueField, p.grandTotals[c] || 0, p.pivotAggType),
+  );
+  const overall = p.showGrandTotal
+    ? ` | ${formatAggVal(p.pivotValueField, p.overallTotal, p.pivotAggType)}`
+    : "";
   lines.push(`Grand Total | ${totalCells.join(" | ")}${overall}`);
   return lines.join("\n");
 }
 
-function buildPivotHtml(projects: any[], pivotRowField: string, pivotColField: string, pivotValueField: string, pivotAggType: string): string {
+function buildPivotHtml(
+  projects: any[],
+  pivotRowField: string,
+  pivotColField: string,
+  pivotValueField: string,
+  pivotAggType: string,
+): string {
   const rowValues = new Set<string>();
   const colValues = new Set<string>();
 
-  projects.forEach(p => {
+  projects.forEach((p) => {
     rowValues.add(getPivotGroupValue(p, pivotRowField));
     if (pivotColField !== "none") colValues.add(getPivotGroupValue(p, pivotColField));
   });
@@ -197,8 +273,13 @@ function buildPivotHtml(projects: any[], pivotRowField: string, pivotColField: s
 
   // Build grid
   const grid: Record<string, Record<string, number[]>> = {};
-  sortedRows.forEach(r => { grid[r] = {}; sortedCols.forEach(c => { grid[r][c] = []; }); });
-  projects.forEach(p => {
+  sortedRows.forEach((r) => {
+    grid[r] = {};
+    sortedCols.forEach((c) => {
+      grid[r][c] = [];
+    });
+  });
+  projects.forEach((p) => {
     const rowVal = getPivotGroupValue(p, pivotRowField);
     const colVal = pivotColField !== "none" ? getPivotGroupValue(p, pivotColField) : "Total";
     const numVal = getPivotNumericValue(p, pivotValueField);
@@ -207,16 +288,20 @@ function buildPivotHtml(projects: any[], pivotRowField: string, pivotColField: s
 
   const result: Record<string, Record<string, number>> = {};
   const colTotals: Record<string, number[]> = {};
-  sortedCols.forEach(c => { colTotals[c] = []; });
-  sortedRows.forEach(r => {
+  sortedCols.forEach((c) => {
+    colTotals[c] = [];
+  });
+  sortedRows.forEach((r) => {
     result[r] = {};
-    sortedCols.forEach(c => {
+    sortedCols.forEach((c) => {
       result[r][c] = computeAgg(grid[r][c], pivotAggType);
       colTotals[c].push(...grid[r][c]);
     });
   });
   const grandTotals: Record<string, number> = {};
-  sortedCols.forEach(c => { grandTotals[c] = computeAgg(colTotals[c], pivotAggType); });
+  sortedCols.forEach((c) => {
+    grandTotals[c] = computeAgg(colTotals[c], pivotAggType);
+  });
 
   const rowLabel = PIVOT_FIELD_LABELS[pivotRowField] || pivotRowField;
   const th = (txt: string, extra = "") =>
@@ -226,18 +311,30 @@ function buildPivotHtml(projects: any[], pivotRowField: string, pivotColField: s
   const tdLeft = (txt: string, bg = "#ffffff", bold = false) =>
     `<td style="padding:6px 12px;border-bottom:1px solid #d5e0e6;font-size:12px;color:#3b5466;background:${bg};${bold ? "font-weight:600;" : ""}">${txt}</td>`;
 
-  const headerCols = sortedCols.map(c => th(c, "text-align:right;")).join("");
-  const grandTotalHeader = showGrandTotal ? th("Grand Total", "text-align:right;background:#d5e0e6;") : "";
+  const headerCols = sortedCols.map((c) => th(c, "text-align:right;")).join("");
+  const grandTotalHeader = showGrandTotal
+    ? th("Grand Total", "text-align:right;background:#d5e0e6;")
+    : "";
 
-  const bodyRows = sortedRows.map((row, i) => {
-    const bg = i % 2 === 0 ? "#ffffff" : "#f7fafc";
-    const rowTotal = sortedCols.reduce((s, c) => s + (result[row]?.[c] || 0), 0);
-    const cells = sortedCols.map(c => td(formatAggVal(pivotValueField, result[row]?.[c] || 0, pivotAggType), bg)).join("");
-    const gtCell = showGrandTotal ? td(formatAggVal(pivotValueField, rowTotal, pivotAggType), bg, true) : "";
-    return `<tr>${tdLeft(row, bg)}${cells}${gtCell}</tr>`;
-  }).join("");
+  const bodyRows = sortedRows
+    .map((row, i) => {
+      const bg = i % 2 === 0 ? "#ffffff" : "#f7fafc";
+      const rowTotal = sortedCols.reduce((s, c) => s + (result[row]?.[c] || 0), 0);
+      const cells = sortedCols
+        .map((c) => td(formatAggVal(pivotValueField, result[row]?.[c] || 0, pivotAggType), bg))
+        .join("");
+      const gtCell = showGrandTotal
+        ? td(formatAggVal(pivotValueField, rowTotal, pivotAggType), bg, true)
+        : "";
+      return `<tr>${tdLeft(row, bg)}${cells}${gtCell}</tr>`;
+    })
+    .join("");
 
-  const grandTotalCells = sortedCols.map(c => td(formatAggVal(pivotValueField, grandTotals[c] || 0, pivotAggType), "#e6f0f5", true)).join("");
+  const grandTotalCells = sortedCols
+    .map((c) =>
+      td(formatAggVal(pivotValueField, grandTotals[c] || 0, pivotAggType), "#e6f0f5", true),
+    )
+    .join("");
   const overallTotal = Object.values(grandTotals).reduce((s, v) => s + v, 0);
   const grandTotalRow = `<tr>
     ${tdLeft("Grand Total", "#e6f0f5", true)}
@@ -268,12 +365,23 @@ function applyFilterAndSort(projects: any[], filterState: any): any[] {
   if (!filterState) return projects;
 
   const {
-    teamFilter = [], ownerFilter = [], stateFilter = [], platformFilter = [],
-    categoryFilter = [], responsibilityFilter = [],
-    arrMin, arrMax,
-    kickOffFrom, kickOffTo, goLiveFrom, goLiveTo,
-    expectedGoLiveFrom, expectedGoLiveTo, expectedGoLiveNone,
-    sortField = "none", sortDir = "asc",
+    teamFilter = [],
+    ownerFilter = [],
+    stateFilter = [],
+    platformFilter = [],
+    categoryFilter = [],
+    responsibilityFilter = [],
+    arrMin,
+    arrMax,
+    kickOffFrom,
+    kickOffTo,
+    goLiveFrom,
+    goLiveTo,
+    expectedGoLiveFrom,
+    expectedGoLiveTo,
+    expectedGoLiveNone,
+    sortField = "none",
+    sortDir = "asc",
   } = filterState;
 
   let result = projects.filter((p: any) => {
@@ -286,7 +394,11 @@ function applyFilterAndSort(projects: any[], filterState: any): any[] {
     if (stateFilter.length > 0 && !stateFilter.includes(p.project_state)) return false;
     if (platformFilter.length > 0 && !platformFilter.includes(p.platform || "")) return false;
     if (categoryFilter.length > 0 && !categoryFilter.includes(p.category || "")) return false;
-    if (responsibilityFilter.length > 0 && !responsibilityFilter.includes(p.current_responsibility || "")) return false;
+    if (
+      responsibilityFilter.length > 0 &&
+      !responsibilityFilter.includes(p.current_responsibility || "")
+    )
+      return false;
     if (arrMin && Number(p.arr) < parseFloat(arrMin)) return false;
     if (arrMax && Number(p.arr) > parseFloat(arrMax)) return false;
     if (kickOffFrom && p.kick_off_date < kickOffFrom) return false;
@@ -299,8 +411,16 @@ function applyFilterAndSort(projects: any[], filterState: any): any[] {
       const glDate = p.go_live_date || p.expected_go_live_date || "";
       if (!glDate || glDate > goLiveTo) return false;
     }
-    if (expectedGoLiveFrom && !(p.expected_go_live_date && p.expected_go_live_date >= expectedGoLiveFrom)) return false;
-    if (expectedGoLiveTo && !(p.expected_go_live_date && p.expected_go_live_date <= expectedGoLiveTo)) return false;
+    if (
+      expectedGoLiveFrom &&
+      !(p.expected_go_live_date && p.expected_go_live_date >= expectedGoLiveFrom)
+    )
+      return false;
+    if (
+      expectedGoLiveTo &&
+      !(p.expected_go_live_date && p.expected_go_live_date <= expectedGoLiveTo)
+    )
+      return false;
     if (expectedGoLiveNone && p.expected_go_live_date) return false;
     return true;
   });
@@ -312,9 +432,12 @@ function applyFilterAndSort(projects: any[], filterState: any): any[] {
         return sortDir === "asc" ? diff : -diff;
       }
       const fieldMap: Record<string, string> = {
-        merchantName: "merchant_name", platform: "platform",
-        owner: "assigned_owner_name", state: "project_state",
-        kickOffDate: "kick_off_date", expectedGoLiveDate: "expected_go_live_date",
+        merchantName: "merchant_name",
+        platform: "platform",
+        owner: "assigned_owner_name",
+        state: "project_state",
+        kickOffDate: "kick_off_date",
+        expectedGoLiveDate: "expected_go_live_date",
         goLiveDate: "go_live_date",
       };
       const dbKey = fieldMap[sortField] || sortField;
@@ -331,29 +454,61 @@ function applyFilterAndSort(projects: any[], filterState: any): any[] {
 
 /** Column headings, overridden per workspace by labelledColumns() below. */
 const columnLabels: Record<string, string> = {
-  merchantName: "Merchant Name", mid: "MID", platform: "Platform", category: "Category",
-  arr: "ARR", txnsPerDay: "Txns/Day", aov: "AOV",
-  projectState: "Project State", currentPhase: "Current Phase",
-  currentOwnerTeam: "Current Team", assignedOwnerName: "Assigned Owner",
-  currentResponsibility: "Responsibility", goLivePercent: "Go Live %",
+  merchantName: "Merchant Name",
+  mid: "MID",
+  platform: "Platform",
+  category: "Category",
+  arr: "ARR",
+  txnsPerDay: "Txns/Day",
+  aov: "AOV",
+  projectState: "Project State",
+  currentPhase: "Current Phase",
+  currentOwnerTeam: "Current Team",
+  assignedOwnerName: "Assigned Owner",
+  currentResponsibility: "Responsibility",
+  goLivePercent: "Go Live %",
   pendingAcceptance: "Pending Acceptance",
-  kickOffDate: "Kick-Off Date", expectedGoLiveDate: "Expected Go-Live", goLiveDate: "Go-Live Date",
-  salesSpoc: "Sales SPOC", integrationType: "Integration Type", pgOnboarding: "PG Onboarding",
-  brandUrl: "Brand URL", jiraLink: "JIRA Link", brdLink: "BRD Link",
-  mintNotes: "MINT Notes", projectNotes: "Project Notes", currentPhaseComment: "Phase Comment",
+  kickOffDate: "Kick-Off Date",
+  expectedGoLiveDate: "Expected Go-Live",
+  goLiveDate: "Go-Live Date",
+  salesSpoc: "Sales SPOC",
+  integrationType: "Integration Type",
+  pgOnboarding: "PG Onboarding",
+  brandUrl: "Brand URL",
+  jiraLink: "JIRA Link",
+  brdLink: "BRD Link",
+  mintNotes: "MINT Notes",
+  projectNotes: "Project Notes",
+  currentPhaseComment: "Phase Comment",
 };
 
 const dbToField: Record<string, string> = {
-  merchantName: "merchant_name", mid: "mid", platform: "platform", category: "category",
-  arr: "arr", txnsPerDay: "txns_per_day", aov: "aov",
-  projectState: "project_state", currentPhase: "current_phase",
-  currentOwnerTeam: "current_owner_team", assignedOwnerName: "assigned_owner_name",
-  currentResponsibility: "current_responsibility", goLivePercent: "go_live_percent",
+  merchantName: "merchant_name",
+  mid: "mid",
+  platform: "platform",
+  category: "category",
+  arr: "arr",
+  txnsPerDay: "txns_per_day",
+  aov: "aov",
+  projectState: "project_state",
+  currentPhase: "current_phase",
+  currentOwnerTeam: "current_owner_team",
+  assignedOwnerName: "assigned_owner_name",
+  currentResponsibility: "current_responsibility",
+  goLivePercent: "go_live_percent",
   pendingAcceptance: "pending_acceptance",
-  kickOffDate: "kick_off_date", expectedGoLiveDate: "expected_go_live_date", goLiveDate: "go_live_date",
-  salesSpoc: "sales_spoc", integrationType: "integration_type", pgOnboarding: "pg_onboarding",
-  brandUrl: "brand_url", jiraLink: "jira_link", brdLink: "brd_link",
-  mintNotes: "mint_notes", projectNotes: "project_notes", currentPhaseComment: "current_phase_comment",
+  kickOffDate: "kick_off_date",
+  expectedGoLiveDate: "expected_go_live_date",
+  goLiveDate: "go_live_date",
+  salesSpoc: "sales_spoc",
+  integrationType: "integration_type",
+  pgOnboarding: "pg_onboarding",
+  brandUrl: "brand_url",
+  jiraLink: "jira_link",
+  brdLink: "brd_link",
+  mintNotes: "mint_notes",
+  projectNotes: "project_notes",
+  currentPhaseComment: "current_phase_comment",
 };
 
 function getFlatCellValue(project: any, key: string): string {
@@ -379,7 +534,9 @@ async function fetchReportProjects(supabase: any, tenantId: string | null): Prom
   }
 
   const activeProjects = (rawProjects || []).filter((project: any) => !project.archived);
-  const ownerIds = Array.from(new Set(activeProjects.map((project: any) => project.assigned_owner).filter(Boolean)));
+  const ownerIds = Array.from(
+    new Set(activeProjects.map((project: any) => project.assigned_owner).filter(Boolean)),
+  );
 
   if (ownerIds.length === 0) {
     return activeProjects.map((project: any) => ({ ...project, assigned_owner_name: null }));
@@ -422,7 +579,7 @@ function labelledColumns(names: TenantBranding): Record<string, string> {
 async function sendReportEmail(
   supabase: any,
   report: any,
-  creds: TenantIntegrations
+  creds: TenantIntegrations,
 ): Promise<{ sent: number; failed: number; errors: string[]; execution_id?: string }> {
   const branding = await getTenantBranding(report.tenant_id);
   const columnLabel = labelledColumns(branding);
@@ -450,9 +607,14 @@ async function sendReportEmail(
     projects = await fetchReportProjects(supabase, report.tenant_id);
   } catch (error) {
     if (execution) {
-      await supabase.from("report_executions").update({
-        status: "failed", error_message: (error as Error).message, completed_at: new Date().toISOString(),
-      }).eq("id", execution.id);
+      await supabase
+        .from("report_executions")
+        .update({
+          status: "failed",
+          error_message: (error as Error).message,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", execution.id);
     }
     return { sent: 0, failed: 1, errors: [(error as Error).message], execution_id: execution?.id };
   }
@@ -465,13 +627,22 @@ async function sendReportEmail(
   let filterState: any = null;
   try {
     if (filterEl) filterState = JSON.parse(filterEl.slice("__FILTER_STATE__:".length));
-  } catch { /* ignore */ }
-  const columns = allColumns.filter((c: string) => !c.startsWith("__FILTER_STATE__:") && c !== PIVOT_MARKER);
+  } catch {
+    /* ignore */
+  }
+  const columns = allColumns.filter(
+    (c: string) => !c.startsWith("__FILTER_STATE__:") && c !== PIVOT_MARKER,
+  );
 
   // Apply filters + sort
   const filteredProjects = applyFilterAndSort(projects, filterState);
 
-  const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const dateStr = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   let tableHtml: string;
   let footerText: string;
@@ -480,55 +651,87 @@ async function sendReportEmail(
 
   if (isPivot) {
     const [pivotRowField, pivotColField, pivotValueField, pivotAggType] = columns;
-    const pivot = computePivot(filteredProjects, pivotRowField, pivotColField, pivotValueField, pivotAggType);
-    tableHtml = buildPivotHtml(filteredProjects, pivotRowField, pivotColField, pivotValueField, pivotAggType);
+    const pivot = computePivot(
+      filteredProjects,
+      pivotRowField,
+      pivotColField,
+      pivotValueField,
+      pivotAggType,
+    );
+    tableHtml = buildPivotHtml(
+      filteredProjects,
+      pivotRowField,
+      pivotColField,
+      pivotValueField,
+      pivotAggType,
+    );
 
     // Mobile cards: one card per row
-    mobileCardsHtml = pivot.sortedRows.map(r => {
-      const cells = pivot.sortedCols.map(c =>
-        `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:#546978;">${c}</span><span style="color:#11263b;font-weight:500;">${formatAggVal(pivot.pivotValueField, pivot.result[r]?.[c] || 0, pivot.pivotAggType)}</span></div>`
-      ).join("");
-      const gt = pivot.showGrandTotal
-        ? `<div style="display:flex;justify-content:space-between;padding:6px 0 0;margin-top:6px;border-top:1px solid #d5e0e6;font-size:13px;font-weight:600;"><span style="color:#3b5466;">Grand Total</span><span style="color:#11263b;">${formatAggVal(pivot.pivotValueField, pivot.rowTotals[r], pivot.pivotAggType)}</span></div>`
-        : "";
-      return `<div style="background:#ffffff;border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:8px;"><div style="font-weight:600;font-size:14px;color:#11263b;margin-bottom:8px;">${r}</div>${cells}${gt}</div>`;
-    }).join("");
+    mobileCardsHtml = pivot.sortedRows
+      .map((r) => {
+        const cells = pivot.sortedCols
+          .map(
+            (c) =>
+              `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:#546978;">${c}</span><span style="color:#11263b;font-weight:500;">${formatAggVal(pivot.pivotValueField, pivot.result[r]?.[c] || 0, pivot.pivotAggType)}</span></div>`,
+          )
+          .join("");
+        const gt = pivot.showGrandTotal
+          ? `<div style="display:flex;justify-content:space-between;padding:6px 0 0;margin-top:6px;border-top:1px solid #d5e0e6;font-size:13px;font-weight:600;"><span style="color:#3b5466;">Grand Total</span><span style="color:#11263b;">${formatAggVal(pivot.pivotValueField, pivot.rowTotals[r], pivot.pivotAggType)}</span></div>`
+          : "";
+        return `<div style="background:#ffffff;border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:8px;"><div style="font-weight:600;font-size:14px;color:#11263b;margin-bottom:8px;">${r}</div>${cells}${gt}</div>`;
+      })
+      .join("");
 
-    const colLabel = pivotColField !== "none" ? (PIVOT_FIELD_LABELS[pivotColField] || pivotColField) : "—";
+    const colLabel =
+      pivotColField !== "none" ? PIVOT_FIELD_LABELS[pivotColField] || pivotColField : "—";
     const valLabel = PIVOT_FIELD_LABELS[pivotValueField] || pivotValueField;
     footerText = `Rows: ${pivot.rowLabel} · Columns: ${colLabel} · Values: ${valLabel} (${pivotAggType}) · ${filteredProjects.length} projects · Generated at ${new Date().toLocaleTimeString()}`;
     plainTextBody = `${report.name}\nScheduled Report — ${dateStr}\n\n${buildPivotPlainText(pivot)}\n\n${footerText}`;
   } else {
-    const headerRow = columns.map((c: string) =>
-      `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d5e0e6;background:#eef3f6;font-size:12px;color:#3b5466;">${columnLabel[c] || c}</th>`
-    ).join("");
-    const bodyRows = filteredProjects.map((p: any, i: number) => {
-      const bgColor = i % 2 === 0 ? "#ffffff" : "#f7fafc";
-      const cells = columns.map((c: string) =>
-        `<td style="padding:6px 12px;border-bottom:1px solid #d5e0e6;font-size:12px;color:#3b5466;background:${bgColor};">${getFlatCellValue(p, c)}</td>`
-      ).join("");
-      return `<tr>${cells}</tr>`;
-    }).join("");
+    const headerRow = columns
+      .map(
+        (c: string) =>
+          `<th style="padding:8px 12px;text-align:left;border-bottom:2px solid #d5e0e6;background:#eef3f6;font-size:12px;color:#3b5466;">${columnLabel[c] || c}</th>`,
+      )
+      .join("");
+    const bodyRows = filteredProjects
+      .map((p: any, i: number) => {
+        const bgColor = i % 2 === 0 ? "#ffffff" : "#f7fafc";
+        const cells = columns
+          .map(
+            (c: string) =>
+              `<td style="padding:6px 12px;border-bottom:1px solid #d5e0e6;font-size:12px;color:#3b5466;background:${bgColor};">${getFlatCellValue(p, c)}</td>`,
+          )
+          .join("");
+        return `<tr>${cells}</tr>`;
+      })
+      .join("");
     tableHtml = `<table role="presentation" style="width:100%;border-collapse:collapse;"><thead><tr>${headerRow}</tr></thead><tbody>${bodyRows}</tbody></table>`;
 
     // Mobile cards: one card per project (label-value pairs)
-    mobileCardsHtml = filteredProjects.map((p: any) => {
-      const rows = columns.map((c: string) =>
-        `<div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:13px;"><span style="color:#546978;flex-shrink:0;">${columnLabel[c] || c}</span><span style="color:#11263b;text-align:right;word-break:break-word;">${getFlatCellValue(p, c) || "—"}</span></div>`
-      ).join("");
-      return `<div style="background:#ffffff;border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:8px;">${rows}</div>`;
-    }).join("");
+    mobileCardsHtml = filteredProjects
+      .map((p: any) => {
+        const rows = columns
+          .map(
+            (c: string) =>
+              `<div style="display:flex;justify-content:space-between;gap:12px;padding:4px 0;font-size:13px;"><span style="color:#546978;flex-shrink:0;">${columnLabel[c] || c}</span><span style="color:#11263b;text-align:right;word-break:break-word;">${getFlatCellValue(p, c) || "—"}</span></div>`,
+          )
+          .join("");
+        return `<div style="background:#ffffff;border:1px solid #d5e0e6;border-radius:8px;padding:12px 14px;margin-bottom:8px;">${rows}</div>`;
+      })
+      .join("");
 
-    const filterSummary = filterState && (filterState.activeFilterCount > 0 || filterState.sortField !== "none")
-      ? ` (filtered from ${projects.length})`
-      : "";
+    const filterSummary =
+      filterState && (filterState.activeFilterCount > 0 || filterState.sortField !== "none")
+        ? ` (filtered from ${projects.length})`
+        : "";
     footerText = `Total: ${filteredProjects.length} projects${filterSummary} · Generated at ${new Date().toLocaleTimeString()}`;
 
     // Plain text version
     const ptHeader = columns.map((c: string) => columnLabel[c] || c).join(" | ");
-    const ptRows = filteredProjects.map((p: any) =>
-      columns.map((c: string) => getFlatCellValue(p, c) || "—").join(" | ")
-    ).join("\n");
+    const ptRows = filteredProjects
+      .map((p: any) => columns.map((c: string) => getFlatCellValue(p, c) || "—").join(" | "))
+      .join("\n");
     plainTextBody = `${report.name}\nScheduled Report — ${dateStr}\n\n${ptHeader}\n${"-".repeat(60)}\n${ptRows}\n\n${footerText}`;
   }
 
@@ -611,7 +814,7 @@ async function sendReportEmail(
       if (!emailRes.ok) {
         console.error("Resend batch failed:", emailRes.status, result);
         chunk.forEach((email: string) =>
-          errors.push(`${email}: ${result.message || result.error || `HTTP ${emailRes.status}`}`)
+          errors.push(`${email}: ${result.message || result.error || `HTTP ${emailRes.status}`}`),
         );
       } else {
         // Resend batch returns { data: [{ id }, ...] } — count entries with ids
@@ -634,11 +837,14 @@ async function sendReportEmail(
 
   const finalStatus = errors.length === 0 ? "success" : successCount > 0 ? "partial" : "failed";
   if (execution) {
-    await supabase.from("report_executions").update({
-      status: finalStatus,
-      error_message: errors.length > 0 ? errors.join("; ") : null,
-      completed_at: new Date().toISOString(),
-    }).eq("id", execution.id);
+    await supabase
+      .from("report_executions")
+      .update({
+        status: finalStatus,
+        error_message: errors.length > 0 ? errors.join("; ") : null,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", execution.id);
   }
 
   return { sent: successCount, failed: errors.length, errors, execution_id: execution?.id };
@@ -653,13 +859,17 @@ async function handler(req: Request): Promise<Response> {
   if (denied) return denied;
 
   try {
-    const SUPABASE_URL = process.env['SUPABASE_URL']!;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+    const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     let body: any = {};
-    try { body = await req.json(); } catch { body = {}; }
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
 
     const { report_id } = body;
 
@@ -672,9 +882,14 @@ async function handler(req: Request): Promise<Response> {
 
       if (reportErr || !report) throw new Error("Report not found");
 
-      const result = await sendReportEmail(supabase, report, await getTenantIntegrations(report.tenant_id));
+      const result = await sendReportEmail(
+        supabase,
+        report,
+        await getTenantIntegrations(report.tenant_id),
+      );
       return new Response(JSON.stringify({ success: result.errors.length === 0, ...result }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -689,12 +904,18 @@ async function handler(req: Request): Promise<Response> {
     if (reportsErr) throw new Error("Failed to fetch reports");
 
     const dueReports = (allReports || []).filter((r: any) => isDueNow(r.schedule));
-    console.log(`Found ${allReports?.length || 0} scheduled reports, ${dueReports.length} are due now`);
+    console.log(
+      `Found ${allReports?.length || 0} scheduled reports, ${dueReports.length} are due now`,
+    );
 
     if (dueReports.length === 0) {
-      return new Response(JSON.stringify({ message: "No reports due", checked: allReports?.length || 0 }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ message: "No reports due", checked: allReports?.length || 0 }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const results: any[] = [];
@@ -704,17 +925,23 @@ async function handler(req: Request): Promise<Response> {
         continue;
       }
       console.log(`Sending report "${report.name}" to ${report.recipients.length} recipients`);
-      const result = await sendReportEmail(supabase, report, await getTenantIntegrations(report.tenant_id));
+      const result = await sendReportEmail(
+        supabase,
+        report,
+        await getTenantIntegrations(report.tenant_id),
+      );
       results.push({ report_name: report.name, ...result });
     }
 
     return new Response(JSON.stringify({ reports_processed: results.length, results }), {
-      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("send-scheduled-report error:", error);
     return new Response(JSON.stringify({ error: (error as Error).message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 }

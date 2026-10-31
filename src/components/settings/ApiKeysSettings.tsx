@@ -90,7 +90,8 @@ export function ApiKeysSettings() {
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="portal-heading flex items-center gap-2">
-            <KeyRound className="h-4 w-4 text-primary" />API Keys
+            <KeyRound className="h-4 w-4 text-primary" />
+            API Keys
           </CardTitle>
           <CardDescription>Only workspace admins and managers can manage API keys.</CardDescription>
         </CardHeader>
@@ -121,8 +122,17 @@ export function ApiKeysSettings() {
             onChange={(e) => setName(e.target.value)}
             className="h-8 text-xs"
           />
-          <Button onClick={create} disabled={creating || !name.trim()} size="sm" className="h-8 gap-1.5 shrink-0 text-xs">
-            {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+          <Button
+            onClick={create}
+            disabled={creating || !name.trim()}
+            size="sm"
+            className="h-8 gap-1.5 shrink-0 text-xs"
+          >
+            {creating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Plus className="h-3.5 w-3.5" />
+            )}
             Create key
           </Button>
         </div>

@@ -15,7 +15,9 @@ export const EglRulesSettings = () => {
   const [draft, setDraft] = useState<EglRule[]>(rules);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { setDraft(rules); }, [rules]);
+  useEffect(() => {
+    setDraft(rules);
+  }, [rules]);
 
   const update = (id: string, patch: Partial<EglRule>) =>
     setDraft((d) => d.map((r) => (r.id === id ? { ...r, ...patch } : r)));
@@ -66,7 +68,9 @@ export const EglRulesSettings = () => {
               />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{rule.label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{EGL_RULE_DESCRIPTIONS[rule.id]}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {EGL_RULE_DESCRIPTIONS[rule.id]}
+                </p>
 
                 {rule.enabled && rule.id === "stalled" && (
                   <div className="mt-2 flex items-center gap-2">
@@ -75,7 +79,9 @@ export const EglRulesSettings = () => {
                       type="number"
                       min={1}
                       value={rule.days ?? 5}
-                      onChange={(e) => update(rule.id, { days: Math.max(1, Number(e.target.value) || 1) })}
+                      onChange={(e) =>
+                        update(rule.id, { days: Math.max(1, Number(e.target.value) || 1) })
+                      }
                       className="h-8 w-24 text-xs"
                     />
                   </div>
@@ -114,7 +120,12 @@ export const EglRulesSettings = () => {
         ))}
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <Button variant="ghost" size="sm" onClick={() => setDraft(DEFAULT_EGL_RULES)} className="gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setDraft(DEFAULT_EGL_RULES)}
+            className="gap-1.5"
+          >
             <RotateCcw className="h-3.5 w-3.5" /> Reset to defaults
           </Button>
           <Button size="sm" onClick={save} disabled={saving} className="ml-auto">

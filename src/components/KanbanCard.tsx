@@ -2,7 +2,14 @@ import { Project, ProjectState, projectStateLabels, projectStateColors } from "@
 import { useLabels } from "@/contexts/LabelsContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Calendar, User, Check, Pencil, Timer, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -17,17 +24,21 @@ import { EditProjectDialog } from "./EditProjectDialog";
 import { formatArrCr } from "@/lib/arr";
 import { openProjectInNewTab } from "@/lib/open-project";
 
-
 // riskVerdict is passed in rather than looked up here: the board renders one
 // card per project, and each hook call would re-evaluate the whole portfolio.
-export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVerdict?: RiskVerdict }) => {
+export const KanbanCard = ({
+  project,
+  riskVerdict,
+}: {
+  project: Project;
+  riskVerdict?: RiskVerdict;
+}) => {
   const navigate = useNavigate();
   const { stateLabels, getLabel } = useLabels();
   const { updateProject } = useProjects();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
-
 
   const stateLabel =
     stateLabels[project.projectState] ||
@@ -38,12 +49,19 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
 
   const isLive = project.projectState === "live";
   const goLiveDate = project.dates?.goLiveDate
-    ? new Date(project.dates.goLiveDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    ? new Date(project.dates.goLiveDate).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
     : null;
   const expectedGoLive = project.dates?.expectedGoLiveDate
-    ? new Date(project.dates.expectedGoLiveDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    ? new Date(project.dates.expectedGoLiveDate).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
     : null;
-
 
   // TAT: from Kickoff → Actual Go-Live (if live) or today (in-flight)
   const tatInfo = (() => {
@@ -85,7 +103,10 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
           </button>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setEditOpen(true); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditOpen(true);
+            }}
             className="shrink-0 p-1 -m-1 rounded text-muted-foreground hover:text-primary hover:bg-accent transition-colors"
             title="Edit project"
             aria-label="Edit project"
@@ -93,7 +114,6 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
             <Pencil className="h-3 w-3" />
           </button>
         </div>
-
 
         <div className="flex items-center gap-1.5 flex-wrap">
           <DropdownMenu>
@@ -104,7 +124,12 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
                 className="focus:outline-none focus:ring-2 focus:ring-ring rounded"
                 title="Change project state"
               >
-                <Badge className={cn("text-xs px-1.5 py-0 cursor-pointer inline-flex items-center gap-0.5", projectStateColors[project.projectState])}>
+                <Badge
+                  className={cn(
+                    "text-xs px-1.5 py-0 cursor-pointer inline-flex items-center gap-0.5",
+                    projectStateColors[project.projectState],
+                  )}
+                >
                   {stateLabel}
                   <ChevronDown className="h-2.5 w-2.5" />
                 </Badge>
@@ -142,24 +167,42 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
           <Calendar className="h-3 w-3" />
           <span>{isLive ? "Actual Go-Live:" : "Expected Go-Live:"}</span>
           {isLive ? (
-            <span className={cn("font-medium", goLiveDate ? "text-foreground" : "text-muted-foreground/60 italic")}>
+            <span
+              className={cn(
+                "font-medium",
+                goLiveDate ? "text-foreground" : "text-muted-foreground/60 italic",
+              )}
+            >
               {goLiveDate || "Not set"}
             </span>
           ) : (
             <GoLiveDate
               project={project}
               fallback="Not set"
-              format={(d) => new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-              className={cn("font-medium", expectedGoLive ? "text-foreground" : "text-muted-foreground/60 italic")}
+              format={(d) =>
+                new Date(d).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
+              }
+              className={cn(
+                "font-medium",
+                expectedGoLive ? "text-foreground" : "text-muted-foreground/60 italic",
+              )}
             />
           )}
         </div>
 
-
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <User className="h-3 w-3" />
           <span>Owner:</span>
-          <span className={cn("font-medium", project.assignedOwnerName ? "text-foreground" : "text-muted-foreground/60 italic")}>
+          <span
+            className={cn(
+              "font-medium",
+              project.assignedOwnerName ? "text-foreground" : "text-muted-foreground/60 italic",
+            )}
+          >
             {project.assignedOwnerName || "Unassigned"}
           </span>
         </div>
@@ -174,22 +217,23 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
             <span className="font-medium text-foreground">{tatInfo.net}d</span>
             <span className="text-muted-foreground/70">net</span>
             {!tatInfo.isLive && (
-              <span className="text-2xs tracking-normal text-muted-foreground/60 ml-0.5">so far</span>
+              <span className="text-2xs tracking-normal text-muted-foreground/60 ml-0.5">
+                so far
+              </span>
             )}
           </div>
         )}
       </div>
 
-      <ProjectDialog
-        project={project}
-        open={detailsOpen}
-        onOpenChange={setDetailsOpen}
-      />
+      <ProjectDialog project={project} open={detailsOpen} onOpenChange={setDetailsOpen} />
       <EditProjectDialog
         project={project}
         open={editOpen}
         onOpenChange={setEditOpen}
-        onSave={(updated) => { updateProject(updated); toast.success("Project updated"); }}
+        onSave={(updated) => {
+          updateProject(updated);
+          toast.success("Project updated");
+        }}
       />
       <ProjectActivityHistory
         projectId={project.id}
@@ -198,6 +242,5 @@ export const KanbanCard = ({ project, riskVerdict }: { project: Project; riskVer
         onOpenChange={setActivityHistoryOpen}
       />
     </>
-
   );
 };

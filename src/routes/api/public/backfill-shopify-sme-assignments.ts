@@ -4,8 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { corsHeaders } from "@/lib/api-cors";
 import { requireInternalCaller } from "@/lib/api-auth.server";
 
-const SUPABASE_URL = process.env['SUPABASE_URL']!;
-const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
 
 function ownerFor(size: string, arrRaw: number): string {
   const s = (size || "").toUpperCase();
@@ -28,19 +28,35 @@ async function handler(req: Request): Promise<Response> {
     .from("shopify_sme_merchants")
     .select("id, brand_name, merchant_size, expected_arr, assigned_owner_email, shopify_url")
     .is("assigned_owner_email", null);
-  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  if (error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
 
   const results: any[] = [];
   for (const r of rows || []) {
-    if (!r.shopify_url || !String(r.shopify_url).trim()) { results.push({ id: r.id, brand: r.brand_name, skipped: "no shopify url" }); continue; }
+    if (!r.shopify_url || !String(r.shopify_url).trim()) {
+      results.push({ id: r.id, brand: r.brand_name, skipped: "no shopify url" });
+      continue;
+    }
     const owner = ownerFor(r.merchant_size, Number(r.expected_arr) || 0);
-    if (!owner) { results.push({ id: r.id, brand: r.brand_name, skipped: "no bucket" }); continue; }
+    if (!owner) {
+      results.push({ id: r.id, brand: r.brand_name, skipped: "no bucket" });
+      continue;
+    }
 
-    if (dryRun) { results.push({ id: r.id, brand: r.brand_name, would_assign: owner }); continue; }
+    if (dryRun) {
+      results.push({ id: r.id, brand: r.brand_name, would_assign: owner });
+      continue;
+    }
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/assign-shopify-sme-owner`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
         body: JSON.stringify({ id: r.id, owner_email: owner }),
       });
       const ok = res.ok;

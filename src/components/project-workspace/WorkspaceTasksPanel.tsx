@@ -14,7 +14,12 @@ const shortDate = (value: string | Date) =>
   new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 const initials = (name: string) =>
-  name.split(/\s+/).slice(0, 2).map((w) => w[0] || "").join("").toUpperCase() || "?";
+  name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0] || "")
+    .join("")
+    .toUpperCase() || "?";
 
 const STATUS_LABEL: Record<string, string> = {
   open: "Open",
@@ -34,7 +39,10 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
   const updateTask = useUpdateChecklistTask();
   const [showDone, setShowDone] = useState(true);
   const [search, setSearch] = useState("");
-  const [dialog, setDialog] = useState<{ checklistItemId: string; checklistItemTitle: string } | null>(null);
+  const [dialog, setDialog] = useState<{
+    checklistItemId: string;
+    checklistItemTitle: string;
+  } | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const itemTitle = useMemo(() => {
@@ -68,7 +76,8 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
   const toggleGroup = (id: string) => {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -81,10 +90,16 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-semibold text-foreground">Tasks</h2>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="rounded-full bg-muted px-2 py-0.5 font-medium">{tasks.length} total</span>
-              <span className="rounded-full bg-success/15 px-2 py-0.5 font-medium text-success-strong">{doneCount} done</span>
+              <span className="rounded-full bg-muted px-2 py-0.5 font-medium">
+                {tasks.length} total
+              </span>
+              <span className="rounded-full bg-success/15 px-2 py-0.5 font-medium text-success-strong">
+                {doneCount} done
+              </span>
               {openCount > 0 && (
-                <span className="rounded-full bg-warning/15 px-2 py-0.5 font-medium text-warning-strong">{openCount} open</span>
+                <span className="rounded-full bg-warning/15 px-2 py-0.5 font-medium text-warning-strong">
+                  {openCount} open
+                </span>
               )}
             </div>
           </div>
@@ -133,10 +148,18 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
             <thead className="sticky top-0 z-10 bg-white dark:bg-background">
               <tr className="border-b border-border/50">
                 <th className="w-10 px-4 py-2 text-left text-xs font-medium text-muted-foreground" />
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Task</th>
-                <th className="w-36 px-3 py-2 text-left text-xs font-medium text-muted-foreground">Assignee</th>
-                <th className="w-28 px-3 py-2 text-left text-xs font-medium text-muted-foreground">Due date</th>
-                <th className="w-24 px-3 py-2 text-left text-xs font-medium text-muted-foreground">Status</th>
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                  Task
+                </th>
+                <th className="w-36 px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                  Assignee
+                </th>
+                <th className="w-28 px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                  Due date
+                </th>
+                <th className="w-24 px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                  Status
+                </th>
               </tr>
             </thead>
             {grouped.map(([checklistItemId, list]) => {
@@ -150,83 +173,121 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                   >
                     <td colSpan={5} className="px-4 py-2">
                       <div className="flex items-center gap-2">
-                        <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")} />
+                        <ChevronDown
+                          className={cn(
+                            "h-3.5 w-3.5 text-muted-foreground transition-transform",
+                            isCollapsed && "-rotate-90",
+                          )}
+                        />
                         <span className="text-sm font-semibold text-foreground">
                           {itemTitle.get(checklistItemId) || "Other"}
                         </span>
-                        <span className="text-xs text-muted-foreground">{groupDone}/{list.length} done</span>
+                        <span className="text-xs text-muted-foreground">
+                          {groupDone}/{list.length} done
+                        </span>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="ml-auto h-6 gap-1 px-2 text-xs"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setDialog({ checklistItemId, checklistItemTitle: itemTitle.get(checklistItemId) || "Checklist step" });
+                            setDialog({
+                              checklistItemId,
+                              checklistItemTitle:
+                                itemTitle.get(checklistItemId) || "Checklist step",
+                            });
                           }}
                         >
-                          <Plus className="h-3 w-3" />Add
+                          <Plus className="h-3 w-3" />
+                          Add
                         </Button>
                       </div>
                     </td>
                   </tr>
-                  {!isCollapsed && list.map((task) => {
-                    const overdue = task.due_date && task.status !== "done" && new Date(task.due_date) < new Date();
-                    return (
-                      <tr
-                        key={task.id}
-                        id={`task-${task.id}`}
-                        className="border-b border-border/20 transition-colors hover:bg-muted/10"
-                      >
-                        <td className="px-4 py-2.5 align-middle">
-                          <Checkbox
-                            checked={task.status === "done"}
-                            onCheckedChange={(checked) =>
-                              updateTask.mutate({ id: task.id, status: checked ? "done" : "open" })
-                            }
-                            className="h-4 w-4"
-                          />
-                        </td>
-                        <td className="px-3 py-2.5 align-middle">
-                          <span
-                            className={cn(
-                              "block truncate",
-                              task.status === "done" ? "text-muted-foreground line-through" : "text-foreground",
-                            )}
-                            title={task.title}
-                          >
-                            {task.title}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2.5 align-middle">
-                          {task.assigned_to ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
-                                {initials(profiles.find((p) => p.id === task.assigned_to)?.name || "?")}
-                              </span>
-                              <span className="truncate text-xs">{profiles.find((p) => p.id === task.assigned_to)?.name || "Assigned"}</span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/50">—</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2.5 align-middle">
-                          {task.due_date ? (
-                            <span className={cn("flex items-center gap-1 text-xs", overdue ? "font-medium text-destructive" : "text-muted-foreground")}>
-                              <Calendar className="h-3 w-3 shrink-0" />
-                              {shortDate(task.due_date)}
+                  {!isCollapsed &&
+                    list.map((task) => {
+                      const overdue =
+                        task.due_date &&
+                        task.status !== "done" &&
+                        new Date(task.due_date) < new Date();
+                      return (
+                        <tr
+                          key={task.id}
+                          id={`task-${task.id}`}
+                          className="border-b border-border/20 transition-colors hover:bg-muted/10"
+                        >
+                          <td className="px-4 py-2.5 align-middle">
+                            <Checkbox
+                              checked={task.status === "done"}
+                              onCheckedChange={(checked) =>
+                                updateTask.mutate({
+                                  id: task.id,
+                                  status: checked ? "done" : "open",
+                                })
+                              }
+                              className="h-4 w-4"
+                            />
+                          </td>
+                          <td className="px-3 py-2.5 align-middle">
+                            <span
+                              className={cn(
+                                "block truncate",
+                                task.status === "done"
+                                  ? "text-muted-foreground line-through"
+                                  : "text-foreground",
+                              )}
+                              title={task.title}
+                            >
+                              {task.title}
                             </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground/50">—</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2.5 align-middle">
-                          <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", STATUS_TONE[task.status] || STATUS_TONE.open)}>
-                            {STATUS_LABEL[task.status] || task.status}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          </td>
+                          <td className="px-3 py-2.5 align-middle">
+                            {task.assigned_to ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
+                                  {initials(
+                                    profiles.find((p) => p.id === task.assigned_to)?.name || "?",
+                                  )}
+                                </span>
+                                <span className="truncate text-xs">
+                                  {profiles.find((p) => p.id === task.assigned_to)?.name ||
+                                    "Assigned"}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground/50">—</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5 align-middle">
+                            {task.due_date ? (
+                              <span
+                                className={cn(
+                                  "flex items-center gap-1 text-xs",
+                                  overdue
+                                    ? "font-medium text-destructive"
+                                    : "text-muted-foreground",
+                                )}
+                              >
+                                <Calendar className="h-3 w-3 shrink-0" />
+                                {shortDate(task.due_date)}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground/50">—</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5 align-middle">
+                            <span
+                              className={cn(
+                                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                                STATUS_TONE[task.status] || STATUS_TONE.open,
+                              )}
+                            >
+                              {STATUS_LABEL[task.status] || task.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               );
             })}

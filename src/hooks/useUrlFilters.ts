@@ -27,9 +27,9 @@ export const useUrlFilters = <T extends Record<string, FilterValue>>(
     for (const name of Object.keys(defaults) as Array<keyof T & string>) {
       const raw = params.get(key(name));
       if (raw === null) continue;
-      out[name] = (Array.isArray(defaults[name])
-        ? (raw ? raw.split(",").filter(Boolean) : [])
-        : raw) as T[keyof T & string];
+      out[name] = (
+        Array.isArray(defaults[name]) ? (raw ? raw.split(",").filter(Boolean) : []) : raw
+      ) as T[keyof T & string];
     }
     return out;
   }, [params, defaults, key]);

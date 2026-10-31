@@ -47,7 +47,11 @@ export const FilterPanel = ({
         )}
       </Button>
     </PopoverTrigger>
-    <PopoverContent align={align} className="w-[280px] p-0" style={{ maxHeight: "calc(100vh - 8rem)" }}>
+    <PopoverContent
+      align={align}
+      className="w-[280px] p-0"
+      style={{ maxHeight: "calc(100vh - 8rem)" }}
+    >
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <p className="text-xs font-semibold text-foreground">{label}</p>
         <Button
@@ -92,7 +96,9 @@ export const FilterGroup = ({
   return (
     <div className="mb-1 last:mb-0">
       <div className="flex items-center gap-1.5 px-1.5 pb-1 pt-1.5">
-        <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+        <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {title}
+        </p>
         {selected.length > 0 && (
           <span className="text-2xs tabular-nums text-primary">{selected.length}</span>
         )}
@@ -126,7 +132,9 @@ export const FilterGroup = ({
                 onClick={() => onToggle(o.value)}
                 className={cn(
                   "flex w-full items-center gap-2 rounded-md px-1.5 py-1 text-left text-xs transition-colors",
-                  on ? "bg-primary-soft text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  on
+                    ? "bg-primary-soft text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <span

@@ -55,7 +55,10 @@ export async function aiText(opts: {
   json?: boolean;
   signal?: AbortSignal;
 }): Promise<string> {
-  const system = [opts.system, opts.json ? "Reply with valid JSON only — no prose, no code fences." : null]
+  const system = [
+    opts.system,
+    opts.json ? "Reply with valid JSON only — no prose, no code fences." : null,
+  ]
     .filter(Boolean)
     .join("\n\n");
 
@@ -72,7 +75,12 @@ export async function aiText(opts: {
 
   const text = textOf(message);
   // Models wrap JSON in ```json fences often enough that callers shouldn't each have to.
-  return opts.json ? text.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim() : text;
+  return opts.json
+    ? text
+        .replace(/^\s*```(?:json)?\s*/i, "")
+        .replace(/\s*```\s*$/, "")
+        .trim()
+    : text;
 }
 
 /**

@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, requireCred, resendFrom, resendReplyTo } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  requireCred,
+  resendFrom,
+  resendReplyTo,
+} from "@/lib/tenant-integrations.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { portalUrl } from "@/lib/app-links.server";
 
@@ -22,12 +27,18 @@ function extractCredentials(text: string): Record<string, string> {
     ["app_secret", [/(?:App\s*Secret|AppSecret|Application\s*Secret)[:\s]*([^\n\r,]+)/i]],
     ["base_url", [/(?:Base\s*URL|BaseURL|API\s*URL)[:\s]*(https?:\/\/[^\s\n\r,]+)/i]],
     ["config_id", [/(?:Config\s*ID|ConfigID|Configuration\s*ID)[:\s]*([^\n\r,]+)/i]],
-    ["kwikpass_jwe_key", [/(?:KwikPass\s*JWE\s*(?:Key|Secret)|JWE\s*Key|JWE\s*Secret)[:\s]*([^\n\r,]+)/i]],
+    [
+      "kwikpass_jwe_key",
+      [/(?:KwikPass\s*JWE\s*(?:Key|Secret)|JWE\s*Key|JWE\s*Secret)[:\s]*([^\n\r,]+)/i],
+    ],
   ];
   for (const [key, regexes] of patterns) {
     for (const re of regexes) {
       const m = text.match(re);
-      if (m?.[1]) { creds[key] = m[1].trim(); break; }
+      if (m?.[1]) {
+        creds[key] = m[1].trim();
+        break;
+      }
     }
   }
   return creds;
@@ -47,7 +58,11 @@ async function fetchJiraCredentials(merchantName: string, tenantId?: string | nu
   try {
     const res = await fetch(`${JIRA_BASE_URL}/rest/api/3/search/jql`, {
       method: "POST",
-      headers: { Authorization: `Basic ${auth}`, Accept: "application/json", "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Basic ${auth}`,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ jql, fields: ["summary", "description", "comment"], maxResults: 5 }),
     });
     if (!res.ok) return null;
@@ -61,9 +76,12 @@ async function fetchJiraCredentials(merchantName: string, tenantId?: string | nu
     for (const issue of issues) {
       const f = issue.fields || {};
       const descText = typeof f.description === "string" ? f.description : adfToText(f.description);
-      const fullText = descText + "\n" + (f.comment?.comments || []).map((c: any) =>
-        typeof c.body === "string" ? c.body : adfToText(c.body)
-      ).join("\n");
+      const fullText =
+        descText +
+        "\n" +
+        (f.comment?.comments || [])
+          .map((c: any) => (typeof c.body === "string" ? c.body : adfToText(c.body)))
+          .join("\n");
 
       const sandboxMatch = fullText.match(/sandbox[:\s\-]*([\s\S]*?)(?=production|prod[:\s\-]|$)/i);
       const prodMatch = fullText.match(/production[:\s\-]*([\s\S]*?)$/i);
@@ -95,8 +113,8 @@ async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const supabase = createClient(
-    process.env['SUPABASE_URL']!,
-    process.env['SUPABASE_SERVICE_ROLE_KEY']!,
+    process.env["SUPABASE_URL"]!,
+    process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
   );
 
   const url = new URL(req.url);
@@ -118,7 +136,8 @@ async function handler(req: Request): Promise<Response> {
         .split(/[,;\s]+/)
         .map((e: string) => e.trim())
         .filter((e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
-      if (recipients.length === 0) return json({ error: "No merchant contact email configured for this project" }, 400);
+      if (recipients.length === 0)
+        return json({ error: "No merchant contact email configured for this project" }, 400);
 
       // Find or create active portal token
       const { data: existing } = await supabase
@@ -130,7 +149,8 @@ async function handler(req: Request): Promise<Response> {
         .limit(1);
 
       let token = existing?.[0]?.token as string | undefined;
-      const stillValid = token && (!existing![0].expires_at || new Date(existing![0].expires_at) > new Date());
+      const stillValid =
+        token && (!existing![0].expires_at || new Date(existing![0].expires_at) > new Date());
       if (!stillValid) {
         const { data: created, error: createErr } = await supabase
           .from("merchant_portal_tokens")
@@ -149,7 +169,8 @@ async function handler(req: Request): Promise<Response> {
 
       // Send email via Resend
       const RESEND_API_KEY = tenantCreds.resend_api_key;
-      if (!RESEND_API_KEY) return json({ error: "Resend email is not configured for this tenant" }, 500);
+      if (!RESEND_API_KEY)
+        return json({ error: "Resend email is not configured for this tenant" }, 500);
 
       // The workspace is named after whoever runs it, not after one company's
       // product. org_name comes from Settings and defaults to Handover.
@@ -204,7 +225,12 @@ async function handler(req: Request): Promise<Response> {
         });
       }
 
-      return json({ success: true, sent_to: recipients.join(", "), recipients, magic_url: magicUrl });
+      return json({
+        success: true,
+        sent_to: recipients.join(", "),
+        recipients,
+        magic_url: magicUrl,
+      });
     } catch (err) {
       return json({ error: (err as Error).message }, 500);
     }
@@ -218,15 +244,27 @@ async function handler(req: Request): Promise<Response> {
       if (!token) return json({ error: "token required" }, 400);
 
       const { data: tokenRow } = await supabase
-        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
       if (!tokenRow) return json({ error: "Invalid or expired magic link" }, 403);
-      if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date()) return json({ error: "This magic link has expired" }, 403);
+      if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date())
+        return json({ error: "This magic link has expired" }, 403);
 
       const { data: project } = await supabase
-        .from("projects").select("merchant_name, contact_email, sandbox_mid, mid").eq("id", tokenRow.project_id).maybeSingle();
+        .from("projects")
+        .select("merchant_name, contact_email, sandbox_mid, mid")
+        .eq("id", tokenRow.project_id)
+        .maybeSingle();
       if (!project) return json({ error: "Project not found" }, 404);
 
-      const firstEmail = String(project.contact_email || "").split(/[,;\s]+/).map((e: string) => e.trim()).filter(Boolean)[0] || "merchant@portal.local";
+      const firstEmail =
+        String(project.contact_email || "")
+          .split(/[,;\s]+/)
+          .map((e: string) => e.trim())
+          .filter(Boolean)[0] || "merchant@portal.local";
       const email = firstEmail.toLowerCase();
       await supabase.from("merchant_portal_visits").insert({
         project_id: tokenRow.project_id,
@@ -249,8 +287,6 @@ async function handler(req: Request): Promise<Response> {
     }
   }
 
-
-
   // ---- Handle visit tracking (POST /track) ----
   if (req.method === "POST" && url.pathname.endsWith("/track")) {
     try {
@@ -258,7 +294,11 @@ async function handler(req: Request): Promise<Response> {
       const { token, email, page } = body;
       if (!token || !email || !page) return json({ error: "token, email, page required" }, 400);
       const { data: tokenRow } = await supabase
-        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
       if (!tokenRow) return json({ error: "Invalid token" }, 403);
       await supabase.from("merchant_portal_visits").insert({
         project_id: tokenRow.project_id,
@@ -278,10 +318,15 @@ async function handler(req: Request): Promise<Response> {
     try {
       const body = await req.json();
       const { token, email, note } = body;
-      if (!token || !note || !String(note).trim()) return json({ error: "token and note required" }, 400);
+      if (!token || !note || !String(note).trim())
+        return json({ error: "token and note required" }, 400);
 
       const { data: tokenRow } = await supabase
-        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
       if (!tokenRow) return json({ error: "Invalid token" }, 403);
 
       const { data: project } = await supabase
@@ -292,7 +337,9 @@ async function handler(req: Request): Promise<Response> {
       if (!project) return json({ error: "Project not found" }, 404);
 
       const text = String(note).trim().slice(0, 4000);
-      const authorName = email ? String(email).trim().toLowerCase() : (await getTenantBranding(project.tenant_id)).externalLabel;
+      const authorName = email
+        ? String(email).trim().toLowerCase()
+        : (await getTenantBranding(project.tenant_id)).externalLabel;
 
       await supabase.from("activity_logs").insert({
         tenant_id: project.tenant_id,
@@ -317,10 +364,14 @@ async function handler(req: Request): Promise<Response> {
 
       // Notify relevant internal users
       const recipients = new Set<string>();
-      for (const id of [project.assigned_owner, project.created_by]) if (id) recipients.add(id as string);
+      for (const id of [project.assigned_owner, project.created_by])
+        if (id) recipients.add(id as string);
       if (recipients.size === 0 && project.tenant_id) {
         const { data: profiles } = await supabase
-          .from("profiles").select("id").eq("tenant_id", project.tenant_id).limit(50);
+          .from("profiles")
+          .select("id")
+          .eq("tenant_id", project.tenant_id)
+          .limit(50);
         for (const p of profiles ?? []) recipients.add(p.id);
       }
       if (recipients.size > 0) {
@@ -334,7 +385,7 @@ async function handler(req: Request): Promise<Response> {
             actor_name: authorName,
             project_id: project.id,
             project_name: project.merchant_name,
-          }))
+          })),
         );
       }
 
@@ -355,12 +406,20 @@ async function handler(req: Request): Promise<Response> {
       }
 
       const { data: tokenRow } = await supabase
-        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
       if (!tokenRow) return json({ error: "Invalid or expired link" }, 403);
-      if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date()) return json({ error: "This link has expired" }, 403);
+      if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date())
+        return json({ error: "This link has expired" }, 403);
 
       const { data: project } = await supabase
-        .from("projects").select("mid, sandbox_mid, sandbox_app_id, merchant_name").eq("id", tokenRow.project_id).maybeSingle();
+        .from("projects")
+        .select("mid, sandbox_mid, sandbox_app_id, merchant_name")
+        .eq("id", tokenRow.project_id)
+        .maybeSingle();
       if (!project) return json({ error: "Project not found" }, 404);
 
       // Compare MID (case-insensitive, trimmed) — accept project.mid, project.sandbox_mid, or master MID
@@ -370,7 +429,10 @@ async function handler(req: Request): Promise<Response> {
       const projectSandboxAppId = (project.sandbox_app_id || "").trim().toLowerCase();
       const inputMid = (mid ? String(mid) : "").trim().toLowerCase();
       // APP ID check disabled for now — email + valid token is sufficient.
-      void MASTER_MID; void projectMid; void projectSandboxMid; void projectSandboxAppId;
+      void MASTER_MID;
+      void projectMid;
+      void projectSandboxMid;
+      void projectSandboxAppId;
 
       // MID matches — log login as a visit + return session token
       const cleanEmail = String(email).trim().toLowerCase();
@@ -382,7 +444,12 @@ async function handler(req: Request): Promise<Response> {
         user_agent: req.headers.get("user-agent") || null,
       });
       const sessionToken = btoa(`${token}:${inputMid}:${Date.now()}`);
-      return json({ success: true, merchant_name: project.merchant_name, session_token: sessionToken, email: cleanEmail });
+      return json({
+        success: true,
+        merchant_name: project.merchant_name,
+        session_token: sessionToken,
+        email: cleanEmail,
+      });
     } catch (err) {
       return json({ error: (err as Error).message }, 500);
     }
@@ -414,7 +481,8 @@ async function handler(req: Request): Promise<Response> {
         .limit(1);
 
       let token = existing?.[0]?.token as string | undefined;
-      const stillValid = token && (!existing![0].expires_at || new Date(existing![0].expires_at) > new Date());
+      const stillValid =
+        token && (!existing![0].expires_at || new Date(existing![0].expires_at) > new Date());
 
       if (!stillValid) {
         const { data: created, error: createErr } = await supabase
@@ -439,14 +507,21 @@ async function handler(req: Request): Promise<Response> {
       if (!token) return json({ error: "token required" }, 400);
 
       const { data: tokenRow } = await supabase
-        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
       if (!tokenRow) return json({ error: "Invalid or expired link" }, 403);
 
       const projectId = tokenRow.project_id;
       const tenantId = tokenRow.tenant_id;
 
       const { data: project } = await supabase
-        .from("projects").select("contact_email").eq("id", projectId).maybeSingle();
+        .from("projects")
+        .select("contact_email")
+        .eq("id", projectId)
+        .maybeSingle();
 
       // This tenant's BRD template, and only this tenant's. There used to be a
       // fallback to "any tenant's" template, which meant a merchant whose
@@ -471,8 +546,11 @@ async function handler(req: Request): Promise<Response> {
 
       let brdSession = existingSessions?.[0];
       if (!brdSession) {
-        const merchantEmail = String(project?.contact_email || "")
-          .split(/[,;\s]+/).map((e: string) => e.trim()).filter(Boolean)[0] || "merchant@portal.local";
+        const merchantEmail =
+          String(project?.contact_email || "")
+            .split(/[,;\s]+/)
+            .map((e: string) => e.trim())
+            .filter(Boolean)[0] || "merchant@portal.local";
         const { data: created, error: createErr } = await supabase
           .from("brd_sessions")
           .insert({
@@ -496,7 +574,9 @@ async function handler(req: Request): Promise<Response> {
         .from("brd_responses")
         .select("value")
         .eq("session_id", brdSession.id);
-      const answered = (responses || []).filter((r: any) => (r.value || "").toString().trim()).length;
+      const answered = (responses || []).filter((r: any) =>
+        (r.value || "").toString().trim(),
+      ).length;
       const total = totalFields || 0;
       const percent = total ? Math.round((answered / total) * 100) : 0;
 
@@ -521,12 +601,18 @@ async function handler(req: Request): Promise<Response> {
       const uploadType = formData.get("upload_type") as string;
       const file = formData.get("file") as File;
 
-      if (!token || !uploadType || !file) return json({ error: "token, upload_type, and file are required" }, 400);
+      if (!token || !uploadType || !file)
+        return json({ error: "token, upload_type, and file are required" }, 400);
 
       const { data: tokenRow } = await supabase
-        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
       if (!tokenRow) return json({ error: "Invalid token" }, 403);
-      if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date()) return json({ error: "Expired" }, 403);
+      if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date())
+        return json({ error: "Expired" }, 403);
 
       const projectId = tokenRow.project_id;
       const tenantId = tokenRow.tenant_id;
@@ -565,11 +651,18 @@ async function handler(req: Request): Promise<Response> {
       if (!token || !upload_id) return json({ error: "token and upload_id required" }, 400);
 
       const { data: tokenRow } = await supabase
-        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
       if (!tokenRow) return json({ error: "Invalid token" }, 403);
 
       const { data: upload } = await supabase
-        .from("merchant_portal_uploads").select("*").eq("id", upload_id).maybeSingle();
+        .from("merchant_portal_uploads")
+        .select("*")
+        .eq("id", upload_id)
+        .maybeSingle();
       if (!upload || upload.project_id !== tokenRow.project_id) {
         return json({ error: "Upload not found" }, 404);
       }
@@ -578,7 +671,9 @@ async function handler(req: Request): Promise<Response> {
       try {
         const path = storageObjectPath("merchant-portal-files", upload.file_url);
         if (path) await supabase.storage.from("merchant-portal-files").remove([path]);
-      } catch (e) { console.error("storage remove failed:", e); }
+      } catch (e) {
+        console.error("storage remove failed:", e);
+      }
 
       await supabase.from("merchant_portal_uploads").delete().eq("id", upload_id);
       return json({ success: true });
@@ -596,7 +691,11 @@ async function handler(req: Request): Promise<Response> {
 
       // Validate token - must be from authenticated CE context or valid portal token
       const { data: tokenRow } = await supabase
-        .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
       if (!tokenRow) return json({ error: "Invalid token" }, 403);
 
       await supabase.from("projects").update({ config_id }).eq("id", tokenRow.project_id);
@@ -610,43 +709,80 @@ async function handler(req: Request): Promise<Response> {
   try {
     let token: string | null = url.searchParams.get("token");
     if (!token && req.method === "POST") {
-      try { const body = await req.json(); token = body?.token ?? null; } catch {}
+      try {
+        const body = await req.json();
+        token = body?.token ?? null;
+      } catch {}
     }
     if (!token) return json({ error: "Token is required" }, 400);
 
     const { data: tokenRow, error: tokenError } = await supabase
-      .from("merchant_portal_tokens").select("*").eq("token", token).eq("is_active", true).maybeSingle();
+      .from("merchant_portal_tokens")
+      .select("*")
+      .eq("token", token)
+      .eq("is_active", true)
+      .maybeSingle();
     if (tokenError || !tokenRow) return json({ error: "Invalid or expired link" }, 403);
-    if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date()) return json({ error: "This link has expired" }, 403);
+    if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date())
+      return json({ error: "This link has expired" }, 403);
 
-    supabase.from("merchant_portal_tokens").update({ last_accessed_at: new Date().toISOString() }).eq("id", tokenRow.id).then(() => {});
+    supabase
+      .from("merchant_portal_tokens")
+      .update({ last_accessed_at: new Date().toISOString() })
+      .eq("id", tokenRow.id)
+      .then(() => {});
 
     const projectId = tokenRow.project_id;
     const tenantId = tokenRow.tenant_id;
 
     const { data: project, error: projectError } = await supabase
-      .from("projects").select("*").eq("id", projectId).maybeSingle();
+      .from("projects")
+      .select("*")
+      .eq("id", projectId)
+      .maybeSingle();
     if (projectError || !project) return json({ error: "Project not found" }, 404);
 
-    const [checklistRes, ownerRes, customFieldsRes, customValsRes, uploadsRes, credentialsRes] = await Promise.all([
-      supabase.from("checklist_items").select("id, title, completed, completed_at, phase, owner_team, sort_order, due_date, is_task")
-        .eq("project_id", projectId).eq("is_task", false).order("sort_order", { ascending: true }),
-      project.assigned_owner
-        ? supabase.from("profiles").select("name, email, team").eq("id", project.assigned_owner).maybeSingle()
-        : Promise.resolve({ data: null }),
-      tenantId
-        ? supabase.from("custom_fields").select("id, field_key, field_label, field_type").eq("tenant_id", tenantId).eq("is_active", true)
-        : Promise.resolve({ data: [] }),
-      supabase.from("custom_field_values").select("field_id, value").eq("project_id", projectId),
-      supabase.from("merchant_portal_uploads").select("*").eq("project_id", projectId).order("created_at", { ascending: false }),
-      supabase.from("project_credentials").select("*").eq("project_id", projectId).maybeSingle(),
-    ]);
+    const [checklistRes, ownerRes, customFieldsRes, customValsRes, uploadsRes, credentialsRes] =
+      await Promise.all([
+        supabase
+          .from("checklist_items")
+          .select(
+            "id, title, completed, completed_at, phase, owner_team, sort_order, due_date, is_task",
+          )
+          .eq("project_id", projectId)
+          .eq("is_task", false)
+          .order("sort_order", { ascending: true }),
+        project.assigned_owner
+          ? supabase
+              .from("profiles")
+              .select("name, email, team")
+              .eq("id", project.assigned_owner)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        tenantId
+          ? supabase
+              .from("custom_fields")
+              .select("id, field_key, field_label, field_type")
+              .eq("tenant_id", tenantId)
+              .eq("is_active", true)
+          : Promise.resolve({ data: [] }),
+        supabase.from("custom_field_values").select("field_id, value").eq("project_id", projectId),
+        supabase
+          .from("merchant_portal_uploads")
+          .select("*")
+          .eq("project_id", projectId)
+          .order("created_at", { ascending: false }),
+        supabase.from("project_credentials").select("*").eq("project_id", projectId).maybeSingle(),
+      ]);
     const projectCredentials = (credentialsRes as any).data ?? {};
 
     const valMap = new Map<string, string | null>();
     ((customValsRes as any).data ?? []).forEach((v: any) => valMap.set(v.field_id, v.value));
     const customFields = ((customFieldsRes as any).data ?? []).map((f: any) => ({
-      key: f.field_key, label: f.field_label, type: f.field_type, value: valMap.get(f.id) ?? null,
+      key: f.field_key,
+      label: f.field_label,
+      type: f.field_type,
+      value: valMap.get(f.id) ?? null,
     }));
 
     // Show every checklist item (non-task) for the project
@@ -660,48 +796,72 @@ async function handler(req: Request): Promise<Response> {
     const completedCount = checklist.filter((c: any) => c.completed).length;
 
     const { data: activityLogs } = await supabase
-      .from("activity_logs").select("action_type, category, description, created_at, user_name")
-      .eq("entity_id", projectId).order("created_at", { ascending: false }).limit(15);
+      .from("activity_logs")
+      .select("action_type, category, description, created_at, user_name")
+      .eq("entity_id", projectId)
+      .order("created_at", { ascending: false })
+      .limit(15);
 
-    let branding: Record<string, string> = {};
+    const branding: Record<string, string> = {};
     // Field names configured in Settings, so the portal shows the same wording
     // the internal product uses.
     const labels: Record<string, string> = {};
     if (tenantId) {
       const { data: settings } = await supabase
-        .from("app_settings").select("key, value").eq("tenant_id", tenantId);
+        .from("app_settings")
+        .select("key, value")
+        .eq("tenant_id", tenantId);
       (settings ?? []).forEach((s: any) => {
-        if (["org_name", "primary_color", "logo_url", "org_logo_url"].includes(s.key)) branding[s.key] = s.value;
+        if (["org_name", "primary_color", "logo_url", "org_logo_url"].includes(s.key))
+          branding[s.key] = s.value;
         if (s.key.startsWith("field_")) labels[s.key] = s.value;
       });
     }
 
-    const jiraCredentials = await fetchJiraCredentials(project.merchant_name || "", (project as any).tenant_id ?? tenantId);
+    const jiraCredentials = await fetchJiraCredentials(
+      project.merchant_name || "",
+      (project as any).tenant_id ?? tenantId,
+    );
 
     // BRD progress (best-effort, never block main response on errors)
     let brdProgress: { answered: number; total: number; percent: number; status: string | null } = {
-      answered: 0, total: 0, percent: 0, status: null,
+      answered: 0,
+      total: 0,
+      percent: 0,
+      status: null,
     };
     // Drives whether the portal offers a BRD Form at all.
     let brdConfigured = false;
     try {
       // Only this tenant's template — see the note on the /brd-session branch.
       const { data: tpl } = await supabase
-        .from("checklist_form_templates").select("id")
-        .eq("tenant_id", tenantId).ilike("name", "%BRD%").limit(1).maybeSingle();
+        .from("checklist_form_templates")
+        .select("id")
+        .eq("tenant_id", tenantId)
+        .ilike("name", "%BRD%")
+        .limit(1)
+        .maybeSingle();
       brdConfigured = !!tpl;
       if (tpl) {
         const { count: totalFields } = await supabase
-          .from("checklist_form_fields").select("id", { count: "exact", head: true })
+          .from("checklist_form_fields")
+          .select("id", { count: "exact", head: true })
           .eq("template_id", tpl.id);
         const { data: sessions } = await supabase
-          .from("brd_sessions").select("id, status")
-          .eq("project_id", projectId).order("created_at", { ascending: false }).limit(1);
+          .from("brd_sessions")
+          .select("id, status")
+          .eq("project_id", projectId)
+          .order("created_at", { ascending: false })
+          .limit(1);
         const sess = sessions?.[0];
         if (sess) {
           const { data: resps } = await supabase
-            .from("brd_responses").select("value").eq("session_id", sess.id);
-          const answered = (resps || []).filter((r: any) => (r.value || "").toString().trim()).length;
+            .from("brd_responses")
+            .select("value")
+            .eq("session_id", sess.id);
+          const answered = (resps || []).filter((r: any) =>
+            (r.value || "").toString().trim(),
+          ).length;
           const isSubmitted = sess.status === "completed";
           const total = totalFields || 0;
           brdProgress = {
@@ -716,8 +876,9 @@ async function handler(req: Request): Promise<Response> {
           brdProgress.total = totalFields || 0;
         }
       }
-    } catch (e) { console.error("brd progress error:", e); }
-
+    } catch (e) {
+      console.error("brd progress error:", e);
+    }
 
     const uploads = await Promise.all(
       (uploadsRes.data ?? []).map(async (u: any) => ({
@@ -736,16 +897,19 @@ async function handler(req: Request): Promise<Response> {
     const dbProd: Record<string, string> = {};
     if (project.sandbox_mid) dbSandbox.mid = project.sandbox_mid;
     if (project.sandbox_app_id) dbSandbox.app_id = project.sandbox_app_id;
-    if (projectCredentials.sandbox_app_secret) dbSandbox.app_secret = projectCredentials.sandbox_app_secret;
+    if (projectCredentials.sandbox_app_secret)
+      dbSandbox.app_secret = projectCredentials.sandbox_app_secret;
     if (project.sandbox_base_url) dbSandbox.base_url = project.sandbox_base_url;
     if (project.sandbox_config_id) dbSandbox.config_id = project.sandbox_config_id;
-    if (projectCredentials.sandbox_kwikpass_jwe_key) dbSandbox.kwikpass_jwe_key = projectCredentials.sandbox_kwikpass_jwe_key;
+    if (projectCredentials.sandbox_kwikpass_jwe_key)
+      dbSandbox.kwikpass_jwe_key = projectCredentials.sandbox_kwikpass_jwe_key;
     if (project.prod_mid) dbProd.mid = project.prod_mid;
     if (project.prod_app_id) dbProd.app_id = project.prod_app_id;
     if (projectCredentials.prod_app_secret) dbProd.app_secret = projectCredentials.prod_app_secret;
     if (project.prod_base_url) dbProd.base_url = project.prod_base_url;
     if (project.prod_config_id) dbProd.config_id = project.prod_config_id;
-    if (projectCredentials.prod_kwikpass_jwe_key) dbProd.kwikpass_jwe_key = projectCredentials.prod_kwikpass_jwe_key;
+    if (projectCredentials.prod_kwikpass_jwe_key)
+      dbProd.kwikpass_jwe_key = projectCredentials.prod_kwikpass_jwe_key;
 
     const mergedCredentials = jiraCredentials
       ? {
@@ -758,41 +922,63 @@ async function handler(req: Request): Promise<Response> {
 
     return json({
       project: {
-        id: project.id, merchant_name: project.merchant_name, mid: project.mid,
-        platform: project.platform, category: project.category,
-        integration_type: project.integration_type, current_phase: project.current_phase,
-        project_state: project.project_state, go_live_percent: project.go_live_percent,
+        id: project.id,
+        merchant_name: project.merchant_name,
+        mid: project.mid,
+        platform: project.platform,
+        category: project.category,
+        integration_type: project.integration_type,
+        current_phase: project.current_phase,
+        project_state: project.project_state,
+        go_live_percent: project.go_live_percent,
         current_responsibility: project.current_responsibility,
-        kick_off_date: project.kick_off_date, expected_go_live_date: project.expected_go_live_date,
-        go_live_date: project.go_live_date, brand_url: project.brand_url,
-        brd_link: project.brd_link, sow_link: project.sow_link,
-        jira_link: project.jira_link, mint_checklist_link: project.mint_checklist_link,
+        kick_off_date: project.kick_off_date,
+        expected_go_live_date: project.expected_go_live_date,
+        go_live_date: project.go_live_date,
+        brand_url: project.brand_url,
+        brd_link: project.brd_link,
+        sow_link: project.sow_link,
+        jira_link: project.jira_link,
+        mint_checklist_link: project.mint_checklist_link,
         integration_checklist_link: project.integration_checklist_link,
-        contact_email: project.contact_email, arr: project.arr,
+        contact_email: project.contact_email,
+        arr: project.arr,
         config_id: project.config_id || null,
         enable_mcp_document: project.enable_mcp_document || false,
         mcp_config_id: project.mcp_config_id || null,
         enable_kp: project.enable_kp || false,
         kp_prod_jwe_key: projectCredentials.kp_prod_jwe_key || null,
-        kp_sandbox_jwe_key: projectCredentials.kp_sandbox_jwe_key || 'zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI',
+        kp_sandbox_jwe_key:
+          projectCredentials.kp_sandbox_jwe_key || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI",
         faq_help: Array.isArray(project.faq_help) ? project.faq_help : [],
         payment_simulator_link: project.payment_simulator_link || null,
       },
       owner: (ownerRes as any).data
-        ? { name: (ownerRes as any).data.name, email: (ownerRes as any).data.email, team: (ownerRes as any).data.team }
+        ? {
+            name: (ownerRes as any).data.name,
+            email: (ownerRes as any).data.email,
+            team: (ownerRes as any).data.team,
+          }
         : null,
       checklist_progress: {
-        completed: completedCount, total: checklist.length,
+        completed: completedCount,
+        total: checklist.length,
         percent: checklist.length ? Math.round((completedCount / checklist.length) * 100) : 0,
       },
       checklist: checklist.map((c: any) => ({
-        title: c.title, completed: c.completed, completed_at: c.completed_at,
-        phase: c.phase, owner_team: c.owner_team, due_date: c.due_date,
+        title: c.title,
+        completed: c.completed,
+        completed_at: c.completed_at,
+        phase: c.phase,
+        owner_team: c.owner_team,
+        due_date: c.due_date,
       })),
       custom_fields: customFields,
       recent_activity: (activityLogs ?? []).map((a: any) => ({
-        description: a.description, category: a.category,
-        created_at: a.created_at, user_name: a.user_name,
+        description: a.description,
+        category: a.category,
+        created_at: a.created_at,
+        user_name: a.user_name,
       })),
       branding,
       labels,

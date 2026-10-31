@@ -114,22 +114,27 @@ export const useProjectJiraTickets = (projectId: string | undefined) => {
     if (!projectId || !currentUser?.tenantId) return;
     setIsRefreshing(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `/api/public/fetch-project-jira-tickets`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ project_id: projectId, tenant_id: currentUser.tenantId }),
-        }
-      );
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const res = await fetch(`/api/public/fetch-project-jira-tickets`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ project_id: projectId, tenant_id: currentUser.tenantId }),
+      });
       if (res.ok) {
         await fetchCached();
-        logActivity({ action_type: "user", category: "jira", description: "Refreshed Jira tickets", entity_type: "project", entity_id: projectId });
+        logActivity({
+          action_type: "user",
+          category: "jira",
+          description: "Refreshed Jira tickets",
+          entity_type: "project",
+          entity_id: projectId,
+        });
       } else {
         const err = await res.json().catch(() => ({}));
         console.error("fetch-project-jira-tickets error:", err);

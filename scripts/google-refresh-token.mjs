@@ -19,13 +19,18 @@ import { URL } from "node:url";
 const [clientId, clientSecret, scopeSet = "gmail"] = process.argv.slice(2);
 
 if (!clientId || !clientSecret) {
-  console.error("Usage: node scripts/google-refresh-token.mjs <client-id> <client-secret> [gmail|meet|calendar]");
+  console.error(
+    "Usage: node scripts/google-refresh-token.mjs <client-id> <client-secret> [gmail|meet|calendar]",
+  );
   process.exit(1);
 }
 
 const SCOPES = {
   // readonly to poll, send so the pollers can reply on handover threads
-  gmail: ["https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/gmail.send"],
+  gmail: [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.send",
+  ],
   meet: ["https://www.googleapis.com/auth/meetings.space.readonly"],
   calendar: ["https://www.googleapis.com/auth/calendar.events"],
 };
@@ -61,7 +66,9 @@ const server = http.createServer(async (req, res) => {
   const code = url.searchParams.get("code");
 
   if (error || !code) {
-    res.writeHead(400, { "Content-Type": "text/plain" }).end(`Authorisation failed: ${error || "no code"}`);
+    res
+      .writeHead(400, { "Content-Type": "text/plain" })
+      .end(`Authorisation failed: ${error || "no code"}`);
     console.error(`\nAuthorisation failed: ${error || "no code returned"}`);
     server.close();
     process.exit(1);
@@ -80,21 +87,31 @@ const server = http.createServer(async (req, res) => {
   }).then((r) => r.json());
 
   if (!token.refresh_token) {
-    res.writeHead(500, { "Content-Type": "text/plain" }).end("No refresh token returned — see the terminal.");
+    res
+      .writeHead(500, { "Content-Type": "text/plain" })
+      .end("No refresh token returned — see the terminal.");
     console.error("\nNo refresh token in the response:", JSON.stringify(token, null, 2));
-    console.error("\nIf this says invalid_grant, the redirect URI above is probably not on the client.");
+    console.error(
+      "\nIf this says invalid_grant, the redirect URI above is probably not on the client.",
+    );
     server.close();
     process.exit(1);
   }
 
-  res.writeHead(200, { "Content-Type": "text/plain" }).end("Done — the refresh token is in your terminal. You can close this tab.");
+  res
+    .writeHead(200, { "Content-Type": "text/plain" })
+    .end("Done — the refresh token is in your terminal. You can close this tab.");
 
   console.log(`\nRefresh token for ${scopeSet}:\n\n${token.refresh_token}\n`);
   console.log(`Scopes granted: ${token.scope}`);
-  console.log(`\nPaste it into Settings → Integrations (${scopeSet === "gmail" ? "Gmail Polling → Gmail Refresh Token" : `Meetings → Google ${scopeSet} Refresh Token`}).`);
+  console.log(
+    `\nPaste it into Settings → Integrations (${scopeSet === "gmail" ? "Gmail Polling → Gmail Refresh Token" : `Meetings → Google ${scopeSet} Refresh Token`}).`,
+  );
 
   server.close();
   process.exit(0);
 });
 
-server.listen(53682, () => console.log("Waiting for the redirect on http://localhost:53682/callback ..."));
+server.listen(53682, () =>
+  console.log("Waiting for the redirect on http://localhost:53682/callback ..."),
+);

@@ -17,7 +17,7 @@ async function handler(req: Request): Promise<Response> {
 
   try {
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
-    const tenantId = await tenantIdFromRequest(req, body['tenant_id'] as string | undefined);
+    const tenantId = await tenantIdFromRequest(req, body["tenant_id"] as string | undefined);
 
     if (!tenantId) {
       return json({ error: "Unauthorized" }, 401);
@@ -27,11 +27,14 @@ async function handler(req: Request): Promise<Response> {
     const baseUrl = (creds.jira_base_url || "").replace(/\/+$/, "");
 
     if (!baseUrl) {
-      return json({ error: "Jira base URL is not configured. Go to Settings → Integrations." }, 400);
+      return json(
+        { error: "Jira base URL is not configured. Go to Settings → Integrations." },
+        400,
+      );
     }
 
     const projectKey = (creds.jira_project_key || "").trim();
-    const merchantName = String(body['merchant_name'] || "").trim();
+    const merchantName = String(body["merchant_name"] || "").trim();
 
     const params = new URLSearchParams();
     if (projectKey) params.set("projectKey", projectKey);

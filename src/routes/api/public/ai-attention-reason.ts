@@ -47,7 +47,8 @@ async function handler(req: Request): Promise<Response> {
     const reasons: string[] = Array.isArray(body.reasons) ? body.reasons.filter(Boolean) : [];
     const force: boolean = body.force === true;
 
-    if (!projectId || reasons.length === 0) return json({ error: "projectId and reasons are required" }, 400);
+    if (!projectId || reasons.length === 0)
+      return json({ error: "projectId and reasons are required" }, 400);
 
     const supabase = createClient(
       process.env["SUPABASE_URL"]!,
@@ -96,7 +97,9 @@ async function handler(req: Request): Promise<Response> {
 
     const { data: items } = await supabase
       .from("checklist_items")
-      .select("id, title, completed, due_date, owner_team, current_responsibility, is_task, comment")
+      .select(
+        "id, title, completed, due_date, owner_team, current_responsibility, is_task, comment",
+      )
       .eq("project_id", projectId)
       .order("sort_order", { ascending: true });
 
@@ -119,7 +122,12 @@ async function handler(req: Request): Promise<Response> {
       .limit(40);
 
     const itemIds = itemRows.map((i) => i.id);
-    let comments: Array<{ comment: string; user_name: string; created_at: string; checklist_item_id: string }> = [];
+    let comments: Array<{
+      comment: string;
+      user_name: string;
+      created_at: string;
+      checklist_item_id: string;
+    }> = [];
     if (itemIds.length > 0) {
       const { data: cRows } = await supabase
         .from("checklist_comments")
@@ -136,9 +144,10 @@ async function handler(req: Request): Promise<Response> {
     const done = itemRows.filter((i) => !i.is_task && i.completed);
     const overdue = open.filter((i) => i.due_date && i.due_date < today);
 
-    const arrCr = Math.abs(Number(project.arr) || 0) >= 100000
-      ? (Number(project.arr) || 0) / 1e7
-      : Number(project.arr) || 0;
+    const arrCr =
+      Math.abs(Number(project.arr) || 0) >= 100000
+        ? (Number(project.arr) || 0) / 1e7
+        : Number(project.arr) || 0;
 
     const context = `Merchant: ${project.merchant_name} (MID: ${project.mid})
 Platform: ${project.platform || "N/A"} | Category: ${project.category || "N/A"} | ARR: ${arrCr.toFixed(2)} Cr
@@ -150,15 +159,44 @@ Today: ${today}
 
 Checklist progress: ${done.length}/${done.length + open.length} complete.
 OPEN checklist items (name | due | owner | pending with):
-${open.slice(0, 30).map((i) => `- ${i.title} | due ${i.due_date || "no due date"}${i.due_date && i.due_date < today ? " (OVERDUE)" : ""} | ${teamLabel(i.owner_team)} | ${i.current_responsibility || "neutral"}${i.comment ? ` | note: ${i.comment}` : ""}`).join("\n") || "- none"}
+${
+  open
+    .slice(0, 30)
+    .map(
+      (i) =>
+        `- ${i.title} | due ${i.due_date || "no due date"}${i.due_date && i.due_date < today ? " (OVERDUE)" : ""} | ${teamLabel(i.owner_team)} | ${i.current_responsibility || "neutral"}${i.comment ? ` | note: ${i.comment}` : ""}`,
+    )
+    .join("\n") || "- none"
+}
 Overdue count: ${overdue.length}
-Recently completed: ${done.slice(-6).map((i) => i.title).join(", ") || "none"}
+Recently completed: ${
+      done
+        .slice(-6)
+        .map((i) => i.title)
+        .join(", ") || "none"
+    }
 
 Sub-tasks:
-${(tasks || []).slice(0, 20).map((t: any) => `- [${t.status}] ${t.title}${t.due_date ? ` (due ${t.due_date})` : ""} on "${titleById.get(t.checklist_item_id) || "?"}"`).join("\n") || "- none"}
+${
+  (tasks || [])
+    .slice(0, 20)
+    .map(
+      (t: any) =>
+        `- [${t.status}] ${t.title}${t.due_date ? ` (due ${t.due_date})` : ""} on "${titleById.get(t.checklist_item_id) || "?"}"`,
+    )
+    .join("\n") || "- none"
+}
 
 Latest checklist comments (newest first):
-${comments.slice(0, 15).map((c) => `- ${c.created_at.slice(0, 10)} ${c.user_name} on "${titleById.get(c.checklist_item_id) || "?"}": ${c.comment.replace(/\s+/g, " ").slice(0, 240)}`).join("\n") || "- none"}`;
+${
+  comments
+    .slice(0, 15)
+    .map(
+      (c) =>
+        `- ${c.created_at.slice(0, 10)} ${c.user_name} on "${titleById.get(c.checklist_item_id) || "?"}": ${c.comment.replace(/\s+/g, " ").slice(0, 240)}`,
+    )
+    .join("\n") || "- none"
+}`;
 
     const systemPrompt = `You are an onboarding delivery analyst for a merchant integration team.
 
@@ -194,8 +232,12 @@ Produce:
           signal: controller.signal,
         })) ?? {};
     } catch (e) {
-      if (e instanceof Anthropic.RateLimitError) return json({ error: "Rate limit exceeded. Try again shortly." }, 429);
-      if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
+      if (e instanceof Anthropic.RateLimitError)
+        return json({ error: "Rate limit exceeded. Try again shortly." }, 429);
+      if (
+        e instanceof Anthropic.AuthenticationError ||
+        e instanceof Anthropic.PermissionDeniedError
+      ) {
         return json({ error: "AI credits exhausted." }, 402);
       }
       throw e;
@@ -214,7 +256,9 @@ Produce:
         tenant_id: project.tenant_id,
         findings_hash,
         why: parsed.why,
-        recommendation: parsed.recommendation + (evidence.length ? `\n${evidence.map((e) => `• ${e}`).join("\n")}` : ""),
+        recommendation:
+          parsed.recommendation +
+          (evidence.length ? `\n${evidence.map((e) => `• ${e}`).join("\n")}` : ""),
         model: BACKGROUND_MODEL,
         generated_at,
       },
@@ -222,7 +266,13 @@ Produce:
     );
 
     return json({
-      result: { why: parsed.why, recommendation: parsed.recommendation, evidence, findings_hash, generated_at },
+      result: {
+        why: parsed.why,
+        recommendation: parsed.recommendation,
+        evidence,
+        findings_hash,
+        generated_at,
+      },
     });
   } catch (error) {
     return json({ error: (error as Error).message }, 500);

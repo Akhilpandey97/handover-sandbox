@@ -8,8 +8,20 @@ import { Send, CheckCircle2 } from "lucide-react";
 const FIELDS = [
   { key: "name", label: "Name", type: "text", placeholder: "Your full name", required: true },
   { key: "email", label: "Email", type: "email", placeholder: "name@company.com", required: true },
-  { key: "jobTitle", label: "Job Title", type: "text", placeholder: "Head of Onboarding", required: true },
-  { key: "companyName", label: "Company Name", type: "text", placeholder: "Your company", required: true },
+  {
+    key: "jobTitle",
+    label: "Job Title",
+    type: "text",
+    placeholder: "Head of Onboarding",
+    required: true,
+  },
+  {
+    key: "companyName",
+    label: "Company Name",
+    type: "text",
+    placeholder: "Your company",
+    required: true,
+  },
   { key: "phone", label: "Phone Number", type: "tel", placeholder: "Optional", required: false },
   { key: "country", label: "Country", type: "text", placeholder: "Country", required: true },
   { key: "city", label: "City", type: "text", placeholder: "City", required: true },
@@ -18,7 +30,13 @@ const FIELDS = [
 type FieldKey = (typeof FIELDS)[number]["key"];
 
 const EMPTY: Record<FieldKey, string> = {
-  name: "", email: "", jobTitle: "", companyName: "", phone: "", country: "", city: "",
+  name: "",
+  email: "",
+  jobTitle: "",
+  companyName: "",
+  phone: "",
+  country: "",
+  city: "",
 };
 
 /**
@@ -88,10 +106,15 @@ export const SignupLeadForm = ({ onBack }: { onBack: () => void }) => {
         {FIELDS.map((f) => (
           <div
             key={f.key}
-            className={f.key === "email" || f.key === "companyName" ? "col-span-2 space-y-1.5" : "space-y-1.5"}
+            className={
+              f.key === "email" || f.key === "companyName"
+                ? "col-span-2 space-y-1.5"
+                : "space-y-1.5"
+            }
           >
             <Label htmlFor={`lead-${f.key}`} className="text-xs font-medium text-muted-foreground">
-              {f.label}{f.required ? " *" : ""}
+              {f.label}
+              {f.required ? " *" : ""}
             </Label>
             <Input
               id={`lead-${f.key}`}
@@ -107,7 +130,14 @@ export const SignupLeadForm = ({ onBack }: { onBack: () => void }) => {
       </div>
 
       <Button type="submit" className="w-full h-10 font-semibold" disabled={isLoading}>
-        {isLoading ? "Submitting..." : (<><Send className="h-4 w-4 mr-2" />Submit</>)}
+        {isLoading ? (
+          "Submitting..."
+        ) : (
+          <>
+            <Send className="h-4 w-4 mr-2" />
+            Submit
+          </>
+        )}
       </Button>
       <Button type="button" variant="ghost" className="w-full h-9 text-sm" onClick={onBack}>
         Back to sign in

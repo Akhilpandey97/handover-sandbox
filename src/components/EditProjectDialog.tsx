@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from "react";
-import { Project, ProjectLinks, ProjectDates, ProjectNotes, ProjectFaqHelp } from "@/data/projectsData";
+import {
+  Project,
+  ProjectLinks,
+  ProjectDates,
+  ProjectNotes,
+  ProjectFaqHelp,
+} from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
 import { CustomFieldsForm } from "./CustomFieldsRenderer";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building2, Calendar, Link2, FileText, Pencil, Layers, KeyRound, Upload, Loader2, HelpCircle, Plus, Trash2 } from "lucide-react";
+import {
+  Building2,
+  Calendar,
+  Link2,
+  FileText,
+  Pencil,
+  Layers,
+  KeyRound,
+  Upload,
+  Loader2,
+  HelpCircle,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { DatePickerField } from "@/components/ui/date-picker-field";
@@ -48,9 +61,14 @@ export const EditProjectDialog = ({
 }: EditProjectDialogProps) => {
   const { getLabel } = useLabels();
   const { currentUser } = useAuth();
-  const canManageCredentials = !!currentUser && ["admin", "super_admin", "superadmin"].includes(currentUser.team);
+  const canManageCredentials =
+    !!currentUser && ["admin", "super_admin", "superadmin"].includes(currentUser.team);
   const { fields: customFields } = useCustomFields();
-  const { values: customValues, setValues: setCustomValues, saveValues } = useCustomFieldValues(project?.id);
+  const {
+    values: customValues,
+    setValues: setCustomValues,
+    saveValues,
+  } = useCustomFieldValues(project?.id);
   const [editedProject, setEditedProject] = useState<Project | null>(null);
   const [customDraft, setCustomDraft] = useState<Record<string, string>>({});
   const [uploadingField, setUploadingField] = useState<string | null>(null);
@@ -70,24 +88,24 @@ export const EditProjectDialog = ({
   if (!editedProject) return null;
 
   const updateField = <K extends keyof Project>(field: K, value: Project[K]) => {
-    setEditedProject((prev) => prev ? { ...prev, [field]: value } : null);
+    setEditedProject((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
   const updateLinks = (field: keyof ProjectLinks, value: string) => {
     setEditedProject((prev) =>
-      prev ? { ...prev, links: { ...prev.links, [field]: value } } : null
+      prev ? { ...prev, links: { ...prev.links, [field]: value } } : null,
     );
   };
 
   const updateDates = (field: keyof ProjectDates, value: string) => {
     setEditedProject((prev) =>
-      prev ? { ...prev, dates: { ...prev.dates, [field]: value } } : null
+      prev ? { ...prev, dates: { ...prev.dates, [field]: value } } : null,
     );
   };
 
   const updateNotes = (field: keyof ProjectNotes, value: string) => {
     setEditedProject((prev) =>
-      prev ? { ...prev, notes: { ...prev.notes, [field]: value } } : null
+      prev ? { ...prev, notes: { ...prev.notes, [field]: value } } : null,
     );
   };
 
@@ -100,14 +118,11 @@ export const EditProjectDialog = ({
       formData.append("project_id", editedProject.id);
       formData.append("field", dbField);
 
-      const res = await fetch(
-        `/api/public/upload-project-pdf`,
-        {
-          method: "POST",
-          headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-          body: formData,
-        }
-      );
+      const res = await fetch(`/api/public/upload-project-pdf`, {
+        method: "POST",
+        headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        body: formData,
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Upload failed");
       updateLinks(linkField, data.url);
@@ -119,7 +134,17 @@ export const EditProjectDialog = ({
     }
   };
 
-  const LinkFieldWithUpload = ({ label, linkField, dbField, value }: { label: string; linkField: keyof ProjectLinks; dbField: string; value: string }) => (
+  const LinkFieldWithUpload = ({
+    label,
+    linkField,
+    dbField,
+    value,
+  }: {
+    label: string;
+    linkField: keyof ProjectLinks;
+    dbField: string;
+    value: string;
+  }) => (
     <div className="space-y-2">
       <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
       <div className="flex gap-2">
@@ -133,7 +158,9 @@ export const EditProjectDialog = ({
         <input
           type="file"
           className="hidden"
-          ref={(el) => { fileInputRefs.current[dbField] = el; }}
+          ref={(el) => {
+            fileInputRefs.current[dbField] = el;
+          }}
           accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.gif,.csv,.txt,.json,.zip"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -149,11 +176,20 @@ export const EditProjectDialog = ({
           onClick={() => fileInputRefs.current[dbField]?.click()}
           title="Upload file"
         >
-          {uploadingField === dbField ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {uploadingField === dbField ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Upload className="h-4 w-4" />
+          )}
         </Button>
       </div>
       {value && (
-        <a href={value} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate block">
+        <a
+          href={value}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-primary hover:underline truncate block"
+        >
           {value.length > 80 ? value.slice(0, 80) + "…" : value}
         </a>
       )}
@@ -161,7 +197,10 @@ export const EditProjectDialog = ({
   );
 
   const parseEmails = (raw: string) =>
-    (raw || "").split(/[,;\s]+/).map((s) => s.trim()).filter(Boolean);
+    (raw || "")
+      .split(/[,;\s]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
   const emailsValid = (raw: string) => {
     const list = parseEmails(raw);
     if (list.length === 0) return false;
@@ -171,7 +210,11 @@ export const EditProjectDialog = ({
   const handleSave = async () => {
     if (editedProject) {
       if (!emailsValid(editedProject.contactEmail || "")) {
-        toast({ title: `${getLabel("field_contact_email")} required`, description: "Provide one or more valid emails (comma-separated).", variant: "destructive" });
+        toast({
+          title: `${getLabel("field_contact_email")} required`,
+          description: "Provide one or more valid emails (comma-separated).",
+          variant: "destructive",
+        });
         return;
       }
       const merged = { ...customValues, ...customDraft };
@@ -182,11 +225,14 @@ export const EditProjectDialog = ({
   };
 
   const handleCustomFieldChange = (fieldId: string, value: string) => {
-    setCustomDraft(prev => ({ ...prev, [fieldId]: value }));
+    setCustomDraft((prev) => ({ ...prev, [fieldId]: value }));
   };
 
   const updateFaqHelp = (items: ProjectFaqHelp[]) => {
-    updateField("faqHelp", items.map(item => ({ ...item, updatedAt: new Date().toISOString() })));
+    updateField(
+      "faqHelp",
+      items.map((item) => ({ ...item, updatedAt: new Date().toISOString() })),
+    );
   };
 
   /**
@@ -204,18 +250,31 @@ export const EditProjectDialog = ({
       const ch = text[i];
       if (quoted) {
         if (ch === '"') {
-          if (text[i + 1] === '"') { cell += '"'; i++; } else quoted = false;
+          if (text[i + 1] === '"') {
+            cell += '"';
+            i++;
+          } else quoted = false;
         } else cell += ch;
         continue;
       }
       if (ch === '"') quoted = true;
-      else if (ch === ",") { row.push(cell); cell = ""; }
-      else if (ch === "\n" || ch === "\r") {
-        if (cell !== "" || row.length) { row.push(cell); rows.push(row); row = []; cell = ""; }
+      else if (ch === ",") {
+        row.push(cell);
+        cell = "";
+      } else if (ch === "\n" || ch === "\r") {
+        if (cell !== "" || row.length) {
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+        }
         if (ch === "\r" && text[i + 1] === "\n") i++;
       } else cell += ch;
     }
-    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    if (cell !== "" || row.length) {
+      row.push(cell);
+      rows.push(row);
+    }
 
     // Drop a header row only when it actually looks like one.
     if (rows.length && /^\s*question\s*$/i.test(rows[0][0] || "")) rows.shift();
@@ -232,13 +291,20 @@ export const EditProjectDialog = ({
         const raw = JSON.parse(text);
         if (!Array.isArray(raw)) throw new Error("JSON must be an array of { question, answer }");
         parsed = raw
-          .map((r: any) => ({ question: String(r?.question ?? "").trim(), answer: String(r?.answer ?? "").trim() }))
+          .map((r: any) => ({
+            question: String(r?.question ?? "").trim(),
+            answer: String(r?.answer ?? "").trim(),
+          }))
           .filter((r) => r.question && r.answer);
       } else {
         parsed = parseFaqCsv(text);
       }
       if (parsed.length === 0) {
-        toast({ title: "Nothing imported", description: "Expected question and answer columns.", variant: "destructive" });
+        toast({
+          title: "Nothing imported",
+          description: "Expected question and answer columns.",
+          variant: "destructive",
+        });
         return;
       }
       const now = new Date().toISOString();
@@ -246,9 +312,16 @@ export const EditProjectDialog = ({
         ...(editedProject.faqHelp ?? []),
         ...parsed.map((r, i) => ({ id: `faq-${Date.now()}-${i}`, ...r, updatedAt: now })),
       ]);
-      toast({ title: "FAQs imported", description: `Added ${parsed.length} FAQ${parsed.length === 1 ? "" : "s"}.` });
+      toast({
+        title: "FAQs imported",
+        description: `Added ${parsed.length} FAQ${parsed.length === 1 ? "" : "s"}.`,
+      });
     } catch (err) {
-      toast({ title: "Could not read that file", description: (err as Error).message, variant: "destructive" });
+      toast({
+        title: "Could not read that file",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -279,7 +352,12 @@ export const EditProjectDialog = ({
 
         <ScrollArea className="min-h-0 flex-1 px-6 py-4">
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className={cn("grid w-full mb-4", canManageCredentials ? "grid-cols-7" : "grid-cols-6")}>
+            <TabsList
+              className={cn(
+                "grid w-full mb-4",
+                canManageCredentials ? "grid-cols-7" : "grid-cols-6",
+              )}
+            >
               <TabsTrigger value="info" className="gap-1 text-xs">
                 <Building2 className="h-3 w-3" />
                 Info
@@ -315,7 +393,12 @@ export const EditProjectDialog = ({
             <TabsContent value="info" className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-merchantName" className="text-xs font-medium text-muted-foreground">{getLabel("field_merchant_name")} *</Label>
+                  <Label
+                    htmlFor="edit-merchantName"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_merchant_name")} *
+                  </Label>
                   <Input
                     id="edit-merchantName"
                     value={editedProject.merchantName}
@@ -323,7 +406,9 @@ export const EditProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-mid" className="text-xs font-medium text-muted-foreground">{getLabel("field_mid")} *</Label>
+                  <Label htmlFor="edit-mid" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_mid")} *
+                  </Label>
                   <Input
                     id="edit-mid"
                     value={editedProject.mid}
@@ -333,7 +418,12 @@ export const EditProjectDialog = ({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="edit-contactEmail" className="text-xs font-medium text-muted-foreground">{getLabel("field_contact_email")} *</Label>
+                <Label
+                  htmlFor="edit-contactEmail"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_contact_email")} *
+                </Label>
                 <Input
                   id="edit-contactEmail"
                   type="text"
@@ -342,13 +432,19 @@ export const EditProjectDialog = ({
                   placeholder="customer@example.com, ops@example.com"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Required. Add multiple emails separated by commas — magic links, notifications, and Gmail lookups will go to all of them.
+                  Required. Add multiple emails separated by commas — magic links, notifications,
+                  and Gmail lookups will go to all of them.
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-platform" className="text-xs font-medium text-muted-foreground">{getLabel("field_platform")}</Label>
+                  <Label
+                    htmlFor="edit-platform"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_platform")}
+                  </Label>
                   <Select
                     value={editedProject.platform}
                     onValueChange={(v) => updateField("platform", v)}
@@ -358,13 +454,20 @@ export const EditProjectDialog = ({
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
                       {PLATFORM_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-category" className="text-xs font-medium text-muted-foreground">{getLabel("field_category")}</Label>
+                  <Label
+                    htmlFor="edit-category"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_category")}
+                  </Label>
                   <Input
                     id="edit-category"
                     value={editedProject.category}
@@ -375,7 +478,9 @@ export const EditProjectDialog = ({
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-arr" className="text-xs font-medium text-muted-foreground">{getLabel("field_arr")}</Label>
+                  <Label htmlFor="edit-arr" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_arr")}
+                  </Label>
                   <Input
                     id="edit-arr"
                     type="number"
@@ -385,7 +490,12 @@ export const EditProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-txnsPerDay" className="text-xs font-medium text-muted-foreground">{getLabel("field_txns_per_day")}</Label>
+                  <Label
+                    htmlFor="edit-txnsPerDay"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_txns_per_day")}
+                  </Label>
                   <Input
                     id="edit-txnsPerDay"
                     type="number"
@@ -394,7 +504,9 @@ export const EditProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-aov" className="text-xs font-medium text-muted-foreground">{getLabel("field_aov")}</Label>
+                  <Label htmlFor="edit-aov" className="text-xs font-medium text-muted-foreground">
+                    {getLabel("field_aov")}
+                  </Label>
                   <Input
                     id="edit-aov"
                     type="number"
@@ -406,7 +518,12 @@ export const EditProjectDialog = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-salesSpoc" className="text-xs font-medium text-muted-foreground">{getLabel("field_sales_spoc")}</Label>
+                  <Label
+                    htmlFor="edit-salesSpoc"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_sales_spoc")}
+                  </Label>
                   <Input
                     id="edit-salesSpoc"
                     value={editedProject.salesSpoc}
@@ -414,7 +531,12 @@ export const EditProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-integrationType" className="text-xs font-medium text-muted-foreground">{getLabel("field_integration_type")}</Label>
+                  <Label
+                    htmlFor="edit-integrationType"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_integration_type")}
+                  </Label>
                   <Select
                     value={editedProject.integrationType}
                     onValueChange={(v) => updateField("integrationType", v)}
@@ -424,7 +546,9 @@ export const EditProjectDialog = ({
                     </SelectTrigger>
                     <SelectContent className="bg-popover">
                       {INTEGRATION_TYPE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                        <SelectItem key={opt} value={opt}>
+                          {opt}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -433,7 +557,12 @@ export const EditProjectDialog = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-pgOnboarding" className="text-xs font-medium text-muted-foreground">{getLabel("field_pg_onboarding")}</Label>
+                  <Label
+                    htmlFor="edit-pgOnboarding"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_pg_onboarding")}
+                  </Label>
                   <Input
                     id="edit-pgOnboarding"
                     value={editedProject.pgOnboarding}
@@ -441,7 +570,12 @@ export const EditProjectDialog = ({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="edit-goLivePercent" className="text-xs font-medium text-muted-foreground">{getLabel("field_go_live_percent")}</Label>
+                  <Label
+                    htmlFor="edit-goLivePercent"
+                    className="text-xs font-medium text-muted-foreground"
+                  >
+                    {getLabel("field_go_live_percent")}
+                  </Label>
                   <Input
                     id="edit-goLivePercent"
                     type="number"
@@ -452,29 +586,56 @@ export const EditProjectDialog = ({
                   />
                 </div>
               </div>
-
-
             </TabsContent>
 
             <TabsContent value="links" className="space-y-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_brand_url")}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_brand_url")}
+                </Label>
                 <Input
                   type="url"
                   value={editedProject.links.brandUrl}
                   onChange={(e) => updateLinks("brandUrl", e.target.value)}
                 />
               </div>
-              <LinkFieldWithUpload label={getLabel("field_jira_link")} linkField="jiraLink" dbField="jira_link" value={editedProject.links.jiraLink || ""} />
-              <LinkFieldWithUpload label={getLabel("field_brd_link")} linkField="brdLink" dbField="brd_link" value={editedProject.links.brdLink || ""} />
-              <LinkFieldWithUpload label={getLabel("field_mint_checklist_link")} linkField="mintChecklistLink" dbField="mint_checklist_link" value={editedProject.links.mintChecklistLink || ""} />
-              <LinkFieldWithUpload label={getLabel("field_integration_checklist_link")} linkField="integrationChecklistLink" dbField="integration_checklist_link" value={editedProject.links.integrationChecklistLink || ""} />
-              <LinkFieldWithUpload label={getLabel("field_sow_link")} linkField="sowLink" dbField="sow_link" value={editedProject.links.sowLink || ""} />
+              <LinkFieldWithUpload
+                label={getLabel("field_jira_link")}
+                linkField="jiraLink"
+                dbField="jira_link"
+                value={editedProject.links.jiraLink || ""}
+              />
+              <LinkFieldWithUpload
+                label={getLabel("field_brd_link")}
+                linkField="brdLink"
+                dbField="brd_link"
+                value={editedProject.links.brdLink || ""}
+              />
+              <LinkFieldWithUpload
+                label={getLabel("field_mint_checklist_link")}
+                linkField="mintChecklistLink"
+                dbField="mint_checklist_link"
+                value={editedProject.links.mintChecklistLink || ""}
+              />
+              <LinkFieldWithUpload
+                label={getLabel("field_integration_checklist_link")}
+                linkField="integrationChecklistLink"
+                dbField="integration_checklist_link"
+                value={editedProject.links.integrationChecklistLink || ""}
+              />
+              <LinkFieldWithUpload
+                label={getLabel("field_sow_link")}
+                linkField="sowLink"
+                dbField="sow_link"
+                value={editedProject.links.sowLink || ""}
+              />
             </TabsContent>
 
             <TabsContent value="dates" className="space-y-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_kick_off_date")}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_kick_off_date")}
+                </Label>
                 <DatePickerField
                   value={editedProject.dates.kickOffDate}
                   onChange={(v) => updateDates("kickOffDate", v)}
@@ -482,7 +643,9 @@ export const EditProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_expected_go_live_date")}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_expected_go_live_date")}
+                </Label>
                 <DatePickerField
                   value={editedProject.dates.expectedGoLiveDate || ""}
                   onChange={(v) => updateDates("expectedGoLiveDate", v)}
@@ -490,7 +653,9 @@ export const EditProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_actual_go_live_date")}</Label>
+                <Label className="text-xs font-medium text-muted-foreground">
+                  {getLabel("field_actual_go_live_date")}
+                </Label>
                 <DatePickerField
                   value={editedProject.dates.goLiveDate || ""}
                   onChange={(v) => updateDates("goLiveDate", v)}
@@ -501,7 +666,12 @@ export const EditProjectDialog = ({
 
             <TabsContent value="notes" className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="edit-mintNotes" className="text-xs font-medium text-muted-foreground">{getLabel("field_mint_notes")}</Label>
+                <Label
+                  htmlFor="edit-mintNotes"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_mint_notes")}
+                </Label>
                 <Textarea
                   id="edit-mintNotes"
                   value={editedProject.notes.mintNotes || ""}
@@ -510,7 +680,12 @@ export const EditProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-projectNotes" className="text-xs font-medium text-muted-foreground">{getLabel("field_project_notes")}</Label>
+                <Label
+                  htmlFor="edit-projectNotes"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_project_notes")}
+                </Label>
                 <Textarea
                   id="edit-projectNotes"
                   value={editedProject.notes.projectNotes || ""}
@@ -519,7 +694,12 @@ export const EditProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-currentPhaseComment" className="text-xs font-medium text-muted-foreground">{getLabel("field_current_phase_comment")}</Label>
+                <Label
+                  htmlFor="edit-currentPhaseComment"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_current_phase_comment")}
+                </Label>
                 <Textarea
                   id="edit-currentPhaseComment"
                   value={editedProject.notes.currentPhaseComment || ""}
@@ -528,7 +708,12 @@ export const EditProjectDialog = ({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-phase2Comment" className="text-xs font-medium text-muted-foreground">{getLabel("field_phase2_comment")}</Label>
+                <Label
+                  htmlFor="edit-phase2Comment"
+                  className="text-xs font-medium text-muted-foreground"
+                >
+                  {getLabel("field_phase2_comment")}
+                </Label>
                 <Textarea
                   id="edit-phase2Comment"
                   value={editedProject.notes.phase2Comment || ""}
@@ -542,7 +727,10 @@ export const EditProjectDialog = ({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h3 className="heading-card">FAQ & Help</h3>
-                  <p className="text-xs text-muted-foreground">These FAQs appear in the customer portal and Help Assistant. Upload accepts a CSV with question and answer columns, or a JSON array.</p>
+                  <p className="text-xs text-muted-foreground">
+                    These FAQs appear in the customer portal and Help Assistant. Upload accepts a
+                    CSV with question and answer columns, or a JSON array.
+                  </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <input
@@ -556,7 +744,13 @@ export const EditProjectDialog = ({
                       e.target.value = "";
                     }}
                   />
-                  <Button type="button" size="sm" variant="outline" onClick={() => faqFileRef.current?.click()} className="gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => faqFileRef.current?.click()}
+                    className="gap-1"
+                  >
                     <Upload className="h-3 w-3" /> Upload
                   </Button>
                   <Button type="button" size="sm" onClick={addFaq} className="gap-1">
@@ -565,24 +759,61 @@ export const EditProjectDialog = ({
                 </div>
               </div>
               {(editedProject.faqHelp ?? []).length === 0 ? (
-                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">No FAQs added yet.</div>
+                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                  No FAQs added yet.
+                </div>
               ) : (
                 <div className="space-y-3">
                   {(editedProject.faqHelp ?? []).map((faq, idx) => (
-                    <div key={faq.id || idx} className="rounded-md border bg-muted/20 p-3 space-y-3">
+                    <div
+                      key={faq.id || idx}
+                      className="rounded-md border bg-muted/20 p-3 space-y-3"
+                    >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-semibold text-muted-foreground">FAQ {idx + 1}</span>
-                        <Button type="button" variant="ghost" size="icon" onClick={() => updateFaqHelp((editedProject.faqHelp ?? []).filter((_, i) => i !== idx))}>
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          FAQ {idx + 1}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            updateFaqHelp((editedProject.faqHelp ?? []).filter((_, i) => i !== idx))
+                          }
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-medium text-muted-foreground">Question</Label>
-                        <Input value={faq.question} onChange={(e) => updateFaqHelp((editedProject.faqHelp ?? []).map((item, i) => i === idx ? { ...item, question: e.target.value } : item))} placeholder="Enter customer question" />
+                        <Label className="text-xs font-medium text-muted-foreground">
+                          Question
+                        </Label>
+                        <Input
+                          value={faq.question}
+                          onChange={(e) =>
+                            updateFaqHelp(
+                              (editedProject.faqHelp ?? []).map((item, i) =>
+                                i === idx ? { ...item, question: e.target.value } : item,
+                              ),
+                            )
+                          }
+                          placeholder="Enter customer question"
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs font-medium text-muted-foreground">Answer</Label>
-                        <Textarea value={faq.answer} onChange={(e) => updateFaqHelp((editedProject.faqHelp ?? []).map((item, i) => i === idx ? { ...item, answer: e.target.value } : item))} placeholder="Enter the answer customers should see" rows={3} />
+                        <Textarea
+                          value={faq.answer}
+                          onChange={(e) =>
+                            updateFaqHelp(
+                              (editedProject.faqHelp ?? []).map((item, i) =>
+                                i === idx ? { ...item, answer: e.target.value } : item,
+                              ),
+                            )
+                          }
+                          placeholder="Enter the answer customers should see"
+                          rows={3}
+                        />
                       </div>
                     </div>
                   ))}
@@ -590,120 +821,181 @@ export const EditProjectDialog = ({
               )}
             </TabsContent>
 
-            {canManageCredentials && <TabsContent value="credentials" className="space-y-6">
-              <div>
-                <h3 className="heading-card mb-3">Sandbox Credentials</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_sandbox_mid")}</Label>
-                    <Input value={editedProject.sandboxMid || ""} onChange={(e) => updateField("sandboxMid", e.target.value)} placeholder="e.g. 10008" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_sandbox_app_id")}</Label>
-                    <Input value={editedProject.sandboxAppId || ""} onChange={(e) => updateField("sandboxAppId", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_sandbox_app_secret")}</Label>
-                    <Input value={editedProject.sandboxAppSecret || ""} onChange={(e) => updateField("sandboxAppSecret", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_sandbox_base_url")}</Label>
-                    <Input value={editedProject.sandboxBaseUrl || ""} onChange={(e) => updateField("sandboxBaseUrl", e.target.value)} placeholder="https://sandbox.api.gokwik.co" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_sandbox_config_id")}</Label>
-                    <Input value={editedProject.sandboxConfigId || ""} onChange={(e) => updateField("sandboxConfigId", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_sandbox_kwikpass_jwe_key")}</Label>
-                    <Input value={editedProject.sandboxKwikpassJweKey || ""} onChange={(e) => updateField("sandboxKwikpassJweKey", e.target.value)} />
-                  </div>
-                  <div className="space-y-2 col-span-2">
-                    <Label className="text-xs font-medium text-muted-foreground">{getLabel("field_payment_simulator_link")}</Label>
-                    <Input
-                      type="url"
-                      value={editedProject.paymentSimulatorLink || ""}
-                      onChange={(e) => updateField("paymentSimulatorLink", e.target.value)}
-                      placeholder="https://payment-simulator.example.com/..."
-                    />
-                    <p className="text-xs text-muted-foreground">When set, a "Payment Simulator" section appears in the customer's KwikAssist portal.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="heading-card mb-3">Production Credentials</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_prod_mid")}</Label>
-                    <Input value={editedProject.prodMid || ""} onChange={(e) => updateField("prodMid", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_prod_app_id")}</Label>
-                    <Input value={editedProject.prodAppId || ""} onChange={(e) => updateField("prodAppId", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_prod_app_secret")}</Label>
-                    <Input value={editedProject.prodAppSecret || ""} onChange={(e) => updateField("prodAppSecret", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_prod_base_url")}</Label>
-                    <Input value={editedProject.prodBaseUrl || ""} onChange={(e) => updateField("prodBaseUrl", e.target.value)} placeholder="https://api.gokwik.co" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_prod_config_id")}</Label>
-                    <Input value={editedProject.prodConfigId || ""} onChange={(e) => updateField("prodConfigId", e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_prod_kwikpass_jwe_key")}</Label>
-                    <Input value={editedProject.prodKwikpassJweKey || ""} onChange={(e) => updateField("prodKwikpassJweKey", e.target.value)} />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="heading-card mb-3">MCP Configuration</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_mcp_config_id")}</Label>
-                    <Input value={editedProject.mcpConfigId || ""} onChange={(e) => updateField("mcpConfigId", e.target.value)} />
-                  </div>
-                  <div className="space-y-2 flex items-end gap-3">
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={editedProject.enableMcpDocument || false}
-                        onCheckedChange={(checked) => updateField("enableMcpDocument", checked)}
+            {canManageCredentials && (
+              <TabsContent value="credentials" className="space-y-6">
+                <div>
+                  <h3 className="heading-card mb-3">Sandbox Credentials</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_sandbox_mid")}</Label>
+                      <Input
+                        value={editedProject.sandboxMid || ""}
+                        onChange={(e) => updateField("sandboxMid", e.target.value)}
+                        placeholder="e.g. 10008"
                       />
-                      <Label>{getLabel("field_mcp_enabled")}</Label>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_sandbox_app_id")}</Label>
+                      <Input
+                        value={editedProject.sandboxAppId || ""}
+                        onChange={(e) => updateField("sandboxAppId", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_sandbox_app_secret")}</Label>
+                      <Input
+                        value={editedProject.sandboxAppSecret || ""}
+                        onChange={(e) => updateField("sandboxAppSecret", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_sandbox_base_url")}</Label>
+                      <Input
+                        value={editedProject.sandboxBaseUrl || ""}
+                        onChange={(e) => updateField("sandboxBaseUrl", e.target.value)}
+                        placeholder="https://sandbox.api.gokwik.co"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_sandbox_config_id")}</Label>
+                      <Input
+                        value={editedProject.sandboxConfigId || ""}
+                        onChange={(e) => updateField("sandboxConfigId", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_sandbox_kwikpass_jwe_key")}</Label>
+                      <Input
+                        value={editedProject.sandboxKwikpassJweKey || ""}
+                        onChange={(e) => updateField("sandboxKwikpassJweKey", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label className="text-xs font-medium text-muted-foreground">
+                        {getLabel("field_payment_simulator_link")}
+                      </Label>
+                      <Input
+                        type="url"
+                        value={editedProject.paymentSimulatorLink || ""}
+                        onChange={(e) => updateField("paymentSimulatorLink", e.target.value)}
+                        placeholder="https://payment-simulator.example.com/..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        When set, a "Payment Simulator" section appears in the customer's KwikAssist
+                        portal.
+                      </p>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div>
-                <h3 className="heading-card mb-3">KwikPass (KP) Configuration</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2 flex items-end gap-3">
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={editedProject.enableKp || false}
-                        onCheckedChange={(checked) => updateField("enableKp", checked)}
+                <div>
+                  <h3 className="heading-card mb-3">Production Credentials</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_prod_mid")}</Label>
+                      <Input
+                        value={editedProject.prodMid || ""}
+                        onChange={(e) => updateField("prodMid", e.target.value)}
                       />
-                      <Label>{getLabel("field_kp_enabled")}</Label>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_prod_app_id")}</Label>
+                      <Input
+                        value={editedProject.prodAppId || ""}
+                        onChange={(e) => updateField("prodAppId", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_prod_app_secret")}</Label>
+                      <Input
+                        value={editedProject.prodAppSecret || ""}
+                        onChange={(e) => updateField("prodAppSecret", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_prod_base_url")}</Label>
+                      <Input
+                        value={editedProject.prodBaseUrl || ""}
+                        onChange={(e) => updateField("prodBaseUrl", e.target.value)}
+                        placeholder="https://api.gokwik.co"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_prod_config_id")}</Label>
+                      <Input
+                        value={editedProject.prodConfigId || ""}
+                        onChange={(e) => updateField("prodConfigId", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_prod_kwikpass_jwe_key")}</Label>
+                      <Input
+                        value={editedProject.prodKwikpassJweKey || ""}
+                        onChange={(e) => updateField("prodKwikpassJweKey", e.target.value)}
+                      />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>{getLabel("field_kp_prod_jwe_key")}</Label>
-                    <Input value={editedProject.kpProdJweKey || ""} onChange={(e) => updateField("kpProdJweKey", e.target.value)} placeholder="Production JWE key" />
-                  </div>
-                  <div className="space-y-2 col-span-2">
-                    <Label>{getLabel("field_kp_sandbox_jwe_key")}</Label>
-                    <Input value={editedProject.kpSandboxJweKey || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI"} onChange={(e) => updateField("kpSandboxJweKey", e.target.value)} />
-                    <p className="text-xs text-muted-foreground">Default sandbox key is pre-filled for all customers</p>
+                </div>
+
+                <div>
+                  <h3 className="heading-card mb-3">MCP Configuration</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_mcp_config_id")}</Label>
+                      <Input
+                        value={editedProject.mcpConfigId || ""}
+                        onChange={(e) => updateField("mcpConfigId", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2 flex items-end gap-3">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={editedProject.enableMcpDocument || false}
+                          onCheckedChange={(checked) => updateField("enableMcpDocument", checked)}
+                        />
+                        <Label>{getLabel("field_mcp_enabled")}</Label>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </TabsContent>}
+
+                <div>
+                  <h3 className="heading-card mb-3">KwikPass (KP) Configuration</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2 flex items-end gap-3">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={editedProject.enableKp || false}
+                          onCheckedChange={(checked) => updateField("enableKp", checked)}
+                        />
+                        <Label>{getLabel("field_kp_enabled")}</Label>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>{getLabel("field_kp_prod_jwe_key")}</Label>
+                      <Input
+                        value={editedProject.kpProdJweKey || ""}
+                        onChange={(e) => updateField("kpProdJweKey", e.target.value)}
+                        placeholder="Production JWE key"
+                      />
+                    </div>
+                    <div className="space-y-2 col-span-2">
+                      <Label>{getLabel("field_kp_sandbox_jwe_key")}</Label>
+                      <Input
+                        value={
+                          editedProject.kpSandboxJweKey ||
+                          "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI"
+                        }
+                        onChange={(e) => updateField("kpSandboxJweKey", e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Default sandbox key is pre-filled for all customers
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            )}
 
             <TabsContent value="custom" className="space-y-6">
               {customFields.length > 0 && (
@@ -721,9 +1013,7 @@ export const EditProjectDialog = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            Save Changes
-          </Button>
+          <Button onClick={handleSave}>Save Changes</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

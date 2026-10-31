@@ -13,14 +13,14 @@ NEW="postgresql://postgres.detbvxvhwconosapajbz@aws-0-ap-south-1.pooler.supabase
 
 ## Before the window
 
-| Step | Where | Notes |
-|---|---|---|
-| Google OAuth client | Google Cloud Console | Redirect URI `https://detbvxvhwconosapajbz.supabase.co/auth/v1/callback`, plus `http://localhost:53682/callback` while running the consent script |
-| Gmail refresh token | `node scripts/google-refresh-token.mjs <id> <secret> gmail` | Paste into Settings → Integrations |
-| Google provider | Supabase → Authentication → Providers | Client ID and secret from above |
-| Custom domain | Railway → service → Settings → Networking | `seamlesshandover.in`, then the CNAME at the DNS provider |
-| Top up AI credit | Anthropic Console | Opus 5 sits behind Buddy |
-| Rotate keys | Anthropic, Supabase | Any key pasted into a chat or screenshot |
+| Step                | Where                                                       | Notes                                                                                                                                             |
+| ------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Google OAuth client | Google Cloud Console                                        | Redirect URI `https://detbvxvhwconosapajbz.supabase.co/auth/v1/callback`, plus `http://localhost:53682/callback` while running the consent script |
+| Gmail refresh token | `node scripts/google-refresh-token.mjs <id> <secret> gmail` | Paste into Settings → Integrations                                                                                                                |
+| Google provider     | Supabase → Authentication → Providers                       | Client ID and secret from above                                                                                                                   |
+| Custom domain       | Railway → service → Settings → Networking                   | `seamlesshandover.in`, then the CNAME at the DNS provider                                                                                         |
+| Top up AI credit    | Anthropic Console                                           | Opus 5 sits behind Buddy                                                                                                                          |
+| Rotate keys         | Anthropic, Supabase                                         | Any key pasted into a chat or screenshot                                                                                                          |
 
 ## The window
 
@@ -95,9 +95,9 @@ Pick a quiet hour. The mail pollers run hourly, so an hour's gap costs nothing.
 
 10. **Rotate the scheduler token** and put the result in Railway's `CRON_SECRET`:
 
-   ```sql
-   select private.rotate_cron_token();
-   ```
+```sql
+select private.rotate_cron_token();
+```
 
 11. **Update the outside world**: the Zoom webhook URL, the CRM API base URL customers call,
     the Google OAuth redirect URIs, and each workspace's App Base URL in Settings → Integrations.

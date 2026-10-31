@@ -61,7 +61,10 @@ async function PATCH({ request, params }: { request: Request; params: { id: stri
   const parsed = projectInputSchema.partial().safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return apiJson(
-      { error: "Validation failed", fields: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })) },
+      {
+        error: "Validation failed",
+        fields: parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
+      },
       400,
     );
   }

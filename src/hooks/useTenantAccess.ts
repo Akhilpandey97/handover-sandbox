@@ -51,8 +51,17 @@ export const useStartTenantAccess = () => {
   const { currentUser } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ tenantId, days, reason, role, grantTo }: {
-      tenantId: string; tenantName: string; days: number; reason: string;
+    mutationFn: async ({
+      tenantId,
+      days,
+      reason,
+      role,
+      grantTo,
+    }: {
+      tenantId: string;
+      tenantName: string;
+      days: number;
+      reason: string;
       /** What the grantee may do inside the workspace. */
       role: SupportAccessRole;
       /** Who gets the access. Defaults to the person granting it. */
@@ -66,17 +75,15 @@ export const useStartTenantAccess = () => {
 
       // granted_by and granted_by_name are overwritten by the database with
       // the signed-in user; they are sent only so older schemas still accept it.
-      const { error: grantError } = await (supabase as any)
-        .from("tenant_access_grants")
-        .insert({
-          tenant_id: tenantId,
-          granted_to: recipient,
-          granted_by: currentUser.id,
-          granted_by_name: currentUser.name,
-          reason,
-          role,
-          expires_at: expires.toISOString(),
-        });
+      const { error: grantError } = await (supabase as any).from("tenant_access_grants").insert({
+        tenant_id: tenantId,
+        granted_to: recipient,
+        granted_by: currentUser.id,
+        granted_by_name: currentUser.name,
+        reason,
+        role,
+        expires_at: expires.toISOString(),
+      });
       if (grantError) throw grantError;
 
       // Entering is separate from being allowed to enter. Granting to someone
@@ -150,7 +157,10 @@ export const useMyTenantAccess = () => {
         .order("expires_at", { ascending: false });
       if (error) throw error;
       return (data || []) as Array<{
-        id: string; tenant_id: string; expires_at: string; tenants: { name: string } | null;
+        id: string;
+        tenant_id: string;
+        expires_at: string;
+        tenants: { name: string } | null;
       }>;
     },
   });

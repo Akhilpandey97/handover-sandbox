@@ -27,7 +27,12 @@ export const AttentionReasonBlock = ({
   compact?: boolean;
   className?: string;
 }) => {
-  const { reason, isLoading, error, regenerate } = useAttentionReason(projectId, kind, reasons, enabled);
+  const { reason, isLoading, error, regenerate } = useAttentionReason(
+    projectId,
+    kind,
+    reasons,
+    enabled,
+  );
 
   if (compact) {
     if (isLoading && !reason) {
@@ -44,7 +49,9 @@ export const AttentionReasonBlock = ({
         </p>
       );
     }
-    return <p className={cn("text-xs leading-relaxed text-foreground/90", className)}>{reason.why}</p>;
+    return (
+      <p className={cn("text-xs leading-relaxed text-foreground/90", className)}>{reason.why}</p>
+    );
   }
 
   return (
@@ -56,7 +63,10 @@ export const AttentionReasonBlock = ({
         {reason && (
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); void regenerate(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              void regenerate();
+            }}
             className="text-2xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
           >
             <RefreshCw className="h-3 w-3" /> Refresh
@@ -70,9 +80,7 @@ export const AttentionReasonBlock = ({
         </p>
       )}
 
-      {error && !reason && (
-        <p className="text-muted-foreground">{(error as Error).message}</p>
-      )}
+      {error && !reason && <p className="text-muted-foreground">{(error as Error).message}</p>}
 
       {reason && (
         <>
@@ -127,7 +135,9 @@ export const AttentionReasonPopover = ({
         className="z-[140] w-80 p-3 pointer-events-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-xs font-semibold text-foreground mb-2">{title || "Why this needs attention"}</p>
+        <p className="text-xs font-semibold text-foreground mb-2">
+          {title || "Why this needs attention"}
+        </p>
         <ul className="space-y-1.5">
           {reasons.map((r, i) => (
             <li key={i} className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
@@ -137,7 +147,12 @@ export const AttentionReasonPopover = ({
           ))}
         </ul>
         <div className="mt-2 border-t pt-2">
-          <AttentionReasonBlock projectId={projectId} kind={kind} reasons={reasons} enabled={open} />
+          <AttentionReasonBlock
+            projectId={projectId}
+            kind={kind}
+            reasons={reasons}
+            enabled={open}
+          />
         </div>
       </PopoverContent>
     </Popover>

@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useState, useCallback } from "react";
 import { X, ArrowRight, ArrowLeft, Zap } from "lucide-react";
 
 export interface TourStep {
-  target?: string;          // CSS selector — omit for centered intro/outro
+  target?: string; // CSS selector — omit for centered intro/outro
   title: string;
   body: string;
   placement?: "top" | "bottom" | "left" | "right" | "auto";
@@ -20,7 +20,13 @@ const PADDING = 8;
 const TOOLTIP_W = 340;
 const TOOLTIP_GAP = 14;
 
-export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#0074F8" }: Props) => {
+export const GuidedTour = ({
+  steps,
+  open,
+  onClose,
+  merchantName,
+  brandColor = "#0074F8",
+}: Props) => {
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [tick, setTick] = useState(0);
@@ -30,9 +36,15 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
   // Find target rect
   useLayoutEffect(() => {
     if (!open) return;
-    if (!step?.target) { setRect(null); return; }
+    if (!step?.target) {
+      setRect(null);
+      return;
+    }
     const el = document.querySelector(step.target) as HTMLElement | null;
-    if (!el) { setRect(null); return; }
+    if (!el) {
+      setRect(null);
+      return;
+    }
     el.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
     const r = el.getBoundingClientRect();
     setRect(r);
@@ -95,12 +107,12 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
       step.placement && step.placement !== "auto"
         ? step.placement
         : spaceRight >= TOOLTIP_W + TOOLTIP_GAP
-        ? "right"
-        : spaceBelow >= 220
-        ? "bottom"
-        : rect.top >= 220
-        ? "top"
-        : "right";
+          ? "right"
+          : spaceBelow >= 220
+            ? "bottom"
+            : rect.top >= 220
+              ? "top"
+              : "right";
 
     if (placement === "right") {
       tipStyle = {
@@ -156,7 +168,14 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
             )}
           </mask>
         </defs>
-        <rect x="0" y="0" width="100%" height="100%" fill="rgba(2, 6, 23, 0.72)" mask="url(#tour-mask)" />
+        <rect
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          fill="rgba(2, 6, 23, 0.72)"
+          mask="url(#tour-mask)"
+        />
       </svg>
 
       {/* Highlight border */}
@@ -178,7 +197,10 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
         className="absolute bg-popover text-popover-foreground rounded-xl shadow-2xl border border-border overflow-hidden"
         style={tipStyle}
       >
-        <div className="px-4 py-3 flex items-center justify-between gap-3" style={{ background: brandColor }}>
+        <div
+          className="px-4 py-3 flex items-center justify-between gap-3"
+          style={{ background: brandColor }}
+        >
           <div className="flex items-center gap-2 min-w-0">
             <Zap className="w-4 h-4 text-white flex-shrink-0" fill="white" />
             <p className="text-xs font-semibold text-white truncate">
@@ -187,13 +209,19 @@ export const GuidedTour = ({ steps, open, onClose, merchantName, brandColor = "#
                 : `Step ${idx + 1} of ${steps.length}`}
             </p>
           </div>
-          <button onClick={onClose} className="text-white/80 hover:text-white" aria-label="Close tour">
+          <button
+            onClick={onClose}
+            className="text-white/80 hover:text-white"
+            aria-label="Close tour"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
         <div className="px-5 py-4">
           <h3 className="heading-card text-foreground mb-1.5">{step.title}</h3>
-          <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">{step.body}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-line">
+            {step.body}
+          </p>
         </div>
         <div className="px-4 py-3 border-t border-border flex items-center justify-between bg-muted/60">
           <button

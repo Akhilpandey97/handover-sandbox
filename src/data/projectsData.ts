@@ -172,17 +172,19 @@ export interface Project {
 }
 
 // Helper to calculate time spent by each party (neutral time is not counted)
-export const calculateTimeByParty = (logs: ResponsibilityLog[] | ChecklistResponsibilityLog[]): { gokwik: number; merchant: number; neutral: number } => {
+export const calculateTimeByParty = (
+  logs: ResponsibilityLog[] | ChecklistResponsibilityLog[],
+): { gokwik: number; merchant: number; neutral: number } => {
   const result = { gokwik: 0, merchant: 0, neutral: 0 };
-  
-  logs.forEach(log => {
+
+  logs.forEach((log) => {
     if (log.party === "neutral") return; // Don't count neutral time
     const start = new Date(log.startedAt).getTime();
     const end = log.endedAt ? new Date(log.endedAt).getTime() : Date.now();
     const duration = end - start;
     result[log.party] += duration;
   });
-  
+
   return result;
 };
 
@@ -205,10 +207,15 @@ export const formatDuration = (ms: number): string => {
 // Logic: these 4 MINT checklist items are ALL completed:
 // Requirement Gathering, API Walkthrough, API Build & SDK Integration, API Validation
 export const isProjectUnderIntegration = (project: Project): boolean => {
-  const requiredTitles = ["requirement gathering", "api walkthrough", "api build & sdk integration", "api validation"];
-  const items = project.checklist.filter(c => !c.isTask);
-  return requiredTitles.every(req => {
-    const item = items.find(c => c.title.toLowerCase().includes(req));
+  const requiredTitles = [
+    "requirement gathering",
+    "api walkthrough",
+    "api build & sdk integration",
+    "api validation",
+  ];
+  const items = project.checklist.filter((c) => !c.isTask);
+  return requiredTitles.every((req) => {
+    const item = items.find((c) => c.title.toLowerCase().includes(req));
     return item && item.completed;
   });
 };
@@ -232,20 +239,25 @@ const FUNNEL_ANY_TITLES = [
 
 // Sales: none of the funnel checklist items are completed
 export const isProjectSales = (project: Project): boolean => {
-  const items = project.checklist.filter(c => !c.isTask);
-  return !FUNNEL_ANY_TITLES.some(t =>
-    items.some(i => i.title.toLowerCase().includes(t) && i.completed)
+  const items = project.checklist.filter((c) => !c.isTask);
+  return !FUNNEL_ANY_TITLES.some((t) =>
+    items.some((i) => i.title.toLowerCase().includes(t) && i.completed),
   );
 };
 
 // Pre Integration: Feasibility Analysis completed AND ANY of the 4 integration items are uncompleted
 export const isProjectPreIntegration = (project: Project): boolean => {
-  const items = project.checklist.filter(c => !c.isTask);
-  const feasibility = items.find(i => i.title.toLowerCase().includes("feasibility analysis"));
+  const items = project.checklist.filter((c) => !c.isTask);
+  const feasibility = items.find((i) => i.title.toLowerCase().includes("feasibility analysis"));
   if (!feasibility || !feasibility.completed) return false;
-  const blockers = ["requirement gathering", "api walkthrough", "api build & sdk integration", "api validation"];
-  return blockers.some(b => {
-    const item = items.find(i => i.title.toLowerCase().includes(b));
+  const blockers = [
+    "requirement gathering",
+    "api walkthrough",
+    "api build & sdk integration",
+    "api validation",
+  ];
+  return blockers.some((b) => {
+    const item = items.find((i) => i.title.toLowerCase().includes(b));
     return !item || !item.completed;
   });
 };
@@ -278,34 +290,40 @@ export const getProjectFunnelStage = (project: Project): FunnelStage =>
   resolveFunnelStage(project, getActiveFunnelStages());
 
 // Calculate project responsibility automatically based on checklist items
-export const calculateProjectResponsibilityFromChecklist = (checklist: ProjectChecklist[]): ResponsibilityParty => {
+export const calculateProjectResponsibilityFromChecklist = (
+  checklist: ProjectChecklist[],
+): ResponsibilityParty => {
   // Get all uncompleted, non-neutral items
-  const activeItems = checklist.filter(item => !item.completed && item.currentResponsibility !== "neutral");
-  
+  const activeItems = checklist.filter(
+    (item) => !item.completed && item.currentResponsibility !== "neutral",
+  );
+
   if (activeItems.length === 0) {
     return "neutral";
   }
-  
+
   // If any active item is on merchant, project is on merchant
-  const hasMerchantItem = activeItems.some(item => item.currentResponsibility === "merchant");
+  const hasMerchantItem = activeItems.some((item) => item.currentResponsibility === "merchant");
   if (hasMerchantItem) {
     return "merchant";
   }
-  
+
   // Otherwise, all active items are on gokwik
   return "gokwik";
 };
 
 // Calculate time from checklist items instead of project-level logs
-export const calculateTimeFromChecklist = (checklist: ProjectChecklist[]): { gokwik: number; merchant: number; neutral: number } => {
+export const calculateTimeFromChecklist = (
+  checklist: ProjectChecklist[],
+): { gokwik: number; merchant: number; neutral: number } => {
   const result = { gokwik: 0, merchant: 0, neutral: 0 };
-  
-  checklist.forEach(item => {
+
+  checklist.forEach((item) => {
     const itemTime = calculateTimeByParty(item.responsibilityLog);
     result.gokwik += itemTime.gokwik;
     result.merchant += itemTime.merchant;
   });
-  
+
   return result;
 };
 
@@ -412,12 +430,15 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
 });
 
 // Helper to create checklist for existing projects
-const createChecklistForProject = (projectId: string, completedItems: { title: string; phase: ProjectPhase }[]): ProjectChecklist[] => {
+const createChecklistForProject = (
+  projectId: string,
+  completedItems: { title: string; phase: ProjectPhase }[],
+): ProjectChecklist[] => {
   const now = new Date().toISOString();
   const checklist: ProjectChecklist[] = [];
 
   mintChecklistItems.forEach((title, idx) => {
-    const isCompleted = completedItems.some(item => item.title === title);
+    const isCompleted = completedItems.some((item) => item.title === title);
     checklist.push({
       id: `${projectId}-c-mint-${idx}`,
       title,
@@ -431,7 +452,7 @@ const createChecklistForProject = (projectId: string, completedItems: { title: s
   });
 
   integrationChecklistItems.forEach((title, idx) => {
-    const isCompleted = completedItems.some(item => item.title === title);
+    const isCompleted = completedItems.some((item) => item.title === title);
     checklist.push({
       id: `${projectId}-c-int-${idx}`,
       title,
@@ -476,7 +497,8 @@ export const initialProjects: Project[] = [
     notes: {
       mintNotes: "High priority client, CEO directly involved",
       projectNotes: "Checkout lite, PAN card implementation and KP Integration",
-      currentPhaseComment: "Initial scoping and API walkthrough is done. Awaiting update on API dev.",
+      currentPhaseComment:
+        "Initial scoping and API walkthrough is done. Awaiting update on API dev.",
       phase2Comment: "",
     },
     salesSpoc: "Saurabh",
@@ -490,7 +512,13 @@ export const initialProjects: Project[] = [
     currentResponsibility: "merchant",
     projectState: "in_progress",
     responsibilityLog: [
-      { id: "r1", party: "gokwik", startedAt: "2025-01-13T09:00:00Z", endedAt: "2025-01-15T14:00:00Z", phase: "mint" },
+      {
+        id: "r1",
+        party: "gokwik",
+        startedAt: "2025-01-13T09:00:00Z",
+        endedAt: "2025-01-15T14:00:00Z",
+        phase: "mint",
+      },
       { id: "r2", party: "merchant", startedAt: "2025-01-15T14:00:00Z", phase: "mint" },
     ],
   },
@@ -552,8 +580,20 @@ export const initialProjects: Project[] = [
     currentResponsibility: "gokwik",
     projectState: "in_progress",
     responsibilityLog: [
-      { id: "r1", party: "gokwik", startedAt: "2025-01-14T09:00:00Z", endedAt: "2025-01-15T16:00:00Z", phase: "mint" },
-      { id: "r2", party: "merchant", startedAt: "2025-01-15T16:00:00Z", endedAt: "2025-01-16T10:30:00Z", phase: "mint" },
+      {
+        id: "r1",
+        party: "gokwik",
+        startedAt: "2025-01-14T09:00:00Z",
+        endedAt: "2025-01-15T16:00:00Z",
+        phase: "mint",
+      },
+      {
+        id: "r2",
+        party: "merchant",
+        startedAt: "2025-01-15T16:00:00Z",
+        endedAt: "2025-01-16T10:30:00Z",
+        phase: "mint",
+      },
       { id: "r3", party: "gokwik", startedAt: "2025-01-16T10:30:00Z", phase: "integration" },
     ],
   },
@@ -631,10 +671,34 @@ export const initialProjects: Project[] = [
     currentResponsibility: "gokwik",
     projectState: "live",
     responsibilityLog: [
-      { id: "r1", party: "gokwik", startedAt: "2024-12-01T09:00:00Z", endedAt: "2024-12-05T17:00:00Z", phase: "mint" },
-      { id: "r2", party: "merchant", startedAt: "2024-12-05T17:00:00Z", endedAt: "2024-12-10T09:00:00Z", phase: "mint" },
-      { id: "r3", party: "gokwik", startedAt: "2024-12-10T11:00:00Z", endedAt: "2025-01-10T12:00:00Z", phase: "integration" },
-      { id: "r4", party: "merchant", startedAt: "2025-01-10T12:00:00Z", endedAt: "2025-01-15T14:00:00Z", phase: "integration" },
+      {
+        id: "r1",
+        party: "gokwik",
+        startedAt: "2024-12-01T09:00:00Z",
+        endedAt: "2024-12-05T17:00:00Z",
+        phase: "mint",
+      },
+      {
+        id: "r2",
+        party: "merchant",
+        startedAt: "2024-12-05T17:00:00Z",
+        endedAt: "2024-12-10T09:00:00Z",
+        phase: "mint",
+      },
+      {
+        id: "r3",
+        party: "gokwik",
+        startedAt: "2024-12-10T11:00:00Z",
+        endedAt: "2025-01-10T12:00:00Z",
+        phase: "integration",
+      },
+      {
+        id: "r4",
+        party: "merchant",
+        startedAt: "2025-01-10T12:00:00Z",
+        endedAt: "2025-01-15T14:00:00Z",
+        phase: "integration",
+      },
       { id: "r5", party: "gokwik", startedAt: "2025-01-15T14:00:00Z", phase: "ms" },
     ],
   },

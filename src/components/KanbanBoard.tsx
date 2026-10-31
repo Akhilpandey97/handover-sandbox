@@ -3,12 +3,25 @@ import { createPortal } from "react-dom";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
-import { Project, ProjectState, projectStateLabels, getProjectFunnelStage, funnelStageLabels, FunnelStage } from "@/data/projectsData";
+import {
+  Project,
+  ProjectState,
+  projectStateLabels,
+  getProjectFunnelStage,
+  funnelStageLabels,
+  FunnelStage,
+} from "@/data/projectsData";
 import { KanbanCard } from "./KanbanCard";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -33,33 +46,69 @@ const KANBAN_FIELD_OPTIONS = [
 const FUNNEL_ORDER: FunnelStage[] = ["sales", "pre_integration", "under_integration", "live"];
 
 const COLUMN_ORDER_KEY = "kanban_column_order";
-const FUNNEL_STAGE_STYLES: Record<FunnelStage, { text: string; bar: string; bg: string; ring: string }> = {
+const FUNNEL_STAGE_STYLES: Record<
+  FunnelStage,
+  { text: string; bar: string; bg: string; ring: string }
+> = {
   sales: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
-  pre_integration: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
-  under_integration: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
+  pre_integration: {
+    text: "text-foreground",
+    bar: "bg-border",
+    bg: "bg-muted/30",
+    ring: "ring-border",
+  },
+  under_integration: {
+    text: "text-foreground",
+    bar: "bg-border",
+    bg: "bg-muted/30",
+    ring: "ring-border",
+  },
   live: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
   none: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
 };
 
 const STATE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
-  not_started: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
-  in_progress: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
+  not_started: {
+    text: "text-foreground",
+    bar: "bg-border",
+    bg: "bg-muted/30",
+    ring: "ring-border",
+  },
+  in_progress: {
+    text: "text-foreground",
+    bar: "bg-border",
+    bg: "bg-muted/30",
+    ring: "ring-border",
+  },
   on_hold: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
   blocked: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
   live: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
 };
 
 const STATE_ARR_STYLES: Record<string, { text: string; bg: string; ring: string }> = {
-  not_started: { text: "text-slate-700 dark:text-slate-300", bg: "bg-slate-100 dark:bg-slate-800", ring: "ring-slate-300 dark:ring-slate-600" },
+  not_started: {
+    text: "text-slate-700 dark:text-slate-300",
+    bg: "bg-slate-100 dark:bg-slate-800",
+    ring: "ring-slate-300 dark:ring-slate-600",
+  },
   in_progress: { text: "text-info-strong", bg: "bg-info-soft", ring: "ring-info/30" },
   on_hold: { text: "text-warning-strong", bg: "bg-warning-soft", ring: "ring-warning/30" },
-  blocked: { text: "text-destructive-strong", bg: "bg-destructive-soft", ring: "ring-destructive/30" },
+  blocked: {
+    text: "text-destructive-strong",
+    bg: "bg-destructive-soft",
+    ring: "ring-destructive/30",
+  },
   live: { text: "text-success-strong", bg: "bg-success-soft", ring: "ring-success/30" },
 };
 
 const PHASE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
   mint: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
-  integration: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
+  integration: {
+    text: "text-foreground",
+    bar: "bg-border",
+    bg: "bg-muted/30",
+    ring: "ring-border",
+  },
   ms: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
   completed: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
 };
@@ -72,16 +121,28 @@ const FALLBACK_STYLES = [
   { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
 ];
 
-function getFieldValue(project: Project, field: string, customValuesMap?: Record<string, Record<string, string>>): string {
+function getFieldValue(
+  project: Project,
+  field: string,
+  customValuesMap?: Record<string, Record<string, string>>,
+): string {
   switch (field) {
-    case "funnelStage": return getProjectFunnelStage(project);
-    case "projectState": return project.projectState;
-    case "currentPhase": return project.currentPhase;
-    case "currentOwnerTeam": return project.currentOwnerTeam;
-    case "platform": return project.platform || "Unknown";
-    case "category": return project.category || "Uncategorized";
-    case "currentResponsibility": return project.currentResponsibility;
-    case "assignedOwnerName": return project.assignedOwnerName || "Unassigned";
+    case "funnelStage":
+      return getProjectFunnelStage(project);
+    case "projectState":
+      return project.projectState;
+    case "currentPhase":
+      return project.currentPhase;
+    case "currentOwnerTeam":
+      return project.currentOwnerTeam;
+    case "platform":
+      return project.platform || "Unknown";
+    case "category":
+      return project.category || "Uncategorized";
+    case "currentResponsibility":
+      return project.currentResponsibility;
+    case "assignedOwnerName":
+      return project.assignedOwnerName || "Unassigned";
     default:
       if (field.startsWith("custom_field_") && customValuesMap) {
         const fieldId = field.replace("custom_field_", "");
@@ -93,24 +154,39 @@ function getFieldValue(project: Project, field: string, customValuesMap?: Record
 
 function getFieldLabel(value: string, field: string, labels: any): string {
   switch (field) {
-    case "funnelStage": return funnelStageLabels[value as FunnelStage] || value;
-    case "projectState": return labels.stateLabels[value] || projectStateLabels[value as ProjectState] || value;
-    case "currentPhase": return labels.phaseLabels[value] || value;
-    case "currentOwnerTeam": return labels.teamLabels[value] || value;
-    case "currentResponsibility": return labels.responsibilityLabels[value] || value;
-    default: return value;
+    case "funnelStage":
+      return funnelStageLabels[value as FunnelStage] || value;
+    case "projectState":
+      return labels.stateLabels[value] || projectStateLabels[value as ProjectState] || value;
+    case "currentPhase":
+      return labels.phaseLabels[value] || value;
+    case "currentOwnerTeam":
+      return labels.teamLabels[value] || value;
+    case "currentResponsibility":
+      return labels.responsibilityLabels[value] || value;
+    default:
+      return value;
   }
 }
 
 function getColumnStyle(value: string, field: string) {
-  if (field === "funnelStage") return FUNNEL_STAGE_STYLES[value as FunnelStage] || FUNNEL_STAGE_STYLES.none;
+  if (field === "funnelStage")
+    return FUNNEL_STAGE_STYLES[value as FunnelStage] || FUNNEL_STAGE_STYLES.none;
   if (field === "projectState") return STATE_STYLES[value] || FUNNEL_STAGE_STYLES.none;
   if (field === "currentPhase") return PHASE_STYLES[value] || FUNNEL_STAGE_STYLES.none;
   const hash = value.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   return FALLBACK_STYLES[hash % FALLBACK_STYLES.length];
 }
 
-export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = "" }: { projectsOverride?: Project[]; toolbarContainer?: HTMLElement | null; searchQuery?: string } = {}) => {
+export const KanbanBoard = ({
+  projectsOverride,
+  toolbarContainer,
+  searchQuery = "",
+}: {
+  projectsOverride?: Project[];
+  toolbarContainer?: HTMLElement | null;
+  searchQuery?: string;
+} = {}) => {
   const { projects: allProjects } = useProjects();
   const projects = projectsOverride ?? allProjects;
   const labels = useLabels();
@@ -139,12 +215,14 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
     try {
       const saved = localStorage.getItem(COLUMN_ORDER_KEY);
       return saved ? JSON.parse(saved) : {};
-    } catch { return {}; }
+    } catch {
+      return {};
+    }
   });
   const [dragColumn, setDragColumn] = useState<string | null>(null);
 
-  const activeProjects = useMemo(() => projects.filter(p => !p.archived), [projects]);
-  const projectIds = useMemo(() => activeProjects.map(p => p.id), [activeProjects]);
+  const activeProjects = useMemo(() => projects.filter((p) => !p.archived), [projects]);
+  const projectIds = useMemo(() => activeProjects.map((p) => p.id), [activeProjects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
 
   // Derive filter options from data
@@ -157,15 +235,16 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
     const responsibilities = new Set<string>();
     const csms = new Set<string>();
     const ownerMap = new Map<string, string>();
-    const csmField = customFields.find(f => f.field_key === "custom_csm_manager");
-    activeProjects.forEach(p => {
+    const csmField = customFields.find((f) => f.field_key === "custom_csm_manager");
+    activeProjects.forEach((p) => {
       if (p.currentOwnerTeam) teams.add(p.currentOwnerTeam);
       if (p.currentPhase) phases.add(p.currentPhase);
       if (p.projectState) states.add(p.projectState);
       if (p.platform) platforms.add(p.platform);
       if (p.category) categories.add(p.category);
       if (p.currentResponsibility) responsibilities.add(p.currentResponsibility);
-      if (p.assignedOwner && p.assignedOwnerName) ownerMap.set(p.assignedOwner, p.assignedOwnerName);
+      if (p.assignedOwner && p.assignedOwnerName)
+        ownerMap.set(p.assignedOwner, p.assignedOwnerName);
       if (csmField) {
         const csm = customValuesMap[p.id]?.[csmField.id];
         if (csm) csms.add(csm);
@@ -179,27 +258,36 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
       categories: [...categories].sort(),
       responsibilities: [...responsibilities].sort(),
       csms: [...csms].sort(),
-      owners: Array.from(ownerMap.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)),
+      owners: Array.from(ownerMap.entries())
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
     };
   }, [activeProjects, customFields, customValuesMap]);
 
   const filteredProjects = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    const csmField = customFields.find(f => f.field_key === "custom_csm_manager");
-    return activeProjects.filter(p => {
-      const matchesSearch = !q || p.merchantName?.toLowerCase().includes(q) || p.mid?.toLowerCase().includes(q);
-      const matchesFunnel = funnelStageFilter.length === 0 || funnelStageFilter.includes(getProjectFunnelStage(p));
+    const csmField = customFields.find((f) => f.field_key === "custom_csm_manager");
+    return activeProjects.filter((p) => {
+      const matchesSearch =
+        !q || p.merchantName?.toLowerCase().includes(q) || p.mid?.toLowerCase().includes(q);
+      const matchesFunnel =
+        funnelStageFilter.length === 0 || funnelStageFilter.includes(getProjectFunnelStage(p));
       const matchesTeam = teamFilter.length === 0 || teamFilter.includes(p.currentOwnerTeam);
       const matchesPhase = phaseFilter.length === 0 || phaseFilter.includes(p.currentPhase);
       const matchesState = stateFilter.length === 0 || stateFilter.includes(p.projectState);
-      const matchesPlatform = platformFilter.length === 0 || platformFilter.includes(p.platform || "");
-      const matchesCategory = categoryFilter.length === 0 || categoryFilter.includes(p.category || "");
-      const matchesResponsibility = responsibilityFilter.length === 0 || responsibilityFilter.includes(p.currentResponsibility || "");
+      const matchesPlatform =
+        platformFilter.length === 0 || platformFilter.includes(p.platform || "");
+      const matchesCategory =
+        categoryFilter.length === 0 || categoryFilter.includes(p.category || "");
+      const matchesResponsibility =
+        responsibilityFilter.length === 0 ||
+        responsibilityFilter.includes(p.currentResponsibility || "");
       const csm = csmField ? customValuesMap[p.id]?.[csmField.id] : undefined;
       const matchesCsm = csmFilter.length === 0 || (csm && csmFilter.includes(csm));
-      const matchesOwner = ownerFilter.length === 0 || (
-        ownerFilter.includes("unassigned") ? !p.assignedOwner : false
-      ) || (p.assignedOwner && ownerFilter.includes(p.assignedOwner));
+      const matchesOwner =
+        ownerFilter.length === 0 ||
+        (ownerFilter.includes("unassigned") ? !p.assignedOwner : false) ||
+        (p.assignedOwner && ownerFilter.includes(p.assignedOwner));
       const matchesArrMin = !arrMin || p.arr >= parseFloat(arrMin);
       const matchesArrMax = !arrMax || p.arr <= parseFloat(arrMax);
       const pct = Math.max(0, Math.min(100, Number(p.goLivePercent) || 0));
@@ -207,12 +295,53 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
       const matchesGoLiveMax = !goLiveMax || pct <= parseFloat(goLiveMax);
       const matchesGoLiveInProgress = !goLiveInProgressOnly || (pct > 0 && pct < 100);
       const matchesNeedsAttention = !needsAttentionOnly || riskVerdicts[p.id]?.level === "high";
-      return matchesSearch && matchesFunnel && matchesTeam && matchesPhase && matchesState && matchesPlatform && matchesCategory && matchesResponsibility && matchesCsm && matchesOwner && matchesArrMin && matchesArrMax && matchesGoLiveMin && matchesGoLiveMax && matchesGoLiveInProgress && matchesNeedsAttention;
+      return (
+        matchesSearch &&
+        matchesFunnel &&
+        matchesTeam &&
+        matchesPhase &&
+        matchesState &&
+        matchesPlatform &&
+        matchesCategory &&
+        matchesResponsibility &&
+        matchesCsm &&
+        matchesOwner &&
+        matchesArrMin &&
+        matchesArrMax &&
+        matchesGoLiveMin &&
+        matchesGoLiveMax &&
+        matchesGoLiveInProgress &&
+        matchesNeedsAttention
+      );
     });
-  }, [activeProjects, searchQuery, funnelStageFilter, teamFilter, phaseFilter, stateFilter, platformFilter, categoryFilter, responsibilityFilter, csmFilter, ownerFilter, arrMin, arrMax, goLiveMin, goLiveMax, goLiveInProgressOnly, needsAttentionOnly, riskVerdicts, customFields, customValuesMap]);
+  }, [
+    activeProjects,
+    searchQuery,
+    funnelStageFilter,
+    teamFilter,
+    phaseFilter,
+    stateFilter,
+    platformFilter,
+    categoryFilter,
+    responsibilityFilter,
+    csmFilter,
+    ownerFilter,
+    arrMin,
+    arrMax,
+    goLiveMin,
+    goLiveMax,
+    goLiveInProgressOnly,
+    needsAttentionOnly,
+    riskVerdicts,
+    customFields,
+    customValuesMap,
+  ]);
 
   const allFieldOptions = useMemo(() => {
-    const customOptions = customFields.map(f => ({ key: `custom_field_${f.id}`, label: f.field_label }));
+    const customOptions = customFields.map((f) => ({
+      key: `custom_field_${f.id}`,
+      label: f.field_label,
+    }));
     return [...KANBAN_FIELD_OPTIONS, ...customOptions];
   }, [customFields]);
 
@@ -220,8 +349,8 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
 
   const handleColumnDragOver = (targetKey: string) => {
     if (!dragColumn || dragColumn === targetKey) return;
-    const visible = columns.map(c => c.key);
-    setColumnOrder(prev => {
+    const visible = columns.map((c) => c.key);
+    setColumnOrder((prev) => {
       const current = prev[groupField] ?? visible;
       const next = [...current];
       const from = next.indexOf(dragColumn);
@@ -235,8 +364,12 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
 
   const handleColumnDragEnd = () => {
     setDragColumn(null);
-    setColumnOrder(current => {
-      try { localStorage.setItem(COLUMN_ORDER_KEY, JSON.stringify(current)); } catch { /* private mode */ }
+    setColumnOrder((current) => {
+      try {
+        localStorage.setItem(COLUMN_ORDER_KEY, JSON.stringify(current));
+      } catch {
+        /* private mode */
+      }
       return current;
     });
   };
@@ -250,7 +383,7 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
       live: 4,
     };
     const groupMap = new Map<string, Project[]>();
-    filteredProjects.forEach(p => {
+    filteredProjects.forEach((p) => {
       const val = getFieldValue(p, groupField, customValuesMap);
       if (groupField === "funnelStage" && val === "none") return;
       const existing = groupMap.get(val) || [];
@@ -261,32 +394,32 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
     const yearStart = `${new Date().getFullYear()}-01-01`;
     const todayStr = new Date().toISOString().slice(0, 10);
 
-    const entries = Array.from(groupMap.entries())
-      .map(([key, allGroupProjects]) => {
-        const groupProjects = (key === "live" && liveThisYearOnly)
-          ? allGroupProjects.filter(p => {
+    const entries = Array.from(groupMap.entries()).map(([key, allGroupProjects]) => {
+      const groupProjects =
+        key === "live" && liveThisYearOnly
+          ? allGroupProjects.filter((p) => {
               const d = p.dates?.goLiveDate || "";
               return !!d && d >= yearStart && d <= todayStr;
             })
           : allGroupProjects;
-        const sorted = [...groupProjects].sort((a, b) => {
-          const ao = STATE_SORT_ORDER[a.projectState] ?? 99;
-          const bo = STATE_SORT_ORDER[b.projectState] ?? 99;
-          if (ao !== bo) return ao - bo;
-          return (b.arr ?? 0) - (a.arr ?? 0);
-        });
-        const arrByState: Record<string, number> = {};
-        sorted.forEach(p => {
-          arrByState[p.projectState] = (arrByState[p.projectState] ?? 0) + (p.arr ?? 0);
-        });
-        return {
-          key,
-          label: getFieldLabel(key, groupField, labels),
-          projects: sorted,
-          arrByState,
-          ...getColumnStyle(key, groupField),
-        };
+      const sorted = [...groupProjects].sort((a, b) => {
+        const ao = STATE_SORT_ORDER[a.projectState] ?? 99;
+        const bo = STATE_SORT_ORDER[b.projectState] ?? 99;
+        if (ao !== bo) return ao - bo;
+        return (b.arr ?? 0) - (a.arr ?? 0);
       });
+      const arrByState: Record<string, number> = {};
+      sorted.forEach((p) => {
+        arrByState[p.projectState] = (arrByState[p.projectState] ?? 0) + (p.arr ?? 0);
+      });
+      return {
+        key,
+        label: getFieldLabel(key, groupField, labels),
+        projects: sorted,
+        arrByState,
+        ...getColumnStyle(key, groupField),
+      };
+    });
 
     const savedColumns = columnOrder[groupField];
     if (savedColumns) {
@@ -298,7 +431,10 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
       return entries.sort((a, b) => rank(a.key) - rank(b.key));
     }
     if (groupField === "funnelStage") {
-      return entries.sort((a, b) => FUNNEL_ORDER.indexOf(a.key as FunnelStage) - FUNNEL_ORDER.indexOf(b.key as FunnelStage));
+      return entries.sort(
+        (a, b) =>
+          FUNNEL_ORDER.indexOf(a.key as FunnelStage) - FUNNEL_ORDER.indexOf(b.key as FunnelStage),
+      );
     }
     if (groupField === "projectState") {
       const STATE_COL_ORDER = ["not_started", "in_progress", "on_hold", "blocked", "live"];
@@ -312,26 +448,40 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
   }, [filteredProjects, groupField, labels, customValuesMap, liveThisYearOnly, columnOrder]);
 
   const formatArr = (n: number) =>
-    n >= 10000000 ? `${(n / 10000000).toFixed(1)}Cr` :
-    n >= 100000 ? `${(n / 100000).toFixed(1)}L` :
-    n.toLocaleString();
+    n >= 10000000
+      ? `${(n / 10000000).toFixed(1)}Cr`
+      : n >= 100000
+        ? `${(n / 100000).toFixed(1)}L`
+        : n.toLocaleString();
 
-  const standardOptions = allFieldOptions.filter(o => !o.key.startsWith("custom_field_"));
-  const customOptions = allFieldOptions.filter(o => o.key.startsWith("custom_field_"));
+  const standardOptions = allFieldOptions.filter((o) => !o.key.startsWith("custom_field_"));
+  const customOptions = allFieldOptions.filter((o) => o.key.startsWith("custom_field_"));
 
   const toggleFunnel = (stage: string) => {
-    setFunnelStageFilter(prev => prev.includes(stage) ? prev.filter(s => s !== stage) : [...prev, stage]);
+    setFunnelStageFilter((prev) =>
+      prev.includes(stage) ? prev.filter((s) => s !== stage) : [...prev, stage],
+    );
   };
   const toggle = (setter: React.Dispatch<React.SetStateAction<string[]>>, value: string) => {
-    setter(prev => prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]);
+    setter((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
   };
 
   const activeFilterCount =
-    funnelStageFilter.length + teamFilter.length + phaseFilter.length + stateFilter.length +
-    platformFilter.length + categoryFilter.length + responsibilityFilter.length + csmFilter.length +
+    funnelStageFilter.length +
+    teamFilter.length +
+    phaseFilter.length +
+    stateFilter.length +
+    platformFilter.length +
+    categoryFilter.length +
+    responsibilityFilter.length +
+    csmFilter.length +
     ownerFilter.length +
-    (arrMin ? 1 : 0) + (arrMax ? 1 : 0) +
-    (goLiveMin ? 1 : 0) + (goLiveMax ? 1 : 0) + (goLiveInProgressOnly ? 1 : 0) + (needsAttentionOnly ? 1 : 0);
+    (arrMin ? 1 : 0) +
+    (arrMax ? 1 : 0) +
+    (goLiveMin ? 1 : 0) +
+    (goLiveMax ? 1 : 0) +
+    (goLiveInProgressOnly ? 1 : 0) +
+    (needsAttentionOnly ? 1 : 0);
 
   const hasFilters = activeFilterCount > 0;
 
@@ -356,50 +506,79 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
   const labelize = (val: string, kind: "team" | "phase" | "state" | "responsibility") => {
     if (kind === "team") return labels.teamLabels[val] || val;
     if (kind === "phase") return labels.phaseLabels[val] || val;
-    if (kind === "state") return labels.stateLabels[val] || projectStateLabels[val as ProjectState] || val;
+    if (kind === "state")
+      return labels.stateLabels[val] || projectStateLabels[val as ProjectState] || val;
     if (kind === "responsibility") return labels.responsibilityLabels[val] || val;
     return val;
   };
 
-
   const toolbar = (
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1.5">
-          <Label className="text-xs text-muted-foreground whitespace-nowrap">Group By:</Label>
-          <Select value={groupField} onValueChange={setGroupField}>
-            <SelectTrigger className="h-8 text-xs w-[170px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {standardOptions.map(opt => (
-                <SelectItem key={opt.key} value={opt.key}>{opt.label}</SelectItem>
-              ))}
-              {customOptions.length > 0 && (
-                <>
-                  <Separator className="my-1" />
-                  <div className="px-2 py-1 text-xs text-muted-foreground font-medium">Custom Fields</div>
-                  {customOptions.map(opt => (
-                    <SelectItem key={opt.key} value={opt.key}>{opt.label}</SelectItem>
-                  ))}
-                </>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-
-
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-1.5">
+        <Label className="text-xs text-muted-foreground whitespace-nowrap">Group By:</Label>
+        <Select value={groupField} onValueChange={setGroupField}>
+          <SelectTrigger className="h-8 text-xs w-[170px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {standardOptions.map((opt) => (
+              <SelectItem key={opt.key} value={opt.key}>
+                {opt.label}
+              </SelectItem>
+            ))}
+            {customOptions.length > 0 && (
+              <>
+                <Separator className="my-1" />
+                <div className="px-2 py-1 text-xs text-muted-foreground font-medium">
+                  Custom Fields
+                </div>
+                {customOptions.map((opt) => (
+                  <SelectItem key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </>
+            )}
+          </SelectContent>
+        </Select>
       </div>
+    </div>
   );
 
   const allActiveChips = [
-    ...teamFilter.map(v => ({ label: labelize(v, "team"), clear: () => setTeamFilter(p => p.filter(x => x !== v)) })),
-    ...stateFilter.map(v => ({ label: labelize(v, "state"), clear: () => setStateFilter(p => p.filter(x => x !== v)) })),
-    ...platformFilter.map(v => ({ label: v, clear: () => setPlatformFilter(p => p.filter(x => x !== v)) })),
-    ...categoryFilter.map(v => ({ label: v, clear: () => setCategoryFilter(p => p.filter(x => x !== v)) })),
-    ...responsibilityFilter.map(v => ({ label: labelize(v, "responsibility"), clear: () => setResponsibilityFilter(p => p.filter(x => x !== v)) })),
-    ...csmFilter.map(v => ({ label: v, clear: () => setCsmFilter(p => p.filter(x => x !== v)) })),
-    ...ownerFilter.map(v => ({ label: v === "unassigned" ? "Unassigned" : filterOptions.owners.find(o => o.id === v)?.name || v, clear: () => setOwnerFilter(p => p.filter(x => x !== v)) })),
-    ...funnelStageFilter.map(v => ({ label: funnelStageLabels[v as FunnelStage] || v, clear: () => setFunnelStageFilter(p => p.filter(x => x !== v)) })),
+    ...teamFilter.map((v) => ({
+      label: labelize(v, "team"),
+      clear: () => setTeamFilter((p) => p.filter((x) => x !== v)),
+    })),
+    ...stateFilter.map((v) => ({
+      label: labelize(v, "state"),
+      clear: () => setStateFilter((p) => p.filter((x) => x !== v)),
+    })),
+    ...platformFilter.map((v) => ({
+      label: v,
+      clear: () => setPlatformFilter((p) => p.filter((x) => x !== v)),
+    })),
+    ...categoryFilter.map((v) => ({
+      label: v,
+      clear: () => setCategoryFilter((p) => p.filter((x) => x !== v)),
+    })),
+    ...responsibilityFilter.map((v) => ({
+      label: labelize(v, "responsibility"),
+      clear: () => setResponsibilityFilter((p) => p.filter((x) => x !== v)),
+    })),
+    ...csmFilter.map((v) => ({
+      label: v,
+      clear: () => setCsmFilter((p) => p.filter((x) => x !== v)),
+    })),
+    ...ownerFilter.map((v) => ({
+      label:
+        v === "unassigned" ? "Unassigned" : filterOptions.owners.find((o) => o.id === v)?.name || v,
+      clear: () => setOwnerFilter((p) => p.filter((x) => x !== v)),
+    })),
+    ...funnelStageFilter.map((v) => ({
+      label: funnelStageLabels[v as FunnelStage] || v,
+      clear: () => setFunnelStageFilter((p) => p.filter((x) => x !== v)),
+    })),
   ];
 
   return (
@@ -411,84 +590,197 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
         {/* At Risk toggle */}
         <button
           type="button"
-          onClick={() => setNeedsAttentionOnly(v => !v)}
+          onClick={() => setNeedsAttentionOnly((v) => !v)}
           className={cn(
             "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
-            needsAttentionOnly ? "bg-destructive/10 text-destructive border-destructive/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+            needsAttentionOnly
+              ? "bg-destructive/10 text-destructive border-destructive/30"
+              : "bg-background text-muted-foreground border-border hover:bg-muted",
           )}
         >
-          <Eye className="h-3 w-3" />At Risk
-          {needsAttentionOnly && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={e => { e.stopPropagation(); setNeedsAttentionOnly(false); }} />}
+          <Eye className="h-3 w-3" />
+          At Risk
+          {needsAttentionOnly && (
+            <X
+              className="h-2.5 w-2.5 ml-0.5 opacity-70"
+              onClick={(e) => {
+                e.stopPropagation();
+                setNeedsAttentionOnly(false);
+              }}
+            />
+          )}
         </button>
 
         {/* In Progress only toggle */}
         <button
           type="button"
-          onClick={() => setGoLiveInProgressOnly(v => !v)}
+          onClick={() => setGoLiveInProgressOnly((v) => !v)}
           className={cn(
             "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
-            goLiveInProgressOnly ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
+            goLiveInProgressOnly
+              ? "bg-primary/10 text-primary border-primary/30"
+              : "bg-background text-muted-foreground border-border hover:bg-muted",
           )}
         >
           In Progress
-          {goLiveInProgressOnly && <X className="h-2.5 w-2.5 ml-0.5 opacity-70" onClick={e => { e.stopPropagation(); setGoLiveInProgressOnly(false); }} />}
+          {goLiveInProgressOnly && (
+            <X
+              className="h-2.5 w-2.5 ml-0.5 opacity-70"
+              onClick={(e) => {
+                e.stopPropagation();
+                setGoLiveInProgressOnly(false);
+              }}
+            />
+          )}
         </button>
 
         {/* Categorical multi-select pill popovers */}
         {[
-          { label: "Team", values: teamFilter, setter: setTeamFilter, options: filterOptions.teams.map(v => ({ value: v, label: labelize(v, "team") })) },
-          { label: "State", values: stateFilter, setter: setStateFilter, options: filterOptions.states.map(v => ({ value: v, label: labelize(v, "state") })) },
-          { label: "Stage", values: funnelStageFilter, setter: setFunnelStageFilter, options: (["sales","pre_integration","under_integration","live","none"] as FunnelStage[]).map(s => ({ value: s, label: funnelStageLabels[s] })) },
-          { label: "Platform", values: platformFilter, setter: setPlatformFilter, options: filterOptions.platforms.map(v => ({ value: v, label: v })) },
-          { label: "Category", values: categoryFilter, setter: setCategoryFilter, options: filterOptions.categories.map(v => ({ value: v, label: v })) },
-          { label: "Responsibility", values: responsibilityFilter, setter: setResponsibilityFilter, options: filterOptions.responsibilities.map(v => ({ value: v, label: labelize(v, "responsibility") })) },
-          { label: "CSM", values: csmFilter, setter: setCsmFilter, options: filterOptions.csms.map(v => ({ value: v, label: v })) },
-          { label: "Owner", values: ownerFilter, setter: setOwnerFilter, options: [{ value: "unassigned", label: "Unassigned" }, ...filterOptions.owners.map(o => ({ value: o.id, label: o.name }))] },
-        ].filter(g => g.options.length > 0).map(({ label, values, setter, options }) => (
-          <Popover key={label}>
-            <PopoverTrigger asChild>
-              <button type="button" className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
-                values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
-              )}>
-                {values.length > 0 ? `${label}: ${values.length}` : label}
-                <ChevronDown className="h-2.5 w-2.5 opacity-50" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-52 p-2">
-              <div className="max-h-48 overflow-y-auto space-y-0.5">
-                {options.map(opt => (
-                  <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
-                    <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggle(setter, opt.value)} />
-                    <span className="truncate">{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-              {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setter([])}>Clear</Button>}
-            </PopoverContent>
-          </Popover>
-        ))}
+          {
+            label: "Team",
+            values: teamFilter,
+            setter: setTeamFilter,
+            options: filterOptions.teams.map((v) => ({ value: v, label: labelize(v, "team") })),
+          },
+          {
+            label: "State",
+            values: stateFilter,
+            setter: setStateFilter,
+            options: filterOptions.states.map((v) => ({ value: v, label: labelize(v, "state") })),
+          },
+          {
+            label: "Stage",
+            values: funnelStageFilter,
+            setter: setFunnelStageFilter,
+            options: (
+              ["sales", "pre_integration", "under_integration", "live", "none"] as FunnelStage[]
+            ).map((s) => ({ value: s, label: funnelStageLabels[s] })),
+          },
+          {
+            label: "Platform",
+            values: platformFilter,
+            setter: setPlatformFilter,
+            options: filterOptions.platforms.map((v) => ({ value: v, label: v })),
+          },
+          {
+            label: "Category",
+            values: categoryFilter,
+            setter: setCategoryFilter,
+            options: filterOptions.categories.map((v) => ({ value: v, label: v })),
+          },
+          {
+            label: "Responsibility",
+            values: responsibilityFilter,
+            setter: setResponsibilityFilter,
+            options: filterOptions.responsibilities.map((v) => ({
+              value: v,
+              label: labelize(v, "responsibility"),
+            })),
+          },
+          {
+            label: "CSM",
+            values: csmFilter,
+            setter: setCsmFilter,
+            options: filterOptions.csms.map((v) => ({ value: v, label: v })),
+          },
+          {
+            label: "Owner",
+            values: ownerFilter,
+            setter: setOwnerFilter,
+            options: [
+              { value: "unassigned", label: "Unassigned" },
+              ...filterOptions.owners.map((o) => ({ value: o.id, label: o.name })),
+            ],
+          },
+        ]
+          .filter((g) => g.options.length > 0)
+          .map(({ label, values, setter, options }) => (
+            <Popover key={label}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                    values.length > 0
+                      ? "bg-primary/10 text-primary border-primary/30"
+                      : "bg-background text-muted-foreground border-border hover:bg-muted",
+                  )}
+                >
+                  {values.length > 0 ? `${label}: ${values.length}` : label}
+                  <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-52 p-2">
+                <div className="max-h-48 overflow-y-auto space-y-0.5">
+                  {options.map((opt) => (
+                    <label
+                      key={opt.value}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs"
+                    >
+                      <Checkbox
+                        checked={values.includes(opt.value)}
+                        onCheckedChange={() => toggle(setter, opt.value)}
+                      />
+                      <span className="truncate">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {values.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full mt-1 h-7 text-xs"
+                    onClick={() => setter([])}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </PopoverContent>
+            </Popover>
+          ))}
 
         {/* ARR range */}
         <div className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 bg-background text-2xs text-muted-foreground">
           <span className="whitespace-nowrap">ARR:</span>
-          <input type="number" placeholder="min" value={arrMin} onChange={e => setArrMin(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+          <input
+            type="number"
+            placeholder="min"
+            value={arrMin}
+            onChange={(e) => setArrMin(e.target.value)}
+            className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50"
+          />
           <span>–</span>
-          <input type="number" placeholder="max" value={arrMax} onChange={e => setArrMax(e.target.value)} className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50" />
+          <input
+            type="number"
+            placeholder="max"
+            value={arrMax}
+            onChange={(e) => setArrMax(e.target.value)}
+            className="w-10 bg-transparent outline-none text-2xs text-foreground placeholder:text-muted-foreground/50"
+          />
           <span>Cr</span>
         </div>
 
         {/* Active value chips */}
         {allActiveChips.map(({ label, clear }) => (
-          <span key={label} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30">
+          <span
+            key={label}
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium bg-primary/10 text-primary border border-primary/30"
+          >
             {label}
-            <button type="button" onClick={clear} className="opacity-60 hover:opacity-100"><X className="h-2.5 w-2.5" /></button>
+            <button type="button" onClick={clear} className="opacity-60 hover:opacity-100">
+              <X className="h-2.5 w-2.5" />
+            </button>
           </span>
         ))}
 
         {hasFilters && (
-          <button type="button" onClick={clearAllFilters} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <X className="h-2.5 w-2.5" />Clear all
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-2.5 w-2.5" />
+            Clear all
           </button>
         )}
       </div>
@@ -500,50 +792,82 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
             key={col.key}
             // The whole column is the drop target so the header strip does not
             // have to be hit precisely; guarded so only a column drag counts.
-            onDragOver={(e) => { if (dragColumn) { e.preventDefault(); handleColumnDragOver(col.key); } }}
-            className={cn("flex-1 min-w-[260px] flex flex-col h-full", dragColumn === col.key && "opacity-60")}
+            onDragOver={(e) => {
+              if (dragColumn) {
+                e.preventDefault();
+                handleColumnDragOver(col.key);
+              }
+            }}
+            className={cn(
+              "flex-1 min-w-[260px] flex flex-col h-full",
+              dragColumn === col.key && "opacity-60",
+            )}
           >
-            <div className={cn("rounded-lg border bg-card shadow-sm flex flex-col h-full overflow-hidden ring-1", col.ring)}>
-
+            <div
+              className={cn(
+                "rounded-lg border bg-card shadow-sm flex flex-col h-full overflow-hidden ring-1",
+                col.ring,
+              )}
+            >
               <div className={cn("h-1 w-full", col.bar)} />
               <div
                 draggable
                 onDragStart={() => handleColumnDragStart(col.key)}
                 onDragEnd={handleColumnDragEnd}
                 title="Drag to reorder columns"
-                className={cn("flex items-center justify-between gap-2 px-3 py-2.5 border-b cursor-grab active:cursor-grabbing", col.bg)}
+                className={cn(
+                  "flex items-center justify-between gap-2 px-3 py-2.5 border-b cursor-grab active:cursor-grabbing",
+                  col.bg,
+                )}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className={cn("font-semibold text-xs tracking-tight truncate min-w-0", col.text)}>
+                  <span
+                    className={cn(
+                      "font-semibold text-xs tracking-tight truncate min-w-0",
+                      col.text,
+                    )}
+                  >
                     {col.label}
                   </span>
                   {col.key === "live" && (
-                    <label className="flex items-center gap-1 cursor-pointer shrink-0" title={`Only accounts that went live since Jan ${new Date().getFullYear()}`}>
+                    <label
+                      className="flex items-center gap-1 cursor-pointer shrink-0"
+                      title={`Only accounts that went live since Jan ${new Date().getFullYear()}`}
+                    >
                       <input
                         type="checkbox"
                         checked={liveThisYearOnly}
-                        onChange={e => setLiveThisYearOnly(e.target.checked)}
+                        onChange={(e) => setLiveThisYearOnly(e.target.checked)}
                         className="h-3 w-3"
                       />
-                      <span className="text-2xs text-muted-foreground whitespace-nowrap">This year</span>
+                      <span className="text-2xs text-muted-foreground whitespace-nowrap">
+                        This year
+                      </span>
                     </label>
                   )}
                 </div>
                 <div className="flex items-center gap-1 flex-nowrap justify-end shrink-0">
-                  {(["in_progress","on_hold","blocked","not_started","live"] as const).map(st => {
-                    const amt = col.arrByState[st];
-                    if (!amt) return null;
-                    const s = STATE_ARR_STYLES[st];
-                    return (
-                      <span
-                        key={st}
-                        title={`${labelize(st, "state")} ${labels.getLabel("field_arr")}`}
-                        className={cn("text-2xs font-semibold px-1.5 py-0.5 rounded ring-1 whitespace-nowrap", s.bg, s.text, s.ring)}
-                      >
-                        {formatArr(amt)}
-                      </span>
-                    );
-                  })}
+                  {(["in_progress", "on_hold", "blocked", "not_started", "live"] as const).map(
+                    (st) => {
+                      const amt = col.arrByState[st];
+                      if (!amt) return null;
+                      const s = STATE_ARR_STYLES[st];
+                      return (
+                        <span
+                          key={st}
+                          title={`${labelize(st, "state")} ${labels.getLabel("field_arr")}`}
+                          className={cn(
+                            "text-2xs font-semibold px-1.5 py-0.5 rounded ring-1 whitespace-nowrap",
+                            s.bg,
+                            s.text,
+                            s.ring,
+                          )}
+                        >
+                          {formatArr(amt)}
+                        </span>
+                      );
+                    },
+                  )}
                   <Badge variant="secondary" className="font-bold text-2xs h-5 ml-1">
                     {col.projects.length}
                   </Badge>
@@ -552,12 +876,14 @@ export const KanbanBoard = ({ projectsOverride, toolbarContainer, searchQuery = 
               <ScrollArea className="flex-1">
                 <div className="space-y-2 p-2.5">
                   {col.projects.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-8">
-                      No projects
-                    </p>
+                    <p className="text-xs text-muted-foreground text-center py-8">No projects</p>
                   ) : (
                     col.projects.map((project) => (
-                      <KanbanCard key={project.id} project={project} riskVerdict={riskVerdicts[project.id]} />
+                      <KanbanCard
+                        key={project.id}
+                        project={project}
+                        riskVerdict={riskVerdicts[project.id]}
+                      />
                     ))
                   )}
                 </div>
@@ -579,7 +905,15 @@ function FilterGroup({ title, children }: { title: string; children: React.React
   );
 }
 
-function CheckboxRow({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
+function CheckboxRow({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  label: string;
+}) {
   return (
     <label className="flex items-center gap-1.5 cursor-pointer">
       <input type="checkbox" checked={checked} onChange={onChange} className="h-3.5 w-3.5" />
@@ -587,4 +921,3 @@ function CheckboxRow({ checked, onChange, label }: { checked: boolean; onChange:
     </label>
   );
 }
-

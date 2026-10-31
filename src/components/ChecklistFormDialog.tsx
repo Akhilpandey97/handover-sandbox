@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -36,11 +42,12 @@ export const ChecklistFormDialog = ({
   formTemplateName,
 }: ChecklistFormDialogProps) => {
   const { fields, isLoading: fieldsLoading } = useFormFields(formTemplateId);
-  const { responses, setResponses, isLoading: responsesLoading, saveResponses } = useFormResponses(
-    projectId,
-    checklistItemId,
-    formTemplateId
-  );
+  const {
+    responses,
+    setResponses,
+    isLoading: responsesLoading,
+    saveResponses,
+  } = useFormResponses(projectId, checklistItemId, formTemplateId);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -54,7 +61,7 @@ export const ChecklistFormDialog = ({
   const getValue = (fieldId: string) => draft[fieldId] ?? "";
 
   const handleChange = (fieldId: string, value: string) => {
-    setDraft(prev => ({ ...prev, [fieldId]: value }));
+    setDraft((prev) => ({ ...prev, [fieldId]: value }));
   };
 
   const handleSave = async () => {
@@ -77,7 +84,7 @@ export const ChecklistFormDialog = ({
   // Group fields by category
   const grouped = useMemo(() => {
     const map = new Map<string, typeof fields>();
-    fields.forEach(f => {
+    fields.forEach((f) => {
       const cat = f.category || "General";
       if (!map.has(cat)) map.set(cat, []);
       map.get(cat)!.push(f);
@@ -106,7 +113,9 @@ export const ChecklistFormDialog = ({
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">Loading form...</div>
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            Loading form...
+          </div>
         ) : fields.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             This form has no fields configured. Ask a manager to add fields in Settings.
@@ -126,15 +135,24 @@ export const ChecklistFormDialog = ({
                     </div>
                     <div className="space-y-4">
                       {catFields.map((field, fi) => (
-                        <div key={field.id} className="rounded-lg border border-border/60 bg-card p-3 transition-colors hover:border-primary/30">
+                        <div
+                          key={field.id}
+                          className="rounded-lg border border-border/60 bg-card p-3 transition-colors hover:border-primary/30"
+                        >
                           <div className="flex items-start gap-3">
-                            <span className="text-xs font-mono text-muted-foreground mt-1 shrink-0 w-6">{fi + 1}.</span>
+                            <span className="text-xs font-mono text-muted-foreground mt-1 shrink-0 w-6">
+                              {fi + 1}.
+                            </span>
                             <div className="flex-1 space-y-2">
                               <Label className="text-sm font-medium leading-snug">
                                 {field.question}
-                                {field.is_required && <span className="text-destructive ml-1">*</span>}
+                                {field.is_required && (
+                                  <span className="text-destructive ml-1">*</span>
+                                )}
                               </Label>
-                              {renderFieldInput(field, getValue(field.id), (v) => handleChange(field.id, v))}
+                              {renderFieldInput(field, getValue(field.id), (v) =>
+                                handleChange(field.id, v),
+                              )}
                             </div>
                           </div>
                         </div>
@@ -147,12 +165,16 @@ export const ChecklistFormDialog = ({
 
             <div className="flex items-center justify-between pt-4 border-t">
               <Button variant="outline" size="sm" onClick={handleDownload}>
-                <Download className="h-4 w-4 mr-2" />Download as Excel
+                <Download className="h-4 w-4 mr-2" />
+                Download as Excel
               </Button>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Close
+                </Button>
                 <Button onClick={handleSave} disabled={isSaving}>
-                  <Save className="h-4 w-4 mr-2" />{isSaving ? "Saving..." : "Save"}
+                  <Save className="h-4 w-4 mr-2" />
+                  {isSaving ? "Saving..." : "Save"}
                 </Button>
               </div>
             </div>
@@ -166,36 +188,70 @@ export const ChecklistFormDialog = ({
 function renderFieldInput(
   field: { field_type: string; options: string[] },
   value: string,
-  onChange: (v: string) => void
+  onChange: (v: string) => void,
 ) {
   switch (field.field_type) {
     case "textarea":
-      return <Textarea value={value} onChange={e => onChange(e.target.value)} placeholder="Enter your response..." className="min-h-[80px]" />;
+      return (
+        <Textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter your response..."
+          className="min-h-[80px]"
+        />
+      );
     case "number":
-      return <Input type="number" value={value} onChange={e => onChange(e.target.value)} placeholder="Enter a number" />;
+      return (
+        <Input
+          type="number"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter a number"
+        />
+      );
     case "date":
-      return <Input type="date" value={value} onChange={e => onChange(e.target.value)} />;
+      return <Input type="date" value={value} onChange={(e) => onChange(e.target.value)} />;
     case "url":
-      return <Input type="url" value={value} onChange={e => onChange(e.target.value)} placeholder="https://..." />;
+      return (
+        <Input
+          type="url"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://..."
+        />
+      );
     case "boolean":
       return (
         <div className="flex items-center gap-3">
-          <Switch checked={value === "true"} onCheckedChange={c => onChange(c ? "true" : "false")} />
+          <Switch
+            checked={value === "true"}
+            onCheckedChange={(c) => onChange(c ? "true" : "false")}
+          />
           <span className="text-sm text-muted-foreground">{value === "true" ? "Yes" : "No"}</span>
         </div>
       );
     case "select":
       return (
         <Select value={value} onValueChange={onChange}>
-          <SelectTrigger><SelectValue placeholder="Select an option" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Select an option" />
+          </SelectTrigger>
           <SelectContent>
-            {(field.options || []).map(opt => (
-              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+            {(field.options || []).map((opt) => (
+              <SelectItem key={opt} value={opt}>
+                {opt}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
       );
     default:
-      return <Input value={value} onChange={e => onChange(e.target.value)} placeholder="Enter your response..." />;
+      return (
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Enter your response..."
+        />
+      );
   }
 }

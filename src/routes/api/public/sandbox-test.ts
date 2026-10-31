@@ -7,7 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -51,14 +50,17 @@ Respond with ONLY valid JSON (no markdown, no explanation):
     });
   } catch (error) {
     console.error("Sandbox test error:", error);
-    return new Response(JSON.stringify({ 
-      status: "skip", 
-      notes: `Error: ${(error as Error).message}`, 
-      recommendation: "" 
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        status: "skip",
+        notes: `Error: ${(error as Error).message}`,
+        recommendation: "",
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 }
 

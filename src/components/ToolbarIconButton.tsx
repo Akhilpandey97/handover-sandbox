@@ -26,7 +26,11 @@ export const ToolbarIconButton = forwardRef<
     size="icon"
     title={label}
     aria-label={label}
-    className={cn("relative h-8 w-8 shrink-0", count ? "border-primary/50 text-primary" : "", className)}
+    className={cn(
+      "relative h-8 w-8 shrink-0",
+      count ? "border-primary/50 text-primary" : "",
+      className,
+    )}
     {...props}
   >
     {icon}

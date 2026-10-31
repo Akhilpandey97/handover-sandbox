@@ -29,8 +29,16 @@ export const WorkspaceChecklistPanel = ({
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
-        <WorkspaceMetricCard label="Total items" value={String(totalChecklist)} eyebrow="Delivery" />
-        <WorkspaceMetricCard label="Completed" value={String(completedChecklist)} eyebrow="Progress" />
+        <WorkspaceMetricCard
+          label="Total items"
+          value={String(totalChecklist)}
+          eyebrow="Delivery"
+        />
+        <WorkspaceMetricCard
+          label="Completed"
+          value={String(completedChecklist)}
+          eyebrow="Progress"
+        />
         <WorkspaceMetricCard label="Last milestone" value={currentPhase || "—"} eyebrow="Status" />
       </div>
 
@@ -52,8 +60,12 @@ export const WorkspaceChecklistPanel = ({
                 style={{ borderBottom: `1px solid ${hexToRgba(sectionBorder, 0.42)}` }}
               >
                 <div>
-                  <p className="text-lg font-semibold tracking-[-0.03em] text-foreground">{label}</p>
-                  <p className="text-sm text-muted-foreground">{done} of {items.length} actions closed</p>
+                  <p className="text-lg font-semibold tracking-[-0.03em] text-foreground">
+                    {label}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {done} of {items.length} actions closed
+                  </p>
                 </div>
                 <Badge variant="outline" className="px-3 py-1 text-xs font-semibold">
                   {done}/{items.length}
@@ -71,7 +83,9 @@ export const WorkspaceChecklistPanel = ({
                     }}
                   >
                     <span className="text-sm font-medium text-foreground">{item.title}</span>
-                    <Badge variant={item.completed ? "default" : "outline"}>{item.completed ? "Done" : "Pending"}</Badge>
+                    <Badge variant={item.completed ? "default" : "outline"}>
+                      {item.completed ? "Done" : "Pending"}
+                    </Badge>
                   </div>
                 ))}
               </div>

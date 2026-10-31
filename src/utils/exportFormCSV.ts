@@ -8,7 +8,7 @@ export function exportFormToCSV(
   projectName: string,
   checklistItemTitle: string,
   fields: FormField[],
-  values: Record<string, string>
+  values: Record<string, string>,
 ) {
   const rows: string[][] = [];
 
@@ -21,7 +21,7 @@ export function exportFormToCSV(
   rows.push(["Category", "Question", "Response"]);
 
   // Data
-  fields.forEach(field => {
+  fields.forEach((field) => {
     const val = values[field.id] || "";
     rows.push([
       field.category || "General",
@@ -32,7 +32,7 @@ export function exportFormToCSV(
 
   // Build CSV
   const csvContent = rows
-    .map(row => row.map(cell => `"${(cell || "").replace(/"/g, '""')}"`).join(","))
+    .map((row) => row.map((cell) => `"${(cell || "").replace(/"/g, '""')}"`).join(","))
     .join("\n");
 
   const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });

@@ -29,7 +29,8 @@ export async function buddyLabels(caller: BuddyCaller): Promise<BuddyLabels> {
   const phase: Record<string, string> = {
     ...PHASE_LABELS,
     mint: teams.mint || branding.label("phase_mint") || PHASE_LABELS.mint,
-    integration: teams.integration || branding.label("phase_integration") || PHASE_LABELS.integration,
+    integration:
+      teams.integration || branding.label("phase_integration") || PHASE_LABELS.integration,
     ms: teams.ms || branding.label("phase_ms") || PHASE_LABELS.ms,
   };
   const state: Record<string, string> = { ...STATE_LABELS };

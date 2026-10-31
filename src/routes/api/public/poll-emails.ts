@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getTenantIntegrations, tenantIdFromRequest, requireCred } from "@/lib/tenant-integrations.server";
+import {
+  getTenantIntegrations,
+  tenantIdFromRequest,
+  requireCred,
+} from "@/lib/tenant-integrations.server";
 
 import { createClient } from "@supabase/supabase-js";
 import { requireInternalCaller } from "@/lib/api-auth.server";
@@ -8,11 +12,8 @@ import { kickWorkflows } from "@/lib/workflows.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-
 
 // Parse INR currency strings like "INR 1,571,461.88" to number
 function parseINR(str: string): number {
@@ -27,7 +28,10 @@ function parseEmailTable(html: string): Record<string, string> {
   const rowRegex = /<tr[^>]*>\s*<td[^>]*>(.*?)<\/td>\s*<td[^>]*>(.*?)<\/td>\s*<\/tr>/gis;
   let match;
   while ((match = rowRegex.exec(html)) !== null) {
-    const key = match[1].replace(/<[^>]*>/g, "").replace(/\s*:\s*$/, "").trim();
+    const key = match[1]
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s*:\s*$/, "")
+      .trim();
     const value = match[2].replace(/<[^>]*>/g, "").trim();
     if (key) fields[key] = value;
   }
@@ -99,7 +103,10 @@ async function replyWithAssignedCE(
   addAddresses(cc);
   const replyCcParts = Array.from(ccSet).join(", ");
 
-  const ownerName = ownerEmail.split("@")[0].replace(/\./g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const ownerName = ownerEmail
+    .split("@")[0]
+    .replace(/\./g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
   const mentionHtml = `<a href="mailto:${ownerEmail}">+${ownerName}</a>`;
   const bodyHtml = `<div dir="ltr">Hi Team,<br><br>${mentionHtml} (${ownerEmail}) will lead the integration.<br><br>Thanks.</div>`;
   const bodyText = `Hi Team,\r\n\r\n+${ownerName} (${ownerEmail}) will lead the integration.\r\n\r\nThanks.`;
@@ -116,15 +123,18 @@ async function replyWithAssignedCE(
   headerLines.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
 
   const raw =
-    headerLines.join("\r\n") + "\r\n\r\n" +
+    headerLines.join("\r\n") +
+    "\r\n\r\n" +
     `--${boundary}\r\n` +
     `Content-Type: text/plain; charset="UTF-8"\r\n` +
     `Content-Transfer-Encoding: 7bit\r\n\r\n` +
-    bodyText + "\r\n\r\n" +
+    bodyText +
+    "\r\n\r\n" +
     `--${boundary}\r\n` +
     `Content-Type: text/html; charset="UTF-8"\r\n` +
     `Content-Transfer-Encoding: 7bit\r\n\r\n` +
-    bodyHtml + "\r\n\r\n" +
+    bodyHtml +
+    "\r\n\r\n" +
     `--${boundary}--\r\n`;
 
   const sendRes = await fetch(`${GMAIL_API}/users/me/messages/send`, {
@@ -137,8 +147,6 @@ async function replyWithAssignedCE(
   }
 }
 
-
-
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -148,17 +156,17 @@ async function handler(req: Request): Promise<Response> {
   if (denied) return denied;
 
   try {
-    const SUPABASE_URL = process.env['SUPABASE_URL']!;
-    const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+    const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const body = await req.json().catch(() => ({}));
     const tenantId = body.tenant_id;
     if (!tenantId) {
-      return new Response(
-        JSON.stringify({ error: "tenant_id is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "tenant_id is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     let headers: Record<string, string>;
@@ -166,10 +174,10 @@ async function handler(req: Request): Promise<Response> {
       const creds = await getTenantIntegrations(tenantId);
       headers = await gmailHeaders(creds);
     } catch (e) {
-      return new Response(
-        JSON.stringify({ error: (e as Error).message }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: (e as Error).message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Fetch email settings from app_settings
@@ -180,10 +188,14 @@ async function handler(req: Request): Promise<Response> {
       .in("key", ["email_monitor_address", "email_subject_keywords"]);
 
     const settingsMap: Record<string, string> = {};
-    (settings || []).forEach((s: any) => { settingsMap[s.key] = s.value; });
+    (settings || []).forEach((s: any) => {
+      settingsMap[s.key] = s.value;
+    });
 
     const monitorEmail = settingsMap.email_monitor_address || "cwupdates@gokwik.co";
-    const subjectKeywords = (settingsMap.email_subject_keywords || "Sales to MINT Handover for Scoping")
+    const subjectKeywords = (
+      settingsMap.email_subject_keywords || "Sales to MINT Handover for Scoping"
+    )
       .split(",")
       .map((k: string) => k.trim())
       .filter(Boolean);
@@ -202,17 +214,19 @@ async function handler(req: Request): Promise<Response> {
     if (!searchRes.ok || searchData.error) {
       console.error("Gmail gateway error:", searchData);
       return new Response(
-        JSON.stringify({ error: `Gmail API error: ${searchData?.error?.message || searchData?.message || JSON.stringify(searchData)}` }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: `Gmail API error: ${searchData?.error?.message || searchData?.message || JSON.stringify(searchData)}`,
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const messages = searchData.messages || [];
     if (messages.length === 0) {
-      return new Response(
-        JSON.stringify({ message: "No matching emails found", query }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ message: "No matching emails found", query }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Dedupe: skip messages already in parsed_emails
@@ -228,8 +242,11 @@ async function handler(req: Request): Promise<Response> {
 
     if (newMessages.length === 0) {
       return new Response(
-        JSON.stringify({ message: "All matching emails already processed", total: messages.length }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          message: "All matching emails already processed",
+          total: messages.length,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -240,15 +257,22 @@ async function handler(req: Request): Promise<Response> {
       { email: "rishabh.jain1@gokwik.co", name: "Rishabh Jain" },
       { email: "abhishek.yadav@gokwik.co", name: "Abhishek Yadav" },
     ];
-    const ASSIGNMENT_CC = ["akhil.pandey@gokwik.co", "abhishek.yadav@gokwik.co", "saurabh.sharma@gokwik.co"];
+    const ASSIGNMENT_CC = [
+      "akhil.pandey@gokwik.co",
+      "abhishek.yadav@gokwik.co",
+      "saurabh.sharma@gokwik.co",
+    ];
 
     const { data: ownerProfs } = await supabase
       .from("profiles")
       .select("id, email, name")
-      .in("email", ROUND_ROBIN_OWNERS.map((o) => o.email));
+      .in(
+        "email",
+        ROUND_ROBIN_OWNERS.map((o) => o.email),
+      );
     const profByEmail = new Map<string, { id: string; name: string }>();
     (ownerProfs || []).forEach((p: any) =>
-      profByEmail.set(String(p.email).toLowerCase(), { id: p.id, name: p.name })
+      profByEmail.set(String(p.email).toLowerCase(), { id: p.id, name: p.name }),
     );
 
     const { data: existingProjects } = await supabase
@@ -258,7 +282,7 @@ async function handler(req: Request): Promise<Response> {
     const existingMerchants = new Set(
       (existingProjects || [])
         .map((p: any) => (p.merchant_name || "").trim().toLowerCase())
-        .filter(Boolean)
+        .filter(Boolean),
     );
     const seenThisBatch = new Set<string>();
 
@@ -275,7 +299,9 @@ async function handler(req: Request): Promise<Response> {
     let autoCreated = 0;
     for (const msg of newMessages) {
       try {
-        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, { headers });
+        const msgRes = await fetch(`${GMAIL_API}/users/me/messages/${msg.id}?format=full`, {
+          headers,
+        });
         const msgData = await msgRes.json();
         if (!msgRes.ok || msgData.error) {
           console.error(`Error fetching message ${msg.id}:`, msgData);
@@ -286,10 +312,14 @@ async function handler(req: Request): Promise<Response> {
         const subject = hdrs.find((h: any) => h.name.toLowerCase() === "subject")?.value || "";
         const sender = hdrs.find((h: any) => h.name.toLowerCase() === "from")?.value || "";
         const dateHeader = hdrs.find((h: any) => h.name.toLowerCase() === "date")?.value || "";
-        const receivedAt = dateHeader ? new Date(dateHeader).toISOString() : new Date().toISOString();
+        const receivedAt = dateHeader
+          ? new Date(dateHeader).toISOString()
+          : new Date().toISOString();
 
         const subjectLower = subject.toLowerCase();
-        const matches = subjectKeywords.some((kw: string) => subjectLower.includes(kw.toLowerCase()));
+        const matches = subjectKeywords.some((kw: string) =>
+          subjectLower.includes(kw.toLowerCase()),
+        );
         if (!matches) continue;
 
         let htmlBody = "";
@@ -315,8 +345,11 @@ async function handler(req: Request): Promise<Response> {
         const subPlatform = pick("Platform Mobile App", "Sub Platform");
         const arrValue = parseINR(pick("Expected ARR"));
         const category = pick("Merchant Category");
-        const txnsPerDay = parseInt(pick("Expected Transactions/Day", "Expected Transactions/day") || "0") || 0;
-        const aov = parseINR(pick("AOV", "AOV (Average Order Value )", "AOV (Average Order Value)"));
+        const txnsPerDay =
+          parseInt(pick("Expected Transactions/Day", "Expected Transactions/day") || "0") || 0;
+        const aov = parseINR(
+          pick("AOV", "AOV (Average Order Value )", "AOV (Average Order Value)"),
+        );
         const merchantSize = pick("Merchant Size");
         const city = pick("City");
         const notes = pick("Notes");
@@ -357,7 +390,10 @@ async function handler(req: Request): Promise<Response> {
         const brandKey = (brandName || "").trim().toLowerCase();
         if (!brandKey) continue;
         if (existingMerchants.has(brandKey) || seenThisBatch.has(brandKey)) {
-          await supabase.from("parsed_emails").update({ status: "dismissed" }).eq("id", inserted.id);
+          await supabase
+            .from("parsed_emails")
+            .update({ status: "dismissed" })
+            .eq("id", inserted.id);
           continue;
         }
         seenThisBatch.add(brandKey);
@@ -438,7 +474,6 @@ async function handler(req: Request): Promise<Response> {
         } catch (err) {
           console.error("Thread reply failed for", owner.email, err);
         }
-
       } catch (err) {
         console.error(`Error processing message ${msg.id}:`, err);
       }
@@ -448,7 +483,7 @@ async function handler(req: Request): Promise<Response> {
       .from("app_settings")
       .upsert(
         { tenant_id: tenantId, key: "parsed_emails_rr_index", value: String(rrIndex) },
-        { onConflict: "tenant_id,key" }
+        { onConflict: "tenant_id,key" },
       );
 
     return new Response(
@@ -459,14 +494,14 @@ async function handler(req: Request): Promise<Response> {
         auto_created: autoCreated,
         emails: results,
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error in poll-emails:", error);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 }
 

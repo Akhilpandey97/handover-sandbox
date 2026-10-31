@@ -113,7 +113,11 @@ const stateDotClass: Record<ProjectState, string> = {
 /** "11 Sep 2026" */
 const friendlyDate = (value?: string | null) =>
   value
-    ? new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(value).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
     : "—";
 
 /** "in 22 days", "today", "7 days late" */
@@ -129,7 +133,13 @@ const relativeDay = (value?: string | null): string | undefined => {
   return days > 0 ? `in ${days} days` : `${Math.abs(days)} days late`;
 };
 
-export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false, onClose, projectIds, onNavigate }: ProjectWorkspaceProps) => {
+export const ProjectWorkspaceView = ({
+  projectId: projectIdProp,
+  inModal = false,
+  onClose,
+  projectIds,
+  onNavigate,
+}: ProjectWorkspaceProps) => {
   const { projectId: routeProjectId } = useParams<{ projectId?: string }>();
   const projectId = projectIdProp || routeProjectId;
   const { isAuthenticated, isLoading, currentUser } = useAuth();
@@ -173,7 +183,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
     setTabOrder((current) => {
       const next = current.filter((v) => v !== from);
       next.splice(next.indexOf(to), 0, from);
-      try { localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(next)); } catch { /* private mode */ }
+      try {
+        localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(next));
+      } catch {
+        /* private mode */
+      }
       return next;
     });
   };
@@ -188,12 +202,27 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
   if (!project) {
     return (
-      <div className={cn("flex items-center justify-center bg-background px-6", inModal ? "min-h-full" : "min-h-screen")}>
+      <div
+        className={cn(
+          "flex items-center justify-center bg-background px-6",
+          inModal ? "min-h-full" : "min-h-screen",
+        )}
+      >
         <Card className="w-full max-w-xl">
-          <CardHeader><CardTitle>Project not found</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Project not found</CardTitle>
+          </CardHeader>
           <CardContent>
-            <p className="mb-4 text-sm text-muted-foreground">This project could not be found in your current workspace.</p>
-            {inModal ? <Button onClick={onClose}>Close</Button> : <Button asChild><Link to="/">Back to dashboard</Link></Button>}
+            <p className="mb-4 text-sm text-muted-foreground">
+              This project could not be found in your current workspace.
+            </p>
+            {inModal ? (
+              <Button onClick={onClose}>Close</Button>
+            ) : (
+              <Button asChild>
+                <Link to="/">Back to dashboard</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -203,8 +232,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   // --- Computed project values ---
   const crossTeamRoles = ["manager", "admin", "super_admin", "superadmin"];
   const userTeamSlug = (currentUser?.team || "").toLowerCase();
-  const currentTeamChecklist = project.checklist.filter((item) => item.ownerTeam === project.currentOwnerTeam && !item.isTask);
-  const allCurrentTeamChecklistCompleted = currentTeamChecklist.length > 0 && currentTeamChecklist.every((item) => item.completed);
+  const currentTeamChecklist = project.checklist.filter(
+    (item) => item.ownerTeam === project.currentOwnerTeam && !item.isTask,
+  );
+  const allCurrentTeamChecklistCompleted =
+    currentTeamChecklist.length > 0 && currentTeamChecklist.every((item) => item.completed);
   const canTransfer =
     (userTeamSlug === project.currentOwnerTeam || crossTeamRoles.includes(userTeamSlug)) &&
     !project.pendingAcceptance &&
@@ -230,14 +262,19 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
   // Progress: groups with all items done / total groups
   const checklistItems = project.checklist.filter((i) => !i.isTask);
-  const groupedForProgress = checklistItems.reduce((acc, item) => {
-    const key = (item.ownerTeam || "").toLowerCase();
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(item);
-    return acc;
-  }, {} as Record<string, typeof checklistItems>);
+  const groupedForProgress = checklistItems.reduce(
+    (acc, item) => {
+      const key = (item.ownerTeam || "").toLowerCase();
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof checklistItems>,
+  );
   const totalGroups = Object.keys(groupedForProgress).length;
-  const completedGroups = Object.values(groupedForProgress).filter((items) => items.every((i) => i.completed)).length;
+  const completedGroups = Object.values(groupedForProgress).filter((items) =>
+    items.every((i) => i.completed),
+  ).length;
   const progressPct = totalGroups > 0 ? Math.round((completedGroups / totalGroups) * 100) : 0;
 
   const goLiveText = formatGoLiveDate(project, friendlyDate, "Not set");
@@ -245,7 +282,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
 
   const handleSendMagicLink = async () => {
     if (!project.contactEmail) {
-      toast.error("No contact email set", { description: "Add contact email in Edit Project first." });
+      toast.error("No contact email set", {
+        description: "Add contact email in Edit Project first.",
+      });
       return;
     }
     setSendingMagic(true);
@@ -266,7 +305,9 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   };
 
   const handleSaveEdit = (updatedProject: Project) => {
-    updateProject(updatedProject, { onSuccess: () => toast.success("Project updated successfully") });
+    updateProject(updatedProject, {
+      onSuccess: () => toast.success("Project updated successfully"),
+    });
   };
 
   const handleDelete = () => {
@@ -277,55 +318,97 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
   const handleTransfer = (assigneeId: string, assigneeName: string, notes: string) => {
     const nextTeamKey = project.currentOwnerTeam === "mint" ? "integration" : "ms";
     const nextTeam = teamLabels[nextTeamKey] || nextTeamKey;
-    transferProject(project.id, `${notes || `Transferred to ${nextTeam} team`} (Assigned to: ${assigneeName})`, assigneeId);
+    transferProject(
+      project.id,
+      `${notes || `Transferred to ${nextTeam} team`} (Assigned to: ${assigneeName})`,
+      assigneeId,
+    );
   };
 
   const handleStateChange = (newState: ProjectState) => {
-    updateProject({ ...project, projectState: newState }, {
-      onSuccess: () => toast.success(`Project state updated to ${projectStateLabels[newState]}`),
-    });
+    updateProject(
+      { ...project, projectState: newState },
+      {
+        onSuccess: () => toast.success(`Project state updated to ${projectStateLabels[newState]}`),
+      },
+    );
   };
 
   return (
-    <div className={cn("flex flex-col overflow-hidden bg-background", inModal ? "h-full rounded-lg border border-border" : "h-screen")}>
-      <Tabs value={activeTab} onValueChange={(v) => openTab(v as WorkspaceTab)} className="flex flex-col flex-1 overflow-hidden">
-
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden bg-background",
+        inModal ? "h-full rounded-lg border border-border" : "h-screen",
+      )}
+    >
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => openTab(v as WorkspaceTab)}
+        className="flex flex-col flex-1 overflow-hidden"
+      >
         {/* ── HEADER ─────────────────────────────────────────────────────── */}
         <div className="shrink-0 border-b border-border bg-card">
           <div className="mx-auto max-w-[1680px] px-5">
-
             {/* Row 1: breadcrumb + name + actions */}
             <div className="flex items-start justify-between gap-3 pt-3 pb-1">
               <div className="min-w-0 flex-1">
                 {/* Breadcrumb */}
                 <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
                   {inModal ? (
-                    <button type="button" onClick={onClose} className="hover:text-foreground">Projects</button>
+                    <button type="button" onClick={onClose} className="hover:text-foreground">
+                      Projects
+                    </button>
                   ) : (
-                    <Link to="/projects/list" className="hover:text-foreground">Projects</Link>
+                    <Link to="/projects/list" className="hover:text-foreground">
+                      Projects
+                    </Link>
                   )}
                   <ChevronRight className="h-3 w-3" />
-                  <span className="text-foreground/80 truncate max-w-[40vw]">{project.merchantName}</span>
+                  <span className="text-foreground/80 truncate max-w-[40vw]">
+                    {project.merchantName}
+                  </span>
                 </div>
                 {/* Name row */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="heading-page text-foreground truncate max-w-[36vw]">{project.merchantName}</h1>
+                  <h1 className="heading-page text-foreground truncate max-w-[36vw]">
+                    {project.merchantName}
+                  </h1>
                   <RiskBadge projectId={project.id} verdict={riskVerdicts[project.id]} />
                   {/* Prev/Next in modal */}
-                  {inModal && projectIds && projectIds.length > 1 && onNavigate && (() => {
-                    const idx = projectIds.indexOf(project.id);
-                    return (
-                      <div className="flex items-center gap-1">
-                        <Button variant="outline" size="sm" className="h-6 w-6 p-0" disabled={idx <= 0} onClick={() => idx > 0 && onNavigate(projectIds[idx - 1])}>
-                          <ArrowLeft className="h-3 w-3" />
-                        </Button>
-                        <span className="text-xs text-muted-foreground tabular-nums">{idx + 1}/{projectIds.length}</span>
-                        <Button variant="outline" size="sm" className="h-6 w-6 p-0" disabled={idx >= projectIds.length - 1} onClick={() => idx < projectIds.length - 1 && onNavigate(projectIds[idx + 1])}>
-                          <ArrowRight className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    );
-                  })()}
+                  {inModal &&
+                    projectIds &&
+                    projectIds.length > 1 &&
+                    onNavigate &&
+                    (() => {
+                      const idx = projectIds.indexOf(project.id);
+                      return (
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            disabled={idx <= 0}
+                            onClick={() => idx > 0 && onNavigate(projectIds[idx - 1])}
+                          >
+                            <ArrowLeft className="h-3 w-3" />
+                          </Button>
+                          <span className="text-xs text-muted-foreground tabular-nums">
+                            {idx + 1}/{projectIds.length}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            disabled={idx >= projectIds.length - 1}
+                            onClick={() =>
+                              idx < projectIds.length - 1 && onNavigate(projectIds[idx + 1])
+                            }
+                          >
+                            <ArrowRight className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      );
+                    })()}
                 </div>
               </div>
 
@@ -338,20 +421,32 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                 )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" className="h-8 gap-1.5 bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90">
+                    <Button
+                      size="sm"
+                      className="h-8 gap-1.5 bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90"
+                    >
                       <Share2 className="h-3.5 w-3.5" />
                       Customer access
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem onSelect={() => void handleSendMagicLink()} disabled={sendingMagic}>
+                    <DropdownMenuItem
+                      onSelect={() => void handleSendMagicLink()}
+                      disabled={sendingMagic}
+                    >
                       <Mail className="mr-2 h-3.5 w-3.5" />
                       {sendingMagic ? "Sending…" : "Email a sign-in link"}
                     </DropdownMenuItem>
                     <PortalLinkButton
                       projectId={project.id}
                       renderTrigger={(open, isWorking) => (
-                        <DropdownMenuItem disabled={isWorking} onSelect={(e) => { e.preventDefault(); open(); }}>
+                        <DropdownMenuItem
+                          disabled={isWorking}
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            open();
+                          }}
+                        >
                           <Link2 className="mr-2 h-3.5 w-3.5" />
                           Copy portal link
                         </DropdownMenuItem>
@@ -359,7 +454,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                     />
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <Button size="sm" className="h-8 gap-1.5 bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90" onClick={() => setEditOpen(true)}>
+                <Button
+                  size="sm"
+                  className="h-8 gap-1.5 bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90"
+                  onClick={() => setEditOpen(true)}
+                >
                   <Pencil className="h-3.5 w-3.5" />
                   Edit project
                 </Button>
@@ -384,7 +483,10 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       <ArrowRight className="mr-2 h-3.5 w-3.5" />
                       Transfer project
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setDeleteConfirmOpen(true)} className="text-destructive focus:text-destructive">
+                    <DropdownMenuItem
+                      onSelect={() => setDeleteConfirmOpen(true)}
+                      className="text-destructive focus:text-destructive"
+                    >
                       Delete project
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -397,14 +499,18 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               {/* State */}
               <span className="flex items-center gap-1.5">
                 <span className={cn("h-2 w-2 rounded-full", stateDotClass[project.projectState])} />
-                <span className="text-foreground font-medium">{stateLabels?.[project.projectState] || projectStateLabels[project.projectState]}</span>
+                <span className="text-foreground font-medium">
+                  {stateLabels?.[project.projectState] || projectStateLabels[project.projectState]}
+                </span>
               </span>
               {/* Go-live */}
               {project.dates.expectedGoLiveDate && (
                 <span className="flex items-center gap-1 text-muted-foreground">
                   <CalendarDays className="h-3.5 w-3.5" />
                   Expected go-live: <span className="text-foreground">{goLiveText}</span>
-                  {goLiveDays && <span className="text-xs text-muted-foreground">({goLiveDays})</span>}
+                  {goLiveDays && (
+                    <span className="text-xs text-muted-foreground">({goLiveDays})</span>
+                  )}
                 </span>
               )}
               {/* Revenue */}
@@ -415,15 +521,21 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
               {/* Owner */}
               <span className="flex items-center gap-1 text-muted-foreground">
                 <UserRound className="h-3.5 w-3.5" />
-                Owner: <span className="text-foreground">{project.assignedOwnerName || "Unassigned"}</span>
+                Owner:{" "}
+                <span className="text-foreground">{project.assignedOwnerName || "Unassigned"}</span>
               </span>
 
               {/* Progress — pushed to the right */}
               <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
                 <span>Project progress</span>
-                <span className="font-medium text-foreground tabular-nums">{completedGroups}/{totalGroups} stages</span>
+                <span className="font-medium text-foreground tabular-nums">
+                  {completedGroups}/{totalGroups} stages
+                </span>
                 <div className="w-28 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progressPct}%` }} />
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${progressPct}%` }}
+                  />
                 </div>
                 <span className="font-medium text-foreground tabular-nums">{progressPct}%</span>
               </div>
@@ -443,7 +555,11 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
                       onDragStart={() => setDraggingTab(tab.value)}
                       onDragEnd={() => setDraggingTab(null)}
                       onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => { e.preventDefault(); if (draggingTab) moveTab(draggingTab, tab.value); setDraggingTab(null); }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (draggingTab) moveTab(draggingTab, tab.value);
+                        setDraggingTab(null);
+                      }}
                       title="Drag to reorder"
                       className={cn(
                         "cursor-grab rounded-none border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-foreground/60 active:cursor-grabbing",
@@ -492,25 +608,38 @@ export const ProjectWorkspaceView = ({ projectId: projectIdProp, inModal = false
             <WorkspaceMeetingsPanel project={project} />
           </TabsContent>
         </div>
-
       </Tabs>
 
       {/* ── DIALOGS ──────────────────────────────────────────────────────── */}
-      <EditProjectDialog project={project} open={editOpen} onOpenChange={setEditOpen} onSave={handleSaveEdit} />
+      <EditProjectDialog
+        project={project}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSave={handleSaveEdit}
+      />
       <AssignOwnerDialog project={project} open={assignOpen} onOpenChange={setAssignOpen} />
-      <TransferDialog project={project} open={transferOpen} onOpenChange={setTransferOpen} onTransfer={handleTransfer} />
+      <TransferDialog
+        project={project}
+        open={transferOpen}
+        onOpenChange={setTransferOpen}
+        onTransfer={handleTransfer}
+      />
 
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Project</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{project.merchantName}</strong>? This action cannot be undone.
+              Are you sure you want to delete <strong>{project.merchantName}</strong>? This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

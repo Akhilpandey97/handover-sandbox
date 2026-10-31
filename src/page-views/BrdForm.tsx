@@ -3,10 +3,26 @@ import { useSearchParams } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, ChevronRight, Loader2, FileText, Send, MessageCircle, Sparkles, ArrowRight, SkipForward } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronRight,
+  Loader2,
+  FileText,
+  Send,
+  MessageCircle,
+  Sparkles,
+  ArrowRight,
+  SkipForward,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const API_URL = `/api/public/brd-form-api`;
@@ -40,14 +56,19 @@ const getAbbreviation = (category: string) => {
   const match = category.match(/\(([^)]+)\)/);
   if (match) return match[1];
   // fallback: first letters of each word
-  return category.split(/[\s-]+/).map(w => w[0]).join("").substring(0, 4).toUpperCase();
+  return category
+    .split(/[\s-]+/)
+    .map((w) => w[0])
+    .join("")
+    .substring(0, 4)
+    .toUpperCase();
 };
 
 // Group categories into broader groups by abbreviation prefix
 const groupSections = (fields: FormField[]) => {
   const catOrder: string[] = [];
   const catFields: Record<string, FormField[]> = {};
-  fields.forEach(f => {
+  fields.forEach((f) => {
     const cat = f.category || "General";
     if (!catFields[cat]) {
       catFields[cat] = [];
@@ -57,10 +78,14 @@ const groupSections = (fields: FormField[]) => {
   });
 
   // Group by abbreviation (e.g. all "FD" categories together)
-  const broadGroups: { abbr: string; label: string; categories: { name: string; fields: FormField[] }[] }[] = [];
-  const abbrMap: Record<string, typeof broadGroups[0]> = {};
+  const broadGroups: {
+    abbr: string;
+    label: string;
+    categories: { name: string; fields: FormField[] }[];
+  }[] = [];
+  const abbrMap: Record<string, (typeof broadGroups)[0]> = {};
 
-  catOrder.forEach(cat => {
+  catOrder.forEach((cat) => {
     const abbr = getAbbreviation(cat);
     if (!abbrMap[abbr]) {
       // Get a clean label: text before the parenthesis or the abbreviation itself
@@ -111,7 +136,11 @@ const BrdForm = () => {
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (!token) { setError("No BRD token provided"); setLoading(false); return; }
+    if (!token) {
+      setError("No BRD token provided");
+      setLoading(false);
+      return;
+    }
     fetchData();
   }, [token]);
 
@@ -141,7 +170,7 @@ const BrdForm = () => {
       setCsvUrl(data.session.csv_url || null);
       if (data.session.status === "completed") setCompleted(true);
       const firstUnanswered = (data.fields || []).findIndex(
-        (f: FormField) => !data.responses?.[f.id]
+        (f: FormField) => !data.responses?.[f.id],
       );
       if (firstUnanswered > 0) setCurrentIndex(firstUnanswered);
       // Expand the group of the current question
@@ -156,23 +185,26 @@ const BrdForm = () => {
     }
   };
 
-  const saveResponse = useCallback(async (fieldId: string, value: string) => {
-    if (!value?.trim()) return;
-    setSaving(true);
-    try {
-      const res = await fetch(`${API_URL}?token=${token}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: API_KEY },
-        body: JSON.stringify({ responses: { [fieldId]: value } }),
-      });
-      const data = await res.json();
-      if (data.csv_url) setCsvUrl(data.csv_url);
-    } catch (e) {
-      console.error("Auto-save failed:", e);
-    } finally {
-      setSaving(false);
-    }
-  }, [token]);
+  const saveResponse = useCallback(
+    async (fieldId: string, value: string) => {
+      if (!value?.trim()) return;
+      setSaving(true);
+      try {
+        const res = await fetch(`${API_URL}?token=${token}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: API_KEY },
+          body: JSON.stringify({ responses: { [fieldId]: value } }),
+        });
+        const data = await res.json();
+        if (data.csv_url) setCsvUrl(data.csv_url);
+      } catch (e) {
+        console.error("Auto-save failed:", e);
+      } finally {
+        setSaving(false);
+      }
+    },
+    [token],
+  );
 
   const broadGroups = groupSections(fields);
   const currentField = fields[currentIndex];
@@ -248,10 +280,11 @@ const BrdForm = () => {
     }
   };
 
-  const getGroupProgress = (group: typeof broadGroups[0]) => {
-    let answered = 0, total = 0;
-    group.categories.forEach(c => {
-      c.fields.forEach(f => {
+  const getGroupProgress = (group: (typeof broadGroups)[0]) => {
+    let answered = 0,
+      total = 0;
+    group.categories.forEach((c) => {
+      c.fields.forEach((f) => {
         total++;
         if (responses[f.id]?.trim()) answered++;
       });
@@ -262,7 +295,7 @@ const BrdForm = () => {
   const motivation = getMotivation(progress);
 
   // Build chat history: all answered questions up to currentIndex + current question
-  const chatHistory = fields.slice(0, currentIndex).filter(f => responses[f.id]?.trim());
+  const chatHistory = fields.slice(0, currentIndex).filter((f) => responses[f.id]?.trim());
 
   if (loading) {
     return (
@@ -301,8 +334,8 @@ const BrdForm = () => {
           </div>
           <h2 className="text-2xl font-bold mb-2">🎉 BRD Completed!</h2>
           <p className="text-muted-foreground mb-6">
-            Thank you for completing the BRD for <strong>{session?.merchantName}</strong>.
-            Your responses have been saved successfully.
+            Thank you for completing the BRD for <strong>{session?.merchantName}</strong>. Your
+            responses have been saved successfully.
           </p>
           {csvUrl && (
             <Button size="lg" className="bg-success hover:bg-success" asChild>
@@ -339,7 +372,7 @@ const BrdForm = () => {
                 "w-full text-left px-4 py-2.5 rounded-xl border-2 transition-all text-sm",
                 responses[field.id] === opt
                   ? "border-info bg-info-soft text-info-strong font-medium"
-                  : "border-gray-200 bg-white hover:border-info/30 hover:bg-info/50"
+                  : "border-gray-200 bg-white hover:border-info/30 hover:bg-info/50",
               )}
             >
               {opt}
@@ -369,7 +402,7 @@ const BrdForm = () => {
                 "flex-1 px-5 py-3 rounded-xl border-2 transition-all text-sm font-medium",
                 responses[field.id] === opt
                   ? "border-info bg-info-soft text-info-strong"
-                  : "border-gray-200 bg-white hover:border-info/30"
+                  : "border-gray-200 bg-white hover:border-info/30",
               )}
             >
               {opt === "Yes" ? "👍 Yes" : "👎 No"}
@@ -380,10 +413,14 @@ const BrdForm = () => {
     }
 
     const isTextarea = field.field_type === "textarea" || field.field_type === "long_text";
-    const inputType = field.field_type === "number" ? "number"
-      : field.field_type === "date" ? "date"
-      : field.field_type === "url" ? "url"
-      : "text";
+    const inputType =
+      field.field_type === "number"
+        ? "number"
+        : field.field_type === "date"
+          ? "date"
+          : field.field_type === "url"
+            ? "url"
+            : "text";
 
     if (isTextarea) {
       return (
@@ -407,9 +444,17 @@ const BrdForm = () => {
           type={inputType}
           value={responses[field.id] || ""}
           onChange={(e) => setResponses((prev) => ({ ...prev, [field.id]: e.target.value }))}
-          placeholder={inputType === "url" ? "https://..." : inputType === "number" ? "Enter a number..." : "Type your answer..."}
+          placeholder={
+            inputType === "url"
+              ? "https://..."
+              : inputType === "number"
+                ? "Enter a number..."
+                : "Type your answer..."
+          }
           className="border-0 focus-visible:ring-0 text-sm bg-transparent"
-          onKeyDown={(e) => { if (e.key === "Enter") handleNext(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleNext();
+          }}
         />
       </div>
     );
@@ -421,10 +466,14 @@ const BrdForm = () => {
       <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-100">
           <h2 className="heading-card text-foreground">{form?.name || "BRD Form"}</h2>
-          <p className="text-2xs text-muted-foreground mt-0.5">{session?.merchantName} • MID: {session?.mid}</p>
+          <p className="text-2xs text-muted-foreground mt-0.5">
+            {session?.merchantName} • MID: {session?.mid}
+          </p>
           <div className="mt-3 p-2 bg-info-soft rounded-lg">
             <div className="flex justify-between text-2xs font-medium mb-1">
-              <span className="text-info-strong">{answeredCount}/{fields.length}</span>
+              <span className="text-info-strong">
+                {answeredCount}/{fields.length}
+              </span>
               <span className="text-info-strong">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-1.5" />
@@ -442,7 +491,7 @@ const BrdForm = () => {
                 <button
                   onClick={() => {
                     const firstField = group.categories[0]?.fields[0];
-                    const idx = firstField ? fields.findIndex(f => f.id === firstField.id) : -1;
+                    const idx = firstField ? fields.findIndex((f) => f.id === firstField.id) : -1;
                     if (idx >= 0) jumpToField(idx);
                     setExpandedGroup(isExpanded ? null : group.abbr);
                   }}
@@ -451,26 +500,35 @@ const BrdForm = () => {
                     isActive
                       ? "bg-info-soft text-info-strong font-semibold"
                       : isDone
-                      ? "text-success-strong hover:bg-success-soft"
-                      : "text-muted-foreground hover:bg-gray-50"
+                        ? "text-success-strong hover:bg-success-soft"
+                        : "text-muted-foreground hover:bg-gray-50",
                   )}
                 >
                   <span className="flex items-center gap-2 truncate">
-                    {isDone && <CheckCircle2 className="h-3 w-3 text-success-strong flex-shrink-0" />}
+                    {isDone && (
+                      <CheckCircle2 className="h-3 w-3 text-success-strong flex-shrink-0" />
+                    )}
                     <span className="font-bold">{group.abbr}</span>
                     {group.categories.length === 1 && (
                       <span className="truncate opacity-70">{group.label}</span>
                     )}
                   </span>
                   <span className="flex items-center gap-1 flex-shrink-0">
-                    <span className="text-2xs opacity-60">{answered}/{total}</span>
-                    <ChevronRight className={cn("h-3 w-3 transition-transform", isExpanded && group.categories.length > 1 && "rotate-90")} />
+                    <span className="text-2xs opacity-60">
+                      {answered}/{total}
+                    </span>
+                    <ChevronRight
+                      className={cn(
+                        "h-3 w-3 transition-transform",
+                        isExpanded && group.categories.length > 1 && "rotate-90",
+                      )}
+                    />
                   </span>
                 </button>
                 {isExpanded && group.categories.length > 1 && (
                   <div className="ml-3 mt-0.5 space-y-0.5 border-l-2 border-info/30 pl-2">
-                    {group.categories.map(cat => {
-                      const catAnswered = cat.fields.filter(f => responses[f.id]?.trim()).length;
+                    {group.categories.map((cat) => {
+                      const catAnswered = cat.fields.filter((f) => responses[f.id]?.trim()).length;
                       const catActive = currentSection === cat.name;
                       const catDone = catAnswered === cat.fields.length;
                       // Extract sub-label after the dash e.g. "Feature Discovery (FD) - PDP" → "PDP"
@@ -480,7 +538,7 @@ const BrdForm = () => {
                         <button
                           key={cat.name}
                           onClick={() => {
-                            const idx = fields.findIndex(f => f.category === cat.name);
+                            const idx = fields.findIndex((f) => f.category === cat.name);
                             if (idx >= 0) jumpToField(idx);
                           }}
                           className={cn(
@@ -488,13 +546,15 @@ const BrdForm = () => {
                             catActive
                               ? "bg-info-soft text-info-strong font-medium"
                               : catDone
-                              ? "text-success-strong"
-                              : "text-muted-foreground hover:bg-gray-50"
+                                ? "text-success-strong"
+                                : "text-muted-foreground hover:bg-gray-50",
                           )}
                         >
                           {catDone && <CheckCircle2 className="h-2.5 w-2.5 inline mr-1" />}
                           {subLabel}
-                          <span className="ml-1 opacity-50">{catAnswered}/{cat.fields.length}</span>
+                          <span className="ml-1 opacity-50">
+                            {catAnswered}/{cat.fields.length}
+                          </span>
                         </button>
                       );
                     })}
@@ -527,7 +587,9 @@ const BrdForm = () => {
               <h1 className="text-sm font-bold">{form?.name || "BRD Form"}</h1>
               <p className="text-2xs text-muted-foreground">{session?.merchantName}</p>
             </div>
-            <Badge variant="outline" className="text-2xs">{answeredCount}/{fields.length}</Badge>
+            <Badge variant="outline" className="text-2xs">
+              {answeredCount}/{fields.length}
+            </Badge>
           </div>
           <Progress value={progress} className="h-1.5 mt-2" />
         </div>
@@ -551,7 +613,13 @@ const BrdForm = () => {
         </div>
 
         {/* Chat messages - WhatsApp style */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#e5ddd5]/30 scrollbar-thin" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}>
+        <div
+          className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#e5ddd5]/30 scrollbar-thin"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+          }}
+        >
           {/* Previous answered messages (history) */}
           {chatHistory.map((field, idx) => {
             const prevField = idx > 0 ? chatHistory[idx - 1] : null;
@@ -587,10 +655,11 @@ const BrdForm = () => {
           })}
 
           {/* Section divider for current question if new section */}
-          {currentField && (
+          {currentField &&
             (() => {
               const lastHistoryField = chatHistory[chatHistory.length - 1];
-              const showDivider = !lastHistoryField || lastHistoryField.category !== currentField.category;
+              const showDivider =
+                !lastHistoryField || lastHistoryField.category !== currentField.category;
               return showDivider ? (
                 <div className="flex justify-center my-2">
                   <span className="bg-white/80 text-2xs text-muted-foreground px-3 py-1 rounded-full shadow-sm">
@@ -598,17 +667,21 @@ const BrdForm = () => {
                   </span>
                 </div>
               ) : null;
-            })()
-          )}
+            })()}
 
           {/* Current question bubble */}
           {currentField && (
-            <div className="animate-in fade-in slide-in-from-bottom-2 duration-300" key={`q-${currentField.id}`}>
+            <div
+              className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+              key={`q-${currentField.id}`}
+            >
               <div className="flex items-start gap-2 max-w-[80%]">
                 <div className="bg-white rounded-xl rounded-tl-sm shadow-md px-4 py-3 text-sm text-foreground">
                   <p className="font-medium leading-relaxed">
                     {currentField.question}
-                    {currentField.is_required && <span className="text-destructive-strong ml-1">*</span>}
+                    {currentField.is_required && (
+                      <span className="text-destructive-strong ml-1">*</span>
+                    )}
                   </p>
                 </div>
               </div>
@@ -637,11 +710,23 @@ const BrdForm = () => {
         <div className="bg-white border-t border-gray-200 px-4 py-2.5">
           <div className="flex items-center justify-between max-w-3xl mx-auto">
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={handlePrev} disabled={currentIndex === 0} className="text-xs h-8">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePrev}
+                disabled={currentIndex === 0}
+                className="text-xs h-8"
+              >
                 ← Back
               </Button>
               {!currentField?.is_required && (
-                <Button variant="ghost" size="sm" onClick={handleSkip} disabled={isLastQuestion} className="text-xs text-muted-foreground h-8">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSkip}
+                  disabled={isLastQuestion}
+                  className="text-xs text-muted-foreground h-8"
+                >
                   <SkipForward className="h-3 w-3 mr-1" /> Skip
                 </Button>
               )}
@@ -649,8 +734,16 @@ const BrdForm = () => {
 
             <div className="flex items-center gap-2">
               {isLastQuestion ? (
-                <Button onClick={handleSubmit} disabled={submitting || !canSubmit} className="bg-success hover:bg-success text-xs px-5 h-8">
-                  {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Send className="h-3.5 w-3.5 mr-1" />}
+                <Button
+                  onClick={handleSubmit}
+                  disabled={submitting || !canSubmit}
+                  className="bg-success hover:bg-success text-xs px-5 h-8"
+                >
+                  {submitting ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5 mr-1" />
+                  )}
                   Submit BRD
                 </Button>
               ) : (
@@ -661,7 +754,8 @@ const BrdForm = () => {
             </div>
           </div>
           <p className="text-2xs text-center text-muted-foreground mt-1 hidden md:block">
-            Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-2xs font-mono">Enter</kbd> to continue • Click any answer to edit
+            Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-2xs font-mono">Enter</kbd> to
+            continue • Click any answer to edit
           </p>
         </div>
       </main>

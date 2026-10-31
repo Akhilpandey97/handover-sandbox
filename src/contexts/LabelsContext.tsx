@@ -36,7 +36,9 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   useFunnelConfig();
   const { customTeams, teamLabelMap } = useTeams();
   const customTeamLabels: Record<string, string> = {};
-  customTeams.forEach((t) => { customTeamLabels[t.slug] = t.name; });
+  customTeams.forEach((t) => {
+    customTeamLabels[t.slug] = t.name;
+  });
   const queryClient = useQueryClient();
   const tenantId = currentUser?.tenantId ?? null;
   // Through the query cache rather than a one-off fetch, so a label changed
@@ -64,36 +66,50 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
   const isLoading = !!currentUser && labelsLoading;
   const setLabels = useCallback(
     (update: (prev: Record<string, string>) => Record<string, string>) =>
-      queryClient.setQueryData<Record<string, string>>(labelsKey, (prev) => update(prev || DEFAULT_LABELS)),
+      queryClient.setQueryData<Record<string, string>>(labelsKey, (prev) =>
+        update(prev || DEFAULT_LABELS),
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [queryClient, tenantId],
   );
 
-  const getLabel = useCallback((key: string) => labels[key] || DEFAULT_LABELS[key] || key, [labels]);
+  const getLabel = useCallback(
+    (key: string) => labels[key] || DEFAULT_LABELS[key] || key,
+    [labels],
+  );
 
-  const updateLabel = useCallback(async (key: string, value: string) => {
-    const { error } = await supabase
-      .from("app_settings")
-      .upsert({ key, value, category: key.split("_")[0], tenant_id: currentUser?.tenantId || null }, { onConflict: "key,tenant_id" });
-    if (!error) {
-      setLabels((prev) => ({ ...prev, [key]: value }));
-    }
-  }, [currentUser?.tenantId, setLabels]);
+  const updateLabel = useCallback(
+    async (key: string, value: string) => {
+      const { error } = await supabase
+        .from("app_settings")
+        .upsert(
+          { key, value, category: key.split("_")[0], tenant_id: currentUser?.tenantId || null },
+          { onConflict: "key,tenant_id" },
+        );
+      if (!error) {
+        setLabels((prev) => ({ ...prev, [key]: value }));
+      }
+    },
+    [currentUser?.tenantId, setLabels],
+  );
 
-  const updateLabels = useCallback(async (updates: Record<string, string>) => {
-    const rows = Object.entries(updates).map(([key, value]) => ({
-      key,
-      value,
-      category: key.includes("_") ? key.substring(0, key.indexOf("_")) : "general",
-      tenant_id: currentUser?.tenantId || null,
-    }));
-    const { error } = await supabase
-      .from("app_settings")
-      .upsert(rows, { onConflict: "key,tenant_id" });
-    if (!error) {
-      setLabels((prev) => ({ ...prev, ...updates }));
-    }
-  }, [currentUser?.tenantId, setLabels]);
+  const updateLabels = useCallback(
+    async (updates: Record<string, string>) => {
+      const rows = Object.entries(updates).map(([key, value]) => ({
+        key,
+        value,
+        category: key.includes("_") ? key.substring(0, key.indexOf("_")) : "general",
+        tenant_id: currentUser?.tenantId || null,
+      }));
+      const { error } = await supabase
+        .from("app_settings")
+        .upsert(rows, { onConflict: "key,tenant_id" });
+      if (!error) {
+        setLabels((prev) => ({ ...prev, ...updates }));
+      }
+    },
+    [currentUser?.tenantId, setLabels],
+  );
 
   // Names come from Settings → Checklist → Team Management (the `teams` table).
   const teamLabels: Record<string, string> = {
@@ -104,7 +120,6 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
     ...teamLabelMap,
     ...customTeamLabels,
   };
-
 
   const responsibilityLabels: Record<string, string> = {
     gokwik: labels.responsibility_internal,

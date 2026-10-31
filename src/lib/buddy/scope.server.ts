@@ -15,7 +15,13 @@ export const ACTION_ROLES = new Set(["manager", "admin", "super_admin", "superad
  * Roles whose dashboard shows the whole portfolio. Everyone else works from the
  * projects assigned to them, and Buddy must not widen that.
  */
-export const PORTFOLIO_ROLES = new Set(["manager", "admin", "super_admin", "superadmin", "gokwik_general"]);
+export const PORTFOLIO_ROLES = new Set([
+  "manager",
+  "admin",
+  "super_admin",
+  "superadmin",
+  "gokwik_general",
+]);
 
 export type BuddyClient = ReturnType<typeof adminClient>;
 

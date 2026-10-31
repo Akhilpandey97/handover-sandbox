@@ -9,8 +9,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SUPABASE_URL = process.env['SUPABASE_URL']!;
-const SUPABASE_SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']!;
+const SUPABASE_URL = process.env["SUPABASE_URL"]!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"]!;
 
 async function generateAndUploadExcel(adminClient: any, session: any) {
   const { data: allFields } = await adminClient
@@ -42,12 +42,10 @@ async function generateAndUploadExcel(adminClient: any, session: any) {
 
   // Use a stable filename so we overwrite each time
   const fileName = `brd_${session.projects?.mid || session.id}.xlsx`;
-  await adminClient.storage
-    .from("brd-exports")
-    .upload(fileName, xlsxBuffer, {
-      contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      upsert: true,
-    });
+  await adminClient.storage.from("brd-exports").upload(fileName, xlsxBuffer, {
+    contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    upsert: true,
+  });
 
   // The bucket is private. Store the object path on the session (re-signed on
   // every read) and a long-lived signed link on the project's BRD field so the
@@ -58,11 +56,13 @@ async function generateAndUploadExcel(adminClient: any, session: any) {
   const csvUrl = signed?.signedUrl || fileName;
 
   // Update session and project brd_link
-  await adminClient.from("brd_sessions")
+  await adminClient
+    .from("brd_sessions")
     .update({ csv_url: fileName, updated_at: new Date().toISOString() })
     .eq("id", session.id);
 
-  await adminClient.from("projects")
+  await adminClient
+    .from("projects")
     .update({ brd_link: csvUrl, updated_at: new Date().toISOString() })
     .eq("id", session.project_id);
 
@@ -82,7 +82,8 @@ async function handler(req: Request): Promise<Response> {
 
     if (!token) {
       return new Response(JSON.stringify({ error: "Token required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -94,7 +95,8 @@ async function handler(req: Request): Promise<Response> {
 
     if (sessionError || !session) {
       return new Response(JSON.stringify({ error: "Invalid or expired BRD link" }), {
-        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -122,38 +124,43 @@ async function handler(req: Request): Promise<Response> {
         if (r.value) responsesMap[r.field_id] = r.value;
       });
 
-      return new Response(JSON.stringify({
-        session: {
-          id: session.id,
-          status: session.status,
-          merchantName: session.projects?.merchant_name || "Unknown",
-          mid: session.projects?.mid || "",
-          completed_at: session.completed_at,
-          csv_url: await signStorageUrl("brd-exports", session.csv_url),
+      return new Response(
+        JSON.stringify({
+          session: {
+            id: session.id,
+            status: session.status,
+            merchantName: session.projects?.merchant_name || "Unknown",
+            mid: session.projects?.mid || "",
+            completed_at: session.completed_at,
+            csv_url: await signStorageUrl("brd-exports", session.csv_url),
+          },
+          form: {
+            name: formTemplate?.name || "BRD Form",
+            description: formTemplate?.description || "",
+          },
+          fields: fields || [],
+          responses: responsesMap,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
-        form: {
-          name: formTemplate?.name || "BRD Form",
-          description: formTemplate?.description || "",
-        },
-        fields: fields || [],
-        responses: responsesMap,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      );
     }
 
     // POST
     if (req.method === "POST") {
       if (session.status === "completed") {
         return new Response(JSON.stringify({ error: "This BRD has already been completed" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
       const { responses, complete } = await req.json();
 
       if (session.status === "pending") {
-        await adminClient.from("brd_sessions")
+        await adminClient
+          .from("brd_sessions")
           .update({ status: "in_progress", updated_at: new Date().toISOString() })
           .eq("id", session.id);
       }
@@ -169,7 +176,8 @@ async function handler(req: Request): Promise<Response> {
             .maybeSingle();
 
           if (existing) {
-            await adminClient.from("brd_responses")
+            await adminClient
+              .from("brd_responses")
               .update({ value: value as string, updated_at: new Date().toISOString() })
               .eq("id", existing.id);
           } else {
@@ -188,7 +196,8 @@ async function handler(req: Request): Promise<Response> {
       // it re-reads all fields + responses, builds a workbook, and uploads to storage.
       if (complete) {
         const csvUrl = await generateAndUploadExcel(adminClient, session);
-        await adminClient.from("brd_sessions")
+        await adminClient
+          .from("brd_sessions")
           .update({
             status: "completed",
             completed_at: new Date().toISOString(),
@@ -196,13 +205,16 @@ async function handler(req: Request): Promise<Response> {
           })
           .eq("id", session.id);
 
-        return new Response(JSON.stringify({
-          success: true,
-          message: "BRD completed successfully",
-          csv_url: csvUrl,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "BRD completed successfully",
+            csv_url: csvUrl,
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
 
       return new Response(JSON.stringify({ success: true, message: "Responses saved" }), {
@@ -211,13 +223,18 @@ async function handler(req: Request): Promise<Response> {
     }
 
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("brd-form-api error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 }
 

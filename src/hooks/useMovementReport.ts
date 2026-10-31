@@ -21,9 +21,7 @@ export interface MovementEntry {
   source: "activity_log" | "comment_log" | "checklist_comment";
 }
 
-const fetchAll = async <T,>(
-  build: (from: number, to: number) => any
-): Promise<T[]> => {
+const fetchAll = async <T>(build: (from: number, to: number) => any): Promise<T[]> => {
   const pageSize = 1000;
   let from = 0;
   const all: T[] = [];
@@ -58,19 +56,22 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
 
       const startOfTodayIstUtcMs = Date.UTC(istYear, istMonth, istDate) - IST_OFFSET_MS;
       const startOfWeekIstUtcMs = startOfTodayIstUtcMs - daysSinceMonday * 24 * 3600 * 1000;
-      const since = new Date(timeframe === "daily" ? startOfTodayIstUtcMs : startOfWeekIstUtcMs).toISOString();
+      const since = new Date(
+        timeframe === "daily" ? startOfTodayIstUtcMs : startOfWeekIstUtcMs,
+      ).toISOString();
       const until = new Date(nowUtcMs).toISOString();
-
 
       const activityLogs = await fetchAll<any>((from, to) =>
         supabase
           .from("activity_logs")
-          .select("id, entity_id, entity_type, category, action_type, description, user_name, metadata, created_at")
+          .select(
+            "id, entity_id, entity_type, category, action_type, description, user_name, metadata, created_at",
+          )
           .eq("tenant_id", tenantId)
           .gte("created_at", since)
           .lte("created_at", until)
           .order("created_at", { ascending: false })
-          .range(from, to)
+          .range(from, to),
       );
 
       const commentLogs = await fetchAll<any>((from, to) =>
@@ -81,7 +82,7 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
           .gte("created_at", since)
           .lte("created_at", until)
           .order("created_at", { ascending: false })
-          .range(from, to)
+          .range(from, to),
       );
 
       const checklistComments = await fetchAll<any>((from, to) =>
@@ -92,10 +93,12 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
           .gte("created_at", since)
           .lte("created_at", until)
           .order("created_at", { ascending: false })
-          .range(from, to)
+          .range(from, to),
       );
 
-      const itemIds = Array.from(new Set(checklistComments.map((c: any) => c.checklist_item_id))).filter(Boolean);
+      const itemIds = Array.from(
+        new Set(checklistComments.map((c: any) => c.checklist_item_id)),
+      ).filter(Boolean);
       let itemMap: Record<string, { project_id: string; title: string }> = {};
       if (itemIds.length > 0) {
         const items = await fetchAll<any>((from, to) =>
@@ -103,9 +106,11 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
             .from("checklist_items")
             .select("id, project_id, title")
             .in("id", itemIds as string[])
-            .range(from, to)
+            .range(from, to),
         );
-        itemMap = Object.fromEntries(items.map((i: any) => [i.id, { project_id: i.project_id, title: i.title }]));
+        itemMap = Object.fromEntries(
+          items.map((i: any) => [i.id, { project_id: i.project_id, title: i.title }]),
+        );
       }
 
       const grouped: Record<string, MovementEntry[]> = {};
@@ -118,7 +123,9 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
       for (const log of activityLogs) {
         if (log.entity_type && log.entity_type !== "project") continue;
         const md = log.metadata || {};
-        const changes: MovementChange[] | undefined = Array.isArray(md.changes) ? md.changes : undefined;
+        const changes: MovementChange[] | undefined = Array.isArray(md.changes)
+          ? md.changes
+          : undefined;
         push(log.entity_id, {
           id: log.id,
           category: log.category || "project",
@@ -160,7 +167,9 @@ export const useMovementReport = (timeframe: "daily" | "weekly") => {
 
       // Sort each project's entries newest first
       for (const k of Object.keys(grouped)) {
-        grouped[k].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        grouped[k].sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        );
       }
 
       return grouped;

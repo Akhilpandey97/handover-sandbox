@@ -33,13 +33,34 @@ interface GlobalSearchProps {
 }
 
 const PAGES = [
-  { label: "Dashboard", to: pathForTab("dashboard"), icon: LayoutDashboard, keywords: "home overview" },
-  { label: "Projects", to: pathForTab("projects"), icon: ListChecks, keywords: "kanban board list" },
+  {
+    label: "Dashboard",
+    to: pathForTab("dashboard"),
+    icon: LayoutDashboard,
+    keywords: "home overview",
+  },
+  {
+    label: "Projects",
+    to: pathForTab("projects"),
+    icon: ListChecks,
+    keywords: "kanban board list",
+  },
   { label: "Risks", to: pathForTab("risks"), icon: ShieldAlert, keywords: "attention blocked" },
-  { label: "Go-Live Tracker", to: pathForTab("golive"), icon: CalendarDays, keywords: "golive launch dates" },
+  {
+    label: "Go-Live Tracker",
+    to: pathForTab("golive"),
+    icon: CalendarDays,
+    keywords: "golive launch dates",
+  },
   { label: "Reports", to: pathForTab("reports"), icon: Sparkles, keywords: "tat movement export" },
   { label: "Archived", to: pathForTab("archived"), icon: Archive, keywords: "closed old" },
-  { label: "Settings", to: pathForTab("settings"), icon: Settings, keywords: "integrations users labels", adminOnly: true },
+  {
+    label: "Settings",
+    to: pathForTab("settings"),
+    icon: Settings,
+    keywords: "integrations users labels",
+    adminOnly: true,
+  },
 ];
 
 /**
@@ -98,10 +119,7 @@ export const GlobalSearch = ({ open, onOpenChange, projects, onFilterList }: Glo
         {query && onFilterList ? (
           <>
             <CommandGroup heading="Actions">
-              <CommandItem
-                value={`filter ${query}`}
-                onSelect={() => go(() => onFilterList(query))}
-              >
+              <CommandItem value={`filter ${query}`} onSelect={() => go(() => onFilterList(query))}>
                 <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
                 Filter the list for “{query}”
               </CommandItem>
@@ -116,7 +134,9 @@ export const GlobalSearch = ({ open, onOpenChange, projects, onFilterList }: Glo
               key={project.id}
               value={`${project.merchantName} ${project.mid} ${project.platform || ""}`}
               onSelect={() =>
-                go(() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } }))
+                go(() =>
+                  navigate({ to: "/projects/$projectId", params: { projectId: project.id } }),
+                )
               }
             >
               <Search className="mr-2 h-4 w-4 text-muted-foreground" />

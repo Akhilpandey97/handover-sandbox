@@ -108,7 +108,11 @@ export const PortalLinkButton = ({
           onClick={generate}
           disabled={isWorking}
         >
-          {isWorking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2 className="h-3.5 w-3.5" />}
+          {isWorking ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Link2 className="h-3.5 w-3.5" />
+          )}
           {label}
         </Button>
       )}
@@ -118,8 +122,8 @@ export const PortalLinkButton = ({
           <DialogHeader>
             <DialogTitle>Customer portal link</DialogTitle>
             <DialogDescription>
-              Share this read-only page with the merchant. It shows live phase, go-live readiness and
-              the checklist steps waiting on them — no login required.
+              Share this read-only page with the merchant. It shows live phase, go-live readiness
+              and the checklist steps waiting on them — no login required.
             </DialogDescription>
           </DialogHeader>
           <div className="flex gap-2">
@@ -129,7 +133,13 @@ export const PortalLinkButton = ({
             </Button>
           </div>
           <div className="flex justify-between">
-            <Button variant="ghost" size="sm" className="text-destructive" onClick={revoke} disabled={isWorking}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive"
+              onClick={revoke}
+              disabled={isWorking}
+            >
               Revoke link
             </Button>
             <Button size="sm" onClick={() => setOpen(false)}>

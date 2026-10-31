@@ -4,7 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { tenantScope } from "@/lib/tenant-scope";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTeams } from "@/hooks/useTeams";
 import { useLabels } from "@/contexts/LabelsContext";
 import { projectStateLabels } from "@/data/projectsData";
@@ -25,13 +31,22 @@ export type ConfigValue = Record<string, unknown>;
 const useProfiles = () => {
   const { currentUser } = useAuth();
   const tenantId = tenantScope(currentUser?.tenantId);
-  const [profiles, setProfiles] = useState<Array<{ id: string; name: string; team: string | null }>>([]);
+  const [profiles, setProfiles] = useState<
+    Array<{ id: string; name: string; team: string | null }>
+  >([]);
   useEffect(() => {
     let cancelled = false;
-    supabase.from("profiles").select("id, name, team").eq("tenant_id", tenantId).order("name").then(({ data }) => {
-      if (!cancelled) setProfiles((data || []) as typeof profiles);
-    });
-    return () => { cancelled = true; };
+    supabase
+      .from("profiles")
+      .select("id, name, team")
+      .eq("tenant_id", tenantId)
+      .order("name")
+      .then(({ data }) => {
+        if (!cancelled) setProfiles((data || []) as typeof profiles);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [tenantId]);
   return profiles;
 };
@@ -58,7 +73,9 @@ const useChecklistStepTitles = () => {
         }
         setTitles(Array.from(byTitle, ([title, teams]) => ({ title, teams })));
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [tenantId]);
   return titles;
 };
@@ -73,8 +90,14 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
 );
 
 export const TriggerConfigFields = ({
-  triggerType, value, onChange,
-}: { triggerType: string; value: ConfigValue; onChange: (v: ConfigValue) => void }) => {
+  triggerType,
+  value,
+  onChange,
+}: {
+  triggerType: string;
+  value: ConfigValue;
+  onChange: (v: ConfigValue) => void;
+}) => {
   const stepTitles = useChecklistStepTitles();
   const { teamLabelMap } = useTeams();
   const set = (k: string, v: unknown) => onChange({ ...value, [k]: v });
@@ -85,9 +108,15 @@ export const TriggerConfigFields = ({
       <div className="space-y-3">
         <Field label="When this happens">
           <Select value={str("event_name")} onValueChange={(v) => onChange({ event_name: v })}>
-            <SelectTrigger><SelectValue placeholder="Choose an event" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose an event" />
+            </SelectTrigger>
             <SelectContent>
-              {WORKFLOW_EVENTS.map((e) => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}
+              {WORKFLOW_EVENTS.map((e) => (
+                <SelectItem key={e.value} value={e.value}>
+                  {e.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>
@@ -97,27 +126,37 @@ export const TriggerConfigFields = ({
               value={str("checklist_title") || ANY_STEP}
               onValueChange={(v) => set("checklist_title", v === ANY_STEP ? undefined : v)}
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ANY_STEP}>Any step</SelectItem>
                 {stepTitles.map((step) => (
                   <SelectItem key={step.title} value={step.title}>
                     {step.title}
                     {step.teams.length === 1 && (
-                      <span className="ml-1 text-muted-foreground">· {teamLabelMap[step.teams[0]] || step.teams[0]}</span>
+                      <span className="ml-1 text-muted-foreground">
+                        · {teamLabelMap[step.teams[0]] || step.teams[0]}
+                      </span>
                     )}
                   </SelectItem>
                 ))}
                 {/* A rule set up before a step was renamed keeps working; show what it holds. */}
-                {str("checklist_title") && !stepTitles.some((s) => s.title === str("checklist_title")) && (
-                  <SelectItem value={str("checklist_title")}>{str("checklist_title")} (no longer a step)</SelectItem>
-                )}
+                {str("checklist_title") &&
+                  !stepTitles.some((s) => s.title === str("checklist_title")) && (
+                    <SelectItem value={str("checklist_title")}>
+                      {str("checklist_title")} (no longer a step)
+                    </SelectItem>
+                  )}
               </SelectContent>
             </Select>
           </Field>
         )}
         {str("event_name") === "go_live_date_passed" && (
-          <p className="text-xs text-muted-foreground">Checked every 10 minutes. Runs once per project for each expected go-live date that passes before the project is live.</p>
+          <p className="text-xs text-muted-foreground">
+            Checked every 10 minutes. Runs once per project for each expected go-live date that
+            passes before the project is live.
+          </p>
         )}
       </div>
     );
@@ -128,22 +167,38 @@ export const TriggerConfigFields = ({
       <div className="grid grid-cols-2 gap-3">
         <Field label="When this field changes">
           <Select value={str("field")} onValueChange={(v) => set("field", v)}>
-            <SelectTrigger><SelectValue placeholder="Choose a field" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a field" />
+            </SelectTrigger>
             <SelectContent>
-              {WORKFLOW_FIELDS.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+              {WORKFLOW_FIELDS.map((f) => (
+                <SelectItem key={f.value} value={f.value}>
+                  {f.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>
         <Field label="To this value (optional)">
           {str("field") === "project_state" ? (
             <Select value={str("to_value")} onValueChange={(v) => set("to_value", v)}>
-              <SelectTrigger><SelectValue placeholder="Any value" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Any value" />
+              </SelectTrigger>
               <SelectContent>
-                {Object.entries(projectStateLabels).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
+                {Object.entries(projectStateLabels).map(([k, l]) => (
+                  <SelectItem key={k} value={k}>
+                    {l}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           ) : (
-            <Input value={str("to_value")} onChange={(e) => set("to_value", e.target.value)} placeholder="Any value" />
+            <Input
+              value={str("to_value")}
+              onChange={(e) => set("to_value", e.target.value)}
+              placeholder="Any value"
+            />
           )}
         </Field>
       </div>
@@ -155,9 +210,15 @@ export const TriggerConfigFields = ({
       <div className="grid grid-cols-2 gap-3">
         <Field label="Check">
           <Select value={str("frequency") || "daily"} onValueChange={(v) => set("frequency", v)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              {WORKFLOW_FREQUENCIES.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+              {WORKFLOW_FREQUENCIES.map((f) => (
+                <SelectItem key={f.value} value={f.value}>
+                  {f.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>
@@ -166,21 +227,33 @@ export const TriggerConfigFields = ({
             type="number"
             min={0}
             value={typeof value.days_in_state === "number" ? String(value.days_in_state) : ""}
-            onChange={(e) => set("days_in_state", e.target.value === "" ? undefined : Number(e.target.value))}
+            onChange={(e) =>
+              set("days_in_state", e.target.value === "" ? undefined : Number(e.target.value))
+            }
             placeholder="e.g. 3"
           />
         </Field>
         <Field label="Only projects in state">
-          <Select value={str("project_state") || "any"} onValueChange={(v) => set("project_state", v === "any" ? undefined : v)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+          <Select
+            value={str("project_state") || "any"}
+            onValueChange={(v) => set("project_state", v === "any" ? undefined : v)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="any">Any state except live</SelectItem>
-              {Object.entries(projectStateLabels).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
+              {Object.entries(projectStateLabels).map(([k, l]) => (
+                <SelectItem key={k} value={k}>
+                  {l}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>
         <p className="col-span-2 text-xs text-muted-foreground">
-          Checked every 10 minutes. Runs when a project reaches this many days in its state, then again each check period while it stays there.
+          Checked every 10 minutes. Runs when a project reaches this many days in its state, then
+          again each check period while it stays there.
         </p>
       </div>
     );
@@ -188,14 +261,21 @@ export const TriggerConfigFields = ({
 
   return (
     <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
-      A manual workflow runs only when someone asks. Ask Buddy, for example “Run this workflow on BrewCraft and Planwise”.
+      A manual workflow runs only when someone asks. Ask Buddy, for example “Run this workflow on
+      BrewCraft and Planwise”.
     </p>
   );
 };
 
 export const ActionConfigFields = ({
-  actionType, value, onChange,
-}: { actionType: string; value: ConfigValue; onChange: (v: ConfigValue) => void }) => {
+  actionType,
+  value,
+  onChange,
+}: {
+  actionType: string;
+  value: ConfigValue;
+  onChange: (v: ConfigValue) => void;
+}) => {
   const profiles = useProfiles();
   const { allTeams } = useTeams();
   const { getLabel } = useLabels();
@@ -214,9 +294,15 @@ export const ActionConfigFields = ({
             set({ owner_id: v, owner_name: p?.name || "" });
           }}
         >
-          <SelectTrigger><SelectValue placeholder="Choose a person" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Choose a person" />
+          </SelectTrigger>
           <SelectContent>
-            {profiles.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+            {profiles.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </Field>
@@ -227,9 +313,15 @@ export const ActionConfigFields = ({
     return (
       <Field label="Transfer to team">
         <Select value={str("to_team")} onValueChange={(v) => set({ to_team: v })}>
-          <SelectTrigger><SelectValue placeholder="Choose a team" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Choose a team" />
+          </SelectTrigger>
           <SelectContent>
-            {allTeams.map((t) => <SelectItem key={t.slug} value={t.slug}>{t.name}</SelectItem>)}
+            {allTeams.map((t) => (
+              <SelectItem key={t.slug} value={t.slug}>
+                {t.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </Field>
@@ -241,36 +333,64 @@ export const ActionConfigFields = ({
       <div className="grid grid-cols-2 gap-3">
         <Field label="Set this field">
           <Select value={str("field")} onValueChange={(v) => set({ field: v, value: "" })}>
-            <SelectTrigger><SelectValue placeholder="Choose a field" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a field" />
+            </SelectTrigger>
             <SelectContent>
-              {WORKFLOW_FIELDS.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+              {WORKFLOW_FIELDS.map((f) => (
+                <SelectItem key={f.value} value={f.value}>
+                  {f.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>
         <Field label="To">
           {str("field") === "project_state" ? (
             <Select value={str("value")} onValueChange={(v) => set({ value: v })}>
-              <SelectTrigger><SelectValue placeholder="Choose a value" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a value" />
+              </SelectTrigger>
               <SelectContent>
-                {Object.entries(projectStateLabels).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
+                {Object.entries(projectStateLabels).map(([k, l]) => (
+                  <SelectItem key={k} value={k}>
+                    {l}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           ) : str("field") === "current_owner_team" ? (
             <Select value={str("value")} onValueChange={(v) => set({ value: v })}>
-              <SelectTrigger><SelectValue placeholder="Choose a team" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a team" />
+              </SelectTrigger>
               <SelectContent>
-                {allTeams.map((t) => <SelectItem key={t.slug} value={t.slug}>{t.name}</SelectItem>)}
+                {allTeams.map((t) => (
+                  <SelectItem key={t.slug} value={t.slug}>
+                    {t.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           ) : str("field") === "assigned_owner" ? (
             <Select value={str("value")} onValueChange={(v) => set({ value: v })}>
-              <SelectTrigger><SelectValue placeholder="Choose a person" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a person" />
+              </SelectTrigger>
               <SelectContent>
-                {profiles.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                {profiles.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           ) : (
-            <Input value={str("value")} onChange={(e) => set({ value: e.target.value })} placeholder="New value" />
+            <Input
+              value={str("value")}
+              onChange={(e) => set({ value: e.target.value })}
+              placeholder="New value"
+            />
           )}
         </Field>
       </div>
@@ -281,17 +401,30 @@ export const ActionConfigFields = ({
     return (
       <div className="space-y-3">
         <Field label="Notify">
-          <Select value={str("recipient") || "assigned_owner"} onValueChange={(v) => set({ recipient: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+          <Select
+            value={str("recipient") || "assigned_owner"}
+            onValueChange={(v) => set({ recipient: v })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="assigned_owner">The project's assigned owner</SelectItem>
               <SelectItem value="managers">All managers</SelectItem>
-              {profiles.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              {profiles.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>
         <Field label="Message">
-          <Input value={str("message")} onChange={(e) => set({ message: e.target.value })} placeholder="What should the notification say?" />
+          <Input
+            value={str("message")}
+            onChange={(e) => set({ message: e.target.value })}
+            placeholder="What should the notification say?"
+          />
         </Field>
       </div>
     );

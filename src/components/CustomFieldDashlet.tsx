@@ -1,5 +1,10 @@
 import { LayoutGrid } from "lucide-react";
-import { Project, getProjectFunnelStage, funnelStageLabels, projectStateLabels } from "@/data/projectsData";
+import {
+  Project,
+  getProjectFunnelStage,
+  funnelStageLabels,
+  projectStateLabels,
+} from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 
 import { arrToCrore } from "@/lib/arr";
@@ -19,7 +24,11 @@ export const DASHLET_FIELDS: Array<{ value: string; labelKey?: string; fallback:
   { value: "salesSpoc", labelKey: "field_sales_spoc", fallback: "Sales SPOC" },
   { value: "assignedOwnerName", labelKey: "field_assigned_owner", fallback: "Assigned Owner" },
   { value: "currentResponsibility", fallback: "Responsibility" },
-  { value: "goLiveMonth", labelKey: "field_expected_go_live_date", fallback: "Expected Go-Live month" },
+  {
+    value: "goLiveMonth",
+    labelKey: "field_expected_go_live_date",
+    fallback: "Expected Go-Live month",
+  },
 ];
 
 const valueFor = (project: Project, field: string): string => {
@@ -32,7 +41,9 @@ const valueFor = (project: Project, field: string): string => {
       const date = project.dates?.expectedGoLiveDate || project.dates?.goLiveDate;
       if (!date) return "No date";
       const parsed = new Date(date);
-      return isNaN(parsed.getTime()) ? "No date" : parsed.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+      return isNaN(parsed.getTime())
+        ? "No date"
+        : parsed.toLocaleDateString(undefined, { month: "short", year: "numeric" });
     }
     default: {
       const raw = (project as unknown as Record<string, unknown>)[field];
@@ -83,11 +94,21 @@ export const CustomFieldDashlet = ({ title, field, projects, onDrillDown }: Prop
                   onClick={() => onDrillDown?.(`${title} · ${label}`, list)}
                   className="flex flex-1 min-w-0 flex-col items-center gap-1.5 rounded-md p-1 hover:bg-muted/50"
                 >
-                  <span className="text-2xs font-semibold tabular-nums text-foreground">{list.length}</span>
+                  <span className="text-2xs font-semibold tabular-nums text-foreground">
+                    {list.length}
+                  </span>
                   <div className="w-full flex justify-center" style={{ height: "120px" }}>
-                    <div className="w-full max-w-10 rounded-t-sm bg-primary self-end transition-all" style={{ height: `${barHeight}%` }} />
+                    <div
+                      className="w-full max-w-10 rounded-t-sm bg-primary self-end transition-all"
+                      style={{ height: `${barHeight}%` }}
+                    />
                   </div>
-                  <span className="text-2xs font-medium text-muted-foreground text-center truncate w-full" title={label}>{label}</span>
+                  <span
+                    className="text-2xs font-medium text-muted-foreground text-center truncate w-full"
+                    title={label}
+                  >
+                    {label}
+                  </span>
                   <span className="text-2xs text-muted-foreground tabular-nums">{pct}%</span>
                 </button>
               );

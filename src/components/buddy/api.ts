@@ -65,7 +65,8 @@ async function postAction<T>(body: Record<string, unknown>): Promise<T> {
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as { error?: string }).error || "Buddy couldn't do that. Try again.");
+  if (!res.ok)
+    throw new Error((data as { error?: string }).error || "Buddy couldn't do that. Try again.");
   return data as T;
 }
 
@@ -84,4 +85,5 @@ export const executeAction = (action: string, params: Record<string, any>) =>
     redact?: string[];
   }>({ mode: "execute", action, params });
 
-export const undoBuddyAction = (logId: string) => postAction<{ message: string }>({ mode: "undo", log_id: logId });
+export const undoBuddyAction = (logId: string) =>
+  postAction<{ message: string }>({ mode: "undo", log_id: logId });

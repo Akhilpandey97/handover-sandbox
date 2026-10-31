@@ -101,7 +101,9 @@ export const LoginScreen = () => {
         <ThemeToggle />
       </div>
 
-      <div className={showSignup ? "w-full max-w-[560px] space-y-8" : "w-full max-w-[420px] space-y-8"}>
+      <div
+        className={showSignup ? "w-full max-w-[560px] space-y-8" : "w-full max-w-[420px] space-y-8"}
+      >
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
             <Shield className="h-6 w-6 text-primary-foreground" />
@@ -122,95 +124,105 @@ export const LoginScreen = () => {
               <SignupLeadForm onBack={() => setShowSignup(false)} />
             ) : (
               <>
-            {accessError && (
-              <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                {accessError}
-              </div>
-            )}
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogleLogin}
-              disabled={busy}
-              className="h-10 w-full gap-2 font-medium"
-            >
-              {isGoogleLoading ? (
-                "Redirecting to Google..."
-              ) : (
-                <>
-                  <GoogleIcon />
-                  Continue with Google
-                </>
-              )}
-            </Button>
-
-            <div className="my-4 flex items-center gap-3">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-2xs uppercase tracking-wide text-muted-foreground">or</span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
-
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-medium tracking-normal text-muted-foreground">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="h-10"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-xs font-medium tracking-normal text-muted-foreground">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="h-10"
-                />
-              </div>
-
-              <Button type="submit" className="w-full h-10 font-semibold" disabled={busy}>
-                {isLoading ? (
-                  "Please wait..."
-                ) : (
-                  <>
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Sign In
-                  </>
+                {accessError && (
+                  <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                    {accessError}
+                  </div>
                 )}
-              </Button>
-            </form>
 
-            <div className="mt-3 text-center">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={handleForgotPassword}
-                className="text-xs text-muted-foreground transition-colors hover:text-primary"
-              >
-                Forgot password?
-              </button>
-            </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoogleLogin}
+                  disabled={busy}
+                  className="h-10 w-full gap-2 font-medium"
+                >
+                  {isGoogleLoading ? (
+                    "Redirecting to Google..."
+                  ) : (
+                    <>
+                      <GoogleIcon />
+                      Continue with Google
+                    </>
+                  )}
+                </Button>
 
-            <div className="mt-6 border-t pt-4 text-center">
-              <button
-                type="button"
-                onClick={() => setShowSignup(true)}
-                className="text-sm text-muted-foreground transition-colors hover:text-primary"
-              >
-                Don't have access? Sign up
-              </button>
-            </div>
+                <div className="my-4 flex items-center gap-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-2xs uppercase tracking-wide text-muted-foreground">or</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="email"
+                      className="text-xs font-medium tracking-normal text-muted-foreground"
+                    >
+                      Email Address
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@company.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="password"
+                      className="text-xs font-medium tracking-normal text-muted-foreground"
+                    >
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="h-10"
+                    />
+                  </div>
+
+                  <Button type="submit" className="w-full h-10 font-semibold" disabled={busy}>
+                    {isLoading ? (
+                      "Please wait..."
+                    ) : (
+                      <>
+                        <LogIn className="h-4 w-4 mr-2" />
+                        Sign In
+                      </>
+                    )}
+                  </Button>
+                </form>
+
+                <div className="mt-3 text-center">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={handleForgotPassword}
+                    className="text-xs text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                <div className="mt-6 border-t pt-4 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowSignup(true)}
+                    className="text-sm text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    Don't have access? Sign up
+                  </button>
+                </div>
               </>
             )}
           </CardContent>

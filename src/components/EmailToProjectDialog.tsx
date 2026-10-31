@@ -1,9 +1,21 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Mail, Sparkles, Loader2 } from "lucide-react";
@@ -56,7 +68,7 @@ const PROJECT_FIELDS = [
 
 function getAllEmailFields(email: ParsedEmail): { key: string; label: string; value: string }[] {
   const fields: { key: string; label: string; value: string }[] = [];
-  
+
   // Standard fields
   const standardFields: { key: keyof ParsedEmail; label: string }[] = [
     { key: "brand_name", label: "Brand Name" },
@@ -72,7 +84,7 @@ function getAllEmailFields(email: ParsedEmail): { key: string; label: string; va
     { key: "sales_notes", label: "Sales Notes" },
   ];
 
-  standardFields.forEach(f => {
+  standardFields.forEach((f) => {
     const val = email[f.key];
     if (val !== null && val !== undefined && String(val).trim() !== "") {
       let displayValue = String(val);
@@ -87,7 +99,7 @@ function getAllEmailFields(email: ParsedEmail): { key: string; label: string; va
   // Dynamic parsed_fields
   if (email.parsed_fields) {
     Object.entries(email.parsed_fields).forEach(([key, value]) => {
-      if (value && !standardFields.some(sf => sf.key === key)) {
+      if (value && !standardFields.some((sf) => sf.key === key)) {
         fields.push({ key: `parsed_${key}`, label: key, value: String(value) });
       }
     });
@@ -103,7 +115,12 @@ interface EmailToProjectDialogProps {
   onProjectCreated: () => void;
 }
 
-export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreated }: EmailToProjectDialogProps) => {
+export const EmailToProjectDialog = ({
+  email,
+  open,
+  onOpenChange,
+  onProjectCreated,
+}: EmailToProjectDialogProps) => {
   const { addProject } = useProjects();
   const { currentUser } = useAuth();
   const { getLabel } = useLabels();
@@ -117,7 +134,7 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
   const [aiMapped, setAiMapped] = useState(false);
 
   const updateMapping = (emailKey: string, projectKey: string) => {
-    setMapping(prev => ({ ...prev, [emailKey]: projectKey }));
+    setMapping((prev) => ({ ...prev, [emailKey]: projectKey }));
   };
 
   // AI auto-mapping
@@ -134,11 +151,9 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
 
       // Build simple, clear prompt lines
       const emailFieldsText = emailFieldEntries
-        .map(e => `${e.id}: "${e.label}" = "${e.value}"`)
+        .map((e) => `${e.id}: "${e.label}" = "${e.value}"`)
         .join("\n");
-      const projectFieldsText = PROJECT_FIELDS
-        .map(f => `${f.key}: "${f.label}"`)
-        .join("\n");
+      const projectFieldsText = PROJECT_FIELDS.map((f) => `${f.key}: "${f.label}"`).join("\n");
 
       const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
       const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -165,21 +180,24 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
       const result = data?.result;
       if (result && typeof result === "object") {
         const newMapping: Record<string, string> = {};
-        
+
         // Build a lookup from field_N -> originalKey
-        const idToKey = new Map(emailFieldEntries.map(e => [e.id, e.originalKey]));
-        const labelToKey = new Map(emailFieldEntries.map(e => [e.label.toLowerCase(), e.originalKey]));
-        const origToKey = new Map(emailFieldEntries.map(e => [e.originalKey, e.originalKey]));
+        const idToKey = new Map(emailFieldEntries.map((e) => [e.id, e.originalKey]));
+        const labelToKey = new Map(
+          emailFieldEntries.map((e) => [e.label.toLowerCase(), e.originalKey]),
+        );
+        const origToKey = new Map(emailFieldEntries.map((e) => [e.originalKey, e.originalKey]));
 
         for (const [returnedKey, projectKey] of Object.entries(result)) {
-          if (typeof projectKey !== "string" || projectKey === "skip" || projectKey === "none") continue;
-          if (!PROJECT_FIELDS.some(pf => pf.key === projectKey)) continue;
+          if (typeof projectKey !== "string" || projectKey === "skip" || projectKey === "none")
+            continue;
+          if (!PROJECT_FIELDS.some((pf) => pf.key === projectKey)) continue;
 
           // Try multiple match strategies
-          const originalKey = 
-            idToKey.get(returnedKey) ||                           // field_0, field_1, etc
-            origToKey.get(returnedKey) ||                         // direct key match
-            labelToKey.get(returnedKey.toLowerCase()) ||          // label match
+          const originalKey =
+            idToKey.get(returnedKey) || // field_0, field_1, etc
+            origToKey.get(returnedKey) || // direct key match
+            labelToKey.get(returnedKey.toLowerCase()) || // label match
             idToKey.get(returnedKey.replace(/[^a-z0-9_]/gi, "")); // cleaned match
 
           if (originalKey) {
@@ -210,7 +228,7 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
     if (overrides[projectKey] !== undefined) return overrides[projectKey];
     for (const [eKey, pKey] of Object.entries(mapping)) {
       if (pKey === projectKey) {
-        const field = emailFields.find(f => f.key === eKey);
+        const field = emailFields.find((f) => f.key === eKey);
         return field?.value || "";
       }
     }
@@ -262,22 +280,21 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
       },
       checklist: createDefaultChecklist(),
       transferHistory: [],
-      responsibilityLog: [{
-        id: `r-${Date.now()}`,
-        party: "gokwik" as const,
-        startedAt: new Date().toISOString(),
-        phase: "mint" as const,
-      }],
+      responsibilityLog: [
+        {
+          id: `r-${Date.now()}`,
+          party: "gokwik" as const,
+          startedAt: new Date().toISOString(),
+          phase: "mint" as const,
+        },
+      ],
       assignedOwner: undefined,
       assignedOwnerName: undefined,
     };
 
     addProject(newProject);
 
-    await supabase
-      .from("parsed_emails")
-      .update({ status: "project_created" })
-      .eq("id", email.id);
+    await supabase.from("parsed_emails").update({ status: "project_created" }).eq("id", email.id);
 
     toast.success(`Project "${merchantName}" created — assign an owner from Projects tab`);
     onOpenChange(false);
@@ -305,10 +322,18 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
                 onClick={handleAiMap}
                 disabled={aiLoading}
               >
-                {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {aiLoading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
                 {aiLoading ? "AI Mapping…" : "Auto-Map with AI"}
               </Button>
-              {aiMapped && <Badge variant="secondary" className="text-2xs">AI mapped</Badge>}
+              {aiMapped && (
+                <Badge variant="secondary" className="text-2xs">
+                  AI mapped
+                </Badge>
+              )}
             </div>
 
             {/* Field Mapping Section */}
@@ -321,27 +346,38 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
                   <span>Maps To</span>
                   <span>Value</span>
                 </div>
-                {emailFields.map(ef => {
+                {emailFields.map((ef) => {
                   const mappedTo = mapping[ef.key] || "";
                   return (
-                    <div key={ef.key} className="grid grid-cols-[1fr,auto,1fr,1fr] gap-2 items-center px-3 py-2 border-b last:border-b-0 hover:bg-muted/20">
+                    <div
+                      key={ef.key}
+                      className="grid grid-cols-[1fr,auto,1fr,1fr] gap-2 items-center px-3 py-2 border-b last:border-b-0 hover:bg-muted/20"
+                    >
                       <div className="text-sm">
                         <span className="font-medium">{ef.label}</span>
                         {ef.value && (
-                          <Badge variant="secondary" className="ml-2 text-2xs px-1.5 py-0 max-w-[120px] truncate">
+                          <Badge
+                            variant="secondary"
+                            className="ml-2 text-2xs px-1.5 py-0 max-w-[120px] truncate"
+                          >
                             {ef.value}
                           </Badge>
                         )}
                       </div>
                       <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-                      <Select value={mappedTo || "__skip__"} onValueChange={(v) => updateMapping(ef.key, v === "__skip__" ? "" : v)}>
+                      <Select
+                        value={mappedTo || "__skip__"}
+                        onValueChange={(v) => updateMapping(ef.key, v === "__skip__" ? "" : v)}
+                      >
                         <SelectTrigger className="h-8 text-xs">
                           <SelectValue placeholder="Skip" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__skip__">Skip</SelectItem>
-                          {PROJECT_FIELDS.map(pf => (
-                            <SelectItem key={pf.key} value={pf.key}>{pf.label}</SelectItem>
+                          {PROJECT_FIELDS.map((pf) => (
+                            <SelectItem key={pf.key} value={pf.key}>
+                              {pf.label}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -358,8 +394,9 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
             <div>
               <h4 className="text-sm font-semibold mb-3">Review & Override Project Fields</h4>
               <div className="grid grid-cols-2 gap-3">
-                {PROJECT_FIELDS.map(pf => {
-                  const val = overrides[pf.key] !== undefined ? overrides[pf.key] : getFinalValue(pf.key);
+                {PROJECT_FIELDS.map((pf) => {
+                  const val =
+                    overrides[pf.key] !== undefined ? overrides[pf.key] : getFinalValue(pf.key);
                   return (
                     <div key={pf.key}>
                       <Label className="text-xs text-muted-foreground">{pf.label}</Label>
@@ -367,7 +404,9 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
                         className="h-8 text-sm mt-0.5"
                         type={pf.type === "number" ? "number" : "text"}
                         value={val}
-                        onChange={e => setOverrides(prev => ({ ...prev, [pf.key]: e.target.value }))}
+                        onChange={(e) =>
+                          setOverrides((prev) => ({ ...prev, [pf.key]: e.target.value }))
+                        }
                         placeholder={pf.label}
                       />
                     </div>
@@ -379,7 +418,9 @@ export const EmailToProjectDialog = ({ email, open, onOpenChange, onProjectCreat
         </ScrollArea>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button onClick={handleCreate}>Create Project</Button>
         </DialogFooter>
       </DialogContent>

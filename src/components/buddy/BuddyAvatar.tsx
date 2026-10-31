@@ -11,13 +11,7 @@ import { cn } from "@/lib/utils";
  * The mark is a speech bubble with a check inside it: Buddy talks, and the work
  * gets done. A sparkle would have said "AI" and nothing about this product.
  */
-export const BuddyAvatar = ({
-  size = 24,
-  className,
-}: {
-  size?: number;
-  className?: string;
-}) => {
+export const BuddyAvatar = ({ size = 24, className }: { size?: number; className?: string }) => {
   // Hairlines disappear at nav size, so the small end carries a little more weight.
   const bubble = size <= 18 ? 2 : 1.7;
   const check = size <= 18 ? 2.3 : 2;

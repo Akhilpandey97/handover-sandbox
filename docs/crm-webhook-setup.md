@@ -8,14 +8,14 @@ a deal is marked Won, in the five systems customers ask for most.
 
 What every setup needs, whatever the CRM:
 
-| | |
-|---|---|
-| Method | `POST` |
-| URL | `https://handover-sandbox-production.up.railway.app/api/public/v1/projects` |
-| Header | `Authorization: Bearer hk_live_…` (your workspace key) |
-| Header | `Content-Type: application/json` |
-| Trigger | Deal / opportunity stage becomes Won |
-| Body | JSON, `merchant_name` required, `external_id` strongly recommended |
+|         |                                                                             |
+| ------- | --------------------------------------------------------------------------- |
+| Method  | `POST`                                                                      |
+| URL     | `https://handover-sandbox-production.up.railway.app/api/public/v1/projects` |
+| Header  | `Authorization: Bearer hk_live_…` (your workspace key)                      |
+| Header  | `Content-Type: application/json`                                            |
+| Trigger | Deal / opportunity stage becomes Won                                        |
+| Body    | JSON, `merchant_name` required, `external_id` strongly recommended          |
 
 If your CRM cannot send a custom header, skip to [Zapier or Make](#zapier-or-make).
 
@@ -26,22 +26,22 @@ If your CRM cannot send a custom header, skip to [Zapier or Make](#zapier-or-mak
 Map your CRM's fields onto these. Only the first is required, and sending the deal ID is
 what makes retries safe.
 
-| Handover field | Typical CRM field |
-|---|---|
-| `merchant_name` | Account / Company / Organisation name |
-| `external_id` | Opportunity or Deal ID |
-| `contact_email` | Primary contact email |
-| `brand_url` | Website |
-| `platform` | Platform (custom field) |
-| `category` | Industry / Category |
-| `arr` | Amount / Annual contract value |
-| `aov` | Average order value (custom field) |
-| `txns_per_day` | Transactions per day (custom field) |
-| `kick_off_date` | Close date, or the agreed start date |
+| Handover field          | Typical CRM field                                    |
+| ----------------------- | ---------------------------------------------------- |
+| `merchant_name`         | Account / Company / Organisation name                |
+| `external_id`           | Opportunity or Deal ID                               |
+| `contact_email`         | Primary contact email                                |
+| `brand_url`             | Website                                              |
+| `platform`              | Platform (custom field)                              |
+| `category`              | Industry / Category                                  |
+| `arr`                   | Amount / Annual contract value                       |
+| `aov`                   | Average order value (custom field)                   |
+| `txns_per_day`          | Transactions per day (custom field)                  |
+| `kick_off_date`         | Close date, or the agreed start date                 |
 | `expected_go_live_date` | Target go-live (leave out to let Handover derive it) |
-| `sales_spoc` | Opportunity owner's email |
-| `integration_type` | Integration type (custom field) |
-| `project_notes` | Deal description / notes |
+| `sales_spoc`            | Opportunity owner's email                            |
+| `integration_type`      | Integration type (custom field)                      |
+| `project_notes`         | Deal description / notes                             |
 
 Numbers must be sent as numbers, not strings: `"arr": 4700000`, never `"arr": "4700000"`.
 Dates are `YYYY-MM-DD`. Fields Handover doesn't recognise are ignored silently, so check
@@ -60,7 +60,7 @@ Flow with an HTTP Callout. The key lives in a Named Credential, never in the flo
    Credential. Give your integration user's permission set access to the principal.
 3. **Flow** (Record-Triggered, Opportunity, "A record is updated"):
    - Entry condition: `StageName` equals `Closed Won`, and set the flow to run only when
-     the record *starts* meeting the condition, so an edit to a won deal doesn't re-fire.
+     the record _starts_ meeting the condition, so an edit to a won deal doesn't re-fire.
    - Action → **HTTP Callout** → the Named Credential, `POST`, path
      `/api/public/v1/projects`.
    - Provide the sample response below so Flow can build the data types.
@@ -99,20 +99,23 @@ action (Node.js), with the key stored as a secret named `HANDOVER_API_KEY`:
 exports.main = async (event, callback) => {
   const props = event.inputFields;
 
-  const res = await fetch("https://handover-sandbox-production.up.railway.app/api/public/v1/projects", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.HANDOVER_API_KEY}`,
-      "Content-Type": "application/json",
+  const res = await fetch(
+    "https://handover-sandbox-production.up.railway.app/api/public/v1/projects",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.HANDOVER_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        merchant_name: props.dealname,
+        external_id: String(event.object.objectId),
+        arr: props.amount ? Number(props.amount) : undefined,
+        kick_off_date: props.closedate ? props.closedate.slice(0, 10) : undefined,
+        project_notes: props.description || undefined,
+      }),
     },
-    body: JSON.stringify({
-      merchant_name: props.dealname,
-      external_id: String(event.object.objectId),
-      arr: props.amount ? Number(props.amount) : undefined,
-      kick_off_date: props.closedate ? props.closedate.slice(0, 10) : undefined,
-      project_notes: props.description || undefined,
-    }),
-  });
+  );
 
   const body = await res.json();
   if (!res.ok) throw new Error(`Handover ${res.status}: ${JSON.stringify(body)}`);
@@ -221,13 +224,13 @@ Switching to production is a change of host and key; the request body is identic
 
 ## When something goes wrong
 
-| Status | Meaning | What to do |
-|---|---|---|
-| `401` | Key missing, wrong or revoked | Check the header reads `Bearer hk_live_…`; some tools add their own `Authorization` and drop yours |
-| `400` | Validation failed | The `fields` array names each bad field. Usually a number sent as a string, or a date not in `YYYY-MM-DD` |
-| `409` | A project already exists with that merchant name, under a different deal | Send `"allow_duplicate": true` for a genuine second project, or reconcile in the CRM |
-| `500` | Handover could not complete it | Retry. With an `external_id` a retry cannot duplicate anything |
-| No response | Usually a timeout in the CRM | Retry the same payload; the `external_id` makes it safe |
+| Status      | Meaning                                                                  | What to do                                                                                                |
+| ----------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `401`       | Key missing, wrong or revoked                                            | Check the header reads `Bearer hk_live_…`; some tools add their own `Authorization` and drop yours        |
+| `400`       | Validation failed                                                        | The `fields` array names each bad field. Usually a number sent as a string, or a date not in `YYYY-MM-DD` |
+| `409`       | A project already exists with that merchant name, under a different deal | Send `"allow_duplicate": true` for a genuine second project, or reconcile in the CRM                      |
+| `500`       | Handover could not complete it                                           | Retry. With an `external_id` a retry cannot duplicate anything                                            |
+| No response | Usually a timeout in the CRM                                             | Retry the same payload; the `external_id` makes it safe                                                   |
 
 **Duplicate projects appearing** means `external_id` is missing or not stable — check it's
 the deal's own ID and not a formula that changes.

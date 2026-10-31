@@ -58,5 +58,10 @@ export const useAttentionReason = (
     queryClient.setQueryData(key, fresh);
   };
 
-  return { reason: query.data, isLoading: query.isLoading || query.isFetching, error: query.error, regenerate };
+  return {
+    reason: query.data,
+    isLoading: query.isLoading || query.isFetching,
+    error: query.error,
+    regenerate,
+  };
 };

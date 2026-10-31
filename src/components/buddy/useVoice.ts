@@ -19,7 +19,8 @@ export function useVoice(onFinal: (text: string) => void) {
   onFinalRef.current = onFinal;
 
   const supported =
-    typeof window !== "undefined" && !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+    typeof window !== "undefined" &&
+    !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
   const start = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -68,7 +69,8 @@ export function useVoice(onFinal: (text: string) => void) {
     recognition.onerror = (e: any) => {
       setListening(false);
       setTranscript("");
-      if (e.error !== "no-speech" && e.error !== "aborted") toast.error(`Microphone error: ${e.error}`);
+      if (e.error !== "no-speech" && e.error !== "aborted")
+        toast.error(`Microphone error: ${e.error}`);
     };
     recognition.start();
   }, []);
@@ -84,12 +86,17 @@ export function useVoice(onFinal: (text: string) => void) {
         if (!v.lang.toLowerCase().startsWith("en")) return -1;
         let s = 0;
         if (/google|natural|neural|premium|enhanced/.test(n)) s += 6;
-        if (/female|samantha|zira|aria|jenny|sonia|libby|serena|karen|moira|tessa|fiona/.test(n)) s += 4;
+        if (/female|samantha|zira|aria|jenny|sonia|libby|serena|karen|moira|tessa|fiona/.test(n))
+          s += 4;
         if (!v.localService) s += 2;
         if (/en-gb|en-in/.test(v.lang.toLowerCase())) s += 1;
         return s;
       };
-      voiceRef.current = voices.map((v) => ({ v, s: score(v) })).filter((x) => x.s >= 0).sort((a, b) => b.s - a.s)[0]?.v ?? null;
+      voiceRef.current =
+        voices
+          .map((v) => ({ v, s: score(v) }))
+          .filter((x) => x.s >= 0)
+          .sort((a, b) => b.s - a.s)[0]?.v ?? null;
     };
     pick();
     window.speechSynthesis.addEventListener("voiceschanged", pick);

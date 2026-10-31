@@ -49,7 +49,9 @@ export const useFormTemplates = () => {
     setIsLoading(false);
   }, [tenantId]);
 
-  useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
 
   return { templates, isLoading, refetch: fetchTemplates };
 };
@@ -59,7 +61,11 @@ export const useFormFields = (templateId: string | null) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchFields = useCallback(async () => {
-    if (!templateId) { setFields([]); setIsLoading(false); return; }
+    if (!templateId) {
+      setFields([]);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     const { data, error } = await supabase
       .from("checklist_form_fields")
@@ -67,15 +73,19 @@ export const useFormFields = (templateId: string | null) => {
       .eq("template_id", templateId)
       .order("sort_order", { ascending: true });
     if (!error && data) {
-      setFields(data.map((f: any) => ({
-        ...f,
-        options: Array.isArray(f.options) ? f.options : [],
-      })));
+      setFields(
+        data.map((f: any) => ({
+          ...f,
+          options: Array.isArray(f.options) ? f.options : [],
+        })),
+      );
     }
     setIsLoading(false);
   }, [templateId]);
 
-  useEffect(() => { fetchFields(); }, [fetchFields]);
+  useEffect(() => {
+    fetchFields();
+  }, [fetchFields]);
 
   return { fields, isLoading, refetch: fetchFields };
 };
@@ -96,18 +106,27 @@ export const useFormAssignments = () => {
     setIsLoading(false);
   }, [tenantId]);
 
-  useEffect(() => { fetchAssignments(); }, [fetchAssignments]);
+  useEffect(() => {
+    fetchAssignments();
+  }, [fetchAssignments]);
 
   return { assignments, isLoading, refetch: fetchAssignments };
 };
 
-export const useFormResponses = (projectId: string | undefined, checklistItemId: string | undefined, formTemplateId: string | undefined) => {
+export const useFormResponses = (
+  projectId: string | undefined,
+  checklistItemId: string | undefined,
+  formTemplateId: string | undefined,
+) => {
   const { currentUser } = useAuth();
   const [responses, setResponses] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!projectId || !checklistItemId || !formTemplateId) { setIsLoading(false); return; }
+    if (!projectId || !checklistItemId || !formTemplateId) {
+      setIsLoading(false);
+      return;
+    }
     const fetch = async () => {
       setIsLoading(true);
       const { data, error } = await supabase
@@ -118,7 +137,9 @@ export const useFormResponses = (projectId: string | undefined, checklistItemId:
         .eq("form_template_id", formTemplateId);
       if (!error && data) {
         const map: Record<string, string> = {};
-        data.forEach((r: any) => { if (r.value) map[r.field_id] = r.value; });
+        data.forEach((r: any) => {
+          if (r.value) map[r.field_id] = r.value;
+        });
         setResponses(map);
       }
       setIsLoading(false);
@@ -126,40 +147,41 @@ export const useFormResponses = (projectId: string | undefined, checklistItemId:
     fetch();
   }, [projectId, checklistItemId, formTemplateId]);
 
-  const saveResponses = useCallback(async (
-    projectId: string,
-    checklistItemId: string,
-    formTemplateId: string,
-    fieldValues: Record<string, string>
-  ) => {
-    const tenantId = currentUser?.tenantId || null;
-    const entries = Object.entries(fieldValues).filter(([, v]) => v !== undefined);
+  const saveResponses = useCallback(
+    async (
+      projectId: string,
+      checklistItemId: string,
+      formTemplateId: string,
+      fieldValues: Record<string, string>,
+    ) => {
+      const tenantId = currentUser?.tenantId || null;
+      const entries = Object.entries(fieldValues).filter(([, v]) => v !== undefined);
 
-    for (const [field_id, value] of entries) {
-      const { data: existing } = await supabase
-        .from("checklist_form_responses")
-        .select("id")
-        .eq("project_id", projectId)
-        .eq("checklist_item_id", checklistItemId)
-        .eq("field_id", field_id)
-        .maybeSingle();
+      for (const [field_id, value] of entries) {
+        const { data: existing } = await supabase
+          .from("checklist_form_responses")
+          .select("id")
+          .eq("project_id", projectId)
+          .eq("checklist_item_id", checklistItemId)
+          .eq("field_id", field_id)
+          .maybeSingle();
 
-      if (existing) {
-        await supabase.from("checklist_form_responses")
-          .update({ value })
-          .eq("id", existing.id);
-      } else {
-        await supabase.from("checklist_form_responses").insert({
-          project_id: projectId,
-          checklist_item_id: checklistItemId,
-          form_template_id: formTemplateId,
-          field_id,
-          value,
-          tenant_id: tenantId,
-        });
+        if (existing) {
+          await supabase.from("checklist_form_responses").update({ value }).eq("id", existing.id);
+        } else {
+          await supabase.from("checklist_form_responses").insert({
+            project_id: projectId,
+            checklist_item_id: checklistItemId,
+            form_template_id: formTemplateId,
+            field_id,
+            value,
+            tenant_id: tenantId,
+          });
+        }
       }
-    }
-  }, [currentUser?.tenantId]);
+    },
+    [currentUser?.tenantId],
+  );
 
   return { responses, setResponses, isLoading, saveResponses };
 };

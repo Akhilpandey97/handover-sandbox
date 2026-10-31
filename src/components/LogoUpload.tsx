@@ -41,9 +41,7 @@ export const LogoUpload = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from("org-logos")
-        .getPublicUrl(path);
+      const { data: urlData } = supabase.storage.from("org-logos").getPublicUrl(path);
 
       const publicUrl = urlData.publicUrl + "?t=" + Date.now();
 
@@ -109,7 +107,12 @@ export const LogoUpload = () => {
                 {uploading ? "Uploading..." : logoUrl ? "Replace Logo" : "Upload Logo"}
               </Button>
               {logoUrl && (
-                <Button variant="ghost" size="sm" onClick={handleRemove} className="gap-1.5 text-destructive">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemove}
+                  className="gap-1.5 text-destructive"
+                >
                   <Trash2 className="h-4 w-4" />
                   Remove
                 </Button>

@@ -11,16 +11,32 @@ import { ChevronDown } from "lucide-react";
 import { SortableHeader } from "@/components/filters/SortableHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import {
-  ShieldAlert, Plus,
-  Zap, Trash2, Pencil, X
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { ShieldAlert, Plus, Zap, Trash2, Pencil, X } from "lucide-react";
 import { Project, projectStateLabels } from "@/data/projectsData";
 import { ProjectActivityHistory } from "./ProjectActivityHistory";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
@@ -62,8 +78,8 @@ const STATUSES = [
   { value: "accepted", label: "Accepted" },
 ];
 
-const severityColor = (s: string) => SEVERITIES.find(x => x.value === s)?.color ?? "";
-const categoryLabel = (c: string) => CATEGORIES.find(x => x.value === c)?.label ?? c;
+const severityColor = (s: string) => SEVERITIES.find((x) => x.value === s)?.color ?? "";
+const categoryLabel = (c: string) => CATEGORIES.find((x) => x.value === c)?.label ?? c;
 
 export const RiskDashboard = () => {
   const { risks, isLoading, createRisk, updateRisk, deleteRisk } = useProjectRisks();
@@ -77,7 +93,13 @@ export const RiskDashboard = () => {
   const [editingRisk, setEditingRisk] = useState<ProjectRisk | null>(null);
   const [activityProject, setActivityProject] = useState<{ id: string; name: string } | null>(null);
   // Filters and sort live in the URL: they survive a reload and the view is a link.
-  const { values: f, setValue, toggleValue, clear, activeCount } = useUrlFilters("risk", RISK_FILTER_DEFAULTS);
+  const {
+    values: f,
+    setValue,
+    toggleValue,
+    clear,
+    activeCount,
+  } = useUrlFilters("risk", RISK_FILTER_DEFAULTS);
   const categories = f.category as string[];
   const severities = f.severity as string[];
   const statuses = f.status as string[];
@@ -93,10 +115,10 @@ export const RiskDashboard = () => {
   const [formMitigation, setFormMitigation] = useState("");
   const [formAssignedTo, setFormAssignedTo] = useState("");
 
-  const activeProjects = useMemo(() => projects.filter(p => !p.archived), [projects]);
+  const activeProjects = useMemo(() => projects.filter((p) => !p.archived), [projects]);
   const projectMap = useMemo(() => {
     const m = new Map<string, Project>();
-    projects.forEach(p => m.set(p.id, p));
+    projects.forEach((p) => m.set(p.id, p));
     return m;
   }, [projects]);
 
@@ -106,27 +128,28 @@ export const RiskDashboard = () => {
   // AI prose is fetched per row, only once shown — the page can list many
   // projects and explaining them all on load would be a request each.
   const [explainAll, setExplainAll] = useState(false);
-  
 
   const atRiskProjects = useMemo(
-    () => activeProjects
-      .filter((p) => verdicts[p.id]?.level === "high")
-      .sort((a, b) => (verdicts[b.id]?.score ?? 0) - (verdicts[a.id]?.score ?? 0)),
+    () =>
+      activeProjects
+        .filter((p) => verdicts[p.id]?.level === "high")
+        .sort((a, b) => (verdicts[b.id]?.score ?? 0) - (verdicts[a.id]?.score ?? 0)),
     [activeProjects, verdicts],
   );
 
   // Filtered & sorted risks
   const filteredRisks = useMemo(() => {
     let list = [...risks];
-    if (categories.length) list = list.filter(r => categories.includes(r.category));
-    if (severities.length) list = list.filter(r => severities.includes(r.severity));
-    if (statuses.length) list = list.filter(r => statuses.includes(r.status));
+    if (categories.length) list = list.filter((r) => categories.includes(r.category));
+    if (severities.length) list = list.filter((r) => severities.includes(r.severity));
+    if (statuses.length) list = list.filter((r) => statuses.includes(r.status));
 
     const sevOrder: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
     list.sort((a, b) => {
       let cmp = 0;
       if (sortField === "severity") cmp = (sevOrder[a.severity] || 0) - (sevOrder[b.severity] || 0);
-      else if (sortField === "created_at") cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      else if (sortField === "created_at")
+        cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
       else if (sortField === "mitigation_due_at") {
         const aT = a.mitigation_due_at ? new Date(a.mitigation_due_at).getTime() : Infinity;
         const bT = b.mitigation_due_at ? new Date(b.mitigation_due_at).getTime() : Infinity;
@@ -136,7 +159,6 @@ export const RiskDashboard = () => {
     });
     return list;
   }, [risks, categories, severities, statuses, sortField, sortDir]);
-
 
   const openDialog = (risk?: ProjectRisk) => {
     if (risk) {
@@ -212,7 +234,10 @@ export const RiskDashboard = () => {
 
   const toggleSort = (field: typeof sortField) => {
     if (sortField === field) setValue("dir", sortDir === "asc" ? "desc" : "asc");
-    else { setValue("sort", field); setValue("dir", "desc"); }
+    else {
+      setValue("sort", field);
+      setValue("dir", "desc");
+    }
   };
 
   return (
@@ -220,30 +245,65 @@ export const RiskDashboard = () => {
       {/* Filters + Add */}
       <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2.5 shadow-sm">
         {[
-          { label: "Category", values: categories, key: "category" as const, options: CATEGORIES.map(c => ({ value: c.value, label: c.label })) },
-          { label: "Severity", values: severities, key: "severity" as const, options: SEVERITIES.map(sv => ({ value: sv.value, label: sv.label })) },
-          { label: "Status", values: statuses, key: "status" as const, options: STATUSES.map(st => ({ value: st.value, label: st.label })) },
+          {
+            label: "Category",
+            values: categories,
+            key: "category" as const,
+            options: CATEGORIES.map((c) => ({ value: c.value, label: c.label })),
+          },
+          {
+            label: "Severity",
+            values: severities,
+            key: "severity" as const,
+            options: SEVERITIES.map((sv) => ({ value: sv.value, label: sv.label })),
+          },
+          {
+            label: "Status",
+            values: statuses,
+            key: "status" as const,
+            options: STATUSES.map((st) => ({ value: st.value, label: st.label })),
+          },
         ].map(({ label, values, key, options }) => (
           <Popover key={label}>
             <PopoverTrigger asChild>
-              <button type="button" className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
-                values.length > 0 ? "bg-primary/10 text-primary border-primary/30" : "bg-background text-muted-foreground border-border hover:bg-muted"
-              )}>
+              <button
+                type="button"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-medium transition-colors border",
+                  values.length > 0
+                    ? "bg-primary/10 text-primary border-primary/30"
+                    : "bg-background text-muted-foreground border-border hover:bg-muted",
+                )}
+              >
                 {values.length > 0 ? `${label}: ${values.length}` : label}
                 <ChevronDown className="h-2.5 w-2.5 opacity-50" />
               </button>
             </PopoverTrigger>
             <PopoverContent align="start" className="w-52 p-2">
               <div className="max-h-48 overflow-y-auto space-y-0.5">
-                {options.map(opt => (
-                  <label key={opt.value} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs">
-                    <Checkbox checked={values.includes(opt.value)} onCheckedChange={() => toggleValue(key, opt.value)} />
+                {options.map((opt) => (
+                  <label
+                    key={opt.value}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-xs"
+                  >
+                    <Checkbox
+                      checked={values.includes(opt.value)}
+                      onCheckedChange={() => toggleValue(key, opt.value)}
+                    />
                     <span className="truncate">{opt.label}</span>
                   </label>
                 ))}
               </div>
-              {values.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-1 h-7 text-xs" onClick={() => setValue(key, [])}>Clear</Button>}
+              {values.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-1 h-7 text-xs"
+                  onClick={() => setValue(key, [])}
+                >
+                  Clear
+                </Button>
+              )}
             </PopoverContent>
           </Popover>
         ))}
@@ -251,10 +311,22 @@ export const RiskDashboard = () => {
         {/* What is on, as removable chips, so a filtered table explains itself
             without opening the panel. */}
         {[
-          ...categories.map(v => ({ k: "category", v, label: CATEGORIES.find(c => c.value === v)?.label || v })),
-          ...severities.map(v => ({ k: "severity", v, label: SEVERITIES.find(c => c.value === v)?.label || v })),
-          ...statuses.map(v => ({ k: "status", v, label: STATUSES.find(c => c.value === v)?.label || v })),
-        ].map(chip => (
+          ...categories.map((v) => ({
+            k: "category",
+            v,
+            label: CATEGORIES.find((c) => c.value === v)?.label || v,
+          })),
+          ...severities.map((v) => ({
+            k: "severity",
+            v,
+            label: SEVERITIES.find((c) => c.value === v)?.label || v,
+          })),
+          ...statuses.map((v) => ({
+            k: "status",
+            v,
+            label: STATUSES.find((c) => c.value === v)?.label || v,
+          })),
+        ].map((chip) => (
           <button
             key={`${chip.k}-${chip.v}`}
             type="button"
@@ -268,7 +340,8 @@ export const RiskDashboard = () => {
         ))}
 
         <span className="text-xs text-muted-foreground">
-          {filteredRisks.length}{activeCount > 0 ? ` of ${risks.length}` : ""} risk{filteredRisks.length === 1 ? "" : "s"}
+          {filteredRisks.length}
+          {activeCount > 0 ? ` of ${risks.length}` : ""} risk{filteredRisks.length === 1 ? "" : "s"}
         </span>
 
         <div className="flex-1" />
@@ -288,10 +361,25 @@ export const RiskDashboard = () => {
                 <TableHead>Project</TableHead>
                 <TableHead>Risk</TableHead>
                 <TableHead>Category</TableHead>
-                <SortableHeader label="Severity" active={sortField === "severity"} dir={sortDir} onSort={() => toggleSort("severity")} />
+                <SortableHeader
+                  label="Severity"
+                  active={sortField === "severity"}
+                  dir={sortDir}
+                  onSort={() => toggleSort("severity")}
+                />
                 <TableHead>Status</TableHead>
-                <SortableHeader label="Age" active={sortField === "created_at"} dir={sortDir} onSort={() => toggleSort("created_at")} />
-                <SortableHeader label="SLA" active={sortField === "mitigation_due_at"} dir={sortDir} onSort={() => toggleSort("mitigation_due_at")} />
+                <SortableHeader
+                  label="Age"
+                  active={sortField === "created_at"}
+                  dir={sortDir}
+                  onSort={() => toggleSort("created_at")}
+                />
+                <SortableHeader
+                  label="SLA"
+                  active={sortField === "mitigation_due_at"}
+                  dir={sortDir}
+                  onSort={() => toggleSort("mitigation_due_at")}
+                />
                 <TableHead>Mitigation</TableHead>
                 {!isReadOnly && <TableHead className="w-28">Actions</TableHead>}
               </TableRow>
@@ -311,18 +399,20 @@ export const RiskDashboard = () => {
                   </TableCell>
                 </TableRow>
               )}
-              {filteredRisks.map(risk => {
+              {filteredRisks.map((risk) => {
                 const proj = projectMap.get(risk.project_id);
                 const sla = slaStatus(risk);
                 return (
-                  <TableRow
-                    key={risk.id}
-                    className={sla === "breached" ? "bg-destructive/50" : ""}
-                  >
+                  <TableRow key={risk.id} className={sla === "breached" ? "bg-destructive/50" : ""}>
                     <TableCell className="font-medium max-w-[140px] truncate">
                       <button
                         className="hover:text-primary hover:underline cursor-pointer transition-colors text-left truncate w-full"
-                        onClick={() => setActivityProject({ id: risk.project_id, name: proj?.merchantName ?? risk.project_id.slice(0, 8) })}
+                        onClick={() =>
+                          setActivityProject({
+                            id: risk.project_id,
+                            name: proj?.merchantName ?? risk.project_id.slice(0, 8),
+                          })
+                        }
                       >
                         {proj?.merchantName ?? risk.project_id.slice(0, 8)}
                       </button>
@@ -330,40 +420,64 @@ export const RiskDashboard = () => {
                     <TableCell className="max-w-[200px]">
                       <div className="truncate font-medium">{risk.title}</div>
                       {risk.trigger_type === "auto" && (
-                        <Badge variant="outline" className="text-2xs mt-0.5">Auto</Badge>
+                        <Badge variant="outline" className="text-2xs mt-0.5">
+                          Auto
+                        </Badge>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="text-xs">{categoryLabel(risk.category)}</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {categoryLabel(risk.category)}
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={`text-xs ${severityColor(risk.severity)}`}>{risk.severity}</Badge>
+                      <Badge className={`text-xs ${severityColor(risk.severity)}`}>
+                        {risk.severity}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {!isReadOnly ? (
                         <Select
                           value={risk.status}
-                          onValueChange={(v) => updateRisk.mutate({
-                            id: risk.id,
-                            status: v,
-                            ...(v === "resolved" ? { resolved_at: new Date().toISOString() } : {}),
-                          })}
+                          onValueChange={(v) =>
+                            updateRisk.mutate({
+                              id: risk.id,
+                              status: v,
+                              ...(v === "resolved"
+                                ? { resolved_at: new Date().toISOString() }
+                                : {}),
+                            })
+                          }
                         >
                           <SelectTrigger className="h-7 w-28 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {STATUSES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                            {STATUSES.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>
+                                {s.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
                         <Badge variant="outline">{risk.status}</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{ageStr(risk.created_at)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {ageStr(risk.created_at)}
+                    </TableCell>
                     <TableCell>
-                      {sla === "breached" && <Badge variant="destructive" className="text-2xs">Breached</Badge>}
-                      {sla === "warning" && <Badge className="bg-warning-soft text-warning-strong text-2xs">Due soon</Badge>}
+                      {sla === "breached" && (
+                        <Badge variant="destructive" className="text-2xs">
+                          Breached
+                        </Badge>
+                      )}
+                      {sla === "warning" && (
+                        <Badge className="bg-warning-soft text-warning-strong text-2xs">
+                          Due soon
+                        </Badge>
+                      )}
                       {sla === "ok" && risk.mitigation_due_at && (
                         <span className="text-xs text-muted-foreground">
                           {fmtDate(risk.mitigation_due_at)}
@@ -380,12 +494,19 @@ export const RiskDashboard = () => {
                     {!isReadOnly && (
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openDialog(risk)}>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={() => openDialog(risk)}
+                          >
                             <Pencil className="h-3 w-3" />
                           </Button>
                           {!risk.escalated && (
                             <Button
-                              size="icon" variant="ghost" className="h-7 w-7 text-warning-strong"
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-warning-strong"
                               onClick={() => updateRisk.mutate({ id: risk.id, escalated: true })}
                               title="Escalate"
                             >
@@ -393,7 +514,9 @@ export const RiskDashboard = () => {
                             </Button>
                           )}
                           <Button
-                            size="icon" variant="ghost" className="h-7 w-7 text-destructive"
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-destructive"
                             onClick={() => deleteRisk.mutate(risk.id)}
                           >
                             <Trash2 className="h-3 w-3" />
@@ -409,7 +532,6 @@ export const RiskDashboard = () => {
         </CardContent>
       </Card>
 
-
       {/* Risk engine verdicts — deterministic, with AI prose layered on top */}
       <Card className="shadow-sm border-border">
         <CardHeader className="border-b bg-muted/30">
@@ -418,10 +540,13 @@ export const RiskDashboard = () => {
               <CardTitle className="portal-heading flex items-center gap-2">
                 <ShieldAlert className="h-5 w-5 text-primary" />
                 Auto-flagged
-                <Badge variant="secondary" className="text-xs">{atRiskProjects.length}</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {atRiskProjects.length}
+                </Badge>
               </CardTitle>
               <CardDescription>
-                Automatically flagged by Risk Rules (Settings → Risk Rules). High risk when any enabled rule matches.
+                Automatically flagged by Risk Rules (Settings → Risk Rules). High risk when any
+                enabled rule matches.
               </CardDescription>
             </div>
             <Button
@@ -443,74 +568,107 @@ export const RiskDashboard = () => {
             </p>
           ) : (
             <div className="max-h-[60vh] overflow-y-auto">
-            <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
-              <TableHeader className="sticky top-0 z-10 table-header-tint">
-                <TableRow className="hover:bg-muted/40 border-b">
-                  <TableHead className="font-semibold text-foreground">{getLabel("field_merchant_name")}</TableHead>
-                  <TableHead className="font-semibold text-foreground">Risk</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap">Why</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_expected_go_live_date")}</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_project_state")}</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap">{getLabel("field_assigned_owner")}</TableHead>
-                  <TableHead className="font-semibold text-foreground whitespace-nowrap text-right">{getLabel("field_arr")} (Cr)</TableHead>
-                  <TableHead className="font-semibold text-foreground text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {atRiskProjects.map((p) => {
-                  const verdict = verdicts[p.id]!;
-                  const reasons = verdict.findings.map((f) => f.detail);
-                  const overdue = Math.max(0, ...verdict.findings.map((f) => f.magnitude ?? 0));
-                  return (
-                    <>
-                      <TableRow key={p.id} className="align-top">
-                        <TableCell className="font-medium text-sm py-2">{p.merchantName}</TableCell>
-                        <TableCell className="py-2">
-                          <Badge className="bg-destructive hover:bg-destructive text-destructive-foreground text-2xs px-2 py-0">High Risk</Badge>
-                          {overdue > 0 && (
-                            <span className="ml-1.5 text-2xs font-medium text-destructive-strong">{overdue}d</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="py-2 text-xs text-muted-foreground max-w-[22rem]">
-                          {reasons.join(" · ")}
-                        </TableCell>
-                        <TableCell className="py-2 text-sm whitespace-nowrap">
-                          <GoLiveDate project={p} />
-                        </TableCell>
-                        <TableCell className="py-2 text-sm whitespace-nowrap">
-                          {stateLabels[p.projectState] || projectStateLabels[p.projectState] || p.projectState}
-                        </TableCell>
-                        <TableCell className="py-2 text-sm whitespace-nowrap">
-                          {p.assignedOwnerName || "Unassigned"}
-                        </TableCell>
-                        <TableCell className="py-2 text-sm text-right whitespace-nowrap">
-                          {arrCroreValue(p.arr)}
-                        </TableCell>
-                        <TableCell className="py-2 text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs"
-                            onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: p.id } })}
-                          >
-                            Open
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      {/* Explanations are toggled once from the header button, and
-                          the endpoint caches by reason hash, so reopening costs nothing. */}
-                      {explainAll && (
-                        <TableRow key={`${p.id}-ai`} className="hover:bg-transparent">
-                          <TableCell colSpan={8} className="py-2 bg-muted/20">
-                            <AttentionReasonBlock projectId={p.id} kind="risk" reasons={reasons} enabled compact />
+              <Table wrapperClassName="rounded-none border-0 bg-transparent backdrop-blur-none overflow-visible">
+                <TableHeader className="sticky top-0 z-10 table-header-tint">
+                  <TableRow className="hover:bg-muted/40 border-b">
+                    <TableHead className="font-semibold text-foreground">
+                      {getLabel("field_merchant_name")}
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground">Risk</TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap">
+                      Why
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap">
+                      {getLabel("field_expected_go_live_date")}
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap">
+                      {getLabel("field_project_state")}
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap">
+                      {getLabel("field_assigned_owner")}
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap text-right">
+                      {getLabel("field_arr")} (Cr)
+                    </TableHead>
+                    <TableHead className="font-semibold text-foreground text-right">
+                      Action
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {atRiskProjects.map((p) => {
+                    const verdict = verdicts[p.id]!;
+                    const reasons = verdict.findings.map((f) => f.detail);
+                    const overdue = Math.max(0, ...verdict.findings.map((f) => f.magnitude ?? 0));
+                    return (
+                      <>
+                        <TableRow key={p.id} className="align-top">
+                          <TableCell className="font-medium text-sm py-2">
+                            {p.merchantName}
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <Badge className="bg-destructive hover:bg-destructive text-destructive-foreground text-2xs px-2 py-0">
+                              High Risk
+                            </Badge>
+                            {overdue > 0 && (
+                              <span className="ml-1.5 text-2xs font-medium text-destructive-strong">
+                                {overdue}d
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-2 text-xs text-muted-foreground max-w-[22rem]">
+                            {reasons.join(" · ")}
+                          </TableCell>
+                          <TableCell className="py-2 text-sm whitespace-nowrap">
+                            <GoLiveDate project={p} />
+                          </TableCell>
+                          <TableCell className="py-2 text-sm whitespace-nowrap">
+                            {stateLabels[p.projectState] ||
+                              projectStateLabels[p.projectState] ||
+                              p.projectState}
+                          </TableCell>
+                          <TableCell className="py-2 text-sm whitespace-nowrap">
+                            {p.assignedOwnerName || "Unassigned"}
+                          </TableCell>
+                          <TableCell className="py-2 text-sm text-right whitespace-nowrap">
+                            {arrCroreValue(p.arr)}
+                          </TableCell>
+                          <TableCell className="py-2 text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() =>
+                                navigate({
+                                  to: "/projects/$projectId",
+                                  params: { projectId: p.id },
+                                })
+                              }
+                            >
+                              Open
+                            </Button>
                           </TableCell>
                         </TableRow>
-                      )}
-                    </>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        {/* Explanations are toggled once from the header button, and
+                          the endpoint caches by reason hash, so reopening costs nothing. */}
+                        {explainAll && (
+                          <TableRow key={`${p.id}-ai`} className="hover:bg-transparent">
+                            <TableCell colSpan={8} className="py-2 bg-muted/20">
+                              <AttentionReasonBlock
+                                projectId={p.id}
+                                kind="risk"
+                                reasons={reasons}
+                                enabled
+                                compact
+                              />
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
           )}
         </CardContent>
@@ -527,10 +685,14 @@ export const RiskDashboard = () => {
               <div>
                 <Label>Project</Label>
                 <Select value={formProjectId} onValueChange={setFormProjectId}>
-                  <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {activeProjects.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.merchantName}</SelectItem>
+                    {activeProjects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.merchantName}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -538,39 +700,67 @@ export const RiskDashboard = () => {
             )}
             <div>
               <Label>Title</Label>
-              <Input value={formTitle} onChange={e => setFormTitle(e.target.value)} placeholder="Short risk description" />
+              <Input
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                placeholder="Short risk description"
+              />
             </div>
             <div>
               <Label>Description</Label>
-              <Textarea value={formDescription} onChange={e => setFormDescription(e.target.value)} placeholder="Detailed context" rows={3} />
+              <Textarea
+                value={formDescription}
+                onChange={(e) => setFormDescription(e.target.value)}
+                placeholder="Detailed context"
+                rows={3}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Category</Label>
                 <Select value={formCategory} onValueChange={setFormCategory}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    {CATEGORIES.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label>Severity</Label>
                 <Select value={formSeverity} onValueChange={setFormSeverity}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {SEVERITIES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                    {SEVERITIES.map((s) => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div>
               <Label>Mitigation Plan</Label>
-              <Textarea value={formMitigation} onChange={e => setFormMitigation(e.target.value)} placeholder="Define mitigation steps" rows={2} />
+              <Textarea
+                value={formMitigation}
+                onChange={(e) => setFormMitigation(e.target.value)}
+                placeholder="Define mitigation steps"
+                rows={2}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleSave} disabled={!formTitle || (!editingRisk && !formProjectId)}>
               {editingRisk ? "Update" : "Create"}
             </Button>
@@ -582,7 +772,9 @@ export const RiskDashboard = () => {
           projectId={activityProject.id}
           projectName={activityProject.name}
           open={!!activityProject}
-          onOpenChange={(open) => { if (!open) setActivityProject(null); }}
+          onOpenChange={(open) => {
+            if (!open) setActivityProject(null);
+          }}
         />
       )}
     </div>

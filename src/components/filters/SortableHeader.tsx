@@ -38,7 +38,11 @@ export const SortableHeader = ({
     >
       {label}
       {active ? (
-        dir === "asc" ? <ArrowUp className="h-3 w-3 shrink-0" /> : <ArrowDown className="h-3 w-3 shrink-0" />
+        dir === "asc" ? (
+          <ArrowUp className="h-3 w-3 shrink-0" />
+        ) : (
+          <ArrowDown className="h-3 w-3 shrink-0" />
+        )
       ) : (
         <ChevronsUpDown className="h-3 w-3 shrink-0 opacity-0 transition-opacity group-hover:opacity-50 group-focus-visible:opacity-50" />
       )}

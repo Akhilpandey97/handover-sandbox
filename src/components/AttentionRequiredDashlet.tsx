@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
@@ -11,14 +18,15 @@ import { Button } from "@/components/ui/button";
 import type { Project } from "@/data/projectsData";
 import { openProjectInNewTab } from "@/lib/open-project";
 
-
 /**
  * Project health from the Risk Rules engine — the same verdict behind the risk
  * badges, listed with its reasons so a manager can act without opening each
  * project. Distinct from the EGL dashlet, which asks whether an upcoming
  * go-live date will hold.
  */
-export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { projects?: Project[] } = {}) => {
+export const AttentionRequiredDashlet = ({
+  projects: projectsOverride,
+}: { projects?: Project[] } = {}) => {
   const navigate = useNavigate();
   const [showAi, setShowAi] = useState(false);
   const { getLabel } = useLabels();
@@ -60,7 +68,6 @@ export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { proje
             {showAi ? "Hide AI" : "AI insights"}
           </Button>
         </div>
-
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto">
@@ -111,7 +118,6 @@ export const AttentionRequiredDashlet = ({ projects: projectsOverride }: { proje
                   </TableCell>
                 </TableRow>
               ))
-
             )}
           </TableBody>
         </Table>

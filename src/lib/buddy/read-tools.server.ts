@@ -38,13 +38,22 @@ export const READ_TOOL_DEFS = [
         type: "object",
         properties: {
           query: { type: "string", description: "Part of a merchant name or MID" },
-          state: { type: "string", enum: ["not_started", "on_hold", "in_progress", "live", "blocked"] },
+          state: {
+            type: "string",
+            enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
+          },
           phase: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
           owner_id: { type: "string", description: "Only projects owned by this user id" },
           platform: { type: "string" },
-          go_live_from: { type: "string", description: "Expected go-live on or after (YYYY-MM-DD)" },
+          go_live_from: {
+            type: "string",
+            description: "Expected go-live on or after (YYYY-MM-DD)",
+          },
           go_live_to: { type: "string", description: "Expected go-live on or before (YYYY-MM-DD)" },
-          only_overdue: { type: "boolean", description: "Only projects with overdue checklist items" },
+          only_overdue: {
+            type: "boolean",
+            description: "Only projects with overdue checklist items",
+          },
           limit: { type: "number", description: "Rows to return, max 50 (default 25)" },
         },
       },
@@ -72,8 +81,14 @@ export const READ_TOOL_DEFS = [
       parameters: {
         type: "object",
         properties: {
-          group_by: { type: "string", enum: ["state", "phase", "owner", "platform", "go_live_month", "responsibility"] },
-          state: { type: "string", enum: ["not_started", "on_hold", "in_progress", "live", "blocked"] },
+          group_by: {
+            type: "string",
+            enum: ["state", "phase", "owner", "platform", "go_live_month", "responsibility"],
+          },
+          state: {
+            type: "string",
+            enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
+          },
           phase: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
         },
         required: ["group_by"],
@@ -84,7 +99,8 @@ export const READ_TOOL_DEFS = [
     type: "function",
     function: {
       name: "list_people",
-      description: "People in this workspace with their user ids, email and team. Use before assigning, notifying or emailing someone.",
+      description:
+        "People in this workspace with their user ids, email and team. Use before assigning, notifying or emailing someone.",
       parameters: {
         type: "object",
         properties: {
@@ -101,10 +117,18 @@ export const READ_TOOL_NAMES = new Set<string>(READ_TOOL_DEFS.map((t) => t.funct
 const PROJECT_COLUMNS =
   "id, merchant_name, mid, project_state, current_phase, current_owner_team, assigned_owner, expected_go_live_date, go_live_date, arr, platform, category, current_responsibility, kick_off_date, updated_at, pending_acceptance";
 
-const TASK_STATUS_LABELS: Record<string, string> = { open: "Open", in_progress: "In progress", done: "Done" };
+const TASK_STATUS_LABELS: Record<string, string> = {
+  open: "Open",
+  in_progress: "In progress",
+  done: "Done",
+};
 
 /** Postgres LIKE needs %/_ escaped; PostgREST .or() needs commas and parens kept out. */
-const safeLike = (s: string) => s.replace(/[%_\\]/g, (m) => `\\${m}`).replace(/[,()]/g, " ").trim();
+const safeLike = (s: string) =>
+  s
+    .replace(/[%_\\]/g, (m) => `\\${m}`)
+    .replace(/[,()]/g, " ")
+    .trim();
 
 const clampText = (s: string | null | undefined, n: number) => {
   if (!s) return null;
@@ -124,7 +148,10 @@ async function ownerNames(caller: BuddyCaller, ids: (string | null)[]) {
 
 async function checklistProgress(caller: BuddyCaller, projectIds: string[]) {
   const today = todayIso();
-  const out = new Map<string, { done: number; total: number; overdue: number; merchantOverdue: number }>();
+  const out = new Map<
+    string,
+    { done: number; total: number; overdue: number; merchantOverdue: number }
+  >();
   for (const id of projectIds) out.set(id, { done: 0, total: 0, overdue: 0, merchantOverdue: 0 });
   if (projectIds.length === 0) return out;
 
@@ -137,7 +164,12 @@ async function checklistProgress(caller: BuddyCaller, projectIds: string[]) {
       .in("project_id", projectIds)
       .range(from, from + PAGE - 1);
     if (error) throw error;
-    for (const row of (data || []) as Array<{ project_id: string; completed: boolean | null; due_date: string | null; current_responsibility: string | null }>) {
+    for (const row of (data || []) as Array<{
+      project_id: string;
+      completed: boolean | null;
+      due_date: string | null;
+      current_responsibility: string | null;
+    }>) {
       const p = out.get(row.project_id);
       if (!p) continue;
       p.total++;
@@ -152,7 +184,10 @@ async function checklistProgress(caller: BuddyCaller, projectIds: string[]) {
   return out;
 }
 
-async function searchProjects(caller: BuddyCaller, args: Record<string, any>): Promise<ReadToolResult> {
+async function searchProjects(
+  caller: BuddyCaller,
+  args: Record<string, any>,
+): Promise<ReadToolResult> {
   const L = await buddyLabels(caller);
   const limit = Math.min(Math.max(Number(args.limit) || 25, 1), 50);
   let q = caller.client
@@ -182,8 +217,14 @@ async function searchProjects(caller: BuddyCaller, args: Record<string, any>): P
 
   const rows = (data || []) as any[];
   const [progress, owners] = await Promise.all([
-    checklistProgress(caller, rows.map((r) => r.id)),
-    ownerNames(caller, rows.map((r) => r.assigned_owner)),
+    checklistProgress(
+      caller,
+      rows.map((r) => r.id),
+    ),
+    ownerNames(
+      caller,
+      rows.map((r) => r.assigned_owner),
+    ),
   ]);
 
   let projects = rows.map((r) => {
@@ -213,14 +254,16 @@ async function searchProjects(caller: BuddyCaller, args: Record<string, any>): P
   return {
     step: args.query ? `Searched ${scopeLabel} for "${args.query}"` : `Searched ${scopeLabel}`,
     data: {
-      matching: args.only_overdue ? projects.length : count ?? projects.length,
+      matching: args.only_overdue ? projects.length : (count ?? projects.length),
       returned: projects.length,
       today: todayIso(),
       projects,
     },
     sources: [
       { kind: "data", label: `${count ?? projects.length} projects` },
-      ...projects.slice(0, 6).map((p) => ({ kind: "project" as const, id: p.project_id, label: p.merchant })),
+      ...projects
+        .slice(0, 6)
+        .map((p) => ({ kind: "project" as const, id: p.project_id, label: p.merchant })),
     ],
   };
 }
@@ -230,26 +273,81 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
   const id = String(args.project_id || "");
   const { data: project, error } = await caller.client
     .from("projects")
-    .select(`${PROJECT_COLUMNS}, brand_url, contact_email, sales_spoc, integration_type, pg_onboarding, go_live_percent, project_notes, current_phase_comment, jira_link, brd_link, sow_link, txns_per_day, aov`)
+    .select(
+      `${PROJECT_COLUMNS}, brand_url, contact_email, sales_spoc, integration_type, pg_onboarding, go_live_percent, project_notes, current_phase_comment, jira_link, brd_link, sow_link, txns_per_day, aov`,
+    )
     .eq("tenant_id", caller.tenantId)
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
   const p = project as any;
-  if (!p) return { step: "Looked for a project", data: { error: "No project with that id in this workspace." }, sources: [] };
+  if (!p)
+    return {
+      step: "Looked for a project",
+      data: { error: "No project with that id in this workspace." },
+      sources: [],
+    };
   if (!caller.portfolio && p.assigned_owner !== caller.userId) {
-    return { step: "Looked for a project", data: { error: "That project isn't assigned to this user." }, sources: [] };
+    return {
+      step: "Looked for a project",
+      data: { error: "That project isn't assigned to this user." },
+      sources: [],
+    };
   }
 
   const today = todayIso();
   const [items, tasks, risks, transfers, notes, meetings, jira] = await Promise.all([
-    caller.client.from("checklist_items").select("id, title, phase, owner_team, completed, completed_at, due_date, current_responsibility").eq("tenant_id", caller.tenantId).eq("project_id", id).order("sort_order", { ascending: true }),
-    caller.client.from("checklist_tasks").select("id, checklist_item_id, title, status, due_date, assigned_to").eq("tenant_id", caller.tenantId).eq("project_id", id).order("created_at", { ascending: false }).limit(60),
-    caller.client.from("project_risks").select("title, severity, category, status, description, mitigation_plan, mitigation_due_at").eq("tenant_id", caller.tenantId).eq("project_id", id).in("status", ["open", "mitigating"]).limit(20),
-    caller.client.from("transfer_history").select("from_team, to_team, transferred_by, transferred_at, accepted_at, notes").eq("tenant_id", caller.tenantId).eq("project_id", id).order("transferred_at", { ascending: false }).limit(5),
-    caller.client.from("project_comment_logs").select("field_name, content, author_name, created_at").eq("tenant_id", caller.tenantId).eq("project_id", id).order("created_at", { ascending: false }).limit(8),
-    caller.client.from("checklist_meetings").select("title, scheduled_at, status, provider, join_url, attendees, analysis_status, mom_comment_id, checklist_item_id").eq("tenant_id", caller.tenantId).eq("project_id", id).order("scheduled_at", { ascending: false }).limit(5),
-    caller.client.from("project_jira_tickets").select("jira_key, summary, status, priority, due_date, assignee_name").eq("tenant_id", caller.tenantId).eq("project_id", id).limit(15),
+    caller.client
+      .from("checklist_items")
+      .select(
+        "id, title, phase, owner_team, completed, completed_at, due_date, current_responsibility",
+      )
+      .eq("tenant_id", caller.tenantId)
+      .eq("project_id", id)
+      .order("sort_order", { ascending: true }),
+    caller.client
+      .from("checklist_tasks")
+      .select("id, checklist_item_id, title, status, due_date, assigned_to")
+      .eq("tenant_id", caller.tenantId)
+      .eq("project_id", id)
+      .order("created_at", { ascending: false })
+      .limit(60),
+    caller.client
+      .from("project_risks")
+      .select("title, severity, category, status, description, mitigation_plan, mitigation_due_at")
+      .eq("tenant_id", caller.tenantId)
+      .eq("project_id", id)
+      .in("status", ["open", "mitigating"])
+      .limit(20),
+    caller.client
+      .from("transfer_history")
+      .select("from_team, to_team, transferred_by, transferred_at, accepted_at, notes")
+      .eq("tenant_id", caller.tenantId)
+      .eq("project_id", id)
+      .order("transferred_at", { ascending: false })
+      .limit(5),
+    caller.client
+      .from("project_comment_logs")
+      .select("field_name, content, author_name, created_at")
+      .eq("tenant_id", caller.tenantId)
+      .eq("project_id", id)
+      .order("created_at", { ascending: false })
+      .limit(8),
+    caller.client
+      .from("checklist_meetings")
+      .select(
+        "title, scheduled_at, status, provider, join_url, attendees, analysis_status, mom_comment_id, checklist_item_id",
+      )
+      .eq("tenant_id", caller.tenantId)
+      .eq("project_id", id)
+      .order("scheduled_at", { ascending: false })
+      .limit(5),
+    caller.client
+      .from("project_jira_tickets")
+      .select("jira_key, summary, status, priority, due_date, assignee_name")
+      .eq("tenant_id", caller.tenantId)
+      .eq("project_id", id)
+      .limit(15),
   ]);
 
   const itemRows = (items.data || []) as any[];
@@ -261,19 +359,28 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
   const [owners, moms, comments] = await Promise.all([
     ownerNames(caller, [p.assigned_owner, ...taskRows.map((t) => t.assigned_to)]),
     momIds.length
-      ? caller.client.from("checklist_comments").select("id, comment").eq("tenant_id", caller.tenantId).in("id", momIds)
+      ? caller.client
+          .from("checklist_comments")
+          .select("id, comment")
+          .eq("tenant_id", caller.tenantId)
+          .in("id", momIds)
       : Promise.resolve({ data: [] as any[] }),
     itemRows.length
       ? caller.client
           .from("checklist_comments")
           .select("id, checklist_item_id, comment, user_name, created_at")
           .eq("tenant_id", caller.tenantId)
-          .in("checklist_item_id", itemRows.map((c) => c.id))
+          .in(
+            "checklist_item_id",
+            itemRows.map((c) => c.id),
+          )
           .order("created_at", { ascending: false })
           .limit(12)
       : Promise.resolve({ data: [] as any[] }),
   ]);
-  const momById = new Map((((moms as any).data || []) as { id: string; comment: string }[]).map((c) => [c.id, c.comment]));
+  const momById = new Map(
+    (((moms as any).data || []) as { id: string; comment: string }[]).map((c) => [c.id, c.comment]),
+  );
 
   const checklist = itemRows.map((c) => ({
     item_id: c.id,
@@ -336,7 +443,10 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
       })),
       open_risks: risks.data || [],
       transfers: transfers.data || [],
-      recent_notes: ((notes.data || []) as any[]).map((n) => ({ ...n, content: clampText(n.content, 400) })),
+      recent_notes: ((notes.data || []) as any[]).map((n) => ({
+        ...n,
+        content: clampText(n.content, 400),
+      })),
       meetings: meetingRows.map((m) => ({
         title: m.title,
         when: m.scheduled_at,
@@ -353,11 +463,16 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
   };
 }
 
-async function portfolioStats(caller: BuddyCaller, args: Record<string, any>): Promise<ReadToolResult> {
+async function portfolioStats(
+  caller: BuddyCaller,
+  args: Record<string, any>,
+): Promise<ReadToolResult> {
   const L = await buddyLabels(caller);
   let q = caller.client
     .from("projects")
-    .select("project_state, current_phase, assigned_owner, platform, expected_go_live_date, current_responsibility, arr")
+    .select(
+      "project_state, current_phase, assigned_owner, platform, expected_go_live_date, current_responsibility, arr",
+    )
     .eq("tenant_id", caller.tenantId)
     .eq("archived", false);
   // Not yours until accepted, so it is not in your list or your numbers.
@@ -369,15 +484,27 @@ async function portfolioStats(caller: BuddyCaller, args: Record<string, any>): P
   const rows = (data || []) as any[];
 
   const groupBy = String(args.group_by || "state");
-  const owners = groupBy === "owner" ? await ownerNames(caller, rows.map((r) => r.assigned_owner)) : new Map<string, string>();
+  const owners =
+    groupBy === "owner"
+      ? await ownerNames(
+          caller,
+          rows.map((r) => r.assigned_owner),
+        )
+      : new Map<string, string>();
   const keyOf = (r: any): string => {
     switch (groupBy) {
-      case "phase": return L.phase[r.current_phase] || r.current_phase || "None";
-      case "owner": return owners.get(r.assigned_owner) || "Unassigned";
-      case "platform": return r.platform || "Unknown";
-      case "go_live_month": return r.expected_go_live_date ? String(r.expected_go_live_date).slice(0, 7) : "No date";
-      case "responsibility": return L.responsibility[r.current_responsibility] || "Unknown";
-      default: return STATE_LABELS[r.project_state] || r.project_state || "None";
+      case "phase":
+        return L.phase[r.current_phase] || r.current_phase || "None";
+      case "owner":
+        return owners.get(r.assigned_owner) || "Unassigned";
+      case "platform":
+        return r.platform || "Unknown";
+      case "go_live_month":
+        return r.expected_go_live_date ? String(r.expected_go_live_date).slice(0, 7) : "No date";
+      case "responsibility":
+        return L.responsibility[r.current_responsibility] || "Unknown";
+      default:
+        return STATE_LABELS[r.project_state] || r.project_state || "None";
     }
   };
 
@@ -390,8 +517,14 @@ async function portfolioStats(caller: BuddyCaller, args: Record<string, any>): P
     groups.set(k, g);
   }
   const list = Array.from(groups.entries())
-    .map(([group, v]) => ({ group, projects: v.projects, arr_cr: Math.round(v.arr_cr * 100) / 100 }))
-    .sort((a, b) => (groupBy === "go_live_month" ? a.group.localeCompare(b.group) : b.projects - a.projects));
+    .map(([group, v]) => ({
+      group,
+      projects: v.projects,
+      arr_cr: Math.round(v.arr_cr * 100) / 100,
+    }))
+    .sort((a, b) =>
+      groupBy === "go_live_month" ? a.group.localeCompare(b.group) : b.projects - a.projects,
+    );
 
   return {
     step: `Counted ${rows.length} projects by ${groupBy.replace(/_/g, " ")}`,
@@ -401,7 +534,10 @@ async function portfolioStats(caller: BuddyCaller, args: Record<string, any>): P
 }
 
 async function listPeople(caller: BuddyCaller, args: Record<string, any>): Promise<ReadToolResult> {
-  let q = caller.client.from("profiles").select("id, name, email, team").eq("tenant_id", caller.tenantId);
+  let q = caller.client
+    .from("profiles")
+    .select("id, name, email, team")
+    .eq("tenant_id", caller.tenantId);
   if (typeof args.query === "string" && args.query.trim()) {
     const term = safeLike(args.query);
     if (term) q = q.or(`name.ilike.%${term}%,email.ilike.%${term}%`);
@@ -409,7 +545,12 @@ async function listPeople(caller: BuddyCaller, args: Record<string, any>): Promi
   if (args.team) q = q.eq("team", args.team);
   const { data, error } = await q.order("name").limit(50);
   if (error) throw error;
-  const people = ((data || []) as any[]).map((p) => ({ user_id: p.id, name: p.name, email: p.email, team: p.team }));
+  const people = ((data || []) as any[]).map((p) => ({
+    user_id: p.id,
+    name: p.name,
+    email: p.email,
+    team: p.team,
+  }));
   return {
     step: args.query ? `Looked up people matching "${args.query}"` : "Looked up people",
     data: { people },
@@ -424,13 +565,26 @@ export async function runReadTool(
 ): Promise<ReadToolResult> {
   try {
     switch (name) {
-      case "search_projects": return await searchProjects(caller, args);
-      case "get_project": return await getProject(caller, args);
-      case "portfolio_stats": return await portfolioStats(caller, args);
-      case "list_people": return await listPeople(caller, args);
-      default: return { step: `Unknown tool ${name}`, data: { error: `Unknown tool ${name}` }, sources: [] };
+      case "search_projects":
+        return await searchProjects(caller, args);
+      case "get_project":
+        return await getProject(caller, args);
+      case "portfolio_stats":
+        return await portfolioStats(caller, args);
+      case "list_people":
+        return await listPeople(caller, args);
+      default:
+        return {
+          step: `Unknown tool ${name}`,
+          data: { error: `Unknown tool ${name}` },
+          sources: [],
+        };
     }
   } catch (err) {
-    return { step: `Couldn't read data (${name})`, data: { error: (err as Error).message }, sources: [] };
+    return {
+      step: `Couldn't read data (${name})`,
+      data: { error: (err as Error).message },
+      sources: [],
+    };
   }
 }

@@ -1,5 +1,11 @@
 import { useMemo, useState } from "react";
-import { Project, ChecklistResponsibilityLog, getProjectFunnelStage, funnelStageLabels, FunnelStage } from "@/data/projectsData";
+import {
+  Project,
+  ChecklistResponsibilityLog,
+  getProjectFunnelStage,
+  funnelStageLabels,
+  FunnelStage,
+} from "@/data/projectsData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Clock, BarChart3 } from "lucide-react";
@@ -51,9 +57,8 @@ const computeItemDurationMs = (
 // Color scale based on weeks: green → yellow → orange → red
 const weekColor = (weeks: number, completed: boolean): string => {
   if (weeks <= 0) return "bg-muted/30 text-muted-foreground";
-  if (weeks < 1) return completed
-    ? "bg-success/20 text-success-strong"
-    : "bg-success/10 text-success-strong";
+  if (weeks < 1)
+    return completed ? "bg-success/20 text-success-strong" : "bg-success/10 text-success-strong";
   if (weeks < 2) return "bg-lime-500/20 text-lime-800 dark:text-lime-300";
   if (weeks < 4) return "bg-warning/30 text-warning-strong";
   if (weeks < 8) return "bg-warning/40 text-warning-strong";
@@ -113,12 +118,9 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
     rows.forEach((r) => {
       const cells = columns.map((c) => (r.cells[c]?.weeks ?? 0).toFixed(2));
       lines.push(
-        [
-          `"${r.name.replace(/"/g, '""')}"`,
-          `"${r.mid}"`,
-          ...cells,
-          r.totalWeeks.toFixed(2),
-        ].join(","),
+        [`"${r.name.replace(/"/g, '""')}"`, `"${r.mid}"`, ...cells, r.totalWeeks.toFixed(2)].join(
+          ",",
+        ),
       );
     });
     const blob = new Blob([lines.join("\n")], { type: "text/csv" });
@@ -195,7 +197,8 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
           </span>
         </CardTitle>
         <CardDescription>
-          Y-axis: weeks. X-axis: {merchantsLabel.toLowerCase()}. Each colored segment is one checklist item.
+          Y-axis: weeks. X-axis: {merchantsLabel.toLowerCase()}. Each colored segment is one
+          checklist item.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -204,7 +207,9 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
             No {merchantsLabel.toLowerCase()} in this project stage.
           </div>
         ) : (
-          <div style={{ width: "100%", height: Math.max(320, Math.min(600, data.length * 26 + 120)) }}>
+          <div
+            style={{ width: "100%", height: Math.max(320, Math.min(600, data.length * 26 + 120)) }}
+          >
             <ResponsiveContainer>
               <BarChart data={data} margin={{ top: 10, right: 20, left: 0, bottom: 90 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -217,7 +222,12 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
                   tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 />
                 <YAxis
-                  label={{ value: "Weeks", angle: -90, position: "insideLeft", style: { fill: "hsl(var(--muted-foreground))", fontSize: 12 } }}
+                  label={{
+                    value: "Weeks",
+                    angle: -90,
+                    position: "insideLeft",
+                    style: { fill: "hsl(var(--muted-foreground))", fontSize: 12 },
+                  }}
                   tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
                 />
                 <Tooltip
@@ -280,12 +290,30 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
           {/* Legend */}
           <div className="flex items-center gap-3 flex-wrap pt-2 text-xs">
             <span className="text-muted-foreground">Legend:</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-success/20" />&lt;1w</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-lime-500/20" />1–2w</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-warning/30" />2–4w</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-warning/40" />4–8w</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-destructive/50" />8w+</span>
-            <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 rounded bg-muted/30 border" />no data</span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-success/20" />
+              &lt;1w
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-lime-500/20" />
+              1–2w
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-warning/30" />
+              2–4w
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-warning/40" />
+              4–8w
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-destructive/50" />
+              8w+
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-muted/30 border" />
+              no data
+            </span>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -315,7 +343,9 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
                   {rows.map((r) => (
                     <tr key={r.id} className="hover:bg-muted/20">
                       <td className="sticky left-0 bg-background border-b border-r p-2 font-medium z-10">
-                        <div className="truncate max-w-[200px]" title={r.name}>{r.name}</div>
+                        <div className="truncate max-w-[200px]" title={r.name}>
+                          {r.name}
+                        </div>
                         <div className="text-2xs text-muted-foreground truncate">{r.mid}</div>
                       </td>
                       {columns.map((c) => {

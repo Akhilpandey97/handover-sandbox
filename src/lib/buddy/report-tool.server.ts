@@ -20,7 +20,17 @@ import type { BuddySource, ReadToolResult } from "@/lib/buddy/read-tools.server"
  * same thing. Column keys for project lists match the Reports builder.
  */
 
-export type ChartType = "column" | "bar" | "line" | "area" | "pie" | "donut" | "stacked" | "grouped" | "multiline" | "table";
+export type ChartType =
+  | "column"
+  | "bar"
+  | "line"
+  | "area"
+  | "pie"
+  | "donut"
+  | "stacked"
+  | "grouped"
+  | "multiline"
+  | "table";
 
 export interface BuddyReport {
   title: string;
@@ -28,7 +38,12 @@ export interface BuddyReport {
   stats?: { label: string; value: string }[];
   columns: { key: string; label: string; numeric?: boolean }[];
   rows: Record<string, string | number | null>[];
-  chart?: { type: ChartType; x: string; series: { key: string; label: string }[]; valueLabel: string };
+  chart?: {
+    type: ChartType;
+    x: string;
+    series: { key: string; label: string }[];
+    valueLabel: string;
+  };
   /** Chart forms that fit this data, for the switcher. */
   charts?: ChartType[];
   saveColumns?: string[];
@@ -54,7 +69,15 @@ const COLUMNS: Record<string, { label: string; field: string; numeric?: boolean 
   checklistProgress: { label: "Checklist", field: "id" },
 };
 
-type Dimension = "go_live_month" | "kick_off_month" | "state" | "phase" | "owner" | "platform" | "responsibility" | "category";
+type Dimension =
+  | "go_live_month"
+  | "kick_off_month"
+  | "state"
+  | "phase"
+  | "owner"
+  | "platform"
+  | "responsibility"
+  | "category";
 
 const DIMENSION_LABELS: Record<Dimension, string> = {
   go_live_month: "Expected go-live month",
@@ -78,8 +101,6 @@ const TIME_DIMENSIONS = new Set<Dimension>(["go_live_month", "kick_off_month"]);
 const LONG_LABEL_DIMENSIONS = new Set<Dimension>(["owner", "platform", "category"]);
 const MAX_SERIES = 8; // categorical token ceiling: past it, fold into "Other"
 
-
-
 export const REPORT_TOOL_DEF = {
   type: "function",
   function: {
@@ -91,12 +112,49 @@ export const REPORT_TOOL_DEF = {
       properties: {
         title: { type: "string" },
         kind: { type: "string", enum: ["breakdown", "projects"] },
-        group_by: { type: "string", enum: ["go_live_month", "kick_off_month", "state", "phase", "owner", "platform", "responsibility", "category"] },
-        split_by: { type: "string", enum: ["state", "phase", "owner", "platform", "responsibility", "category"], description: "Second dimension for stacked, grouped or multi-line charts" },
-        metric: { type: "string", enum: ["count", "arr"], description: "Count projects (default) or sum ARR in ₹ Cr" },
-        chart: { type: "string", enum: ["column", "bar", "line", "area", "pie", "donut", "stacked", "grouped", "multiline", "table"] },
+        group_by: {
+          type: "string",
+          enum: [
+            "go_live_month",
+            "kick_off_month",
+            "state",
+            "phase",
+            "owner",
+            "platform",
+            "responsibility",
+            "category",
+          ],
+        },
+        split_by: {
+          type: "string",
+          enum: ["state", "phase", "owner", "platform", "responsibility", "category"],
+          description: "Second dimension for stacked, grouped or multi-line charts",
+        },
+        metric: {
+          type: "string",
+          enum: ["count", "arr"],
+          description: "Count projects (default) or sum ARR in ₹ Cr",
+        },
+        chart: {
+          type: "string",
+          enum: [
+            "column",
+            "bar",
+            "line",
+            "area",
+            "pie",
+            "donut",
+            "stacked",
+            "grouped",
+            "multiline",
+            "table",
+          ],
+        },
         columns: { type: "array", items: { type: "string", enum: Object.keys(COLUMNS) } },
-        state: { type: "string", enum: ["not_started", "on_hold", "in_progress", "live", "blocked"] },
+        state: {
+          type: "string",
+          enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
+        },
         phase: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
         platform: { type: "string" },
         owner_id: { type: "string" },
@@ -111,40 +169,73 @@ export const REPORT_TOOL_DEF = {
 const monthLabel = (ym: string) => {
   const [y, m] = ym.split("-");
   if (!y || !m) return ym;
-  return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+  return new Date(Number(y), Number(m) - 1, 1).toLocaleDateString("en-IN", {
+    month: "short",
+    year: "numeric",
+  });
 };
 
 const fmtCr = (n: number) => `₹${(Math.round(n * 10) / 10).toLocaleString("en-IN")} Cr`;
 
-export async function runReportTool(caller: BuddyCaller, args: Record<string, any>): Promise<ReadToolResult & { report?: BuddyReport }> {
+export async function runReportTool(
+  caller: BuddyCaller,
+  args: Record<string, any>,
+): Promise<ReadToolResult & { report?: BuddyReport }> {
   try {
     // Column headings and category names in this workspace's own words.
     const L = await buddyLabels(caller);
     const columnLabel = (key: string) =>
-      key === "merchantName" ? L.merchant : key === "mid" ? L.label("field_mid") : COLUMNS[key]!.label;
+      key === "merchantName"
+        ? L.merchant
+        : key === "mid"
+          ? L.label("field_mid")
+          : COLUMNS[key]!.label;
     const needed = new Set([
-      "id", "merchant_name", "project_state", "current_phase", "current_owner_team", "assigned_owner", "platform",
-      "category", "expected_go_live_date", "kick_off_date", "current_responsibility", "arr",
+      "id",
+      "merchant_name",
+      "project_state",
+      "current_phase",
+      "current_owner_team",
+      "assigned_owner",
+      "platform",
+      "category",
+      "expected_go_live_date",
+      "kick_off_date",
+      "current_responsibility",
+      "arr",
     ]);
     for (const k of args.columns || []) if (COLUMNS[k]) needed.add(COLUMNS[k]!.field);
 
-    let q = caller.client.from("projects").select(Array.from(needed).join(", ")).eq("tenant_id", caller.tenantId).eq("archived", false);
-    if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId).eq("pending_acceptance", false);
+    let q = caller.client
+      .from("projects")
+      .select(Array.from(needed).join(", "))
+      .eq("tenant_id", caller.tenantId)
+      .eq("archived", false);
+    if (!caller.portfolio)
+      q = q.eq("assigned_owner", caller.userId).eq("pending_acceptance", false);
     if (args.state) q = q.eq("project_state", args.state);
     if (args.phase) q = q.eq("current_phase", args.phase);
     if (args.platform) q = q.ilike("platform", String(args.platform));
     if (args.owner_id) q = q.eq("assigned_owner", args.owner_id);
     if (args.go_live_from) q = q.gte("expected_go_live_date", args.go_live_from);
     if (args.go_live_to) q = q.lte("expected_go_live_date", args.go_live_to);
-    const { data, error } = await q.order("expected_go_live_date", { ascending: true, nullsFirst: false }).limit(3000);
+    const { data, error } = await q
+      .order("expected_go_live_date", { ascending: true, nullsFirst: false })
+      .limit(3000);
     if (error) throw error;
     const projects = (data || []) as any[];
 
     const ownerIds = Array.from(new Set(projects.map((p) => p.assigned_owner).filter(Boolean)));
     const { data: owners } = ownerIds.length
-      ? await caller.client.from("profiles").select("id, name").eq("tenant_id", caller.tenantId).in("id", ownerIds)
+      ? await caller.client
+          .from("profiles")
+          .select("id, name")
+          .eq("tenant_id", caller.tenantId)
+          .in("id", ownerIds)
       : { data: [] as any[] };
-    const ownerName = new Map(((owners || []) as { id: string; name: string }[]).map((o) => [o.id, o.name]));
+    const ownerName = new Map(
+      ((owners || []) as { id: string; name: string }[]).map((o) => [o.id, o.name]),
+    );
 
     const title = String(args.title || "Report");
     const filterBits = [
@@ -168,14 +259,22 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
 
     const keyOf = (p: any, dim: Dimension): string => {
       switch (dim) {
-        case "go_live_month": return p.expected_go_live_date ? String(p.expected_go_live_date).slice(0, 7) : "No date";
-        case "kick_off_month": return p.kick_off_date ? String(p.kick_off_date).slice(0, 7) : "No date";
-        case "phase": return PHASE_LABELS[p.current_phase] || p.current_phase || "None";
-        case "owner": return ownerName.get(p.assigned_owner) || "Unassigned";
-        case "platform": return p.platform || "Unknown";
-        case "category": return p.category || "Uncategorised";
-        case "responsibility": return RESPONSIBILITY_LABELS[p.current_responsibility] || "Unknown";
-        default: return STATE_LABELS[p.project_state] || p.project_state || "None";
+        case "go_live_month":
+          return p.expected_go_live_date ? String(p.expected_go_live_date).slice(0, 7) : "No date";
+        case "kick_off_month":
+          return p.kick_off_date ? String(p.kick_off_date).slice(0, 7) : "No date";
+        case "phase":
+          return PHASE_LABELS[p.current_phase] || p.current_phase || "None";
+        case "owner":
+          return ownerName.get(p.assigned_owner) || "Unassigned";
+        case "platform":
+          return p.platform || "Unknown";
+        case "category":
+          return p.category || "Uncategorised";
+        case "responsibility":
+          return RESPONSIBILITY_LABELS[p.current_responsibility] || "Unknown";
+        default:
+          return STATE_LABELS[p.project_state] || p.project_state || "None";
       }
     };
     const metric = args.metric === "arr" ? "arr" : "count";
@@ -186,28 +285,50 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
     /** Order a dimension's keys: fixed product order, months ascending, otherwise largest first. */
     const orderKeys = (dim: Dimension, totals: Map<string, number>) => {
       const keys = Array.from(totals.keys());
-      if (TIME_DIMENSIONS.has(dim)) return keys.sort((a, b) => (a === "No date" ? 1 : b === "No date" ? -1 : a.localeCompare(b)));
+      if (TIME_DIMENSIONS.has(dim))
+        return keys.sort((a, b) =>
+          a === "No date" ? 1 : b === "No date" ? -1 : a.localeCompare(b),
+        );
       const fixed = FIXED_ORDER[dim];
-      if (fixed) return keys.sort((a, b) => (fixed.indexOf(a) + 1 || 99) - (fixed.indexOf(b) + 1 || 99));
+      if (fixed)
+        return keys.sort((a, b) => (fixed.indexOf(a) + 1 || 99) - (fixed.indexOf(b) + 1 || 99));
       return keys.sort((a, b) => (totals.get(b) || 0) - (totals.get(a) || 0));
     };
 
     if (args.kind === "breakdown") {
-      const groupBy = (DIMENSION_LABELS[args.group_by as Dimension] ? args.group_by : "state") as Dimension;
-      const splitBy = DIMENSION_LABELS[args.split_by as Dimension] && args.split_by !== groupBy ? (args.split_by as Dimension) : null;
+      const groupBy = (
+        DIMENSION_LABELS[args.group_by as Dimension] ? args.group_by : "state"
+      ) as Dimension;
+      const splitBy =
+        DIMENSION_LABELS[args.split_by as Dimension] && args.split_by !== groupBy
+          ? (args.split_by as Dimension)
+          : null;
       const isTime = TIME_DIMENSIONS.has(groupBy);
       const groupLabel = (k: string) => (isTime && k !== "No date" ? monthLabel(k) : k);
 
       const groupTotals = new Map<string, number>();
-      for (const p of projects) groupTotals.set(keyOf(p, groupBy), (groupTotals.get(keyOf(p, groupBy)) || 0) + valueOf(p));
+      for (const p of projects)
+        groupTotals.set(keyOf(p, groupBy), (groupTotals.get(keyOf(p, groupBy)) || 0) + valueOf(p));
       const groupKeys = orderKeys(groupBy, groupTotals);
 
       if (!splitBy) {
-        const rows = groupKeys.map((k) => ({ group: groupLabel(k), value: round(groupTotals.get(k) || 0) }));
+        const rows = groupKeys.map((k) => ({
+          group: groupLabel(k),
+          value: round(groupTotals.get(k) || 0),
+        }));
         const charts: ChartType[] = isTime
           ? ["line", "area", "column", "table"]
-          : ["column", "bar", ...(rows.length >= 2 && rows.length <= 12 ? (["pie", "donut"] as ChartType[]) : []), "table"];
-        const preferred: ChartType = isTime ? "line" : LONG_LABEL_DIMENSIONS.has(groupBy) || rows.length > 8 ? "bar" : "column";
+          : [
+              "column",
+              "bar",
+              ...(rows.length >= 2 && rows.length <= 12 ? (["pie", "donut"] as ChartType[]) : []),
+              "table",
+            ];
+        const preferred: ChartType = isTime
+          ? "line"
+          : LONG_LABEL_DIMENSIONS.has(groupBy) || rows.length > 8
+            ? "bar"
+            : "column";
         const type = charts.includes(args.chart) ? (args.chart as ChartType) : preferred;
         const report: BuddyReport = {
           title,
@@ -222,16 +343,24 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
           charts,
           total: projects.length,
         };
-        return { step: `Built "${title}"`, data: { shown_to_user: true, chart: type, total_projects: projects.length, rows }, sources, report };
+        return {
+          step: `Built "${title}"`,
+          data: { shown_to_user: true, chart: type, total_projects: projects.length, rows },
+          sources,
+          report,
+        };
       }
 
       // Split by a second dimension: one series per split value, the tail folded into "Other".
       const splitTotals = new Map<string, number>();
-      for (const p of projects) splitTotals.set(keyOf(p, splitBy), (splitTotals.get(keyOf(p, splitBy)) || 0) + valueOf(p));
+      for (const p of projects)
+        splitTotals.set(keyOf(p, splitBy), (splitTotals.get(keyOf(p, splitBy)) || 0) + valueOf(p));
       let splitKeys = orderKeys(splitBy, splitTotals);
       const folded = splitKeys.length > MAX_SERIES;
       if (folded) {
-        const byTotal = [...splitKeys].sort((a, b) => (splitTotals.get(b) || 0) - (splitTotals.get(a) || 0));
+        const byTotal = [...splitKeys].sort(
+          (a, b) => (splitTotals.get(b) || 0) - (splitTotals.get(a) || 0),
+        );
         const keep = new Set(byTotal.slice(0, MAX_SERIES - 1));
         splitKeys = [...splitKeys.filter((k) => keep.has(k)), "Other"];
       }
@@ -257,7 +386,9 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
         r.total = round(total);
         return r;
       });
-      const charts: ChartType[] = isTime ? ["stacked", "grouped", "multiline", "table"] : ["stacked", "grouped", "table"];
+      const charts: ChartType[] = isTime
+        ? ["stacked", "grouped", "multiline", "table"]
+        : ["stacked", "grouped", "table"];
       const preferred: ChartType = isTime && series.length <= 4 ? "multiline" : "stacked";
       const type = charts.includes(args.chart) ? (args.chart as ChartType) : preferred;
       const report: BuddyReport = {
@@ -276,14 +407,30 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
       };
       return {
         step: `Built "${title}"`,
-        data: { shown_to_user: true, chart: type, total_projects: projects.length, series: series.map((s) => s.label), rows: rows.slice(0, 24) },
+        data: {
+          shown_to_user: true,
+          chart: type,
+          total_projects: projects.length,
+          series: series.map((s) => s.label),
+          rows: rows.slice(0, 24),
+        },
         sources,
         report,
       };
     }
 
     // Project list: headline numbers and the table; no chart.
-    const columns = (Array.isArray(args.columns) && args.columns.length ? args.columns : ["merchantName", "projectState", "assignedOwnerName", "expectedGoLiveDate", "checklistProgress"])
+    const columns = (
+      Array.isArray(args.columns) && args.columns.length
+        ? args.columns
+        : [
+            "merchantName",
+            "projectState",
+            "assignedOwnerName",
+            "expectedGoLiveDate",
+            "checklistProgress",
+          ]
+    )
       .map(String)
       .filter((k: string) => COLUMNS[k])
       .slice(0, 8);
@@ -315,14 +462,21 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
     const cell = (p: any, key: string): string | number | null => {
       const v = p[COLUMNS[key]!.field];
       switch (key) {
-        case "projectState": return L.state[v] || v || null;
-        case "currentOwnerTeam": return L.team[v] || v || null;
-        case "assignedOwnerName": return ownerName.get(v) || "Unassigned";
-        case "currentResponsibility": return L.responsibility[v] || v || null;
-        case "checklistProgress": return progress.get(p.id) || "0/0";
+        case "projectState":
+          return L.state[v] || v || null;
+        case "currentOwnerTeam":
+          return L.team[v] || v || null;
+        case "assignedOwnerName":
+          return ownerName.get(v) || "Unassigned";
+        case "currentResponsibility":
+          return L.responsibility[v] || v || null;
+        case "checklistProgress":
+          return progress.get(p.id) || "0/0";
         case "arr":
-        case "goLivePercent": return v === null || v === undefined ? null : Number(v);
-        default: return v ?? null;
+        case "goLivePercent":
+          return v === null || v === undefined ? null : Number(v);
+        default:
+          return v ?? null;
       }
     };
     const rows = projects.slice(0, 500).map((p) => {
@@ -335,7 +489,11 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
       title,
       subtitle,
       stats,
-      columns: columns.map((k: string) => ({ key: k, label: columnLabel(k), numeric: COLUMNS[k]!.numeric })),
+      columns: columns.map((k: string) => ({
+        key: k,
+        label: columnLabel(k),
+        numeric: COLUMNS[k]!.numeric,
+      })),
       rows,
       charts: ["table"],
       saveColumns: columns,
@@ -344,10 +502,19 @@ export async function runReportTool(caller: BuddyCaller, args: Record<string, an
     return {
       step: `Built "${title}"`,
       data: { shown_to_user: true, total_projects: projects.length, first_rows: rows.slice(0, 25) },
-      sources: [...sources, ...projects.slice(0, 6).map((p) => ({ kind: "project" as const, id: p.id, label: p.merchant_name }))],
+      sources: [
+        ...sources,
+        ...projects
+          .slice(0, 6)
+          .map((p) => ({ kind: "project" as const, id: p.id, label: p.merchant_name })),
+      ],
       report,
     };
   } catch (err) {
-    return { step: "Couldn't build the report", data: { error: (err as Error).message }, sources: [] };
+    return {
+      step: "Couldn't build the report",
+      data: { error: (err as Error).message },
+      sources: [],
+    };
   }
 }

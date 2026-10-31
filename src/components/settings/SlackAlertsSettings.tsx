@@ -82,7 +82,9 @@ export const SlackAlertsSettings = () => {
     }
     setTesting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const res = await fetch(
         `/api/public/slack-stuck-merchants-digest?test=true&tenant_id=${tenantId}`,
         {
@@ -91,7 +93,7 @@ export const SlackAlertsSettings = () => {
             Authorization: `Bearer ${session?.access_token}`,
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-        }
+        },
       );
       const out = await res.json();
       if (!res.ok || !out.success) throw new Error(JSON.stringify(out));
@@ -123,19 +125,22 @@ export const SlackAlertsSettings = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Bell className="h-5 w-5" />Slack Stuck-Merchant Alerts
+          <Bell className="h-5 w-5" />
+          Slack Stuck-Merchant Alerts
         </CardTitle>
         <CardDescription>
-          Daily 12:00 PM IST digest posted to a Slack channel listing merchants where a
-          checklist note tagged with your keyword (default <code>#awaiting-merchant</code>)
-          is older than the threshold and the item is still open. Delivered via channel email.
+          Daily 12:00 PM IST digest posted to a Slack channel listing merchants where a checklist
+          note tagged with your keyword (default <code>#awaiting-merchant</code>) is older than the
+          threshold and the item is still open. Delivered via channel email.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="flex items-center justify-between border rounded-md p-3">
           <div>
             <div className="text-sm font-medium">Enable daily digest</div>
-            <div className="text-xs text-muted-foreground">When off, the daily cron skips this tenant.</div>
+            <div className="text-xs text-muted-foreground">
+              When off, the daily cron skips this tenant.
+            </div>
           </div>
           <Switch
             checked={cfg.slack_alerts_enabled === "true"}
@@ -153,7 +158,8 @@ export const SlackAlertsSettings = () => {
             onChange={(e) => update("slack_channel_email", e.target.value)}
           />
           <p className="text-xs text-muted-foreground mt-1">
-            In Slack: channel name → <strong>Integrations</strong> → <strong>Send emails to this channel</strong> → Get Email Address.
+            In Slack: channel name → <strong>Integrations</strong> →{" "}
+            <strong>Send emails to this channel</strong> → Get Email Address.
           </p>
         </div>
 
@@ -189,7 +195,11 @@ export const SlackAlertsSettings = () => {
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
           </Button>
           <Button variant="outline" onClick={sendTest} disabled={testing}>
-            {testing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+            {testing ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : (
+              <Send className="h-4 w-4 mr-2" />
+            )}
             Send test digest now
           </Button>
         </div>

@@ -9,12 +9,12 @@ const base = BaseRoute.options.server!.handlers as Record<
 export const Route = createFileRoute("/api/public/merchant-portal-data/$")({
   server: {
     handlers: {
-      GET: ({ request }) => base['GET']!({ request }),
-      POST: ({ request }) => base['POST']!({ request }),
-      PUT: ({ request }) => base['PUT']!({ request }),
-      PATCH: ({ request }) => base['PATCH']!({ request }),
-      DELETE: ({ request }) => base['DELETE']!({ request }),
-      OPTIONS: ({ request }) => base['OPTIONS']!({ request }),
+      GET: ({ request }) => base["GET"]!({ request }),
+      POST: ({ request }) => base["POST"]!({ request }),
+      PUT: ({ request }) => base["PUT"]!({ request }),
+      PATCH: ({ request }) => base["PATCH"]!({ request }),
+      DELETE: ({ request }) => base["DELETE"]!({ request }),
+      OPTIONS: ({ request }) => base["OPTIONS"]!({ request }),
     },
   },
 });

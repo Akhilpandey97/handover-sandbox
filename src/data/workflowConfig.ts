@@ -73,16 +73,21 @@ export function workflowProblem(w: {
   const a = w.action_config || {};
 
   if (!has(WORKFLOW_TRIGGER_TYPES, w.trigger_type)) return "Choose how the workflow starts.";
-  if (w.trigger_type === "event" && !has(WORKFLOW_EVENTS, t.event_name)) return "Choose the event that starts this workflow.";
+  if (w.trigger_type === "event" && !has(WORKFLOW_EVENTS, t.event_name))
+    return "Choose the event that starts this workflow.";
   if (w.trigger_type === "field_change") {
     if (!has(WORKFLOW_FIELDS, t.field)) return "Choose the field to watch.";
-    if (t.field === "project_state" && t.to_value && !PROJECT_STATES.includes(t.to_value as never)) return "Choose a valid project state.";
+    if (t.field === "project_state" && t.to_value && !PROJECT_STATES.includes(t.to_value as never))
+      return "Choose a valid project state.";
   }
   if (w.trigger_type === "time_based") {
     const days = Number(t.days_in_state);
-    if (!Number.isFinite(days) || days < 0) return "Set how many days a project must be in its state.";
-    if (t.frequency !== undefined && !has(WORKFLOW_FREQUENCIES, t.frequency)) return "Choose how often to check.";
-    if (t.project_state && !PROJECT_STATES.includes(t.project_state as never)) return "Choose a valid project state.";
+    if (!Number.isFinite(days) || days < 0)
+      return "Set how many days a project must be in its state.";
+    if (t.frequency !== undefined && !has(WORKFLOW_FREQUENCIES, t.frequency))
+      return "Choose how often to check.";
+    if (t.project_state && !PROJECT_STATES.includes(t.project_state as never))
+      return "Choose a valid project state.";
   }
 
   if (!has(WORKFLOW_ACTIONS, w.action_type)) return "Choose what the workflow does.";
@@ -90,8 +95,10 @@ export function workflowProblem(w: {
   if (w.action_type === "transfer_project" && !a.to_team) return "Choose the team to transfer to.";
   if (w.action_type === "update_field") {
     if (!has(WORKFLOW_FIELDS, a.field)) return "Choose the field to set.";
-    if (a.value === undefined || a.value === null || a.value === "") return "Choose the value to set.";
-    if (a.field === "project_state" && !PROJECT_STATES.includes(a.value as never)) return "Choose a valid project state.";
+    if (a.value === undefined || a.value === null || a.value === "")
+      return "Choose the value to set.";
+    if (a.field === "project_state" && !PROJECT_STATES.includes(a.value as never))
+      return "Choose a valid project state.";
   }
   if (w.action_type === "send_notification" && !a.message) return "Write the notification message.";
   return null;

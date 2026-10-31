@@ -9,12 +9,41 @@ import { useStartTenantAccess, type SupportAccessRole } from "@/hooks/useTenantA
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Building2, Plus, Users, Edit2, UserPlus, Loader2, FolderKanban, ShieldCheck } from "lucide-react";
+import {
+  Building2,
+  Plus,
+  Users,
+  Edit2,
+  UserPlus,
+  Loader2,
+  FolderKanban,
+  ShieldCheck,
+} from "lucide-react";
 
 interface Tenant {
   id: string;
@@ -49,12 +78,23 @@ export const TenantManagement = () => {
   useEffect(() => {
     if (!homeTenantId) return;
     let cancelled = false;
-    supabase.from("profiles").select("id, name").eq("tenant_id", homeTenantId).order("name").then(({ data }) => {
-      if (!cancelled) {
-        setStaff(((data || []) as Array<{ id: string; name: string }>).filter((u) => u.id !== currentUser?.id));
-      }
-    });
-    return () => { cancelled = true; };
+    supabase
+      .from("profiles")
+      .select("id, name")
+      .eq("tenant_id", homeTenantId)
+      .order("name")
+      .then(({ data }) => {
+        if (!cancelled) {
+          setStaff(
+            ((data || []) as Array<{ id: string; name: string }>).filter(
+              (u) => u.id !== currentUser?.id,
+            ),
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [homeTenantId, currentUser?.id]);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [tenantStats, setTenantStats] = useState<Map<string, TenantStats>>(new Map());
@@ -78,7 +118,10 @@ export const TenantManagement = () => {
   const fetchTenants = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.from("tenants").select("*").order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("tenants")
+        .select("*")
+        .order("created_at", { ascending: false });
       if (error) throw error;
       setTenants(data || []);
 
@@ -87,7 +130,11 @@ export const TenantManagement = () => {
       const statsMap = new Map<string, TenantStats>();
       const { data: stats, error: statsError } = await (supabase as any).rpc("tenant_stats");
       if (!statsError) {
-        for (const s of (stats || []) as Array<{ tenant_id: string; user_count: number; project_count: number }>) {
+        for (const s of (stats || []) as Array<{
+          tenant_id: string;
+          user_count: number;
+          project_count: number;
+        }>) {
           statsMap.set(s.tenant_id, {
             tenant_id: s.tenant_id,
             user_count: Number(s.user_count) || 0,
@@ -97,8 +144,14 @@ export const TenantManagement = () => {
       } else {
         // Database without tenant_stats() yet: count per tenant as before.
         for (const tenant of data || []) {
-          const { count: userCount } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("tenant_id", tenant.id);
-          const { count: projectCount } = await supabase.from("projects").select("*", { count: "exact", head: true }).eq("tenant_id", tenant.id);
+          const { count: userCount } = await supabase
+            .from("profiles")
+            .select("*", { count: "exact", head: true })
+            .eq("tenant_id", tenant.id);
+          const { count: projectCount } = await supabase
+            .from("projects")
+            .select("*", { count: "exact", head: true })
+            .eq("tenant_id", tenant.id);
           statsMap.set(tenant.id, {
             tenant_id: tenant.id,
             user_count: userCount || 0,
@@ -120,7 +173,10 @@ export const TenantManagement = () => {
   }, []);
 
   const generateSlug = (name: string) => {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
   };
 
   const handleSaveTenant = async () => {
@@ -172,7 +228,7 @@ export const TenantManagement = () => {
               is_system: true,
               sort_order: t.sort_order,
               tenant_id: newTenant.id,
-            }))
+            })),
           );
           if (teamsError) throw teamsError;
         }
@@ -210,7 +266,9 @@ export const TenantManagement = () => {
 
     setIsCreatingManager(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
       const { data, error } = await invokeApi("create-user", {
@@ -279,11 +337,16 @@ export const TenantManagement = () => {
                 Tenant Management
               </CardTitle>
               <CardDescription>
-                Create and manage tenants for different organisations. Each tenant has isolated data and settings.
+                Create and manage tenants for different organisations. Each tenant has isolated data
+                and settings.
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsManagerDialogOpen(true)} className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsManagerDialogOpen(true)}
+                className="gap-2"
+              >
                 <UserPlus className="h-4 w-4" />
                 Add tenant admin
               </Button>
@@ -326,7 +389,9 @@ export const TenantManagement = () => {
                           <div>
                             <p className="font-medium">{tenant.name}</p>
                             {tenant.logo_url && (
-                              <p className="text-xs text-muted-foreground truncate max-w-[200px]">{tenant.logo_url}</p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                {tenant.logo_url}
+                              </p>
                             )}
                           </div>
                         </div>
@@ -388,7 +453,9 @@ export const TenantManagement = () => {
           <DialogHeader>
             <DialogTitle>{editingTenant ? "Edit Tenant" : "Create New Tenant"}</DialogTitle>
             <DialogDescription>
-              {editingTenant ? "Update tenant details." : "Create a new tenant for an organisation."}
+              {editingTenant
+                ? "Update tenant details."
+                : "Create a new tenant for an organisation."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -421,10 +488,10 @@ export const TenantManagement = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveTenant}>
-              {editingTenant ? "Update" : "Create"} Tenant
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
             </Button>
+            <Button onClick={handleSaveTenant}>{editingTenant ? "Update" : "Create"} Tenant</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -435,7 +502,8 @@ export const TenantManagement = () => {
           <DialogHeader>
             <DialogTitle>Add tenant admin</DialogTitle>
             <DialogDescription>
-              Create a workspace admin for a tenant. They can manage users, settings, integrations and projects in that workspace.
+              Create a workspace admin for a tenant. They can manage users, settings, integrations
+              and projects in that workspace.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -446,63 +514,109 @@ export const TenantManagement = () => {
                   <SelectValue placeholder="Select tenant" />
                 </SelectTrigger>
                 <SelectContent>
-                  {tenants.filter(t => t.is_active).map((tenant) => (
-                    <SelectItem key={tenant.id} value={tenant.id}>
-                      {tenant.name}
-                    </SelectItem>
-                  ))}
+                  {tenants
+                    .filter((t) => t.is_active)
+                    .map((tenant) => (
+                      <SelectItem key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Admin name</Label>
-              <Input value={managerName} onChange={(e) => setManagerName(e.target.value)} placeholder="John Doe" />
+              <Input
+                value={managerName}
+                onChange={(e) => setManagerName(e.target.value)}
+                placeholder="John Doe"
+              />
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
-              <Input type="email" value={managerEmail} onChange={(e) => setManagerEmail(e.target.value)} placeholder="john@acme.com" />
+              <Input
+                type="email"
+                value={managerEmail}
+                onChange={(e) => setManagerEmail(e.target.value)}
+                placeholder="john@acme.com"
+              />
             </div>
             <div className="space-y-2">
               <Label>Password</Label>
-              <Input type="password" value={managerPassword} onChange={(e) => setManagerPassword(e.target.value)} placeholder="••••••••" minLength={6} />
+              <Input
+                type="password"
+                value={managerPassword}
+                onChange={(e) => setManagerPassword(e.target.value)}
+                placeholder="••••••••"
+                minLength={6}
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsManagerDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setIsManagerDialogOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleCreateManager} disabled={isCreatingManager}>
-              {isCreatingManager ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating...</> : "Create admin"}
+              {isCreatingManager ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating...
+                </>
+              ) : (
+                "Create admin"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       {/* Support access: deliberate, time-boxed, and on the record. */}
-      <Dialog open={!!accessTarget} onOpenChange={(o) => { if (!o) { setAccessTarget(null); setAccessReason(""); } }}>
+      <Dialog
+        open={!!accessTarget}
+        onOpenChange={(o) => {
+          if (!o) {
+            setAccessTarget(null);
+            setAccessReason("");
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Set up {accessTarget?.name}</DialogTitle>
             <DialogDescription>
-              The app will read and write as this workspace until the access expires or you leave it.
-              A record of this is kept and is visible to them.
+              The app will read and write as this workspace until the access expires or you leave
+              it. A record of this is kept and is visible to them.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground">Who gets access</Label>
               <Select value={accessGrantee} onValueChange={setAccessGrantee}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="self">Me — enter now</SelectItem>
-                  {staff.map((u) => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}
+                  {staff.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground">Works as</Label>
-              <Select value={accessRole} onValueChange={(v) => setAccessRole(v as SupportAccessRole)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={accessRole}
+                onValueChange={(v) => setAccessRole(v as SupportAccessRole)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="manager">Manager — projects, checklists and users</SelectItem>
-                  <SelectItem value="admin">Admin — also integrations, credentials and API keys</SelectItem>
+                  <SelectItem value="admin">
+                    Admin — also integrations, credentials and API keys
+                  </SelectItem>
                   <SelectItem value="gokwik_general">General — view only</SelectItem>
                 </SelectContent>
               </Select>
@@ -513,7 +627,9 @@ export const TenantManagement = () => {
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground">Access for</Label>
               <Select value={accessDays} onValueChange={setAccessDays}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">1 day</SelectItem>
                   <SelectItem value="3">3 days</SelectItem>
@@ -533,19 +649,31 @@ export const TenantManagement = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAccessTarget(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setAccessTarget(null)}>
+              Cancel
+            </Button>
             <Button
               disabled={!accessReason.trim() || startAccess.isPending}
-              onClick={() => accessTarget && startAccess.mutate({
-                tenantId: accessTarget.id,
-                tenantName: accessTarget.name,
-                days: Number(accessDays),
-                reason: accessReason.trim(),
-                role: accessRole,
-                grantTo: accessGrantee === "self" ? undefined : accessGrantee,
-              }, { onSuccess: () => setAccessTarget(null) })}
+              onClick={() =>
+                accessTarget &&
+                startAccess.mutate(
+                  {
+                    tenantId: accessTarget.id,
+                    tenantName: accessTarget.name,
+                    days: Number(accessDays),
+                    reason: accessReason.trim(),
+                    role: accessRole,
+                    grantTo: accessGrantee === "self" ? undefined : accessGrantee,
+                  },
+                  { onSuccess: () => setAccessTarget(null) },
+                )
+              }
             >
-              {startAccess.isPending ? "Granting…" : accessGrantee === "self" ? "Enter workspace" : "Grant access"}
+              {startAccess.isPending
+                ? "Granting…"
+                : accessGrantee === "self"
+                  ? "Enter workspace"
+                  : "Grant access"}
             </Button>
           </DialogFooter>
         </DialogContent>

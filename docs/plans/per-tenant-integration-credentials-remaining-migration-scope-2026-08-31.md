@@ -10,19 +10,20 @@ A new `tenant_integrations` table (one row per tenant), separate from `app_setti
 
 Fields per tenant:
 
-| Group | Fields | Secret? |
-|---|---|---|
-| Email (Resend) | `resend_api_key`, `from_email`, `from_name`, `reply_to` | key only |
-| Gmail polling | `google_mail_api_key`, `gmail_monitor_address` | key only |
-| Jira | `jira_base_url`, `jira_email`, `jira_api_token` | token only |
-| Slack | `slack_webhook_url`, `slack_bot_token`, `slack_channel` | webhook/token |
-| App | `app_base_url` (links in emails) | no |
+| Group          | Fields                                                  | Secret?       |
+| -------------- | ------------------------------------------------------- | ------------- |
+| Email (Resend) | `resend_api_key`, `from_email`, `from_name`, `reply_to` | key only      |
+| Gmail polling  | `google_mail_api_key`, `gmail_monitor_address`          | key only      |
+| Jira           | `jira_base_url`, `jira_email`, `jira_api_token`         | token only    |
+| Slack          | `slack_webhook_url`, `slack_bot_token`, `slack_channel` | webhook/token |
+| App            | `app_base_url` (links in emails)                        | no            |
 
 Access rules: only a tenant's manager/super admin can read or write their own tenant's row; nobody else can see any row. Secret values are never sent to the browser — the settings UI reads a masked summary (`configured: true/false`, last-updated, plus the non-secret fields) and writes new values one-way.
 
 ### Settings UI
 
 New "Integrations" section in Settings, one card per group (Email, Gmail, Jira, Slack), each with:
+
 - placeholder-styled inputs (`re_...`, `https://yourcompany.atlassian.net`, `https://hooks.slack.com/services/...`)
 - status badge: Not configured / Configured
 - "Test connection" button per integration (sends a test email, lists 1 Gmail thread, fetches Jira myself, posts a Slack test message)

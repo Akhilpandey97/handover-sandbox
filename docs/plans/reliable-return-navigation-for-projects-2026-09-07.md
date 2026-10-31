@@ -1,9 +1,11 @@
 # Reliable return navigation for Projects
 
 ## Goal
+
 Make the **Projects** breadcrumb always return to the exact Projects screen that opened the project, without relying on browser history.
 
 ## Implementation
+
 1. Add stable routes for the three manager Projects views:
    - `/projects/kanban`
    - `/projects/list`
@@ -15,12 +17,14 @@ Make the **Projects** breadcrumb always return to the exact Projects screen that
 6. Keep links opened from non-Projects areas, such as team dashboards, returning to their appropriate existing screen rather than forcing a manager-only view.
 
 ## Technical details
+
 - Add route files for each new static Projects URL; the existing `/projects/$projectId` detail route remains unchanged and static routes take precedence.
 - Extend the project-detail search validation with a small validated return-view value rather than accepting an arbitrary redirect URL.
 - Replace in-memory-only project view changes with TanStack Router navigation so refreshes, copied links, and browser navigation preserve the selected view.
 - Update all project-opening controls in the three Projects views, including row, card, title, and tracker links.
 
 ## Verification
+
 - Open a project from Kanban, List, and Go-Live Tracker, click **Projects**, and confirm each returns to its originating view.
 - Refresh each Projects URL and confirm the same view remains selected.
 - Open a project detail URL directly and confirm **Projects** falls back to Kanban.

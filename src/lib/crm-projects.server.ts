@@ -12,8 +12,14 @@ export const projectInputSchema = z.object({
   arr: z.number().nonnegative().optional(),
   aov: z.number().nonnegative().optional(),
   txns_per_day: z.number().int().nonnegative().optional(),
-  kick_off_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  expected_go_live_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  kick_off_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  expected_go_live_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   sales_spoc: z.string().max(160).optional(),
   owner_email: z.string().email().optional(),
   integration_type: z.string().max(80).optional(),
@@ -25,7 +31,11 @@ export const projectInputSchema = z.object({
 export type ProjectInput = z.infer<typeof projectInputSchema>;
 
 export function slugMid(name: string) {
-  const base = name.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6) || "PROJ";
+  const base =
+    name
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 6) || "PROJ";
   return `${base}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 }
 

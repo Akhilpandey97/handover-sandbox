@@ -3,8 +3,8 @@ import { requireInternalCaller } from "@/lib/api-auth.server";
 import { aiText } from "@/lib/ai-gateway.server";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const PROJECT_FIELDS = [
@@ -48,8 +48,7 @@ async function handler(req: Request): Promise<Response> {
       });
     }
 
-
-    const projectFieldsList = PROJECT_FIELDS.map(f => `${f.key}: ${f.label}`).join("\n");
+    const projectFieldsList = PROJECT_FIELDS.map((f) => `${f.key}: ${f.label}`).join("\n");
 
     const prompt = `You are a data mapping assistant. Map CSV column headers to project database fields.
 
@@ -81,7 +80,10 @@ Example output:
     });
 
     // Strip markdown code fences if present
-    content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    content = content
+      .replace(/```json\n?/g, "")
+      .replace(/```\n?/g, "")
+      .trim();
 
     let mapping: Record<string, string | null>;
     try {

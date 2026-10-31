@@ -3,12 +3,14 @@
 ## What the audit found today
 
 User management
+
 - Users are listed from the profiles table, joined with their role. Visibility is already limited to the signed-in person's own organisation (super admin sees all).
 - Anyone with the Manager role can create, edit, delete users and reset passwords.
 - The create/update/delete user endpoints check only that the caller is Manager or Super Admin. They do not verify the target user belongs to the caller's organisation, and the edit endpoint does not re-stamp the organisation on role changes. This is a real cross-tenant gap to close.
 - Role choices come from the team list, so today "Manager" is effectively the tenant owner and there is no separate Admin.
 
 Tenant management
+
 - Only Super Admin sees the Tenants area; they can create organisations, edit them, and create a manager for a tenant.
 - Integrations (email, Gmail, Jira, Slack) and API keys are limited to Manager or Super Admin within the organisation.
 - Settings (general, labels, checklists, stages, colours, navigation and so on) are readable by everyone in the organisation and editable by Manager or Super Admin.

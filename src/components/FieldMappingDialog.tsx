@@ -8,7 +8,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Wand2, ArrowRight, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
@@ -90,7 +96,10 @@ const HEADER_ALIASES: Record<string, string> = {
   mintnotes: "mint_notes",
 };
 
-const getHeuristicMapping = (headers: string[], projectFields: { key: string; label: string; required?: boolean }[]) => {
+const getHeuristicMapping = (
+  headers: string[],
+  projectFields: { key: string; label: string; required?: boolean }[],
+) => {
   const result: Record<string, string> = {};
   const used = new Set<string>();
 
@@ -100,11 +109,11 @@ const getHeuristicMapping = (headers: string[], projectFields: { key: string; la
 
     const byAlias = HEADER_ALIASES[compact] || HEADER_ALIASES[normalized];
     const byFieldKey = projectFields.find(
-      (field) => field.key === compact || field.key === normalized.replace(/\s+/g, "_")
+      (field) => field.key === compact || field.key === normalized.replace(/\s+/g, "_"),
     )?.key;
     // Also match by label for custom fields
     const byLabel = projectFields.find(
-      (field) => normalizeHeader(field.label).replace(/\s+/g, "") === compact
+      (field) => normalizeHeader(field.label).replace(/\s+/g, "") === compact,
     )?.key;
 
     const match = byAlias || byFieldKey || byLabel;
@@ -136,8 +145,16 @@ export const FieldMappingDialog = ({
   const { getLabel } = useLabels();
   const merchantLabel = getLabel("field_merchant_name");
   const PROJECT_FIELDS: { key: string; label: string; required?: boolean; isCustom?: boolean }[] = [
-    ...BASE_PROJECT_FIELDS.map(({ key, labelKey, required }) => ({ key, label: getLabel(labelKey), required })),
-    ...customFieldsDefs.map(f => ({ key: `custom_${f.id}`, label: f.field_label, isCustom: true })),
+    ...BASE_PROJECT_FIELDS.map(({ key, labelKey, required }) => ({
+      key,
+      label: getLabel(labelKey),
+      required,
+    })),
+    ...customFieldsDefs.map((f) => ({
+      key: `custom_${f.id}`,
+      label: f.field_label,
+      isCustom: true,
+    })),
   ];
 
   const [mapping, setMapping] = useState<Record<string, string>>({});
@@ -163,20 +180,17 @@ export const FieldMappingDialog = ({
     setAiLoading(true);
 
     try {
-      const response = await fetch(
-        `/api/public/ai-field-mapping`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(await apiAuthHeaders()),
-          },
-          body: JSON.stringify({
-            csvHeaders,
-            sampleRows: sampleRows.slice(0, 2),
-          }),
-        }
-      );
+      const response = await fetch(`/api/public/ai-field-mapping`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(await apiAuthHeaders()),
+        },
+        body: JSON.stringify({
+          csvHeaders,
+          sampleRows: sampleRows.slice(0, 2),
+        }),
+      });
 
       if (!response.ok) {
         const errorBody = await response.json().catch(() => ({}));
@@ -202,7 +216,7 @@ export const FieldMappingDialog = ({
     } catch (err: any) {
       console.error("AI mapping error:", err);
       setMapping(baseMapping);
-      
+
       toast.error(err?.message || "AI auto-mapping failed. Review the suggested mappings.");
     } finally {
       setAiLoading(false);
@@ -217,9 +231,7 @@ export const FieldMappingDialog = ({
   };
 
   const handleConfirm = () => {
-    const activeMappings = Object.fromEntries(
-      Object.entries(mapping).filter(([, v]) => v)
-    );
+    const activeMappings = Object.fromEntries(Object.entries(mapping).filter(([, v]) => v));
 
     if (!Object.values(activeMappings).includes("merchant_name")) {
       toast.error(`Please map at least the ${merchantLabel} field`);
@@ -303,13 +315,11 @@ export const FieldMappingDialog = ({
                           <SelectItem value="__skip__">
                             <span className="text-muted-foreground">— Skip —</span>
                           </SelectItem>
-                          {PROJECT_FIELDS.filter(f => !f.isCustom).map((field) => (
+                          {PROJECT_FIELDS.filter((f) => !f.isCustom).map((field) => (
                             <SelectItem
                               key={field.key}
                               value={field.key}
-                              disabled={
-                                usedFields.has(field.key) && mapping[header] !== field.key
-                              }
+                              disabled={usedFields.has(field.key) && mapping[header] !== field.key}
                             >
                               <span className="flex items-center gap-1.5">
                                 {field.label}
@@ -326,7 +336,7 @@ export const FieldMappingDialog = ({
                               <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t mt-1 pt-1.5">
                                 Custom Fields
                               </div>
-                              {PROJECT_FIELDS.filter(f => f.isCustom).map((field) => (
+                              {PROJECT_FIELDS.filter((f) => f.isCustom).map((field) => (
                                 <SelectItem
                                   key={field.key}
                                   value={field.key}

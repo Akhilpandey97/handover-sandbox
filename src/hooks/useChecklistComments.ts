@@ -110,10 +110,7 @@ export const useDeleteChecklistComment = () => {
       commentId: string;
       checklistItemId: string;
     }) => {
-      const { error } = await supabase
-        .from("checklist_comments")
-        .delete()
-        .eq("id", commentId);
+      const { error } = await supabase.from("checklist_comments").delete().eq("id", commentId);
 
       if (error) throw error;
       return { commentId, checklistItemId };

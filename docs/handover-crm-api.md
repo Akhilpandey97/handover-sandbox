@@ -14,11 +14,11 @@ webhooks (section 6) remain a future phase.
 
 An API is enough for the core requirement.
 
-| Direction | Mechanism | Why |
-|---|---|---|
-| CRM -> Handover (deal won creates a project) | **Inbound REST API + API key** | The CRM already supports outbound webhooks / HTTP actions (Salesforce Flow + Outbound Message, HubSpot Workflow Webhook, Zoho Deluge, Pipedrive Automation). No connector needed. |
-| Handover -> CRM (push status / go-live back) | Outbound webhook from Handover, or a per-CRM connector | Only needed if customers want two-way sync. Phase 2. |
-| No-code customers with no webhook capability | Zapier / Make recipe hitting the same API | Still the same API underneath. |
+| Direction                                    | Mechanism                                              | Why                                                                                                                                                                               |
+| -------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CRM -> Handover (deal won creates a project) | **Inbound REST API + API key**                         | The CRM already supports outbound webhooks / HTTP actions (Salesforce Flow + Outbound Message, HubSpot Workflow Webhook, Zoho Deluge, Pipedrive Automation). No connector needed. |
+| Handover -> CRM (push status / go-live back) | Outbound webhook from Handover, or a per-CRM connector | Only needed if customers want two-way sync. Phase 2.                                                                                                                              |
+| No-code customers with no webhook capability | Zapier / Make recipe hitting the same API              | Still the same API underneath.                                                                                                                                                    |
 
 Recommendation: ship the inbound API first (phase 1), add outbound webhooks
 (phase 2), and only build native per-CRM connectors if a large customer cannot
@@ -76,17 +76,17 @@ https://handover-sandbox-production.up.railway.app/api/public/v1
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `merchant_name` | string | yes | Brand / account name |
-| `external_id` | string | recommended | Your CRM deal ID. Used for idempotency and updates |
-| `mid` | string | no | Auto-generated if omitted |
-| `contact_email` | string | no | Merchant contact, used for the customer portal link |
-| `arr` | number | no | Annual value in rupees (not crores) |
-| `aov`, `txns_per_day` | number | no | |
-| `kick_off_date`, `expected_go_live_date` | date `YYYY-MM-DD` | no | Defaults to today for kick-off |
-| `owner_email` | string | no | Must match a Handover user in the workspace; otherwise unassigned |
-| `custom_fields` | object | no | Keys must match custom fields configured in Settings |
+| Field                                    | Type              | Required    | Notes                                                             |
+| ---------------------------------------- | ----------------- | ----------- | ----------------------------------------------------------------- |
+| `merchant_name`                          | string            | yes         | Brand / account name                                              |
+| `external_id`                            | string            | recommended | Your CRM deal ID. Used for idempotency and updates                |
+| `mid`                                    | string            | no          | Auto-generated if omitted                                         |
+| `contact_email`                          | string            | no          | Merchant contact, used for the customer portal link               |
+| `arr`                                    | number            | no          | Annual value in rupees (not crores)                               |
+| `aov`, `txns_per_day`                    | number            | no          |                                                                   |
+| `kick_off_date`, `expected_go_live_date` | date `YYYY-MM-DD` | no          | Defaults to today for kick-off                                    |
+| `owner_email`                            | string            | no          | Must match a Handover user in the workspace; otherwise unassigned |
+| `custom_fields`                          | object            | no          | Keys must match custom fields configured in Settings              |
 
 ### Response `201 Created`
 
@@ -108,24 +108,24 @@ updates the changed fields — safe to retry.
 
 ### Errors
 
-| Status | Meaning |
-|---|---|
-| 400 | Validation failed; body lists the offending fields |
-| 401 | Missing / invalid / revoked API key |
-| 409 | Duplicate `merchant_name` with a different `external_id` (set `"allow_duplicate": true` to override) |
-| 429 | Rate limit (60 requests/minute per key) |
+| Status | Meaning                                                                                              |
+| ------ | ---------------------------------------------------------------------------------------------------- |
+| 400    | Validation failed; body lists the offending fields                                                   |
+| 401    | Missing / invalid / revoked API key                                                                  |
+| 409    | Duplicate `merchant_name` with a different `external_id` (set `"allow_duplicate": true` to override) |
+| 429    | Rate limit (60 requests/minute per key)                                                              |
 
 ---
 
 ## 5. Supporting endpoints
 
-| Method | Path | Purpose |
-|---|---|---|
-| GET | `/v1/projects/{id or external_id}` | Read current state, phase, % complete, checklist summary |
-| PATCH | `/v1/projects/{id or external_id}` | Update deal fields (value, dates, owner, notes) |
-| GET | `/v1/projects?updated_since=…` | Poll changes for CRM write-back |
-| GET | `/v1/users` | List workspace users, to map CRM owners to Handover owners |
-| GET | `/v1/health` | Key validation ping |
+| Method | Path                               | Purpose                                                    |
+| ------ | ---------------------------------- | ---------------------------------------------------------- |
+| GET    | `/v1/projects/{id or external_id}` | Read current state, phase, % complete, checklist summary   |
+| PATCH  | `/v1/projects/{id or external_id}` | Update deal fields (value, dates, owner, notes)            |
+| GET    | `/v1/projects?updated_since=…`     | Poll changes for CRM write-back                            |
+| GET    | `/v1/users`                        | List workspace users, to map CRM owners to Handover owners |
+| GET    | `/v1/health`                       | Key validation ping                                        |
 
 ---
 

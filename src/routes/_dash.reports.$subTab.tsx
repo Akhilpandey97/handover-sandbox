@@ -16,10 +16,18 @@ export const Route = createFileRoute("/_dash/reports/$subTab")({
   // render an empty page at a URL that looks valid.
   beforeLoad: ({ params }) => {
     if (params.subTab === "predefined") {
-      throw redirect({ to: "/reports/predefined/$reportType", params: { reportType: DEFAULT_REPORT_TYPE }, replace: true });
+      throw redirect({
+        to: "/reports/predefined/$reportType",
+        params: { reportType: DEFAULT_REPORT_TYPE },
+        replace: true,
+      });
     }
     if (!(REPORT_SUB_TABS as readonly string[]).includes(params.subTab)) {
-      throw redirect({ to: "/reports/predefined/$reportType", params: { reportType: DEFAULT_REPORT_TYPE }, replace: true });
+      throw redirect({
+        to: "/reports/predefined/$reportType",
+        params: { reportType: DEFAULT_REPORT_TYPE },
+        replace: true,
+      });
     }
   },
   head: ({ params }) => {

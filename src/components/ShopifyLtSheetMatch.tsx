@@ -1,15 +1,42 @@
 import { useEffect, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { format } from "date-fns";
-import { FileSpreadsheet, Upload, Download, Loader2, Sparkles, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  FileSpreadsheet,
+  Upload,
+  Download,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 
 const FN_URL = `/api/public/shopify-lt-email-comms`;
@@ -45,18 +72,48 @@ const cleanFrom = (from: string) => {
   return { name: from || "—", email: from || "" };
 };
 
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const norm = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 const compact = (s: string) => norm(s).replace(/\s+/g, "");
 const tokens = (s: string) =>
   new Set(
     norm(s)
       .split(" ")
-      .filter((t) => t && !["pvt", "ltd", "llp", "private", "limited", "the", "inc", "co", "com", "www", "in", "net", "org", "io", "shop", "store"].includes(t)),
+      .filter(
+        (t) =>
+          t &&
+          ![
+            "pvt",
+            "ltd",
+            "llp",
+            "private",
+            "limited",
+            "the",
+            "inc",
+            "co",
+            "com",
+            "www",
+            "in",
+            "net",
+            "org",
+            "io",
+            "shop",
+            "store",
+          ].includes(t),
+      ),
   );
 
 // Domain-style account names: "lumuk.com" / "www.lumuk.co.in" / "https://lumuk.com" → "lumuk"
 const domainSlug = (s: string): string => {
-  const m = s.trim().toLowerCase().match(/^(?:https?:\/\/)?(?:www\.)?([a-z0-9][a-z0-9-]*)\.(?:com|co|in|net|org|io|shop|store|co\.in)(?:[/?#].*)?$/);
+  const m = s
+    .trim()
+    .toLowerCase()
+    .match(
+      /^(?:https?:\/\/)?(?:www\.)?([a-z0-9][a-z0-9-]*)\.(?:com|co|in|net|org|io|shop|store|co\.in)(?:[/?#].*)?$/,
+    );
   return m ? m[1].replace(/-/g, "") : "";
 };
 
@@ -81,10 +138,16 @@ const wordSim = (a: Set<string>, b: Set<string>) => {
   const [small, big] = a.size <= b.size ? [a, b] : [b, a];
   let hits = 0;
   for (const t of small) {
-    if (big.has(t)) { hits++; continue; }
+    if (big.has(t)) {
+      hits++;
+      continue;
+    }
     // prefix/partial word match (e.g. "organics" vs "organic")
     for (const u of big) {
-      if (u.length >= 4 && t.length >= 4 && (u.startsWith(t) || t.startsWith(u))) { hits++; break; }
+      if (u.length >= 4 && t.length >= 4 && (u.startsWith(t) || t.startsWith(u))) {
+        hits++;
+        break;
+      }
     }
   }
   return hits / small.size;
@@ -99,7 +162,10 @@ interface Props {
 const buildMerchants = (source: ThreadRow[]) => {
   const list: { name: string; row: ThreadRow }[] = [];
   for (const r of source) {
-    const s = (r.subject || "").replace(/^\s*((re|fw|fwd)\s*:\s*)+/i, "").replace(/\s+/g, " ").trim();
+    const s = (r.subject || "")
+      .replace(/^\s*((re|fw|fwd)\s*:\s*)+/i, "")
+      .replace(/\s+/g, " ")
+      .trim();
     const clean = (value: string) => value.replace(/^[\s|<>:\-–—]+|[\s|<>:\-–—]+$/g, "").trim();
     const patterns = [
       /welcome\s+to\s+gokwik\s*\(([^)]+)\)/i,
@@ -114,7 +180,10 @@ const buildMerchants = (source: ThreadRow[]) => {
     if (!name) {
       for (const pattern of patterns) {
         const match = s.match(pattern);
-        if (match?.[1]) { name = clean(match[1]); break; }
+        if (match?.[1]) {
+          name = clean(match[1]);
+          break;
+        }
       }
     }
     // Keep EVERY thread in the pool — even when no merchant name could be parsed.
@@ -179,7 +248,8 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
         setPoolFailed(true);
         toast({
           title: "Full inbox scan unavailable",
-          description: "Fell back to the threads loaded in the table. Retry in a moment for complete coverage.",
+          description:
+            "Fell back to the threads loaded in the table. Retry in a moment for complete coverage.",
           variant: "destructive",
         });
       }
@@ -219,7 +289,11 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const aoa = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1, defval: "" });
       if (!aoa.length) {
-        toast({ title: "Empty sheet", description: "No rows found in the first sheet.", variant: "destructive" });
+        toast({
+          title: "Empty sheet",
+          description: "No rows found in the first sheet.",
+          variant: "destructive",
+        });
         return;
       }
       const hdrs = (aoa[0] as string[]).map((h) => String(h ?? "").trim());
@@ -255,7 +329,10 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
       const subTok = tokens(subject);
       if (!mc && !sc) continue;
       // Exact after stripping ALL symbols/spaces (case-insensitive)
-      if (mc && mc === c) { exact = m; break; }
+      if (mc && mc === c) {
+        exact = m;
+        break;
+      }
       const mTok = tokens(m.name);
       let score = 0;
       // One name fully contains the other (ignoring symbols/spaces)
@@ -265,7 +342,8 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
       // Domain slug matches the parsed merchant name or appears in the subject
       // (e.g. account "lumuk.com" vs subject "…Onboarding Journey (Lumuk)")
       if (slug && slug.length >= 3) {
-        if (mc && (mc === slug || mc.includes(slug) || slug.includes(mc))) score = Math.max(score, 0.92);
+        if (mc && (mc === slug || mc.includes(slug) || slug.includes(mc)))
+          score = Math.max(score, 0.92);
         if (sc && sc.includes(slug)) score = Math.max(score, 0.9);
       }
       // All words of the shorter name appear in the other (e.g. "Adagio" vs "Adagio Aunita Trades")
@@ -276,11 +354,15 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
       score = Math.max(score, wordSim(accTok, mTok) * 0.8);
       score = Math.max(score, wordSim(accTok, subTok) * 0.75);
       score = Math.max(score, jaccard(accTok, mTok));
-      if (score > bestScore) { bestScore = score; best = m; }
+      if (score > bestScore) {
+        bestScore = score;
+        best = m;
+      }
     }
 
     if (exact) return { account, matched: exact.name, confidence: "Exact", row: exact.row };
-    if (best && bestScore >= 0.5) return { account, matched: best.name, confidence: "High", row: best.row };
+    if (best && bestScore >= 0.5)
+      return { account, matched: best.name, confidence: "High", row: best.row };
     return { account, matched: "", confidence: "None", row: null };
   };
 
@@ -318,7 +400,11 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
           const hit = map[u.account];
           if (hit) {
             const m = list.find((x) => x.name === hit);
-            if (m) { u.matched = m.name; u.confidence = "AI"; u.row = m.row; }
+            if (m) {
+              u.matched = m.name;
+              u.confidence = "AI";
+              u.row = m.row;
+            }
           }
         }
         setAiUsed(true);
@@ -326,10 +412,15 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
 
       setResults(initial);
       const matchedCount = initial.filter((x) => x.matched).length;
-      toast({ title: "Matching complete", description: `${matchedCount}/${initial.length} accounts matched.` });
+      toast({
+        title: "Matching complete",
+        description: `${matchedCount}/${initial.length} accounts matched.`,
+      });
 
       // 3) Fill AI summaries for matched threads that don't have one yet
-      const missing = initial.filter((x) => x.row && !summaryOf(x.row) && !extraSummaries[x.row.threadId]);
+      const missing = initial.filter(
+        (x) => x.row && !summaryOf(x.row) && !extraSummaries[x.row.threadId],
+      );
       const ids = Array.from(new Set(missing.map((x) => x.row!.threadId))).slice(0, 40);
       for (let i = 0; i < ids.length; i += 8) {
         try {
@@ -369,15 +460,30 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
     if (!results) return;
     const outHeaders = [
       ...headers,
-      "Matched Merchant", "Match Confidence", "Merchant Status", "Latest Summary (AI)",
-      "Messages", "Onboarding Manager", "Onboarding Manager Email",
-      "Last Reply By", "Last Reply Email", "Last Reply Role", "Last Reply On",
-      "Ageing (days)", "Awaiting Merchant Reply", "Thread URL",
+      "Matched Merchant",
+      "Match Confidence",
+      "Merchant Status",
+      "Latest Summary (AI)",
+      "Messages",
+      "Onboarding Manager",
+      "Onboarding Manager Email",
+      "Last Reply By",
+      "Last Reply Email",
+      "Last Reply Role",
+      "Last Reply On",
+      "Ageing (days)",
+      "Awaiting Merchant Reply",
+      "Thread URL",
     ];
     const outRows = sheetRows.map((orig, i) => {
       const res = results[i];
       if (!res?.row) {
-        return [...orig, res?.matched || "", res?.confidence === "None" ? "No match" : res?.confidence, ...Array(13).fill("")];
+        return [
+          ...orig,
+          res?.matched || "",
+          res?.confidence === "None" ? "No match" : res?.confidence,
+          ...Array(13).fill(""),
+        ];
       }
       const r = res.row;
       const sender = cleanFrom(r.lastReplyFrom);
@@ -412,14 +518,18 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => {
-        reset();
-        // Allow a fresh inbox scan on each open so a previous failed/truncated scan can be retried
-        poolPromise.current = null;
-        setPoolRows(null);
-        setPoolFailed(false);
-        setOpen(true);
-      }}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          reset();
+          // Allow a fresh inbox scan on each open so a previous failed/truncated scan can be retried
+          poolPromise.current = null;
+          setPoolRows(null);
+          setPoolFailed(false);
+          setOpen(true);
+        }}
+      >
         <FileSpreadsheet className="h-4 w-4 mr-2" />
         Match Sheet (AI)
       </Button>
@@ -428,7 +538,10 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
         type="file"
         accept=".csv,.xlsx,.xls"
         className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onFile(f);
+        }}
       />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col">
@@ -438,28 +551,54 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
               Map Your Sheet to Email Comms Data
             </DialogTitle>
             <DialogDescription>
-              Upload a sheet with an <b>Account Name</b> column. Each account is matched against every
-              thread in the entire inbox (no days bucket, already-live accounts included and mapped to <b>Live</b>)
-              {poolFailed ? " (full inbox scan unavailable — using the threads loaded in the table; close and reopen to retry)" : poolRows ? ` (${poolRows.length} threads loaded)` : poolLoading ? " (loading all threads…)" : ""},
-              and the sheet is returned with all comms columns filled in.
+              Upload a sheet with an <b>Account Name</b> column. Each account is matched against
+              every thread in the entire inbox (no days bucket, already-live accounts included and
+              mapped to <b>Live</b>)
+              {poolFailed
+                ? " (full inbox scan unavailable — using the threads loaded in the table; close and reopen to retry)"
+                : poolRows
+                  ? ` (${poolRows.length} threads loaded)`
+                  : poolLoading
+                    ? " (loading all threads…)"
+                    : ""}
+              , and the sheet is returned with all comms columns filled in.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 flex-1 min-h-0">
             <div className="flex flex-wrap items-center gap-3">
-              <Button variant="secondary" size="sm" onClick={() => fileRef.current?.click()} disabled={matching}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => fileRef.current?.click()}
+                disabled={matching}
+              >
                 <Upload className="h-4 w-4 mr-2" />
                 {fileName ? "Change file" : "Upload sheet (.xlsx / .csv)"}
               </Button>
-              {fileName && <span className="text-sm text-muted-foreground truncate max-w-[240px]">{fileName}</span>}
+              {fileName && (
+                <span className="text-sm text-muted-foreground truncate max-w-[240px]">
+                  {fileName}
+                </span>
+              )}
               {headers.length > 0 && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm">Account column:</span>
-                  <Select value={String(accountCol)} onValueChange={(v) => { setAccountCol(Number(v)); setResults(null); }}>
-                    <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <Select
+                    value={String(accountCol)}
+                    onValueChange={(v) => {
+                      setAccountCol(Number(v));
+                      setResults(null);
+                    }}
+                  >
+                    <SelectTrigger className="w-[200px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       {headers.map((h, i) => (
-                        <SelectItem key={i} value={String(i)}>{h || `Column ${i + 1}`}</SelectItem>
+                        <SelectItem key={i} value={String(i)}>
+                          {h || `Column ${i + 1}`}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -474,7 +613,9 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
               >
                 <FileSpreadsheet className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                 <p className="text-sm text-muted-foreground">Click to upload your tracker sheet</p>
-                <p className="text-xs text-muted-foreground mt-1">Must contain an "Account Name" column</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Must contain an "Account Name" column
+                </p>
               </div>
             )}
 
@@ -494,8 +635,14 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
             {results && !matching && (
               <>
                 <div className="flex items-center gap-3 text-sm">
-                  <Badge variant="secondary">{matchedCount}/{results.length} matched</Badge>
-                  {aiUsed && <Badge variant="outline" className="gap-1"><Sparkles className="h-3 w-3" /> AI matching used</Badge>}
+                  <Badge variant="secondary">
+                    {matchedCount}/{results.length} matched
+                  </Badge>
+                  {aiUsed && (
+                    <Badge variant="outline" className="gap-1">
+                      <Sparkles className="h-3 w-3" /> AI matching used
+                    </Badge>
+                  )}
                 </div>
                 <ScrollArea className="h-[40vh] max-h-[420px] rounded-md border">
                   <Table>
@@ -511,11 +658,16 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
                     <TableBody>
                       {results.map((res, i) => (
                         <TableRow key={i}>
-                          <TableCell className="text-sm font-medium">{res.account || "—"}</TableCell>
+                          <TableCell className="text-sm font-medium">
+                            {res.account || "—"}
+                          </TableCell>
                           <TableCell className="text-sm">{res.matched || "—"}</TableCell>
                           <TableCell>
                             {res.matched ? (
-                              <Badge variant="outline" className="gap-1 text-success-strong border-success/30">
+                              <Badge
+                                variant="outline"
+                                className="gap-1 text-success-strong border-success/30"
+                              >
                                 <CheckCircle2 className="h-3 w-3" /> {res.confidence}
                               </Badge>
                             ) : res.account ? (
@@ -523,7 +675,10 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
                                 <XCircle className="h-3 w-3" /> No match
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="gap-1 text-warning-strong border-warning/30">
+                              <Badge
+                                variant="outline"
+                                className="gap-1 text-warning-strong border-warning/30"
+                              >
                                 <AlertCircle className="h-3 w-3" /> Blank
                               </Badge>
                             )}
@@ -531,11 +686,18 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
                           <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate">
                             {res.row ? (
                               res.row.isLive ? (
-                                <Badge variant="outline" className="text-success-strong border-success/30">Live</Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="text-success-strong border-success/30"
+                                >
+                                  Live
+                                </Badge>
                               ) : (
                                 statusText(res.row)
                               )
-                            ) : ""}
+                            ) : (
+                              ""
+                            )}
                           </TableCell>
                           <TableCell className="text-xs">{res.row?.ageingDays ?? ""}</TableCell>
                         </TableRow>
@@ -548,7 +710,9 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Close
+            </Button>
             {fileName && !results && (
               <Button onClick={runMatching} disabled={matching || accountCol < 0}>
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -557,7 +721,14 @@ export const ShopifyLtSheetMatch = ({ rows, statusOf, summaryOf }: Props) => {
             )}
             {results && (
               <>
-                <Button variant="secondary" onClick={() => { setResults(null); runMatching(); }} disabled={matching}>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setResults(null);
+                    runMatching();
+                  }}
+                  disabled={matching}
+                >
                   Re-run
                 </Button>
                 <Button onClick={download} disabled={matching}>

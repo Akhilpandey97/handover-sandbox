@@ -81,12 +81,13 @@ const useChecklistTemplates = (tenantId: string) => {
   });
 };
 
-
 export const ChecklistManagement = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
   const isSuperAdmin = currentUser?.team === "super_admin";
-  const { data: templates = [], isLoading } = useChecklistTemplates(tenantScope(currentUser?.tenantId));
+  const { data: templates = [], isLoading } = useChecklistTemplates(
+    tenantScope(currentUser?.tenantId),
+  );
   const { teamLabels } = useLabels();
 
   // Tenants this admin may write to: all tenants for super admins, own tenant otherwise.
@@ -113,23 +114,31 @@ export const ChecklistManagement = () => {
 
   // Add new checklist item to templates table AND all existing projects
   const addItemMutation = useMutation({
-    mutationFn: async ({ title, team, standardDuration }: { title: string; team: TeamRole; standardDuration: number | null }) => {
+    mutationFn: async ({
+      title,
+      team,
+      standardDuration,
+    }: {
+      title: string;
+      team: TeamRole;
+      standardDuration: number | null;
+    }) => {
       const maxOrder = teamTemplates.reduce((max, t) => Math.max(max, t.sortOrder), -1) + 1;
       const phase = teamToProjectPhase(team === "manager" ? "ms" : team);
 
       // Target tenants (all tenants when super admin)
       const tenantIds = await resolveTargetTenantIds();
 
-      const { error: templateError } = await supabase
-        .from("checklist_templates")
-        .insert(tenantIds.map((tenantId) => ({
+      const { error: templateError } = await supabase.from("checklist_templates").insert(
+        tenantIds.map((tenantId) => ({
           title,
           owner_team: team,
           phase,
           sort_order: maxOrder,
           tenant_id: tenantId,
           standard_duration: standardDuration,
-        })));
+        })),
+      );
       if (templateError) throw templateError;
 
       // Also add to all existing projects in the target tenants
@@ -176,7 +185,19 @@ export const ChecklistManagement = () => {
 
   // Update checklist item title in templates AND across all projects
   const updateItemMutation = useMutation({
-    mutationFn: async ({ oldTitle, newTitle, team, templateId, standardDuration }: { oldTitle: string; newTitle: string; team: TeamRole; templateId?: string; standardDuration?: number | null }) => {
+    mutationFn: async ({
+      oldTitle,
+      newTitle,
+      team,
+      templateId,
+      standardDuration,
+    }: {
+      oldTitle: string;
+      newTitle: string;
+      team: TeamRole;
+      templateId?: string;
+      standardDuration?: number | null;
+    }) => {
       if (templateId) {
         const updateData: any = { title: newTitle };
         if (standardDuration !== undefined) updateData.standard_duration = standardDuration;
@@ -209,7 +230,15 @@ export const ChecklistManagement = () => {
 
   // Delete checklist item from templates AND all projects
   const deleteItemMutation = useMutation({
-    mutationFn: async ({ title, team, templateId }: { title: string; team: TeamRole; templateId?: string }) => {
+    mutationFn: async ({
+      title,
+      team,
+      templateId,
+    }: {
+      title: string;
+      team: TeamRole;
+      templateId?: string;
+    }) => {
       if (templateId) {
         const dq = supabase.from("checklist_templates").delete();
         await (isSuperAdmin
@@ -239,12 +268,20 @@ export const ChecklistManagement = () => {
 
   // Reorder checklist items
   const reorderMutation = useMutation({
-    mutationFn: async ({ title, team, direction }: { title: string; team: TeamRole; direction: "up" | "down" }) => {
+    mutationFn: async ({
+      title,
+      team,
+      direction,
+    }: {
+      title: string;
+      team: TeamRole;
+      direction: "up" | "down";
+    }) => {
       const currentItems = teamTemplates;
       const currentIndex = currentItems.findIndex((t) => t.title === title);
-      
+
       if (currentIndex === -1) return;
-      
+
       const swapIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
       if (swapIndex < 0 || swapIndex >= currentItems.length) return;
 
@@ -254,9 +291,14 @@ export const ChecklistManagement = () => {
       // Swap sort orders in templates table (all tenants for super admins)
       const tmplMatch = (q: any, item: typeof currentItem) =>
         isSuperAdmin ? q.eq("title", item.title).eq("owner_team", team) : q.eq("id", item.id);
-      await tmplMatch(supabase.from("checklist_templates").update({ sort_order: swapItem.sortOrder }), currentItem);
-      await tmplMatch(supabase.from("checklist_templates").update({ sort_order: currentItem.sortOrder }), swapItem);
-
+      await tmplMatch(
+        supabase.from("checklist_templates").update({ sort_order: swapItem.sortOrder }),
+        currentItem,
+      );
+      await tmplMatch(
+        supabase.from("checklist_templates").update({ sort_order: currentItem.sortOrder }),
+        swapItem,
+      );
 
       // Also swap in checklist_items
       await supabase
@@ -289,16 +331,20 @@ export const ChecklistManagement = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
-      const lines = text.split("\n").filter(l => l.trim());
+      const lines = text.split("\n").filter((l) => l.trim());
       // Expect CSV: title,team (team is optional, defaults to activeTeam)
       const teamAliases: Record<string, TeamRole> = {
-        mint: "mint", integration: "integration", ms: "ms",
-        MINT: "mint", Integration: "integration", MS: "ms",
+        mint: "mint",
+        integration: "integration",
+        ms: "ms",
+        MINT: "mint",
+        Integration: "integration",
+        MS: "ms",
       };
       const items: { title: string; team: TeamRole }[] = [];
       const startIdx = lines[0]?.toLowerCase().includes("title") ? 1 : 0;
       for (let i = startIdx; i < lines.length; i++) {
-        const parts = lines[i].split(",").map(p => p.trim().replace(/^"|"$/g, ""));
+        const parts = lines[i].split(",").map((p) => p.trim().replace(/^"|"$/g, ""));
         const title = parts[0];
         if (!title) continue;
         const team = teamAliases[parts[1]] || activeTeam;
@@ -319,14 +365,14 @@ export const ChecklistManagement = () => {
     mutationFn: async (items: { title: string; team: TeamRole }[]) => {
       const tenantIds = await resolveTargetTenantIds();
 
-      const existingTitles = new Set(templates.map(t => `${t.ownerTeam}|${t.title}`));
-      const newItems = items.filter(i => !existingTitles.has(`${i.team}|${i.title}`));
+      const existingTitles = new Set(templates.map((t) => `${t.ownerTeam}|${t.title}`));
+      const newItems = items.filter((i) => !existingTitles.has(`${i.team}|${i.title}`));
 
       if (newItems.length === 0) throw new Error("All items already exist");
 
       // Get max sort orders per team
       const teamMaxOrders: Record<string, number> = {};
-      templates.forEach(t => {
+      templates.forEach((t) => {
         teamMaxOrders[t.ownerTeam] = Math.max(teamMaxOrders[t.ownerTeam] ?? -1, t.sortOrder);
       });
 
@@ -343,15 +389,22 @@ export const ChecklistManagement = () => {
 
       const { error: tErr } = await supabase
         .from("checklist_templates")
-        .insert(tenantIds.flatMap((tenantId) => templateInserts.map((t) => ({ ...t, tenant_id: tenantId }))));
+        .insert(
+          tenantIds.flatMap((tenantId) =>
+            templateInserts.map((t) => ({ ...t, tenant_id: tenantId })),
+          ),
+        );
       if (tErr) throw tErr;
 
       // Add to all existing projects in the target tenants
-      const { data: projects } = await supabase.from("projects").select("id, tenant_id").in("tenant_id", tenantIds);
+      const { data: projects } = await supabase
+        .from("projects")
+        .select("id, tenant_id")
+        .in("tenant_id", tenantIds);
 
       if (projects && projects.length > 0) {
-        const checklistInserts = projects.flatMap(p =>
-          templateInserts.map(t => ({
+        const checklistInserts = projects.flatMap((p) =>
+          templateInserts.map((t) => ({
             project_id: p.id,
             title: t.title,
             owner_team: t.owner_team,
@@ -360,7 +413,7 @@ export const ChecklistManagement = () => {
             completed: false,
             current_responsibility: "neutral" as const,
             tenant_id: p.tenant_id,
-          }))
+          })),
         );
         const { error } = await supabase.from("checklist_items").insert(checklistInserts);
         if (error) throw error;
@@ -386,7 +439,11 @@ export const ChecklistManagement = () => {
       return;
     }
     const dur = newItemDuration.trim() ? parseInt(newItemDuration.trim(), 10) : null;
-    addItemMutation.mutate({ title: newItemTitle.trim(), team: activeTeam, standardDuration: isNaN(dur as any) ? null : dur });
+    addItemMutation.mutate({
+      title: newItemTitle.trim(),
+      team: activeTeam,
+      standardDuration: isNaN(dur as any) ? null : dur,
+    });
   };
 
   const handleUpdateItem = () => {
@@ -398,8 +455,17 @@ export const ChecklistManagement = () => {
     }
     // Find original title
     const original = templates.find((t) => t.id === editingItem.id);
-    if (original && (original.title !== newTitle || original.standardDuration !== editingItem.standardDuration)) {
-      updateItemMutation.mutate({ oldTitle: original.title, newTitle, team: activeTeam, templateId: editingItem.id, standardDuration: editingItem.standardDuration });
+    if (
+      original &&
+      (original.title !== newTitle || original.standardDuration !== editingItem.standardDuration)
+    ) {
+      updateItemMutation.mutate({
+        oldTitle: original.title,
+        newTitle,
+        team: activeTeam,
+        templateId: editingItem.id,
+        standardDuration: editingItem.standardDuration,
+      });
     } else {
       setEditingItem(null);
     }
@@ -409,14 +475,25 @@ export const ChecklistManagement = () => {
   const [addTeamOpen, setAddTeamOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
   const [newTeamColor, setNewTeamColor] = useState("#3b82f6");
-  const [deleteTeamConfirm, setDeleteTeamConfirm] = useState<{ id: string; name: string; slug: string } | null>(null);
+  const [deleteTeamConfirm, setDeleteTeamConfirm] = useState<{
+    id: string;
+    name: string;
+    slug: string;
+  } | null>(null);
 
   const addTeamMutation = useMutation({
     mutationFn: async ({ name, color }: { name: string; color: string }) => {
-      const slug = name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+      const slug = name
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_]/g, "");
       // The workspace being worked in, not the row on the signed-in profile.
       const { error } = await supabase.from("teams").insert({
-        name, slug, color, is_system: false, sort_order: customTeams.length,
+        name,
+        slug,
+        color,
+        is_system: false,
+        sort_order: customTeams.length,
         tenant_id: currentUser?.tenantId,
       });
       if (error) throw error;
@@ -452,14 +529,25 @@ export const ChecklistManagement = () => {
 
   // Rename or recolour a team. Stage teams still on their built-in names have
   // no row yet, so saving one creates it.
-  const [editTeam, setEditTeam] = useState<{ id: string; slug: string; name: string; color: string; isSystem: boolean; sortOrder: number } | null>(null);
+  const [editTeam, setEditTeam] = useState<{
+    id: string;
+    slug: string;
+    name: string;
+    color: string;
+    isSystem: boolean;
+    sortOrder: number;
+  } | null>(null);
   const editTeamMutation = useMutation({
     mutationFn: async (team: NonNullable<typeof editTeam>) => {
       const name = team.name.trim();
       if (!name) throw new Error("A team needs a name");
       const { error } = team.id.startsWith("system-")
         ? await supabase.from("teams").insert({
-            name, slug: team.slug, color: team.color, is_system: true, sort_order: team.sortOrder,
+            name,
+            slug: team.slug,
+            color: team.color,
+            is_system: true,
+            sort_order: team.sortOrder,
             tenant_id: currentUser?.tenantId,
           })
         : await supabase.from("teams").update({ name, color: team.color }).eq("id", team.id);
@@ -475,12 +563,20 @@ export const ChecklistManagement = () => {
   const openTeamEditor = (slug: string) => {
     const t = allTeams.find((x) => x.slug === slug);
     if (!t) return;
-    setEditTeam({ id: t.id, slug: t.slug, name: t.name, color: t.color, isSystem: t.is_system, sortOrder: t.sort_order });
+    setEditTeam({
+      id: t.id,
+      slug: t.slug,
+      name: t.name,
+      color: t.color,
+      isSystem: t.is_system,
+      sortOrder: t.sort_order,
+    });
   };
 
   const { checklistTeamSlugs, teamLabelMap, customTeams, allTeams } = useTeams();
   const teams = checklistTeamSlugs.length > 0 ? checklistTeamSlugs : ["mint", "integration", "ms"];
-  const getLabel = (slug: string) => teamLabels[slug as keyof typeof teamLabels] || teamLabelMap[slug] || slug;
+  const getLabel = (slug: string) =>
+    teamLabels[slug as keyof typeof teamLabels] || teamLabelMap[slug] || slug;
 
   if (isLoading) {
     return (
@@ -499,8 +595,18 @@ export const ChecklistManagement = () => {
             Checklist Templates
           </CardTitle>
           <div className="flex gap-2">
-            <input type="file" ref={fileInputRef} accept=".csv" className="hidden" onChange={handleCSVFileSelect} />
-            <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".csv"
+              className="hidden"
+              onChange={handleCSVFileSelect}
+            />
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              className="gap-2"
+            >
               <Upload className="h-4 w-4" />
               Import CSV
             </Button>
@@ -517,7 +623,7 @@ export const ChecklistManagement = () => {
       <CardContent className="p-0">
         <Tabs value={activeTeam} onValueChange={(v) => setActiveTeam(v as TeamRole)}>
           <div className="border-b px-6 pt-4">
-             <TabsList className="h-11 bg-muted/50 p-1">
+            <TabsList className="h-11 bg-muted/50 p-1">
               {teams.map((team) => (
                 <TabsTrigger
                   key={team}
@@ -551,7 +657,9 @@ export const ChecklistManagement = () => {
                             size="icon"
                             className="h-6 w-6"
                             disabled={index === 0}
-                            onClick={() => reorderMutation.mutate({ title: item.title, team, direction: "up" })}
+                            onClick={() =>
+                              reorderMutation.mutate({ title: item.title, team, direction: "up" })
+                            }
                           >
                             <ArrowUp className="h-3 w-3" />
                           </Button>
@@ -560,15 +668,20 @@ export const ChecklistManagement = () => {
                             size="icon"
                             className="h-6 w-6"
                             disabled={index === arr.length - 1}
-                            onClick={() => reorderMutation.mutate({ title: item.title, team, direction: "down" })}
+                            onClick={() =>
+                              reorderMutation.mutate({ title: item.title, team, direction: "down" })
+                            }
                           >
                             <ArrowDown className="h-3 w-3" />
                           </Button>
                         </div>
-                        
+
                         <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-                        
-                        <Badge variant="outline" className="w-8 h-6 flex items-center justify-center text-xs font-mono">
+
+                        <Badge
+                          variant="outline"
+                          className="w-8 h-6 flex items-center justify-center text-xs font-mono"
+                        >
                           {index + 1}
                         </Badge>
 
@@ -577,7 +690,9 @@ export const ChecklistManagement = () => {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={editingItem.title}
-                                onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                                onChange={(e) =>
+                                  setEditingItem({ ...editingItem, title: e.target.value })
+                                }
                                 className="h-8 flex-1"
                                 autoFocus
                                 onKeyDown={(e) => {
@@ -589,7 +704,14 @@ export const ChecklistManagement = () => {
                                 type="number"
                                 min="0"
                                 value={editingItem.standardDuration ?? ""}
-                                onChange={(e) => setEditingItem({ ...editingItem, standardDuration: e.target.value ? parseInt(e.target.value) : null })}
+                                onChange={(e) =>
+                                  setEditingItem({
+                                    ...editingItem,
+                                    standardDuration: e.target.value
+                                      ? parseInt(e.target.value)
+                                      : null,
+                                  })
+                                }
                                 className="h-8 w-24"
                                 placeholder="Days"
                               />
@@ -598,7 +720,9 @@ export const ChecklistManagement = () => {
                             <div className="flex items-center gap-2">
                               <span className="font-medium">{item.title}</span>
                               {item.standardDuration != null && (
-                                <Badge variant="outline" className="text-xs">{item.standardDuration}d</Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {item.standardDuration}d
+                                </Badge>
                               )}
                             </div>
                           )}
@@ -607,10 +731,20 @@ export const ChecklistManagement = () => {
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {editingItem?.id === item.id ? (
                             <>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleUpdateItem}>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={handleUpdateItem}
+                              >
                                 <Save className="h-4 w-4 text-success-strong" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingItem(null)}>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={() => setEditingItem(null)}
+                              >
                                 <X className="h-4 w-4" />
                               </Button>
                             </>
@@ -665,7 +799,8 @@ export const ChecklistManagement = () => {
           <DialogHeader>
             <DialogTitle>Add Checklist Item</DialogTitle>
             <DialogDescription>
-              This item will be added to all existing and future projects for {getLabel(activeTeam)} team.
+              This item will be added to all existing and future projects for {getLabel(activeTeam)}{" "}
+              team.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -702,7 +837,9 @@ export const ChecklistManagement = () => {
                 onChange={(e) => setNewItemDuration(e.target.value)}
                 placeholder="e.g. 3 (auto-calculates due date)"
               />
-              <p className="text-xs text-muted-foreground">Due date = Project Start + Duration. Leave empty for no auto-date.</p>
+              <p className="text-xs text-muted-foreground">
+                Due date = Project Start + Duration. Leave empty for no auto-date.
+              </p>
             </div>
           </div>
           <DialogFooter>
@@ -725,7 +862,8 @@ export const ChecklistManagement = () => {
               Delete Checklist Item
             </DialogTitle>
             <DialogDescription>
-              This will permanently remove "{deleteConfirm?.title}" from ALL projects. This action cannot be undone.
+              This will permanently remove "{deleteConfirm?.title}" from ALL projects. This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -736,7 +874,11 @@ export const ChecklistManagement = () => {
               variant="destructive"
               onClick={() => {
                 if (deleteConfirm) {
-                  deleteItemMutation.mutate({ title: deleteConfirm.title, team: deleteConfirm.ownerTeam, templateId: deleteConfirm.id });
+                  deleteItemMutation.mutate({
+                    title: deleteConfirm.title,
+                    team: deleteConfirm.ownerTeam,
+                    templateId: deleteConfirm.id,
+                  });
                 }
               }}
               disabled={deleteItemMutation.isPending}
@@ -753,7 +895,8 @@ export const ChecklistManagement = () => {
           <DialogHeader>
             <DialogTitle>Import Checklist Items from CSV</DialogTitle>
             <DialogDescription>
-              {csvPreview.length} item(s) found. These will be added to the template and all existing projects.
+              {csvPreview.length} item(s) found. These will be added to the template and all
+              existing projects.
               <br />
               <span className="text-xs text-muted-foreground mt-1 block">
                 CSV format: <code>title,team</code> (team is optional — mint, integration, or ms)
@@ -764,18 +907,31 @@ export const ChecklistManagement = () => {
             <div className="space-y-1 p-1">
               {csvPreview.map((item, i) => (
                 <div key={i} className="flex items-center gap-2 p-2 bg-muted/30 rounded text-sm">
-                  <Badge variant="outline" className="text-xs">{i + 1}</Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {i + 1}
+                  </Badge>
                   <span className="flex-1 font-medium">{item.title}</span>
-                  <Badge variant="secondary" className="text-xs">{teamLabels[item.team]}</Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    {teamLabels[item.team]}
+                  </Badge>
                 </div>
               ))}
             </div>
           </ScrollArea>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setCsvUploadOpen(false); setCsvPreview([]); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCsvUploadOpen(false);
+                setCsvPreview([]);
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={() => bulkImportMutation.mutate(csvPreview)} disabled={bulkImportMutation.isPending}>
+            <Button
+              onClick={() => bulkImportMutation.mutate(csvPreview)}
+              disabled={bulkImportMutation.isPending}
+            >
               {bulkImportMutation.isPending ? "Importing..." : `Import ${csvPreview.length} Items`}
             </Button>
           </DialogFooter>
@@ -802,16 +958,39 @@ export const ChecklistManagement = () => {
         <CardContent className="p-6">
           {/* System Teams */}
           <div className="mb-4">
-            <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">System Teams</p>
+            <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">
+              System Teams
+            </p>
             <div className="space-y-2">
-              {teams.map(team => (
-                <div key={team} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-                  <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: team === "mint" ? "#3b82f6" : team === "integration" ? "#a855f7" : "#10b981" }}>
+              {teams.map((team) => (
+                <div
+                  key={team}
+                  className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50"
+                >
+                  <div
+                    className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                    style={{
+                      backgroundColor:
+                        team === "mint"
+                          ? "#3b82f6"
+                          : team === "integration"
+                            ? "#a855f7"
+                            : "#10b981",
+                    }}
+                  >
                     {(teamLabels[team] || team).charAt(0)}
                   </div>
                   <span className="font-medium flex-1">{teamLabels[team]}</span>
-                  <Badge variant="secondary" className="text-xs">System</Badge>
-                  <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => openTeamEditor(team)}>
+                  <Badge variant="secondary" className="text-xs">
+                    System
+                  </Badge>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    title="Rename or recolour"
+                    onClick={() => openTeamEditor(team)}
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
                 </div>
@@ -822,23 +1001,41 @@ export const ChecklistManagement = () => {
           {/* Custom Teams */}
           {customTeams.length > 0 && (
             <div className="mb-4">
-              <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">Custom Teams</p>
+              <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">
+                Custom Teams
+              </p>
               <div className="space-y-2">
-                {customTeams.map(team => (
-                  <div key={team.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50 group">
-                    <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: team.color }}>
+                {customTeams.map((team) => (
+                  <div
+                    key={team.id}
+                    className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50 group"
+                  >
+                    <div
+                      className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                      style={{ backgroundColor: team.color }}
+                    >
                       {team.name.charAt(0)}
                     </div>
                     <span className="font-medium flex-1">{team.name}</span>
-                    <Badge variant="outline" className="text-xs">{team.slug}</Badge>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => openTeamEditor(team.slug)}>
+                    <Badge variant="outline" className="text-xs">
+                      {team.slug}
+                    </Badge>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      title="Rename or recolour"
+                      onClick={() => openTeamEditor(team.slug)}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
                       size="icon"
                       variant="ghost"
                       className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:text-destructive"
-                      onClick={() => setDeleteTeamConfirm({ id: team.id, name: team.name, slug: team.slug })}
+                      onClick={() =>
+                        setDeleteTeamConfirm({ id: team.id, name: team.name, slug: team.slug })
+                      }
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -849,7 +1046,9 @@ export const ChecklistManagement = () => {
           )}
 
           {customTeams.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">No custom teams yet. Click "Add Team" to create one.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No custom teams yet. Click "Add Team" to create one.
+            </p>
           )}
         </CardContent>
       </Card>
@@ -859,24 +1058,46 @@ export const ChecklistManagement = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Team</DialogTitle>
-            <DialogDescription>Create a new team category for checklist organization.</DialogDescription>
+            <DialogDescription>
+              Create a new team category for checklist organization.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Team Name</label>
-              <Input value={newTeamName} onChange={(e) => setNewTeamName(e.target.value)} placeholder="e.g. QA Team" />
+              <Input
+                value={newTeamName}
+                onChange={(e) => setNewTeamName(e.target.value)}
+                placeholder="e.g. QA Team"
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Color</label>
               <div className="flex items-center gap-3">
-                <input type="color" value={newTeamColor} onChange={(e) => setNewTeamColor(e.target.value)} className="h-10 w-14 rounded border cursor-pointer" />
-                <Input value={newTeamColor} onChange={(e) => setNewTeamColor(e.target.value)} className="flex-1" />
+                <input
+                  type="color"
+                  value={newTeamColor}
+                  onChange={(e) => setNewTeamColor(e.target.value)}
+                  className="h-10 w-14 rounded border cursor-pointer"
+                />
+                <Input
+                  value={newTeamColor}
+                  onChange={(e) => setNewTeamColor(e.target.value)}
+                  className="flex-1"
+                />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddTeamOpen(false)}>Cancel</Button>
-            <Button onClick={() => addTeamMutation.mutate({ name: newTeamName.trim(), color: newTeamColor })} disabled={!newTeamName.trim() || addTeamMutation.isPending}>
+            <Button variant="outline" onClick={() => setAddTeamOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() =>
+                addTeamMutation.mutate({ name: newTeamName.trim(), color: newTeamColor })
+              }
+              disabled={!newTeamName.trim() || addTeamMutation.isPending}
+            >
               {addTeamMutation.isPending ? "Adding..." : "Add Team"}
             </Button>
           </DialogFooter>
@@ -884,30 +1105,60 @@ export const ChecklistManagement = () => {
       </Dialog>
 
       {/* Edit Team Dialog */}
-      <Dialog open={!!editTeam} onOpenChange={(open) => { if (!open) setEditTeam(null); }}>
+      <Dialog
+        open={!!editTeam}
+        onOpenChange={(open) => {
+          if (!open) setEditTeam(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit team</DialogTitle>
-            <DialogDescription>The new name shows everywhere: dashboards, checklists, transfers and exports.</DialogDescription>
+            <DialogDescription>
+              The new name shows everywhere: dashboards, checklists, transfers and exports.
+            </DialogDescription>
           </DialogHeader>
           {editTeam && (
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="edit-team-name">Team name</label>
-                <Input id="edit-team-name" value={editTeam.name} onChange={(e) => setEditTeam({ ...editTeam, name: e.target.value })} />
+                <label className="text-sm font-medium" htmlFor="edit-team-name">
+                  Team name
+                </label>
+                <Input
+                  id="edit-team-name"
+                  value={editTeam.name}
+                  onChange={(e) => setEditTeam({ ...editTeam, name: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="edit-team-color">Colour</label>
+                <label className="text-sm font-medium" htmlFor="edit-team-color">
+                  Colour
+                </label>
                 <div className="flex items-center gap-3">
-                  <input type="color" value={editTeam.color} onChange={(e) => setEditTeam({ ...editTeam, color: e.target.value })} className="h-10 w-14 rounded border cursor-pointer" />
-                  <Input id="edit-team-color" value={editTeam.color} onChange={(e) => setEditTeam({ ...editTeam, color: e.target.value })} className="flex-1" />
+                  <input
+                    type="color"
+                    value={editTeam.color}
+                    onChange={(e) => setEditTeam({ ...editTeam, color: e.target.value })}
+                    className="h-10 w-14 rounded border cursor-pointer"
+                  />
+                  <Input
+                    id="edit-team-color"
+                    value={editTeam.color}
+                    onChange={(e) => setEditTeam({ ...editTeam, color: e.target.value })}
+                    className="flex-1"
+                  />
                 </div>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditTeam(null)}>Cancel</Button>
-            <Button onClick={() => editTeam && editTeamMutation.mutate(editTeam)} disabled={!editTeam?.name.trim() || editTeamMutation.isPending}>
+            <Button variant="outline" onClick={() => setEditTeam(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => editTeam && editTeamMutation.mutate(editTeam)}
+              disabled={!editTeam?.name.trim() || editTeamMutation.isPending}
+            >
               {editTeamMutation.isPending ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
@@ -923,12 +1174,26 @@ export const ChecklistManagement = () => {
               Delete Team
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deleteTeamConfirm?.name}"? This will also permanently remove its checklist template items and those items from every project's checklist. This action cannot be undone.
+              Are you sure you want to delete "{deleteTeamConfirm?.name}"? This will also
+              permanently remove its checklist template items and those items from every project's
+              checklist. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTeamConfirm(null)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => deleteTeamConfirm && deleteTeamMutation.mutate({ id: deleteTeamConfirm.id, slug: deleteTeamConfirm.slug })} disabled={deleteTeamMutation.isPending}>
+            <Button variant="outline" onClick={() => setDeleteTeamConfirm(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                deleteTeamConfirm &&
+                deleteTeamMutation.mutate({
+                  id: deleteTeamConfirm.id,
+                  slug: deleteTeamConfirm.slug,
+                })
+              }
+              disabled={deleteTeamMutation.isPending}
+            >
               {deleteTeamMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>

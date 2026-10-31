@@ -112,7 +112,11 @@ function ResetPasswordPage() {
                     className="h-10"
                   />
                 </div>
-                <Button type="submit" className="w-full h-10 font-semibold" disabled={saving || !ready}>
+                <Button
+                  type="submit"
+                  className="w-full h-10 font-semibold"
+                  disabled={saving || !ready}
+                >
                   {saving ? "Updating..." : "Update password"}
                 </Button>
               </form>

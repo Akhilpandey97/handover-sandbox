@@ -1,8 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { buddyCaller, corsHeaders, json, PHASE_LABELS, STATE_LABELS, todayIso } from "@/lib/buddy/scope.server";
-import { READ_TOOL_DEFS, READ_TOOL_NAMES, runReadTool, type BuddySource } from "@/lib/buddy/read-tools.server";
+import {
+  buddyCaller,
+  corsHeaders,
+  json,
+  PHASE_LABELS,
+  STATE_LABELS,
+  todayIso,
+} from "@/lib/buddy/scope.server";
+import {
+  READ_TOOL_DEFS,
+  READ_TOOL_NAMES,
+  runReadTool,
+  type BuddySource,
+} from "@/lib/buddy/read-tools.server";
 import { REPORT_TOOL_DEF, runReportTool } from "@/lib/buddy/report-tool.server";
-import { ALL_ACTION_TOOL_DEFS as ACTION_TOOL_DEFS, actionRequires, actionIsPortfolioOnly } from "@/lib/buddy/registry.server";
+import {
+  ALL_ACTION_TOOL_DEFS as ACTION_TOOL_DEFS,
+  actionRequires,
+  actionIsPortfolioOnly,
+} from "@/lib/buddy/registry.server";
 import { SETUP_TOOL_DEF, runSetupTool, teamNameMap } from "@/lib/buddy/setup-read.server";
 import { hasRole } from "@/lib/buddy/setup-catalog.server";
 import { DEFAULT_LABELS } from "@/data/defaultLabels";
@@ -60,26 +76,58 @@ const PAGE_NAMES: Record<string, string> = {
 };
 
 const isReadTool = (name: string) =>
-  READ_TOOL_NAMES.has(name) || name === REPORT_TOOL_DEF.function.name || name === SETUP_TOOL_DEF.function.name;
+  READ_TOOL_NAMES.has(name) ||
+  name === REPORT_TOOL_DEF.function.name ||
+  name === SETUP_TOOL_DEF.function.name;
 
 /** Keys whose renamed values Buddy should use when it talks. */
 const TERM_KEYS = [
-  "org_name", "field_merchant_name", "field_mid", "field_arr", "field_platform", "field_category", "field_integration_type",
-  "field_sales_spoc", "field_assigned_owner", "field_expected_go_live_date", "field_go_live_percent",
-  "state_not_started", "state_on_hold", "state_in_progress", "state_live", "state_blocked",
-  "phase_mint", "phase_integration", "phase_ms", "responsibility_internal", "responsibility_external",
+  "org_name",
+  "field_merchant_name",
+  "field_mid",
+  "field_arr",
+  "field_platform",
+  "field_category",
+  "field_integration_type",
+  "field_sales_spoc",
+  "field_assigned_owner",
+  "field_expected_go_live_date",
+  "field_go_live_percent",
+  "state_not_started",
+  "state_on_hold",
+  "state_in_progress",
+  "state_live",
+  "state_blocked",
+  "phase_mint",
+  "phase_integration",
+  "phase_ms",
+  "responsibility_internal",
+  "responsibility_external",
 ];
 
 /** How this workspace names things, so answers use its words rather than the defaults. */
-async function terminologyLine(caller: NonNullable<Awaited<ReturnType<typeof buddyCaller>>>): Promise<string> {
+async function terminologyLine(
+  caller: NonNullable<Awaited<ReturnType<typeof buddyCaller>>>,
+): Promise<string> {
   const [{ data }, teams] = await Promise.all([
-    caller.client.from("app_settings").select("key, value").eq("tenant_id", caller.tenantId).in("key", TERM_KEYS),
+    caller.client
+      .from("app_settings")
+      .select("key, value")
+      .eq("tenant_id", caller.tenantId)
+      .in("key", TERM_KEYS),
     teamNameMap(caller),
   ]);
   const renamed = ((data || []) as { key: string; value: string }[])
     .filter((r) => r.value && r.value !== DEFAULT_LABELS[r.key])
     .map((r) => `"${DEFAULT_LABELS[r.key] || r.key}" is called "${r.value}"`);
-  const teamLine = `Teams, in handoff order: ${["mint", "integration", "ms"].map((s) => teams[s]).join(" → ")}${Object.keys(teams).length > 3 ? `; other teams: ${Object.entries(teams).filter(([s]) => !["mint", "integration", "ms"].includes(s)).map(([, n]) => n).join(", ")}` : ""}.`;
+  const teamLine = `Teams, in handoff order: ${["mint", "integration", "ms"].map((s) => teams[s]).join(" → ")}${
+    Object.keys(teams).length > 3
+      ? `; other teams: ${Object.entries(teams)
+          .filter(([s]) => !["mint", "integration", "ms"].includes(s))
+          .map(([, n]) => n)
+          .join(", ")}`
+      : ""
+  }.`;
   return `This workspace's own words — use them in answers instead of the defaults. ${teamLine}${renamed.length ? ` ${renamed.join("; ")}.` : ""}`;
 }
 
@@ -90,14 +138,18 @@ async function handler(req: Request): Promise<Response> {
   const caller = await buddyCaller(req);
   if (!caller) return json({ error: "Sign in again to use Buddy." }, 401, corsHeaders);
 
-
   const body = (await req.json().catch(() => ({}))) as {
     messages?: ClientMessage[];
     page?: PageContext;
     mentions?: Mention[];
   };
   const history = (body.messages || [])
-    .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
+    .filter(
+      (m) =>
+        (m.role === "user" || m.role === "assistant") &&
+        typeof m.content === "string" &&
+        m.content.trim(),
+    )
     .slice(-30);
   if (history.length === 0) return json({ error: "Ask Buddy something first." }, 400, corsHeaders);
 
@@ -163,7 +215,9 @@ async function handler(req: Request): Promise<Response> {
       : "",
     terms,
     pageLine,
-    mentionLines.length ? `They referred to these specifically; act on them unless they say otherwise:\n${mentionLines.join("\n")}` : "",
+    mentionLines.length
+      ? `They referred to these specifically; act on them unless they say otherwise:\n${mentionLines.join("\n")}`
+      : "",
     settings.instructions ? `Workspace instructions from an admin:\n${settings.instructions}` : "",
     `
 How to answer:
@@ -231,7 +285,8 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
-      const emit = (evt: unknown) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(evt)}\n\n`));
+      const emit = (evt: unknown) =>
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(evt)}\n\n`));
       // The system prompt rides outside the messages on the Messages API.
       const convo: Anthropic.MessageParam[] = history.map((m) => ({
         role: m.role === "assistant" ? ("assistant" as const) : ("user" as const),
@@ -267,7 +322,8 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
             const message =
               err instanceof Anthropic.RateLimitError
                 ? "Buddy is getting a lot of requests. Try again in a moment."
-                : err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError
+                : err instanceof Anthropic.AuthenticationError ||
+                    err instanceof Anthropic.PermissionDeniedError
                   ? "This workspace has run out of AI credits. An admin can add more."
                   : "Buddy couldn't reach the AI service. Try again.";
             if (!(err instanceof Anthropic.RateLimitError)) console.error("ai-chat error:", err);
@@ -282,7 +338,12 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
             role: "assistant",
             content: [
               ...(text.trim() ? [{ type: "text" as const, text }] : []),
-              ...parsed.map((c) => ({ type: "tool_use" as const, id: c.id, name: c.name, input: c.args })),
+              ...parsed.map((c) => ({
+                type: "tool_use" as const,
+                id: c.id,
+                name: c.name,
+                input: c.args,
+              })),
             ],
           });
 
@@ -298,8 +359,13 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
                 is_error: true,
                 content: JSON.stringify(
                   allowedToolNames.has(c.name)
-                    ? { error: "Not run, because another tool in the same step does not exist. Call the tools again." }
-                    : { error: `There is no tool named ${c.name}. Available tools: ${Array.from(allowedToolNames).join(", ")}.` },
+                    ? {
+                        error:
+                          "Not run, because another tool in the same step does not exist. Call the tools again.",
+                      }
+                    : {
+                        error: `There is no tool named ${c.name}. Available tools: ${Array.from(allowedToolNames).join(", ")}.`,
+                      },
                 ),
               })),
             });
@@ -309,7 +375,10 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
           const actionCalls = parsed.filter((c) => !isReadTool(c.name));
           if (actionCalls.length > 0) {
             actionsProposed += actionCalls.length;
-            emit({ type: "actions", calls: actionCalls.map((c) => ({ id: c.id, name: c.name, arguments: c.args })) });
+            emit({
+              type: "actions",
+              calls: actionCalls.map((c) => ({ id: c.id, name: c.name, arguments: c.args })),
+            });
             break;
           }
 
@@ -326,7 +395,8 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
                   : await runReadTool(caller, call.name, call.args);
             emit({ type: "step", label: result.step });
             if (result.sources.length) emit({ type: "sources", items: result.sources });
-            if ("report" in result && result.report) emit({ type: "report", report: result.report });
+            if ("report" in result && result.report)
+              emit({ type: "report", report: result.report });
             toolResults.push({
               type: "tool_result",
               tool_use_id: call.id,
@@ -336,7 +406,10 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
           convo.push({ role: "user", content: toolResults });
 
           if (round === MAX_ROUNDS - 1) {
-            emit({ type: "delta", content: "\n\nI couldn't finish looking that up. Try a narrower question." });
+            emit({
+              type: "delta",
+              content: "\n\nI couldn't finish looking that up. Try a narrower question.",
+            });
           }
         }
       } catch (err) {
@@ -362,11 +435,16 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
               via: "buddy_chat",
               tools: toolsUsed,
               actions_proposed: actionsProposed,
-              page: body.page?.projectId ? "project" : body.page?.path?.split("/").filter(Boolean)[0] || null,
+              page: body.page?.projectId
+                ? "project"
+                : body.page?.path?.split("/").filter(Boolean)[0] || null,
             },
             status: failed ? "failed" : "success",
           })
-          .then(() => undefined, () => undefined);
+          .then(
+            () => undefined,
+            () => undefined,
+          );
       }
     },
   });

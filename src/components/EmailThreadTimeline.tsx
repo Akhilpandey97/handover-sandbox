@@ -58,7 +58,7 @@ const MessageBubble = ({ msg }: { msg: ProjectEmailMessage }) => {
           "max-w-[78%] rounded-2xl px-3 py-2 shadow-sm border",
           internal
             ? "bg-success-soft border-success/30 rounded-tr-sm"
-            : "bg-card border-border rounded-tl-sm"
+            : "bg-card border-border rounded-tl-sm",
         )}
       >
         <div className="flex items-baseline justify-between gap-3 mb-1">
@@ -97,7 +97,8 @@ export const EmailThreadTimeline = ({ thread }: { thread: ProjectEmailThread }) 
           )}
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground whitespace-nowrap">
-              {format(new Date(thread.threadDate), "dd MMM yyyy, HH:mm")} · {thread.messageCount} message
+              {format(new Date(thread.threadDate), "dd MMM yyyy, HH:mm")} · {thread.messageCount}{" "}
+              message
               {thread.messageCount !== 1 ? "s" : ""}
             </p>
             <p className="text-xs text-muted-foreground truncate text-right">
@@ -116,8 +117,7 @@ export const EmailThreadTimeline = ({ thread }: { thread: ProjectEmailThread }) 
               No message bodies cached. Click Refresh to fetch full conversation.
             </div>
           )}
-          {hasBodies &&
-            thread.messages.map((msg) => <MessageBubble key={msg.id} msg={msg} />)}
+          {hasBodies && thread.messages.map((msg) => <MessageBubble key={msg.id} msg={msg} />)}
         </div>
       )}
     </div>

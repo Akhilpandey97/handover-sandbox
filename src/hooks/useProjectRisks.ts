@@ -67,7 +67,14 @@ export const useProjectRisks = () => {
       qc.invalidateQueries({ queryKey: ["project_risks"] });
       toast({ title: "Risk created" });
       const d = data as any;
-      if (d?.project_id) logActivity({ action_type: "user", category: "risk", description: `Created risk "${d.title}"`, entity_type: "project", entity_id: d.project_id });
+      if (d?.project_id)
+        logActivity({
+          action_type: "user",
+          category: "risk",
+          description: `Created risk "${d.title}"`,
+          entity_type: "project",
+          entity_id: d.project_id,
+        });
     },
     onError: (e: any) => toast({ title: "Error", description: e.message, variant: "destructive" }),
   });

@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { apiAuthHeaders } from "@/lib/api-invoke";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,26 +23,34 @@ interface EmailReportDialogProps {
 
 const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-export const EmailReportDialog = ({ open, onOpenChange, defaultSubject, htmlBody }: EmailReportDialogProps) => {
+export const EmailReportDialog = ({
+  open,
+  onOpenChange,
+  defaultSubject,
+  htmlBody,
+}: EmailReportDialogProps) => {
   const [emails, setEmails] = useState<string[]>([]);
   const [input, setInput] = useState("");
   const [subject, setSubject] = useState(defaultSubject);
   const [sending, setSending] = useState(false);
 
   const addEmail = (raw: string) => {
-    const parts = raw.split(/[,;\s]+/).map(p => p.trim()).filter(Boolean);
+    const parts = raw
+      .split(/[,;\s]+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
     const valid: string[] = [];
     const invalid: string[] = [];
     for (const p of parts) {
       if (isValidEmail(p) && !emails.includes(p)) valid.push(p);
       else if (!isValidEmail(p)) invalid.push(p);
     }
-    if (valid.length) setEmails(prev => [...prev, ...valid]);
+    if (valid.length) setEmails((prev) => [...prev, ...valid]);
     if (invalid.length) toast.error(`Invalid: ${invalid.join(", ")}`);
     setInput("");
   };
 
-  const removeEmail = (e: string) => setEmails(prev => prev.filter(x => x !== e));
+  const removeEmail = (e: string) => setEmails((prev) => prev.filter((x) => x !== e));
 
   const handleSend = async () => {
     if (emails.length === 0) {
@@ -45,14 +59,11 @@ export const EmailReportDialog = ({ open, onOpenChange, defaultSubject, htmlBody
     }
     setSending(true);
     try {
-      const res = await fetch(
-        `/api/public/send-movement-report`,
-        {
-          method: "POST",
-          headers: await apiAuthHeaders(),
-          body: JSON.stringify({ recipients: emails, subject, html: htmlBody }),
-        }
-      );
+      const res = await fetch(`/api/public/send-movement-report`, {
+        method: "POST",
+        headers: await apiAuthHeaders(),
+        body: JSON.stringify({ recipients: emails, subject, html: htmlBody }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to send");
       toast.success(`Report sent to ${emails.length} recipient${emails.length > 1 ? "s" : ""}`);
@@ -81,7 +92,7 @@ export const EmailReportDialog = ({ open, onOpenChange, defaultSubject, htmlBody
           <div>
             <Label>Recipients</Label>
             <div className="flex flex-wrap gap-1.5 p-2 border rounded-md min-h-[42px]">
-              {emails.map(e => (
+              {emails.map((e) => (
                 <Badge key={e} variant="secondary" className="gap-1">
                   {e}
                   <button onClick={() => removeEmail(e)} className="hover:text-destructive">
@@ -108,9 +119,17 @@ export const EmailReportDialog = ({ open, onOpenChange, defaultSubject, htmlBody
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={sending}>
+            Cancel
+          </Button>
           <Button onClick={handleSend} disabled={sending || emails.length === 0}>
-            {sending ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Sending...</> : "Send"}
+            {sending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" /> Sending...
+              </>
+            ) : (
+              "Send"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

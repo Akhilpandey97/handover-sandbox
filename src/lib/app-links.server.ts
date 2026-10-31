@@ -41,7 +41,11 @@ export const projectUrl = (
   return `${base}/projects/${projectId}${qs ? `?${qs}` : ""}`;
 };
 
-export const portalUrl = (creds: BaseUrlSource, token: string, magicLink = false): string | null => {
+export const portalUrl = (
+  creds: BaseUrlSource,
+  token: string,
+  magicLink = false,
+): string | null => {
   const base = appBaseUrl(creds);
   if (!base) return null;
   return `${base}/portal?token=${encodeURIComponent(token)}${magicLink ? "&ml=1" : ""}`;

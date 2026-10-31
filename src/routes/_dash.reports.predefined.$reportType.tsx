@@ -15,7 +15,11 @@ const LABELS: Record<string, string> = {
 export const Route = createFileRoute("/_dash/reports/predefined/$reportType")({
   beforeLoad: ({ params }) => {
     if (!(PREDEFINED_REPORT_TYPES as readonly string[]).includes(params.reportType)) {
-      throw redirect({ to: "/reports/predefined/$reportType", params: { reportType: DEFAULT_REPORT_TYPE }, replace: true });
+      throw redirect({
+        to: "/reports/predefined/$reportType",
+        params: { reportType: DEFAULT_REPORT_TYPE },
+        replace: true,
+      });
     }
   },
   head: ({ params }) => {

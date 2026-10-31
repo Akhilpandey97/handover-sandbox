@@ -13,8 +13,7 @@ import { requireCaller } from "@/lib/api-auth.server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -51,15 +50,12 @@ async function handler(req: Request): Promise<Response> {
     }
 
     if (!id && !mid) {
-      return json(
-        { error: "Provide either `id` (project uuid) or `mid` (merchant id)." },
-        400,
-      );
+      return json({ error: "Provide either `id` (project uuid) or `mid` (merchant id)." }, 400);
     }
 
     const supabase = createClient(
-      process.env['SUPABASE_URL']!,
-      process.env['SUPABASE_SERVICE_ROLE_KEY']!,
+      process.env["SUPABASE_URL"]!,
+      process.env["SUPABASE_SERVICE_ROLE_KEY"]!,
     );
 
     // 1. Fetch the project row (all columns).
@@ -103,10 +99,7 @@ async function handler(req: Request): Promise<Response> {
             .eq("tenant_id", tenantId)
             .eq("is_active", true)
         : Promise.resolve({ data: [], error: null } as any),
-      supabase
-        .from("custom_field_values")
-        .select("field_id, value")
-        .eq("project_id", projectId),
+      supabase.from("custom_field_values").select("field_id, value").eq("project_id", projectId),
       project.assigned_owner
         ? supabase
             .from("profiles")
@@ -122,7 +115,9 @@ async function handler(req: Request): Promise<Response> {
         .eq("project_id", projectId),
       supabase
         .from("checklist_tasks")
-        .select("id, title, description, status, due_date, assigned_to, checklist_item_id, created_at")
+        .select(
+          "id, title, description, status, due_date, assigned_to, checklist_item_id, created_at",
+        )
         .eq("project_id", projectId),
       supabase
         .from("project_responsibility_logs")
@@ -133,9 +128,7 @@ async function handler(req: Request): Promise<Response> {
 
     // Build custom fields map
     const valueByField = new Map<string, string | null>();
-    (customValuesRes.data ?? []).forEach((v: any) =>
-      valueByField.set(v.field_id, v.value),
-    );
+    (customValuesRes.data ?? []).forEach((v: any) => valueByField.set(v.field_id, v.value));
     const customFields = (customFieldsRes.data ?? []).map((f: any) => ({
       key: f.field_key,
       label: f.field_label,
@@ -215,9 +208,7 @@ async function handler(req: Request): Promise<Response> {
       checklist_progress: {
         completed: completedCount,
         total: checklist.length,
-        percent: checklist.length
-          ? Math.round((completedCount / checklist.length) * 100)
-          : 0,
+        percent: checklist.length ? Math.round((completedCount / checklist.length) * 100) : 0,
       },
       checklist,
 

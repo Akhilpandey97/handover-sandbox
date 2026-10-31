@@ -38,7 +38,10 @@ export const useScrollToAnchor = (elementId: string | null, enabled = true) => {
         window.clearInterval(timer);
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.classList.add("ring-2", "ring-primary", "ring-offset-2");
-        window.setTimeout(() => el.classList.remove("ring-2", "ring-primary", "ring-offset-2"), 4000);
+        window.setTimeout(
+          () => el.classList.remove("ring-2", "ring-primary", "ring-offset-2"),
+          4000,
+        );
       } else if (attempts > 30) {
         window.clearInterval(timer);
       }
