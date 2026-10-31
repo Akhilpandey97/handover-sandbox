@@ -284,7 +284,7 @@ export const ChecklistDialog = ({
       acc[team].push(item);
       return acc;
     },
-    {} as Record<string, typeof project.checklist>,
+    {} as Record<string, NonNullable<typeof project>["checklist"]>,
   );
 
   const userTeam = (currentUser?.team || "").toLowerCase();
@@ -326,7 +326,7 @@ export const ChecklistDialog = ({
 
   const handleResponsibilityChange = (checklistId: string, newParty: string) => {
     if (newParty && (newParty === "gokwik" || newParty === "merchant" || newParty === "neutral")) {
-      toggleChecklistResponsibility(project.id, checklistId, newParty as ResponsibilityParty);
+      toggleChecklistResponsibility(project?.id ?? "", checklistId, newParty as ResponsibilityParty);
     }
   };
 
@@ -372,7 +372,7 @@ export const ChecklistDialog = ({
 
   const getAssignee = (item: ProjectChecklist): string => {
     if (item.completedBy) return item.completedBy;
-    return project.assignedOwnerName || getTeamLabel(item.ownerTeam || "");
+    return project?.assignedOwnerName || getTeamLabel(item.ownerTeam || "");
   };
 
   const filteredItems = useMemo(() => selectedGroupData?.items || [], [selectedGroupData]);

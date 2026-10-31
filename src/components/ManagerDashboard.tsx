@@ -154,6 +154,9 @@ import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./Toolb
 import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
 import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
+import { RevenueArrDashlet } from "./RevenueArrDashlet";
+import { RevenueSlippageDashlet } from "./RevenueSlippageDashlet";
+import { RevenueAtRiskDashlet } from "./RevenueAtRiskDashlet";
 import { DashletSlot } from "./DashletSlot";
 import { DashletBuilder } from "./DashletBuilder";
 import { CustomFieldDashlet } from "./CustomFieldDashlet";
@@ -179,7 +182,7 @@ import { PivotTableSettings } from "./settings/PivotTableSettings";
 import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
-import { arrToCrore, formatArrCr } from "@/lib/arr";
+import { arrToCrore, formatArrCr, sumArrCrore } from "@/lib/arr";
 import { openProjectInNewTab } from "@/lib/open-project";
 
 // All nav items that can be toggled
@@ -300,7 +303,7 @@ export const ManagerDashboard = () => {
     onDragOver: onDashletDragOver,
     onDragEnd: onDashletDragEnd,
   } = useDashletOrder(
-    ["kpi", "workload", "tat", "attention", "egl", "stages", "health"],
+    ["kpi", "revenue-arr", "workload", "revenue-slippage", "revenue-risk", "tat", "attention", "egl", "stages", "health"],
     "manager_dashboard_dashlet_order",
   );
   const projectIds = useMemo(() => projects.map((p) => p.id), [projects]);
@@ -1897,6 +1900,7 @@ export const ManagerDashboard = () => {
                                 projects: list,
                               }),
                             attentionCount: atRisk.length,
+                            attentionArr: sumArrCrore(atRisk.map((p) => p.arr)),
                             onAttentionClick: () =>
                               setDrillDown({
                                 title: `${label} — needs attention`,
@@ -2055,6 +2059,15 @@ export const ManagerDashboard = () => {
                         />
                       </section>
                     ),
+                    "revenue-arr": (
+                      <RevenueArrDashlet
+                        projects={displayProjects}
+                        riskVerdicts={riskVerdicts}
+                        onDrillDown={(title, projects) => setDrillDown({ title, projects })}
+                      />
+                    ),
+                    "revenue-slippage": <RevenueSlippageDashlet projects={displayProjects} />,
+                    "revenue-risk": <RevenueAtRiskDashlet projects={displayProjects} />,
                     tat: <TATDashlet projects={displayProjects} />,
                     attention: <AttentionRequiredDashlet />,
                     egl: <EglRiskDashlet />,
@@ -2197,7 +2210,10 @@ export const ManagerDashboard = () => {
                   });
                   const dashletLabels: Record<string, string> = {
                     kpi: "KPI bar",
+                    "revenue-arr": "Revenue Overview",
                     workload: "Team workload",
+                    "revenue-slippage": "Revenue Slippage",
+                    "revenue-risk": "Revenue at Risk",
                     tat: "TAT",
                     attention: "Attention required",
                     egl: "Projects at risk of missing Go-Live",
@@ -2233,7 +2249,7 @@ export const ManagerDashboard = () => {
                             <DashletSlot
                               key={id}
                               className={
-                                id === "kpi" || id === "workload"
+                                id === "kpi" || id === "workload" || id === "revenue-arr"
                                   ? "lg:col-span-2"
                                   : "lg:col-span-1"
                               }

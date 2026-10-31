@@ -17,6 +17,7 @@ import { AttentionReasonBlock } from "./AttentionReason";
 import { Button } from "@/components/ui/button";
 import type { Project } from "@/data/projectsData";
 import { openProjectInNewTab } from "@/lib/open-project";
+import { arrCroreValue, sumArrCrore } from "@/lib/arr";
 
 /**
  * Project health from the Risk Rules engine — the same verdict behind the risk
@@ -42,6 +43,9 @@ export const AttentionRequiredDashlet = ({
         .sort((a, b) => b.verdict.score - a.verdict.score),
     [projects, verdicts],
   );
+
+  const totalArr = sumArrCrore(rows.map((r) => r.project.arr));
+  const totalMrr = totalArr / 12;
 
   return (
     <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
@@ -80,48 +84,64 @@ export const AttentionRequiredDashlet = ({
               <TableHead className="font-semibold text-foreground whitespace-nowrap">
                 {getLabel("field_expected_go_live_date")}
               </TableHead>
+              <TableHead className="font-semibold text-foreground whitespace-nowrap">ARR / MRR</TableHead>
               <TableHead className="font-semibold text-foreground">Reason</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground text-sm">
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground text-sm">
                   No projects need attention right now.
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map(({ project, verdict }) => (
-                <TableRow
-                  key={project.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => openProjectInNewTab(project.id)}
-                >
-                  <TableCell className="font-medium text-xs">{project.merchantName}</TableCell>
-                  <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                    <GoLiveDate project={project} />
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground align-top">
-                    {/* The AI explanation replaces the rule reason rather than
-                        stacking on top of it — it already restates the reason. */}
-                    {showAi ? (
-                      <AttentionReasonBlock
-                        projectId={project.id}
-                        kind="risk"
-                        reasons={verdict.findings.map((f) => f.detail)}
-                        enabled={showAi}
-                        compact
-                      />
-                    ) : (
-                      <p>{verdict.findings.map((f) => f.detail).join(" · ")}</p>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
+              rows.map(({ project, verdict }) => {
+                const projectArr = sumArrCrore([project.arr]);
+                const projectMrr = projectArr / 12;
+                return (
+                  <TableRow
+                    key={project.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => openProjectInNewTab(project.id)}
+                  >
+                    <TableCell className="font-medium text-xs">{project.merchantName}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                      <GoLiveDate project={project} />
+                    </TableCell>
+                    <TableCell className="text-xs whitespace-nowrap tabular-nums text-muted-foreground">
+                      <span className="font-medium text-foreground">{arrCroreValue(projectArr)} Cr</span>
+                      <span className="ml-1 text-2xs">/ {arrCroreValue(projectMrr)} MRR</span>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground align-top">
+                      {showAi ? (
+                        <AttentionReasonBlock
+                          projectId={project.id}
+                          kind="risk"
+                          reasons={verdict.findings.map((f) => f.detail)}
+                          enabled={showAi}
+                          compact
+                        />
+                      ) : (
+                        <p>{verdict.findings.map((f) => f.detail).join(" · ")}</p>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </div>
+      {rows.length > 0 && (
+        <div className="flex items-center gap-3 border-t border-border px-4 py-2 text-2xs text-muted-foreground">
+          <span className="font-medium text-foreground">{rows.length} projects</span>
+          <span>·</span>
+          <span>ARR <span className="font-medium text-foreground">{arrCroreValue(totalArr)} Cr</span></span>
+          <span>·</span>
+          <span>MRR <span className="font-medium text-foreground">{arrCroreValue(totalMrr)} Cr</span></span>
+        </div>
+      )}
     </section>
   );
 };

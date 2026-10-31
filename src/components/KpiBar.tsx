@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
+import { arrCroreValue } from "@/lib/arr";
 
 export interface KpiBoxItem {
   /** Stable id used to remember the arrangement. */
@@ -15,6 +16,8 @@ export interface KpiBoxItem {
   /** Optional secondary line, e.g. "4 need attention". */
   attentionCount?: number;
   onAttentionClick?: () => void;
+  /** ARR (in Crores) of the at-risk projects — shown as ARR/MRR under the attention count. */
+  attentionArr?: number;
 }
 
 /**
@@ -87,9 +90,17 @@ export const KpiBar = ({ items, storageKey }: { items: KpiBoxItem[]; storageKey:
                   event.stopPropagation();
                   kpi.onAttentionClick?.();
                 }}
-                className="mt-0.5 text-2xs font-semibold text-destructive-strong hover:underline"
+                className="mt-0.5 text-left hover:underline"
               >
-                {kpi.attentionCount} need attention
+                <span className="block text-2xs font-semibold text-destructive-strong">
+                  {kpi.attentionCount} need attention
+                </span>
+                {kpi.attentionArr !== undefined && kpi.attentionArr > 0 && (
+                  <span className="block text-2xs text-destructive-strong/70">
+                    ARR {arrCroreValue(kpi.attentionArr)} Cr · MRR{" "}
+                    {arrCroreValue(kpi.attentionArr / 12)} Cr
+                  </span>
+                )}
               </button>
             )}
           </div>
