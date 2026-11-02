@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   useChecklistSets,
   RULE_FIELDS,
   RULE_OPERATORS,
   PHASE_OPTIONS,
+  TEAM_OPTIONS,
   type ChecklistSet,
   type ChecklistSetRule,
   type ChecklistTemplate,
@@ -33,7 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, Star, StarOff, ChevronRight, X } from "lucide-react";
+import { Plus, Trash2, Star, StarOff, ChevronRight, X, Upload } from "lucide-react";
 
 // ─── Rule row ────────────────────────────────────────────────────────────────
 
@@ -177,12 +178,18 @@ const TemplateRow = ({
         </SelectContent>
       </Select>
 
-      <Input
-        className="h-7 w-24 shrink-0 text-xs"
-        placeholder="Team"
-        value={ownerTeam}
-        onChange={(e) => setOwnerTeam(e.target.value)}
-      />
+      <Select value={ownerTeam} onValueChange={setOwnerTeam}>
+        <SelectTrigger className="h-7 w-28 shrink-0 text-xs">
+          <SelectValue placeholder="Team" />
+        </SelectTrigger>
+        <SelectContent>
+          {TEAM_OPTIONS.map((t) => (
+            <SelectItem key={t.value} value={t.value} className="text-xs">
+              {t.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <Input
         className="h-7 w-16 shrink-0 text-xs"
@@ -263,9 +270,16 @@ const SetDetail = ({
 
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemPhase, setNewItemPhase] = useState<string>(PHASE_OPTIONS[0].value);
-  const [newItemTeam, setNewItemTeam] = useState("");
+  const [newItemTeam, setNewItemTeam] = useState<string>(TEAM_OPTIONS[0].value);
   const [newItemDuration, setNewItemDuration] = useState("");
   const [addingItem, setAddingItem] = useState(false);
+
+  const [csvPreview, setCsvPreview] = useState<
+    { title: string; phase: string; team: string; duration: number | null }[]
+  >([]);
+  const [csvOpen, setCsvOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const csvRef = useRef<HTMLInputElement>(null);
 
   const handleSaveName = async () => {
     if (!name.trim()) return;
@@ -290,14 +304,63 @@ const SetDetail = ({
       set.id,
       newItemTitle.trim(),
       newItemPhase,
-      newItemTeam.trim() || "mint",
+      newItemTeam,
       newItemDuration === "" ? null : Number(newItemDuration),
     );
     setNewItemTitle("");
-    setNewItemTeam("");
     setNewItemDuration("");
     setAddingItem(false);
     toast.success("Item added");
+  };
+
+  const handleCsvSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const lines = text.split("\n").filter((l) => l.trim());
+      const teamAliases: Record<string, string> = {
+        mint: "mint",
+        integration: "integration",
+        ms: "ms",
+        Mint: "mint",
+        Integration: "integration",
+        MS: "ms",
+      };
+      const validPhases = PHASE_OPTIONS.map((p) => p.value);
+      const startIdx = lines[0]?.toLowerCase().includes("title") ? 1 : 0;
+      const items: { title: string; phase: string; team: string; duration: number | null }[] = [];
+      for (let i = startIdx; i < lines.length; i++) {
+        const parts = lines[i].split(",").map((p) => p.trim().replace(/^"|"$/g, ""));
+        const title = parts[0];
+        if (!title) continue;
+        const rawPhase = parts[1]?.toLowerCase() ?? "";
+        const phase = (validPhases as readonly string[]).includes(rawPhase) ? rawPhase : "mint";
+        const team = teamAliases[parts[2]] ?? "mint";
+        const duration = parts[3] ? parseInt(parts[3], 10) : null;
+        items.push({ title, phase, team, duration: Number.isNaN(duration) ? null : duration });
+      }
+      if (items.length === 0) {
+        toast.error("No valid items found in CSV");
+        return;
+      }
+      setCsvPreview(items);
+      setCsvOpen(true);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const handleCsvImport = async () => {
+    setImporting(true);
+    for (const item of csvPreview) {
+      await onAddTemplate(set.id, item.title, item.phase, item.team, item.duration);
+    }
+    setImporting(false);
+    setCsvOpen(false);
+    setCsvPreview([]);
+    toast.success(`${csvPreview.length} items imported`);
   };
 
   return (
@@ -437,13 +500,30 @@ const SetDetail = ({
             Checklist Items{" "}
             <span className="font-normal text-muted-foreground">({templates.length})</span>
           </p>
-          <span className="text-2xs text-muted-foreground">title · phase · team · days</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-2xs text-muted-foreground">title · phase · team · days</span>
+            <input
+              ref={csvRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={handleCsvSelect}
+            />
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-6 gap-1 px-2 text-2xs text-muted-foreground"
+              onClick={() => csvRef.current?.click()}
+            >
+              <Upload className="h-3 w-3" /> CSV
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
           {templates.length === 0 && (
             <p className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
-              No items yet — add the first checklist item below.
+              No items yet — add below or upload a CSV.
             </p>
           )}
           {templates.map((t) => (
@@ -479,12 +559,18 @@ const SetDetail = ({
             </SelectContent>
           </Select>
 
-          <Input
-            className="h-7 w-24 shrink-0 text-xs"
-            placeholder="Team"
-            value={newItemTeam}
-            onChange={(e) => setNewItemTeam(e.target.value)}
-          />
+          <Select value={newItemTeam} onValueChange={setNewItemTeam}>
+            <SelectTrigger className="h-7 w-28 shrink-0 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TEAM_OPTIONS.map((t) => (
+                <SelectItem key={t.value} value={t.value} className="text-xs">
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <Input
             className="h-7 w-16 shrink-0 text-xs"
@@ -506,6 +592,50 @@ const SetDetail = ({
           </Button>
         </div>
       </div>
+
+      {/* CSV preview dialog */}
+      <Dialog open={csvOpen} onOpenChange={(o) => !o && setCsvOpen(false)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import Checklist Items</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">
+            {csvPreview.length} item{csvPreview.length !== 1 ? "s" : ""} found. CSV format:{" "}
+            <code className="rounded bg-muted px-1 text-2xs">title,phase,team,days</code> (phase,
+            team and days are optional).
+          </p>
+          <div className="max-h-64 overflow-auto rounded-md border border-border">
+            <table className="w-full text-xs">
+              <thead className="sticky top-0 bg-muted text-left">
+                <tr>
+                  <th className="px-3 py-1.5 font-medium">Title</th>
+                  <th className="px-3 py-1.5 font-medium">Phase</th>
+                  <th className="px-3 py-1.5 font-medium">Team</th>
+                  <th className="px-3 py-1.5 font-medium">Days</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {csvPreview.map((item, i) => (
+                  <tr key={i} className="hover:bg-muted/40">
+                    <td className="px-3 py-1.5">{item.title}</td>
+                    <td className="px-3 py-1.5 capitalize">{item.phase}</td>
+                    <td className="px-3 py-1.5 capitalize">{item.team}</td>
+                    <td className="px-3 py-1.5">{item.duration ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setCsvOpen(false)}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleCsvImport} disabled={importing}>
+              {importing ? "Importing…" : `Import ${csvPreview.length} Items`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

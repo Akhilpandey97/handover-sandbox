@@ -56,6 +56,12 @@ export const PHASE_OPTIONS = [
   { value: "completed", label: "Completed" },
 ] as const;
 
+export const TEAM_OPTIONS = [
+  { value: "mint", label: "Mint" },
+  { value: "integration", label: "Integration" },
+  { value: "ms", label: "MS" },
+] as const;
+
 export const useChecklistSets = () => {
   const { currentUser } = useAuth();
   const tenantId = tenantScope(currentUser?.tenantId);
