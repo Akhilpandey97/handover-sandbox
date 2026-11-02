@@ -1893,7 +1893,7 @@ export const ManagerDashboard = () => {
                           key: "all",
                           label: "All projects",
                           value: totalProjects,
-                          sub: `Pipeline ${arrLabel}: ${totalArr % 1 === 0 ? totalArr.toFixed(0) : totalArr.toFixed(1)} Cr`,
+                          sub: `Pipeline ${arrLabel}: ${((totalArr / 12) % 1 === 0 ? (totalArr / 12).toFixed(0) : (totalArr / 12).toFixed(1))} Cr`,
                           icon: FolderKanban,
                           tone: "bg-muted text-foreground/70",
                           onClick: () =>
@@ -1907,7 +1907,7 @@ export const ManagerDashboard = () => {
                             key,
                             label: state === "in_progress" ? "In Progress" : label,
                             value: list.length,
-                            sub: `${arrLabel}: ${((v) => (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)))(list.reduce((s, p) => s + arrToCrore(p.arr), 0))} Cr`,
+                            sub: `${arrLabel}: ${((v) => (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)))(list.reduce((s, p) => s + arrToCrore(p.arr), 0) / 12)} Cr`,
                             icon,
                             tone,
                             onClick: () =>
