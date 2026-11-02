@@ -1,5 +1,5 @@
 import { CheckCircle2, FolderKanban, ShieldAlert, Ban } from "lucide-react";
-import { arrCroreValue, sumArrCrore } from "@/lib/arr";
+import { formatCr, sumArrCrore } from "@/lib/arr";
 import type { Project } from "@/data/projectsData";
 import type { RiskVerdict } from "@/data/riskRules";
 
@@ -92,10 +92,10 @@ export const RevenueArrDashlet = ({ projects, riskVerdicts, onDrillDown }: Props
               </div>
               <div>
                 <p className="text-xl font-semibold tabular-nums leading-tight text-foreground">
-                  {arrCroreValue(tile.arr)} Cr
+                  {formatCr(tile.arr)} Cr
                 </p>
                 <p className="mt-0.5 text-2xs text-muted-foreground">
-                  MRR {arrCroreValue(mrr)} Cr · {tile.count} project{tile.count !== 1 ? "s" : ""}
+                  MRR {formatCr(mrr)} Cr · {tile.count} project{tile.count !== 1 ? "s" : ""}
                 </p>
               </div>
             </button>

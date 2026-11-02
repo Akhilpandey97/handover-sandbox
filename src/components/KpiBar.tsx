@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDashletOrder } from "@/hooks/useDashletOrder";
-import { arrCroreValue } from "@/lib/arr";
+import { formatCr } from "@/lib/arr";
 
 export interface KpiBoxItem {
   /** Stable id used to remember the arrangement. */
@@ -97,8 +97,7 @@ export const KpiBar = ({ items, storageKey }: { items: KpiBoxItem[]; storageKey:
                 </span>
                 {kpi.attentionArr !== undefined && kpi.attentionArr > 0 && (
                   <span className="block text-2xs text-destructive-strong/70">
-                    ARR {arrCroreValue(kpi.attentionArr)} Cr · MRR{" "}
-                    {arrCroreValue(kpi.attentionArr / 12)} Cr
+                    ARR {formatCr(kpi.attentionArr)} Cr · MRR {formatCr(kpi.attentionArr / 12)} Cr
                   </span>
                 )}
               </button>

@@ -29,3 +29,18 @@ export const formatArrCr = (value: number | null | undefined, digits = 2): strin
 /** Sum a list of raw ARR values and return Crores. */
 export const sumArrCrore = (values: Array<number | null | undefined>): number =>
   values.reduce<number>((sum, v) => sum + arrToCrore(v), 0);
+
+/**
+ * Format a value that is ALREADY in Crores (e.g. the output of sumArrCrore).
+ * Does NOT call arrToCrore — avoids double-conversion when the total exceeds
+ * the 1-lakh threshold that arrToCrore uses to detect raw-rupee values.
+ */
+export const formatCr = (crores: number | null | undefined, digits = 2): string => {
+  const n = Number(crores ?? 0);
+  if (!Number.isFinite(n)) return "0";
+  if (digits === 2) {
+    const d = n % 1 === 0 ? 0 : 1;
+    return n.toFixed(d);
+  }
+  return n.toFixed(digits);
+};
