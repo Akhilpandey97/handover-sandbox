@@ -85,7 +85,9 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
               <TableHead className="font-semibold text-foreground whitespace-nowrap">
                 {getLabel("field_expected_go_live_date")}
               </TableHead>
-              <TableHead className="font-semibold text-foreground whitespace-nowrap">ARR / MRR</TableHead>
+              <TableHead className="font-semibold text-foreground whitespace-nowrap">
+                ARR / MRR
+              </TableHead>
               <TableHead className="font-semibold text-foreground">Reason</TableHead>
             </TableRow>
           </TableHeader>
@@ -117,7 +119,9 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
                       )}
                     </TableCell>
                     <TableCell className="text-xs whitespace-nowrap tabular-nums text-muted-foreground">
-                      <span className="font-medium text-foreground">{arrCroreValue(projectArr)} Cr</span>
+                      <span className="font-medium text-foreground">
+                        {arrCroreValue(projectArr)} Cr
+                      </span>
                       <span className="ml-1 text-2xs">/ {arrCroreValue(projectMrr)} MRR</span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground align-top">
@@ -144,9 +148,13 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
         <div className="flex items-center gap-3 border-t border-border px-4 py-2 text-2xs text-muted-foreground">
           <span className="font-medium text-foreground">{rows.length} projects</span>
           <span>·</span>
-          <span>ARR <span className="font-medium text-foreground">{arrCroreValue(totalArr)} Cr</span></span>
+          <span>
+            ARR <span className="font-medium text-foreground">{arrCroreValue(totalArr)} Cr</span>
+          </span>
           <span>·</span>
-          <span>MRR <span className="font-medium text-foreground">{arrCroreValue(totalMrr)} Cr</span></span>
+          <span>
+            MRR <span className="font-medium text-foreground">{arrCroreValue(totalMrr)} Cr</span>
+          </span>
         </div>
       )}
     </section>

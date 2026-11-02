@@ -169,6 +169,7 @@ export interface Project {
   kpSandboxJweKey?: string;
   faqHelp?: ProjectFaqHelp[];
   paymentSimulatorLink?: string;
+  checklistSetId?: string | null;
 }
 
 // Helper to calculate time spent by each party (neutral time is not counted)

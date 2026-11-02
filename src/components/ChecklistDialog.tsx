@@ -326,7 +326,11 @@ export const ChecklistDialog = ({
 
   const handleResponsibilityChange = (checklistId: string, newParty: string) => {
     if (newParty && (newParty === "gokwik" || newParty === "merchant" || newParty === "neutral")) {
-      toggleChecklistResponsibility(project?.id ?? "", checklistId, newParty as ResponsibilityParty);
+      toggleChecklistResponsibility(
+        project?.id ?? "",
+        checklistId,
+        newParty as ResponsibilityParty,
+      );
     }
   };
 

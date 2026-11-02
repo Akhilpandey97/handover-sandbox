@@ -20,10 +20,12 @@ import {
   Activity,
   Bell,
   Plug,
+  ListChecks,
 } from "lucide-react";
 import { LogoUpload } from "./LogoUpload";
 import { CustomFieldsManager } from "./settings/CustomFieldsManager";
 import { ChecklistFormsManager } from "./settings/ChecklistFormsManager";
+import { ChecklistSetsManager } from "./settings/ChecklistSetsManager";
 import { ThemePresets } from "./settings/ThemePresets";
 import { WorkflowsManager } from "./settings/WorkflowsManager";
 import { ActivityLogViewer } from "./settings/ActivityLogViewer";
@@ -395,6 +397,10 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
               <FileText className="h-3.5 w-3.5" />
               Checklist Forms
             </TabsTrigger>
+            <TabsTrigger value="checklist-sets" className="gap-1.5">
+              <ListChecks className="h-3.5 w-3.5" />
+              Checklist Sets
+            </TabsTrigger>
             <TabsTrigger value="colours" className="gap-1.5">
               <Palette className="h-3.5 w-3.5" />
               Colours
@@ -490,6 +496,11 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
         {/* Checklist Forms Tab */}
         <TabsContent value="checklist-forms">
           <ChecklistFormsManager />
+        </TabsContent>
+
+        {/* Checklist Sets Tab */}
+        <TabsContent value="checklist-sets">
+          <ChecklistSetsManager />
         </TabsContent>
 
         {/* Colours Tab */}

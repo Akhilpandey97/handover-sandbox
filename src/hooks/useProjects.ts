@@ -88,6 +88,7 @@ const transformDbProject = (row: any): Project => ({
   kpSandboxJweKey: (row as any).kp_sandbox_jwe_key || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI",
   faqHelp: Array.isArray((row as any).faq_help) ? (row as any).faq_help : [],
   paymentSimulatorLink: (row as any).payment_simulator_link || undefined,
+  checklistSetId: (row as any).checklist_set_id || null,
 });
 
 // Transform checklist item from database
@@ -357,6 +358,7 @@ export const useAddProject = () => {
           contact_email: project.contactEmail || null,
           config_id: project.configId || null,
           tenant_id: currentUser?.tenantId || null,
+          checklist_set_id: project.checklistSetId || null,
         })
         .select()
         .single();
@@ -527,6 +529,7 @@ export const useUpdateProject = () => {
           enable_kp: project.enableKp || false,
           faq_help: (project.faqHelp ?? []) as any,
           payment_simulator_link: project.paymentSimulatorLink || null,
+          checklist_set_id: project.checklistSetId ?? null,
         })
         .eq("id", project.id);
 

@@ -31,9 +31,7 @@ const StatTile = ({ icon: Icon, label, arr, count, tone }: StatTileProps) => {
         <Icon className="h-3 w-3" />
         {label}
       </div>
-      <p className="text-lg font-semibold leading-tight tabular-nums">
-        {arrCroreValue(arr)} Cr
-      </p>
+      <p className="text-lg font-semibold leading-tight tabular-nums">{arrCroreValue(arr)} Cr</p>
       <p className="text-2xs opacity-70">
         MRR {arrCroreValue(mrr)} Cr · {count} project{count !== 1 ? "s" : ""}
       </p>
@@ -48,7 +46,9 @@ export const RevenueAtRiskDashlet = ({ projects }: { projects?: Project[] } = {}
   const { eglProjects, attentionProjects, unionProjects } = useMemo(() => {
     const egl = new Set(eglRows.map((r) => r.project.id));
     const attention = new Set(
-      (projects ?? []).filter((p) => !p.archived && verdicts[p.id]?.level === "high").map((p) => p.id),
+      (projects ?? [])
+        .filter((p) => !p.archived && verdicts[p.id]?.level === "high")
+        .map((p) => p.id),
     );
 
     const eglList = eglRows.map((r) => r.project);
@@ -118,8 +118,12 @@ export const RevenueAtRiskDashlet = ({ projects }: { projects?: Project[] } = {}
             <TableRow className="hover:bg-muted/40 border-b">
               <TableHead className="font-semibold text-foreground">Project</TableHead>
               <TableHead className="font-semibold text-foreground whitespace-nowrap">EGL</TableHead>
-              <TableHead className="font-semibold text-foreground whitespace-nowrap">ARR / MRR</TableHead>
-              <TableHead className="font-semibold text-foreground whitespace-nowrap">Bucket</TableHead>
+              <TableHead className="font-semibold text-foreground whitespace-nowrap">
+                ARR / MRR
+              </TableHead>
+              <TableHead className="font-semibold text-foreground whitespace-nowrap">
+                Bucket
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -133,8 +137,7 @@ export const RevenueAtRiskDashlet = ({ projects }: { projects?: Project[] } = {}
               unionProjects.map(({ project, inEgl, inAttention }) => {
                 const pArr = sumArrCrore([project.arr]);
                 const pMrr = pArr / 12;
-                const bucket =
-                  inEgl && inAttention ? "Both" : inEgl ? "EGL" : "Attention";
+                const bucket = inEgl && inAttention ? "Both" : inEgl ? "EGL" : "Attention";
                 const bucketTone =
                   bucket === "Both"
                     ? "bg-destructive-soft text-destructive-strong"
@@ -156,7 +159,9 @@ export const RevenueAtRiskDashlet = ({ projects }: { projects?: Project[] } = {}
                       <span className="ml-1 text-2xs">/ {arrCroreValue(pMrr)} MRR</span>
                     </TableCell>
                     <TableCell>
-                      <span className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${bucketTone}`}>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${bucketTone}`}
+                      >
                         {bucket}
                       </span>
                     </TableCell>
@@ -172,9 +177,14 @@ export const RevenueAtRiskDashlet = ({ projects }: { projects?: Project[] } = {}
         <div className="flex items-center gap-3 border-t border-border px-4 py-2 text-2xs text-muted-foreground">
           <span className="font-medium text-foreground">{unionProjects.length} projects</span>
           <span>·</span>
-          <span>Total ARR <span className="font-medium text-foreground">{arrCroreValue(totalArr)} Cr</span></span>
+          <span>
+            Total ARR{" "}
+            <span className="font-medium text-foreground">{arrCroreValue(totalArr)} Cr</span>
+          </span>
           <span>·</span>
-          <span>MRR <span className="font-medium text-foreground">{arrCroreValue(totalMrr)} Cr</span></span>
+          <span>
+            MRR <span className="font-medium text-foreground">{arrCroreValue(totalMrr)} Cr</span>
+          </span>
         </div>
       )}
     </section>

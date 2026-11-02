@@ -9,6 +9,7 @@ import {
 import { useLabels } from "@/contexts/LabelsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
+import { useChecklistSets } from "@/hooks/useChecklistSets";
 import { CustomFieldsForm } from "./CustomFieldsRenderer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -38,8 +39,10 @@ import {
   HelpCircle,
   Plus,
   Trash2,
+  ListChecks,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Switch } from "@/components/ui/switch";
@@ -77,6 +80,7 @@ export const EditProjectDialog = ({
   // Must stay above the `if (!editedProject) return null` below: a hook
   // declared after it runs only on some renders, which is what broke Kanban.
   const faqFileRef = useRef<HTMLInputElement>(null);
+  const { sets: checklistSets } = useChecklistSets();
 
   useEffect(() => {
     if (project) {
@@ -586,6 +590,45 @@ export const EditProjectDialog = ({
                   />
                 </div>
               </div>
+
+              {checklistSets.length > 0 && (
+                <div className="space-y-1.5 rounded-md border border-dashed border-border bg-muted/30 p-3">
+                  <div className="flex items-center gap-1.5">
+                    <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      Checklist Set
+                    </Label>
+                  </div>
+                  <Select
+                    value={editedProject.checklistSetId ?? "__none__"}
+                    onValueChange={(v) =>
+                      updateField("checklistSetId", v === "__none__" ? null : v)
+                    }
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="None" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__" className="text-xs">
+                        None
+                      </SelectItem>
+                      {checklistSets.map((s) => (
+                        <SelectItem key={s.id} value={s.id} className="text-xs">
+                          {s.name}
+                          {s.is_default && (
+                            <Badge variant="secondary" className="ml-1.5 text-2xs">
+                              default
+                            </Badge>
+                          )}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-2xs text-muted-foreground">
+                    Changing this only updates the label; existing checklist items are not replaced.
+                  </p>
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="links" className="space-y-3">

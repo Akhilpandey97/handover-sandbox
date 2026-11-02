@@ -84,7 +84,9 @@ export const RevenueArrDashlet = ({ projects, riskVerdicts, onDrillDown }: Props
             >
               <div className="flex items-center justify-between">
                 <span className="text-2xs font-medium text-muted-foreground">{tile.label}</span>
-                <span className={`flex h-6 w-6 items-center justify-center rounded-md ${tile.tone}`}>
+                <span
+                  className={`flex h-6 w-6 items-center justify-center rounded-md ${tile.tone}`}
+                >
                   <tile.icon className={`h-3.5 w-3.5 ${tile.iconTone}`} />
                 </span>
               </div>

@@ -13,9 +13,18 @@ import {
 } from "@/components/ui/table";
 
 const MONTH_LABELS: Record<string, string> = {
-  "01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr",
-  "05": "May", "06": "Jun", "07": "Jul", "08": "Aug",
-  "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
+  "01": "Jan",
+  "02": "Feb",
+  "03": "Mar",
+  "04": "Apr",
+  "05": "May",
+  "06": "Jun",
+  "07": "Jul",
+  "08": "Aug",
+  "09": "Sep",
+  "10": "Oct",
+  "11": "Nov",
+  "12": "Dec",
 };
 
 function formatMonth(yyyyMm: string) {
@@ -70,7 +79,8 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
             {arrCroreValue(totalArr)} Cr
           </p>
           <p className="text-2xs opacity-70">
-            MRR {arrCroreValue(totalMrr)} Cr · {slipped.length} project{slipped.length !== 1 ? "s" : ""}
+            MRR {arrCroreValue(totalMrr)} Cr · {slipped.length} project
+            {slipped.length !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex flex-col gap-1 rounded-lg bg-warning-soft p-3 text-warning-strong">
@@ -82,7 +92,8 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
             {arrCroreValue(thisMonthArr)} Cr
           </p>
           <p className="text-2xs opacity-70">
-            MRR {arrCroreValue(thisMonthMrr)} Cr · {thisMonthSlipped.length} project{thisMonthSlipped.length !== 1 ? "s" : ""}
+            MRR {arrCroreValue(thisMonthMrr)} Cr · {thisMonthSlipped.length} project
+            {thisMonthSlipped.length !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex flex-col gap-1 rounded-lg bg-muted p-3 text-foreground">
@@ -99,8 +110,12 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
             <TableRow className="hover:bg-muted/40 border-b">
               <TableHead className="font-semibold text-foreground">Month</TableHead>
               <TableHead className="font-semibold text-foreground text-right">Projects</TableHead>
-              <TableHead className="font-semibold text-foreground text-right whitespace-nowrap">ARR (Cr)</TableHead>
-              <TableHead className="font-semibold text-foreground text-right whitespace-nowrap">MRR (Cr)</TableHead>
+              <TableHead className="font-semibold text-foreground text-right whitespace-nowrap">
+                ARR (Cr)
+              </TableHead>
+              <TableHead className="font-semibold text-foreground text-right whitespace-nowrap">
+                MRR (Cr)
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   createDefaultProject,
   Project,
@@ -8,6 +8,11 @@ import {
 } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
+import {
+  useChecklistSets,
+  type ChecklistSet,
+  type ChecklistSetRule,
+} from "@/hooks/useChecklistSets";
 import { CustomFieldsForm } from "./CustomFieldsRenderer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -16,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { PLATFORM_OPTIONS, INTEGRATION_TYPE_OPTIONS } from "@/data/projectFieldOptions";
 import {
   Select,
@@ -24,8 +30,60 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building2, Calendar, Link2, FileText, Layers } from "lucide-react";
+import { Building2, Calendar, Link2, FileText, Layers, ListChecks } from "lucide-react";
 import { DatePickerField } from "@/components/ui/date-picker-field";
+
+function resolveChecklistSet(
+  sets: ChecklistSet[],
+  rules: ChecklistSetRule[],
+  project: { platform: string; category: string; integrationType: string; pgOnboarding: string },
+): ChecklistSet | null {
+  type Candidate = { set: ChecklistSet; matchCount: number };
+  let best: Candidate | null = null;
+
+  for (const set of sets) {
+    const setRules = rules.filter((r) => r.checklist_set_id === set.id);
+    let allMatch = true;
+    let matchCount = 0;
+
+    for (const rule of setRules) {
+      let val: string | null = null;
+      if (rule.field === "platform") val = project.platform;
+      else if (rule.field === "category") val = project.category;
+      else if (rule.field === "integration_type") val = project.integrationType;
+      else if (rule.field === "pg_onboarding") val = project.pgOnboarding;
+
+      let ruleMatch = false;
+      if (rule.operator === "eq") ruleMatch = val === rule.value;
+      else if (rule.operator === "not_eq") ruleMatch = val !== rule.value;
+      else if (rule.operator === "in") {
+        try {
+          const arr = JSON.parse(rule.value) as string[];
+          ruleMatch = arr.includes(val ?? "");
+        } catch {
+          ruleMatch = false;
+        }
+      }
+
+      if (!ruleMatch) {
+        allMatch = false;
+        break;
+      }
+      matchCount++;
+    }
+
+    if (allMatch) {
+      const isBetter =
+        !best ||
+        matchCount > best.matchCount ||
+        (matchCount === best.matchCount && !set.is_default && best.set.is_default);
+      if (isBetter) best = { set, matchCount };
+    }
+  }
+
+  if (best) return best.set;
+  return sets.find((s) => s.is_default) ?? sets[0] ?? null;
+}
 
 interface AddProjectDialogProps {
   open: boolean;
@@ -37,8 +95,28 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
   const { getLabel } = useLabels();
   const { fields: customFields } = useCustomFields();
   const { saveValues } = useCustomFieldValues(undefined);
+  const { sets, rules } = useChecklistSets();
   const [project, setProject] = useState<Project>(createDefaultProject());
   const [customDraft, setCustomDraft] = useState<Record<string, string>>({});
+  const [checklistSetOverride, setChecklistSetOverride] = useState<string>("__auto__");
+
+  const autoSet = useMemo(
+    () =>
+      resolveChecklistSet(sets, rules, {
+        platform: project.platform,
+        category: project.category,
+        integrationType: project.integrationType,
+        pgOnboarding: project.pgOnboarding,
+      }),
+    [
+      sets,
+      rules,
+      project.platform,
+      project.category,
+      project.integrationType,
+      project.pgOnboarding,
+    ],
+  );
 
   const updateField = <K extends keyof Project>(field: K, value: Project[K]) => {
     setProject((prev) => ({ ...prev, [field]: value }));
@@ -83,18 +161,22 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
     if (!emailsValid(project.contactEmail || "")) {
       return;
     }
-    onSave(project);
+    const effectiveSetId =
+      checklistSetOverride !== "__auto__" ? checklistSetOverride : (autoSet?.id ?? null);
+    onSave({ ...project, checklistSetId: effectiveSetId ?? undefined } as Project);
     if (Object.keys(customDraft).length > 0) {
       await saveValues(project.id, customDraft);
     }
     setProject(createDefaultProject());
     setCustomDraft({});
+    setChecklistSetOverride("__auto__");
     onOpenChange(false);
   };
 
   const handleCancel = () => {
     setProject(createDefaultProject());
     setCustomDraft({});
+    setChecklistSetOverride("__auto__");
     onOpenChange(false);
   };
 
@@ -330,6 +412,42 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
                   />
                 </div>
               </div>
+
+              {sets.length > 0 && (
+                <div className="space-y-1.5 rounded-md border border-dashed border-border bg-muted/30 p-3">
+                  <div className="flex items-center gap-1.5">
+                    <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      Checklist Set
+                    </Label>
+                  </div>
+                  <Select value={checklistSetOverride} onValueChange={setChecklistSetOverride}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__auto__" className="text-xs">
+                        Auto-assign{autoSet ? ` — ${autoSet.name}` : ""}
+                      </SelectItem>
+                      {sets.map((s) => (
+                        <SelectItem key={s.id} value={s.id} className="text-xs">
+                          {s.name}
+                          {s.is_default && (
+                            <Badge variant="secondary" className="ml-1.5 text-2xs">
+                              default
+                            </Badge>
+                          )}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {checklistSetOverride === "__auto__" && autoSet && (
+                    <p className="text-2xs text-muted-foreground">
+                      Based on current fields: <span className="font-medium">{autoSet.name}</span>
+                    </p>
+                  )}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="links" className="space-y-3">

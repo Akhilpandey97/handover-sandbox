@@ -645,6 +645,82 @@ export type Database = {
           },
         ];
       };
+      checklist_set_rules: {
+        Row: {
+          checklist_set_id: string;
+          field: string;
+          id: string;
+          operator: string;
+          sort_order: number;
+          value: string;
+        };
+        Insert: {
+          checklist_set_id: string;
+          field: string;
+          id?: string;
+          operator?: string;
+          sort_order?: number;
+          value: string;
+        };
+        Update: {
+          checklist_set_id?: string;
+          field?: string;
+          id?: string;
+          operator?: string;
+          sort_order?: number;
+          value?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "checklist_set_rules_checklist_set_id_fkey";
+            columns: ["checklist_set_id"];
+            isOneToOne: false;
+            referencedRelation: "checklist_sets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      checklist_sets: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: string;
+          is_default: boolean;
+          name: string;
+          sort_order: number;
+          tenant_id: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_default?: boolean;
+          name: string;
+          sort_order?: number;
+          tenant_id?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_default?: boolean;
+          name?: string;
+          sort_order?: number;
+          tenant_id?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "checklist_sets_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       checklist_items: {
         Row: {
           comment: string | null;
@@ -950,6 +1026,7 @@ export type Database = {
       };
       checklist_templates: {
         Row: {
+          checklist_set_id: string | null;
           created_at: string;
           id: string;
           owner_team: string;
@@ -961,6 +1038,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          checklist_set_id?: string | null;
           created_at?: string;
           id?: string;
           owner_team: string;
@@ -972,6 +1050,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          checklist_set_id?: string | null;
           created_at?: string;
           id?: string;
           owner_team?: string;
@@ -983,6 +1062,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "checklist_templates_checklist_set_id_fkey";
+            columns: ["checklist_set_id"];
+            isOneToOne: false;
+            referencedRelation: "checklist_sets";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "checklist_templates_tenant_id_fkey";
             columns: ["tenant_id"];
@@ -2205,6 +2291,7 @@ export type Database = {
           brand_url: string | null;
           brd_link: string | null;
           category: string | null;
+          checklist_set_id: string | null;
           config_id: string | null;
           contact_email: string | null;
           created_at: string | null;
@@ -2263,6 +2350,7 @@ export type Database = {
           brand_url?: string | null;
           brd_link?: string | null;
           category?: string | null;
+          checklist_set_id?: string | null;
           config_id?: string | null;
           contact_email?: string | null;
           created_at?: string | null;
@@ -2321,6 +2409,7 @@ export type Database = {
           brand_url?: string | null;
           brd_link?: string | null;
           category?: string | null;
+          checklist_set_id?: string | null;
           config_id?: string | null;
           contact_email?: string | null;
           created_at?: string | null;

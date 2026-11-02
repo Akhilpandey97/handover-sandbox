@@ -303,7 +303,18 @@ export const ManagerDashboard = () => {
     onDragOver: onDashletDragOver,
     onDragEnd: onDashletDragEnd,
   } = useDashletOrder(
-    ["kpi", "revenue-arr", "workload", "revenue-slippage", "revenue-risk", "tat", "attention", "egl", "stages", "health"],
+    [
+      "kpi",
+      "revenue-arr",
+      "workload",
+      "revenue-slippage",
+      "revenue-risk",
+      "tat",
+      "attention",
+      "egl",
+      "stages",
+      "health",
+    ],
     "manager_dashboard_dashlet_order",
   );
   const projectIds = useMemo(() => projects.map((p) => p.id), [projects]);
