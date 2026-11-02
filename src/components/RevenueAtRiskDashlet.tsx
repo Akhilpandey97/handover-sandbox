@@ -78,7 +78,7 @@ export const RevenueAtRiskDashlet = ({ projects }: { projects?: Project[] } = {}
   const totalMrr = totalArr / 12;
 
   return (
-    <section className="flex h-full flex-col rounded-lg border border-border bg-card shadow-sm">
+    <section className="flex max-h-[480px] flex-col rounded-lg border border-border bg-card shadow-sm">
       <div className="border-b border-border px-4 py-2.5">
         <p className="text-sm font-semibold text-foreground">Revenue at Risk</p>
         <p className="mt-0.5 text-2xs text-muted-foreground">
