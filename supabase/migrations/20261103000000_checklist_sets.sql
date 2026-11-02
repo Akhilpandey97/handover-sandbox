@@ -25,12 +25,12 @@ ALTER TABLE public.checklist_sets ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "tenant members can read checklist_sets"
   ON public.checklist_sets FOR SELECT
-  USING (tenant_id = public.get_user_tenant_id());
+  USING (tenant_id = public.get_user_tenant_id(auth.uid()));
 
 CREATE POLICY "admins can write checklist_sets"
   ON public.checklist_sets FOR ALL
-  USING (tenant_id = public.get_user_tenant_id())
-  WITH CHECK (tenant_id = public.get_user_tenant_id());
+  USING (tenant_id = public.get_user_tenant_id(auth.uid()))
+  WITH CHECK (tenant_id = public.get_user_tenant_id(auth.uid()));
 
 -- 2. Assignment rules ─────────────────────────────────────────────────────────
 --
@@ -56,7 +56,7 @@ CREATE POLICY "tenant members can read checklist_set_rules"
   ON public.checklist_set_rules FOR SELECT
   USING (
     checklist_set_id IN (
-      SELECT id FROM public.checklist_sets WHERE tenant_id = public.get_user_tenant_id()
+      SELECT id FROM public.checklist_sets WHERE tenant_id = public.get_user_tenant_id(auth.uid())
     )
   );
 
@@ -64,12 +64,12 @@ CREATE POLICY "admins can write checklist_set_rules"
   ON public.checklist_set_rules FOR ALL
   USING (
     checklist_set_id IN (
-      SELECT id FROM public.checklist_sets WHERE tenant_id = public.get_user_tenant_id()
+      SELECT id FROM public.checklist_sets WHERE tenant_id = public.get_user_tenant_id(auth.uid())
     )
   )
   WITH CHECK (
     checklist_set_id IN (
-      SELECT id FROM public.checklist_sets WHERE tenant_id = public.get_user_tenant_id()
+      SELECT id FROM public.checklist_sets WHERE tenant_id = public.get_user_tenant_id(auth.uid())
     )
   );
 
