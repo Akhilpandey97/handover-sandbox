@@ -36,6 +36,7 @@ export const SETTINGS_SUB_TABS = [
   "fields",
   "custom-fields",
   "checklist-forms",
+  "checklist-sets",
   "checklist",
   "users",
   "colours",

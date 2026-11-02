@@ -6,6 +6,7 @@ const LABELS: Record<string, string> = {
   fields: "Field Labels",
   "custom-fields": "Custom Fields",
   "checklist-forms": "Checklist Forms",
+  "checklist-sets": "Checklist Sets",
   checklist: "Checklist & Teams",
   users: "User Management",
   colours: "Colours",

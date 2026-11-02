@@ -179,6 +179,7 @@ import { TATDashlet } from "./TATDashlet";
 import { ReportsBuilder } from "./reports/ReportsBuilder";
 import { ReportScheduler } from "./reports/ReportScheduler";
 import { PivotTableSettings } from "./settings/PivotTableSettings";
+import { ChecklistSetsManager } from "./settings/ChecklistSetsManager";
 import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
@@ -1214,6 +1215,11 @@ export const ManagerDashboard = () => {
       label: "Checklist Forms",
       icon: ClipboardList,
       description: "Forms a checklist step can ask people to fill in.",
+    },
+    "checklist-sets": {
+      label: "Checklist Sets",
+      icon: ListChecks,
+      description: "Multiple checklists assigned to projects by field rules.",
     },
     checklist: {
       label: "Checklist",
@@ -3593,7 +3599,14 @@ export const ManagerDashboard = () => {
                       { label: "Workspace", keys: ["general", "colours", "navigation", "users"] },
                       {
                         label: "Data model",
-                        keys: ["fields", "custom-fields", "funnel", "checklist", "checklist-forms"],
+                        keys: [
+                          "fields",
+                          "custom-fields",
+                          "funnel",
+                          "checklist",
+                          "checklist-forms",
+                          "checklist-sets",
+                        ],
                       },
                       {
                         label: "Process & automation",
@@ -3607,6 +3620,10 @@ export const ManagerDashboard = () => {
                   />
                 ) : ADMIN_ONLY_SETTINGS.includes(settingsSubTab) && !perms.canManageUsers ? (
                   <NoAccessCard />
+                ) : settingsSubTab === "checklist-sets" ? (
+                  <div className="p-6">
+                    <ChecklistSetsManager />
+                  </div>
                 ) : settingsSubTab === "checklist" ? (
                   <ChecklistManagement />
                 ) : settingsSubTab === "users" ? (
