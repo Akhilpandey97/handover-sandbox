@@ -23,6 +23,19 @@ export interface ChecklistSetRule {
   sort_order: number;
 }
 
+export interface ChecklistTemplate {
+  id: string;
+  checklist_set_id: string | null;
+  tenant_id: string | null;
+  title: string;
+  phase: string;
+  owner_team: string;
+  standard_duration: number | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export const RULE_FIELDS = [
   { value: "platform", label: "Platform" },
   { value: "category", label: "Category" },
@@ -36,25 +49,41 @@ export const RULE_OPERATORS = [
   { value: "in", label: "is one of" },
 ] as const;
 
+export const PHASE_OPTIONS = [
+  { value: "mint", label: "Mint" },
+  { value: "integration", label: "Integration" },
+  { value: "ms", label: "MS" },
+  { value: "completed", label: "Completed" },
+] as const;
+
 export const useChecklistSets = () => {
   const { currentUser } = useAuth();
   const tenantId = tenantScope(currentUser?.tenantId);
   const [sets, setSets] = useState<ChecklistSet[]>([]);
   const [rules, setRules] = useState<ChecklistSetRule[]>([]);
+  const [templates, setTemplates] = useState<ChecklistTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true);
-    const [setsRes, rulesRes] = await Promise.all([
+    const [setsRes, rulesRes, templatesRes] = await Promise.all([
       supabase.from("checklist_sets").select("*").eq("tenant_id", tenantId).order("sort_order"),
       supabase
         .from("checklist_set_rules")
         .select("*, checklist_sets!inner(tenant_id)")
         .eq("checklist_sets.tenant_id", tenantId)
         .order("sort_order"),
+      supabase
+        .from("checklist_templates")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .not("checklist_set_id", "is", null)
+        .order("sort_order"),
     ]);
     if (!setsRes.error && setsRes.data) setSets(setsRes.data as ChecklistSet[]);
     if (!rulesRes.error && rulesRes.data) setRules(rulesRes.data as ChecklistSetRule[]);
+    if (!templatesRes.error && templatesRes.data)
+      setTemplates(templatesRes.data as ChecklistTemplate[]);
     setIsLoading(false);
   }, [tenantId]);
 
@@ -141,9 +170,60 @@ export const useChecklistSets = () => {
     if (!error) setRules((prev) => prev.filter((r) => r.id !== id));
   }, []);
 
+  const addTemplate = useCallback(
+    async (
+      setId: string,
+      title: string,
+      phase: string,
+      ownerTeam: string,
+      standardDuration?: number | null,
+    ) => {
+      const existing = templates.filter((t) => t.checklist_set_id === setId);
+      const maxOrder = existing.reduce((m, t) => Math.max(m, t.sort_order), -1);
+      const { data, error } = await supabase
+        .from("checklist_templates")
+        .insert({
+          tenant_id: tenantId,
+          checklist_set_id: setId,
+          title,
+          phase,
+          owner_team: ownerTeam,
+          standard_duration: standardDuration ?? null,
+          sort_order: maxOrder + 1,
+        })
+        .select()
+        .single();
+      if (!error && data) setTemplates((prev) => [...prev, data as ChecklistTemplate]);
+    },
+    [templates, tenantId],
+  );
+
+  const updateTemplate = useCallback(
+    async (
+      id: string,
+      patch: Partial<
+        Pick<ChecklistTemplate, "title" | "phase" | "owner_team" | "standard_duration">
+      >,
+    ) => {
+      const updates = { ...patch, updated_at: new Date().toISOString() };
+      const { error } = await supabase.from("checklist_templates").update(updates).eq("id", id);
+      if (!error) setTemplates((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    },
+    [],
+  );
+
+  const deleteTemplate = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from("checklist_templates")
+      .update({ checklist_set_id: null })
+      .eq("id", id);
+    if (!error) setTemplates((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
   return {
     sets,
     rules,
+    templates,
     isLoading,
     refresh: fetchAll,
     createSet,
@@ -152,5 +232,8 @@ export const useChecklistSets = () => {
     addRule,
     updateRule,
     deleteRule,
+    addTemplate,
+    updateTemplate,
+    deleteTemplate,
   };
 };

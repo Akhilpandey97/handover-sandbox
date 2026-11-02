@@ -3,8 +3,10 @@ import {
   useChecklistSets,
   RULE_FIELDS,
   RULE_OPERATORS,
+  PHASE_OPTIONS,
   type ChecklistSet,
   type ChecklistSetRule,
+  type ChecklistTemplate,
 } from "@/hooks/useChecklistSets";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -116,26 +118,139 @@ const RuleRow = ({
   );
 };
 
+// ─── Template row ─────────────────────────────────────────────────────────────
+
+const TemplateRow = ({
+  template,
+  onUpdate,
+  onDelete,
+}: {
+  template: ChecklistTemplate;
+  onUpdate: (id: string, patch: Partial<ChecklistTemplate>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}) => {
+  const [title, setTitle] = useState(template.title);
+  const [phase, setPhase] = useState(template.phase);
+  const [ownerTeam, setOwnerTeam] = useState(template.owner_team);
+  const [duration, setDuration] = useState(
+    template.standard_duration != null ? String(template.standard_duration) : "",
+  );
+  const [saving, setSaving] = useState(false);
+
+  const isDirty =
+    title !== template.title ||
+    phase !== template.phase ||
+    ownerTeam !== template.owner_team ||
+    (duration === "" ? null : Number(duration)) !== template.standard_duration;
+
+  const handleSave = async () => {
+    if (!title.trim()) return;
+    setSaving(true);
+    await onUpdate(template.id, {
+      title: title.trim(),
+      phase,
+      owner_team: ownerTeam,
+      standard_duration: duration === "" ? null : Number(duration),
+    });
+    setSaving(false);
+  };
+
+  return (
+    <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-2">
+      <Input
+        className="h-7 min-w-0 flex-1 text-xs"
+        placeholder="Item title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+
+      <Select value={phase} onValueChange={setPhase}>
+        <SelectTrigger className="h-7 w-28 shrink-0 text-xs">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {PHASE_OPTIONS.map((p) => (
+            <SelectItem key={p.value} value={p.value} className="text-xs">
+              {p.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Input
+        className="h-7 w-24 shrink-0 text-xs"
+        placeholder="Team"
+        value={ownerTeam}
+        onChange={(e) => setOwnerTeam(e.target.value)}
+      />
+
+      <Input
+        className="h-7 w-16 shrink-0 text-xs"
+        type="number"
+        min={0}
+        placeholder="Days"
+        value={duration}
+        onChange={(e) => setDuration(e.target.value)}
+      />
+
+      {isDirty && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 shrink-0 px-2 text-xs"
+          onClick={handleSave}
+          disabled={saving || !title.trim()}
+        >
+          Save
+        </Button>
+      )}
+
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+        onClick={() => onDelete(template.id)}
+      >
+        <X className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  );
+};
+
 // ─── Set detail panel ─────────────────────────────────────────────────────────
 
 const SetDetail = ({
   set,
   rules,
+  templates,
   onUpdate,
   onDelete,
   onAddRule,
   onUpdateRule,
   onDeleteRule,
   onSetDefault,
+  onAddTemplate,
+  onUpdateTemplate,
+  onDeleteTemplate,
 }: {
   set: ChecklistSet;
   rules: ChecklistSetRule[];
+  templates: ChecklistTemplate[];
   onUpdate: (id: string, patch: Partial<ChecklistSet>) => Promise<void>;
   onDelete: (id: string) => void;
   onAddRule: (setId: string, field: string, operator: string, value: string) => Promise<void>;
   onUpdateRule: (id: string, patch: Partial<ChecklistSetRule>) => Promise<void>;
   onDeleteRule: (id: string) => Promise<void>;
   onSetDefault: (id: string) => Promise<void>;
+  onAddTemplate: (
+    setId: string,
+    title: string,
+    phase: string,
+    ownerTeam: string,
+    standardDuration?: number | null,
+  ) => Promise<void>;
+  onUpdateTemplate: (id: string, patch: Partial<ChecklistTemplate>) => Promise<void>;
+  onDeleteTemplate: (id: string) => Promise<void>;
 }) => {
   const [name, setName] = useState(set.name);
   const [description, setDescription] = useState(set.description ?? "");
@@ -145,6 +260,12 @@ const SetDetail = ({
   const [newOp, setNewOp] = useState<string>(RULE_OPERATORS[0].value);
   const [newVal, setNewVal] = useState("");
   const [addingRule, setAddingRule] = useState(false);
+
+  const [newItemTitle, setNewItemTitle] = useState("");
+  const [newItemPhase, setNewItemPhase] = useState<string>(PHASE_OPTIONS[0].value);
+  const [newItemTeam, setNewItemTeam] = useState("");
+  const [newItemDuration, setNewItemDuration] = useState("");
+  const [addingItem, setAddingItem] = useState(false);
 
   const handleSaveName = async () => {
     if (!name.trim()) return;
@@ -160,6 +281,23 @@ const SetDetail = ({
     setNewVal("");
     setAddingRule(false);
     toast.success("Rule added");
+  };
+
+  const handleAddItem = async () => {
+    if (!newItemTitle.trim()) return;
+    setAddingItem(true);
+    await onAddTemplate(
+      set.id,
+      newItemTitle.trim(),
+      newItemPhase,
+      newItemTeam.trim() || "mint",
+      newItemDuration === "" ? null : Number(newItemDuration),
+    );
+    setNewItemTitle("");
+    setNewItemTeam("");
+    setNewItemDuration("");
+    setAddingItem(false);
+    toast.success("Item added");
   };
 
   return (
@@ -291,6 +429,83 @@ const SetDetail = ({
           </Button>
         </div>
       </div>
+
+      {/* Items / Templates */}
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-semibold text-foreground">
+            Checklist Items{" "}
+            <span className="font-normal text-muted-foreground">({templates.length})</span>
+          </p>
+          <span className="text-2xs text-muted-foreground">title · phase · team · days</span>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          {templates.length === 0 && (
+            <p className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
+              No items yet — add the first checklist item below.
+            </p>
+          )}
+          {templates.map((t) => (
+            <TemplateRow
+              key={t.id}
+              template={t}
+              onUpdate={onUpdateTemplate}
+              onDelete={onDeleteTemplate}
+            />
+          ))}
+        </div>
+
+        {/* Add item row */}
+        <div className="mt-2 flex items-center gap-2">
+          <Input
+            className="h-7 min-w-0 flex-1 text-xs"
+            placeholder="Item title"
+            value={newItemTitle}
+            onChange={(e) => setNewItemTitle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
+          />
+
+          <Select value={newItemPhase} onValueChange={setNewItemPhase}>
+            <SelectTrigger className="h-7 w-28 shrink-0 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PHASE_OPTIONS.map((p) => (
+                <SelectItem key={p.value} value={p.value} className="text-xs">
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Input
+            className="h-7 w-24 shrink-0 text-xs"
+            placeholder="Team"
+            value={newItemTeam}
+            onChange={(e) => setNewItemTeam(e.target.value)}
+          />
+
+          <Input
+            className="h-7 w-16 shrink-0 text-xs"
+            type="number"
+            min={0}
+            placeholder="Days"
+            value={newItemDuration}
+            onChange={(e) => setNewItemDuration(e.target.value)}
+          />
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 shrink-0 gap-1 px-2 text-xs"
+            onClick={handleAddItem}
+            disabled={addingItem || !newItemTitle.trim()}
+          >
+            <Plus className="h-3 w-3" /> Add
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -301,6 +516,7 @@ export const ChecklistSetsManager = () => {
   const {
     sets,
     rules,
+    templates,
     isLoading,
     createSet,
     updateSet,
@@ -308,6 +524,9 @@ export const ChecklistSetsManager = () => {
     addRule,
     updateRule,
     deleteRule,
+    addTemplate,
+    updateTemplate,
+    deleteTemplate,
   } = useChecklistSets();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -318,6 +537,7 @@ export const ChecklistSetsManager = () => {
 
   const selected = sets.find((s) => s.id === selectedId) ?? sets[0] ?? null;
   const selectedRules = rules.filter((r) => r.checklist_set_id === (selected?.id ?? ""));
+  const selectedTemplates = templates.filter((t) => t.checklist_set_id === (selected?.id ?? ""));
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -380,6 +600,7 @@ export const ChecklistSetsManager = () => {
                   sets.map((s) => {
                     const isActive = (selected?.id ?? null) === s.id;
                     const setRules = rules.filter((r) => r.checklist_set_id === s.id);
+                    const setItems = templates.filter((t) => t.checklist_set_id === s.id);
                     return (
                       <button
                         key={s.id}
@@ -390,6 +611,7 @@ export const ChecklistSetsManager = () => {
                         <div className="min-w-0">
                           <p className="truncate text-xs font-medium text-foreground">{s.name}</p>
                           <p className="text-2xs text-muted-foreground">
+                            {setItems.length} item{setItems.length !== 1 ? "s" : ""} ·{" "}
                             {setRules.length} rule{setRules.length !== 1 ? "s" : ""}
                             {s.is_default && " · default"}
                           </p>
@@ -411,12 +633,16 @@ export const ChecklistSetsManager = () => {
                   key={selected.id}
                   set={selected}
                   rules={selectedRules}
+                  templates={selectedTemplates}
                   onUpdate={updateSet}
                   onDelete={(id) => setDeleteTarget(sets.find((s) => s.id === id) ?? null)}
                   onAddRule={addRule}
                   onUpdateRule={updateRule}
                   onDeleteRule={deleteRule}
                   onSetDefault={handleSetDefault}
+                  onAddTemplate={addTemplate}
+                  onUpdateTemplate={updateTemplate}
+                  onDeleteTemplate={deleteTemplate}
                 />
               ) : (
                 <div className="flex h-full items-center justify-center p-8 text-sm text-muted-foreground">
