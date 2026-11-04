@@ -501,7 +501,7 @@ const SetDetail = ({
             <span className="font-normal text-muted-foreground">({templates.length})</span>
           </p>
           <div className="flex items-center gap-1.5">
-            <span className="text-2xs text-muted-foreground">title · phase · team · days</span>
+            <span className="text-2xs text-muted-foreground">title · stage · team · days</span>
             <input
               ref={csvRef}
               type="file"
@@ -601,7 +601,7 @@ const SetDetail = ({
           </DialogHeader>
           <p className="text-xs text-muted-foreground">
             {csvPreview.length} item{csvPreview.length !== 1 ? "s" : ""} found. CSV format:{" "}
-            <code className="rounded bg-muted px-1 text-2xs">title,phase,team,days</code> (phase,
+            <code className="rounded bg-muted px-1 text-2xs">title,stage,team,days</code> (stage,
             team and days are optional).
           </p>
           <div className="max-h-64 overflow-auto rounded-md border border-border">
@@ -609,7 +609,7 @@ const SetDetail = ({
               <thead className="sticky top-0 bg-muted text-left">
                 <tr>
                   <th className="px-3 py-1.5 font-medium">Title</th>
-                  <th className="px-3 py-1.5 font-medium">Phase</th>
+                  <th className="px-3 py-1.5 font-medium">Stage</th>
                   <th className="px-3 py-1.5 font-medium">Team</th>
                   <th className="px-3 py-1.5 font-medium">Days</th>
                 </tr>
