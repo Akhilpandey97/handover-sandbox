@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useFormAssignments, useFormTemplates } from "@/hooks/useChecklistForms";
+import { useChecklistSets } from "@/hooks/useChecklistSets";
 import { useTeams } from "@/hooks/useTeams";
 import { useProfilesLookup, useChecklistTemplateTitles } from "@/hooks/useLookups";
 import { supabase } from "@/integrations/supabase/client";
@@ -199,6 +200,10 @@ export const ChecklistDialog = ({
   const { teamLabels, responsibilityLabels } = useLabels();
   const { assignments } = useFormAssignments();
   const { templates: formTemplates } = useFormTemplates();
+  const { sets: checklistSets } = useChecklistSets();
+  const checklistSetName = project?.checklistSetId
+    ? (checklistSets.find((s) => s.id === project.checklistSetId)?.name ?? null)
+    : null;
   const { allTeams, teamLabelMap, teamColorMap, checklistTeamSlugs } = useTeams();
   const { data: allTasks = [] } = useChecklistTasks(project?.id);
   const { data: allMeetings = [] } = useChecklistMeetings(project?.id);
@@ -469,7 +474,14 @@ export const ChecklistDialog = ({
               <ClipboardList className="h-6 w-6 text-primary-foreground" />
             </div>
             <div className="flex-1">
-              <span className="text-xl">Project Checklist</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">Project Checklist</span>
+                {checklistSetName && (
+                  <Badge variant="secondary" className="text-2xs font-normal">
+                    {checklistSetName}
+                  </Badge>
+                )}
+              </div>
               <p className="text-sm font-normal text-muted-foreground mt-0.5">
                 {project.merchantName}
               </p>

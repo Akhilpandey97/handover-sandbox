@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { tenantScope } from "@/lib/tenant-scope";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useTeams } from "@/hooks/useTeams";
+import { useChecklistSets } from "@/hooks/useChecklistSets";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ interface ChecklistTemplate {
   phase: string;
   sortOrder: number;
   standardDuration: number | null;
+  checklistSetId: string | null;
 }
 
 // Fetch checklist templates from dedicated table, for the workspace being worked in.
@@ -63,7 +65,7 @@ const useChecklistTemplates = (tenantId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("checklist_templates")
-        .select("id, title, owner_team, phase, sort_order, standard_duration")
+        .select("id, title, owner_team, phase, sort_order, standard_duration, checklist_set_id")
         .eq("tenant_id", tenantId)
         .order("sort_order", { ascending: true });
 
@@ -76,6 +78,7 @@ const useChecklistTemplates = (tenantId: string) => {
         phase: item.phase,
         sortOrder: item.sort_order ?? 0,
         standardDuration: item.standard_duration ?? null,
+        checklistSetId: item.checklist_set_id ?? null,
       }));
     },
   });
@@ -99,10 +102,15 @@ export const ChecklistManagement = () => {
     return currentUser?.tenantId ? [currentUser.tenantId] : [];
   };
 
+  const { sets } = useChecklistSets();
+  const setNameById = new Map(sets.map((s) => [s.id, s.name]));
+  const defaultSetId = sets.find((s) => s.is_default)?.id ?? sets[0]?.id ?? null;
+
   const [activeTeam, setActiveTeam] = useState<TeamRole>("mint");
   const [editingItem, setEditingItem] = useState<ChecklistTemplate | null>(null);
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemDuration, setNewItemDuration] = useState("");
+  const [newItemSetId, setNewItemSetId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<ChecklistTemplate | null>(null);
   const [csvUploadOpen, setCsvUploadOpen] = useState(false);
@@ -118,15 +126,15 @@ export const ChecklistManagement = () => {
       title,
       team,
       standardDuration,
+      setId,
     }: {
       title: string;
       team: TeamRole;
       standardDuration: number | null;
+      setId: string | null;
     }) => {
       const maxOrder = teamTemplates.reduce((max, t) => Math.max(max, t.sortOrder), -1) + 1;
       const phase = teamToProjectPhase(team === "manager" ? "ms" : team);
-
-      // Target tenants (all tenants when super admin)
       const tenantIds = await resolveTargetTenantIds();
 
       const { error: templateError } = await supabase.from("checklist_templates").insert(
@@ -137,19 +145,21 @@ export const ChecklistManagement = () => {
           sort_order: maxOrder,
           tenant_id: tenantId,
           standard_duration: standardDuration,
+          checklist_set_id: setId,
         })),
       );
       if (templateError) throw templateError;
 
-      // Also add to all existing projects in the target tenants
-      const { data: projects, error: projectsError } = await supabase
+      // Back-fill into existing projects: only projects using this set (if set specified)
+      let projectQuery = supabase
         .from("projects")
         .select("id, tenant_id, kick_off_date")
         .in("tenant_id", tenantIds);
+      if (setId) projectQuery = projectQuery.eq("checklist_set_id", setId);
+
+      const { data: projects, error: projectsError } = await projectQuery;
       if (projectsError) throw projectsError;
 
-      // The seed trigger only fires on project creation, so items added to
-      // existing projects have to derive their own due date the same way.
       const itemsToInsert = (projects || []).map((p) => ({
         project_id: p.id,
         title,
@@ -167,15 +177,16 @@ export const ChecklistManagement = () => {
         if (error) throw error;
       }
 
-      return { title, team };
+      return { title, team, projectCount: itemsToInsert.length };
     },
-    onSuccess: () => {
+    onSuccess: ({ projectCount }) => {
       queryClient.invalidateQueries({ queryKey: ["checklist-templates"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
-      toast.success("Checklist item added to all projects");
+      toast.success(`Item added to ${projectCount} project${projectCount !== 1 ? "s" : ""}`);
       setIsAddDialogOpen(false);
       setNewItemTitle("");
       setNewItemDuration("");
+      setNewItemSetId(null);
     },
     onError: (error) => {
       console.error("Error adding checklist item:", error);
@@ -191,28 +202,42 @@ export const ChecklistManagement = () => {
       team,
       templateId,
       standardDuration,
+      checklistSetId,
     }: {
       oldTitle: string;
       newTitle: string;
       team: TeamRole;
       templateId?: string;
       standardDuration?: number | null;
+      checklistSetId?: string | null;
     }) => {
       if (templateId) {
-        const updateData: any = { title: newTitle };
+        const updateData: { title: string; standard_duration?: number | null } = {
+          title: newTitle,
+        };
         if (standardDuration !== undefined) updateData.standard_duration = standardDuration;
-        // Super admin edits apply to the matching template in every tenant
-        const tq = supabase.from("checklist_templates").update(updateData);
-        await (isSuperAdmin
-          ? tq.eq("title", oldTitle).eq("owner_team", team)
-          : tq.eq("id", templateId));
+        await supabase.from("checklist_templates").update(updateData).eq("id", templateId);
       }
 
-      const { error } = await supabase
+      // Scope checklist_items update to projects using this set (if known)
+      let itemsQuery = supabase
         .from("checklist_items")
         .update({ title: newTitle })
         .eq("title", oldTitle)
         .eq("owner_team", team);
+      if (checklistSetId) {
+        const { data: setProjects } = await supabase
+          .from("projects")
+          .select("id")
+          .eq("checklist_set_id", checklistSetId);
+        if (setProjects?.length) {
+          itemsQuery = itemsQuery.in(
+            "project_id",
+            setProjects.map((p) => p.id),
+          );
+        }
+      }
+      const { error } = await itemsQuery;
       if (error) throw error;
       return { oldTitle, newTitle, team };
     },
@@ -234,23 +259,36 @@ export const ChecklistManagement = () => {
       title,
       team,
       templateId,
+      checklistSetId,
     }: {
       title: string;
       team: TeamRole;
       templateId?: string;
+      checklistSetId?: string | null;
     }) => {
       if (templateId) {
-        const dq = supabase.from("checklist_templates").delete();
-        await (isSuperAdmin
-          ? dq.eq("title", title).eq("owner_team", team)
-          : dq.eq("id", templateId));
+        await supabase.from("checklist_templates").delete().eq("id", templateId);
       }
 
-      const { error } = await supabase
+      // Scope deletion to projects using this set (if known)
+      let deleteQuery = supabase
         .from("checklist_items")
         .delete()
         .eq("title", title)
         .eq("owner_team", team);
+      if (checklistSetId) {
+        const { data: setProjects } = await supabase
+          .from("projects")
+          .select("id")
+          .eq("checklist_set_id", checklistSetId);
+        if (setProjects?.length) {
+          deleteQuery = deleteQuery.in(
+            "project_id",
+            setProjects.map((p) => p.id),
+          );
+        }
+      }
+      const { error } = await deleteQuery;
       if (error) throw error;
       return { title, team };
     },
@@ -362,7 +400,13 @@ export const ChecklistManagement = () => {
   };
 
   const bulkImportMutation = useMutation({
-    mutationFn: async (items: { title: string; team: TeamRole }[]) => {
+    mutationFn: async ({
+      items,
+      setId,
+    }: {
+      items: { title: string; team: TeamRole }[];
+      setId: string | null;
+    }) => {
       const tenantIds = await resolveTargetTenantIds();
 
       const existingTitles = new Set(templates.map((t) => `${t.ownerTeam}|${t.title}`));
@@ -370,7 +414,6 @@ export const ChecklistManagement = () => {
 
       if (newItems.length === 0) throw new Error("All items already exist");
 
-      // Get max sort orders per team
       const teamMaxOrders: Record<string, number> = {};
       templates.forEach((t) => {
         teamMaxOrders[t.ownerTeam] = Math.max(teamMaxOrders[t.ownerTeam] ?? -1, t.sortOrder);
@@ -384,6 +427,7 @@ export const ChecklistManagement = () => {
           owner_team: item.team,
           phase,
           sort_order: teamMaxOrders[item.team],
+          checklist_set_id: setId,
         };
       });
 
@@ -396,11 +440,13 @@ export const ChecklistManagement = () => {
         );
       if (tErr) throw tErr;
 
-      // Add to all existing projects in the target tenants
-      const { data: projects } = await supabase
+      // Back-fill into projects using this set only (if set specified)
+      let projectQuery = supabase
         .from("projects")
-        .select("id, tenant_id")
+        .select("id, tenant_id, kick_off_date")
         .in("tenant_id", tenantIds);
+      if (setId) projectQuery = projectQuery.eq("checklist_set_id", setId);
+      const { data: projects } = await projectQuery;
 
       if (projects && projects.length > 0) {
         const checklistInserts = projects.flatMap((p) =>
@@ -413,6 +459,7 @@ export const ChecklistManagement = () => {
             completed: false,
             current_responsibility: "neutral" as const,
             tenant_id: p.tenant_id,
+            due_date: checklistDueDate(p.kick_off_date, null),
           })),
         );
         const { error } = await supabase.from("checklist_items").insert(checklistInserts);
@@ -442,7 +489,8 @@ export const ChecklistManagement = () => {
     addItemMutation.mutate({
       title: newItemTitle.trim(),
       team: activeTeam,
-      standardDuration: isNaN(dur as any) ? null : dur,
+      standardDuration: isNaN(dur as number) ? null : dur,
+      setId: newItemSetId ?? defaultSetId,
     });
   };
 
@@ -465,6 +513,7 @@ export const ChecklistManagement = () => {
         team: activeTeam,
         templateId: editingItem.id,
         standardDuration: editingItem.standardDuration,
+        checklistSetId: editingItem.checklistSetId,
       });
     } else {
       setEditingItem(null);
@@ -724,6 +773,11 @@ export const ChecklistManagement = () => {
                                   {item.standardDuration}d
                                 </Badge>
                               )}
+                              <Badge variant="secondary" className="text-2xs font-normal">
+                                {item.checklistSetId
+                                  ? (setNameById.get(item.checklistSetId) ?? "Unknown set")
+                                  : "No set"}
+                              </Badge>
                             </div>
                           )}
                         </div>
@@ -841,6 +895,30 @@ export const ChecklistManagement = () => {
                 Due date = Project Start + Duration. Leave empty for no auto-date.
               </p>
             </div>
+            {sets.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Checklist Set</label>
+                <Select
+                  value={newItemSetId ?? defaultSetId ?? ""}
+                  onValueChange={(v) => setNewItemSetId(v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a set" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sets.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name}
+                        {s.is_default ? " (default)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Only projects using this set will receive this item.
+                </p>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -878,6 +956,7 @@ export const ChecklistManagement = () => {
                     title: deleteConfirm.title,
                     team: deleteConfirm.ownerTeam,
                     templateId: deleteConfirm.id,
+                    checklistSetId: deleteConfirm.checklistSetId,
                   });
                 }
               }}
@@ -929,7 +1008,12 @@ export const ChecklistManagement = () => {
               Cancel
             </Button>
             <Button
-              onClick={() => bulkImportMutation.mutate(csvPreview)}
+              onClick={() =>
+                bulkImportMutation.mutate({
+                  items: csvPreview,
+                  setId: newItemSetId ?? defaultSetId,
+                })
+              }
               disabled={bulkImportMutation.isPending}
             >
               {bulkImportMutation.isPending ? "Importing..." : `Import ${csvPreview.length} Items`}
