@@ -1231,11 +1231,6 @@ export const ManagerDashboard = () => {
       icon: Users,
       description: "Who gets in, and what they are allowed to do.",
     },
-    colours: {
-      label: "Colours",
-      icon: Palette,
-      description: "The brand colour the whole workspace is drawn in.",
-    },
     email: {
       label: "Add New Projects",
       icon: Mail,
@@ -1893,7 +1888,7 @@ export const ManagerDashboard = () => {
                           key: "all",
                           label: "All projects",
                           value: totalProjects,
-                          sub: `Pipeline ${arrLabel}: ${((totalArr / 12) % 1 === 0 ? (totalArr / 12).toFixed(0) : (totalArr / 12).toFixed(1))} Cr`,
+                          sub: `Pipeline ${arrLabel}: ${(totalArr / 12) % 1 === 0 ? (totalArr / 12).toFixed(0) : (totalArr / 12).toFixed(1)} Cr`,
                           icon: FolderKanban,
                           tone: "bg-muted text-foreground/70",
                           onClick: () =>
@@ -3596,7 +3591,7 @@ export const ManagerDashboard = () => {
                       navigate({ to: pathForTab("settings", { settingsSubTab: key }) })
                     }
                     groups={[
-                      { label: "Workspace", keys: ["general", "colours", "navigation", "users"] },
+                      { label: "Workspace", keys: ["general", "navigation", "users"] },
                       {
                         label: "Data model",
                         keys: [

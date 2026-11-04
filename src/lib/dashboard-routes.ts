@@ -39,7 +39,6 @@ export const SETTINGS_SUB_TABS = [
   "checklist-sets",
   "checklist",
   "users",
-  "colours",
   "email",
   "workflows",
   "pivot-table",

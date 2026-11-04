@@ -401,10 +401,6 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
               <ListChecks className="h-3.5 w-3.5" />
               Checklist Sets
             </TabsTrigger>
-            <TabsTrigger value="colours" className="gap-1.5">
-              <Palette className="h-3.5 w-3.5" />
-              Colours
-            </TabsTrigger>
             <TabsTrigger value="email" className="gap-1.5">
               <Mail className="h-3.5 w-3.5" />
               Add New Projects
@@ -439,6 +435,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
         {/* General Tab */}
         <TabsContent value="general" className="space-y-6">
           {perms.canManageBranding && <LogoUpload />}
+          <BrandColorSettings />
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="portal-heading flex items-center gap-2">
@@ -501,33 +498,6 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
         {/* Checklist Sets Tab */}
         <TabsContent value="checklist-sets">
           <ChecklistSetsManager />
-        </TabsContent>
-
-        {/* Colours Tab */}
-        <TabsContent value="colours" className="space-y-6">
-          <BrandColorSettings />
-          <ThemePresets
-            onApply={(colors) => {
-              Object.entries(colors).forEach(([key, value]) => {
-                handleChange(key, value);
-              });
-            }}
-            currentColors={Object.fromEntries(
-              COLOR_GROUPS.flatMap((g) => g.keys).map(({ key }) => [key, getValue(key)]),
-            )}
-          />
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="portal-heading flex items-center gap-2">
-                <Palette className="h-4 w-4 text-primary" />
-                Colours & Branding
-              </CardTitle>
-              <CardDescription>
-                Fine-tune individual colours for team badges, card backgrounds, and state indicators
-              </CardDescription>
-            </CardHeader>
-            <CardContent>{renderColorGroups(COLOR_GROUPS)}</CardContent>
-          </Card>
         </TabsContent>
 
         {/* Email Tab */}

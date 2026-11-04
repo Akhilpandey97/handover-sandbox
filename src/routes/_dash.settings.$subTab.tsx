@@ -9,7 +9,6 @@ const LABELS: Record<string, string> = {
   "checklist-sets": "Checklist Sets",
   checklist: "Checklist & Teams",
   users: "User Management",
-  colours: "Colours",
   email: "Email Settings",
   workflows: "Workflows",
   "pivot-table": "Pivot Table Settings",
