@@ -240,7 +240,7 @@ export const ProjectWorkspaceView = ({
   const canTransfer =
     (userTeamSlug === project.currentOwnerTeam || crossTeamRoles.includes(userTeamSlug)) &&
     !project.pendingAcceptance &&
-    project.currentPhase !== "completed" &&
+    project.currentStage !== "completed" &&
     project.currentOwnerTeam !== "ms";
   const isTransferReady = canTransfer && allCurrentTeamChecklistCompleted;
   const canAssignOwner = crossTeamRoles.includes(userTeamSlug);
@@ -249,7 +249,7 @@ export const ProjectWorkspaceView = ({
     ? null
     : project.pendingAcceptance
       ? "The receiving team hasn't accepted the last handover yet"
-      : project.currentPhase === "completed"
+      : project.currentStage === "completed"
         ? "This project is complete"
         : project.currentOwnerTeam === "ms"
           ? `${teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam} is the last team`

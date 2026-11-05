@@ -1,21 +1,21 @@
 import { getActiveFunnelStages, resolveFunnelStage } from "@/data/funnelConfig";
 import { TeamRole } from "./teams";
 
-export type ProjectPhase = "mint" | "integration" | "ms" | "completed";
+export type ProjectStage = "mint" | "integration" | "ms" | "completed";
 
 /**
- * A checklist template's phase, from the team that owns it.
+ * A checklist template's stage, from the team that owns it.
  *
- * `phase` is a Postgres enum with four values, while a team can be anything a
+ * `stage` is a Postgres enum with four values, while a team can be anything a
  * tenant creates. Writing the slug straight through worked only for the three
  * system teams whose slugs happen to match; a custom team put an invalid value
  * in the column, and seed_project_checklist casts it on every project insert —
  * so one template for a custom team blocked creating any project at all.
  *
- * Custom teams have no true phase. `owner_team` carries the real grouping, so
+ * Custom teams have no true stage. `owner_team` carries the real grouping, so
  * this maps them to a valid value rather than inventing one.
  */
-export const teamToProjectPhase = (team: string): ProjectPhase => {
+export const teamToProjectStage = (team: string): ProjectStage => {
   if (team === "mint" || team === "integration" || team === "ms") return team;
   if (team === "completed") return "completed";
   return "integration";
@@ -55,7 +55,7 @@ export interface ResponsibilityLog {
   party: ResponsibilityParty;
   startedAt: string;
   endedAt?: string;
-  phase: ProjectPhase;
+  stage: ProjectStage;
 }
 
 export interface ChecklistResponsibilityLog {
@@ -71,7 +71,7 @@ export interface ProjectChecklist {
   completed: boolean;
   completedBy?: string;
   completedAt?: string;
-  phase: ProjectPhase | string;
+  stage: ProjectStage | string;
   ownerTeam: TeamRole; // Which team can complete this item
   currentResponsibility: ResponsibilityParty;
   responsibilityLog: ChecklistResponsibilityLog[];
@@ -106,8 +106,8 @@ export interface ProjectDates {
 export interface ProjectNotes {
   mintNotes?: string;
   projectNotes?: string;
-  currentPhaseComment?: string;
-  phase2Comment?: string;
+  currentStageComment?: string;
+  stage2Comment?: string;
   opsComment?: string;
 }
 
@@ -127,7 +127,7 @@ export interface Project {
   txnsPerDay: number;
   aov: number;
   category: string;
-  currentPhase: ProjectPhase;
+  currentStage: ProjectStage;
   currentOwnerTeam: TeamRole;
   pendingAcceptance: boolean;
   goLivePercent: number;
@@ -359,7 +359,7 @@ export const createDefaultChecklist = (): ProjectChecklist[] => {
       id: `c-mint-${Date.now()}-${idx}`,
       title,
       completed: false,
-      phase: "mint",
+      stage: "mint",
       ownerTeam: "mint",
       currentResponsibility: "neutral",
       responsibilityLog: [],
@@ -371,7 +371,7 @@ export const createDefaultChecklist = (): ProjectChecklist[] => {
       id: `c-int-${Date.now()}-${idx}`,
       title,
       completed: false,
-      phase: "integration",
+      stage: "integration",
       ownerTeam: "integration",
       currentResponsibility: "neutral",
       responsibilityLog: [],
@@ -390,7 +390,7 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
   txnsPerDay: 0,
   aov: 0,
   category: "",
-  currentPhase: "mint",
+  currentStage: "mint",
   currentOwnerTeam: "mint",
   pendingAcceptance: false,
   goLivePercent: 0,
@@ -409,8 +409,8 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
   notes: {
     mintNotes: "",
     projectNotes: "",
-    currentPhaseComment: "",
-    phase2Comment: "",
+    currentStageComment: "",
+    stage2Comment: "",
   },
   transferHistory: [],
   checklist: createDefaultChecklist(),
@@ -424,7 +424,7 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
       id: `r-${Date.now()}`,
       party: "gokwik",
       startedAt: new Date().toISOString(),
-      phase: "mint",
+      stage: "mint",
     },
   ],
   ...overrides,
@@ -433,7 +433,7 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
 // Helper to create checklist for existing projects
 const createChecklistForProject = (
   projectId: string,
-  completedItems: { title: string; phase: ProjectPhase }[],
+  completedItems: { title: string; stage: ProjectStage }[],
 ): ProjectChecklist[] => {
   const now = new Date().toISOString();
   const checklist: ProjectChecklist[] = [];
@@ -445,7 +445,7 @@ const createChecklistForProject = (
       title,
       completed: isCompleted,
       completedAt: isCompleted ? now : undefined,
-      phase: "mint",
+      stage: "mint",
       ownerTeam: "mint",
       currentResponsibility: "neutral",
       responsibilityLog: [],
@@ -459,7 +459,7 @@ const createChecklistForProject = (
       title,
       completed: isCompleted,
       completedAt: isCompleted ? now : undefined,
-      phase: "integration",
+      stage: "integration",
       ownerTeam: "integration",
       currentResponsibility: "neutral",
       responsibilityLog: [],
@@ -479,7 +479,7 @@ export const initialProjects: Project[] = [
     txnsPerDay: 8,
     aov: 50000,
     category: "Gems & Jewellery",
-    currentPhase: "mint",
+    currentStage: "mint",
     currentOwnerTeam: "mint",
     pendingAcceptance: false,
     goLivePercent: 45,
@@ -498,17 +498,17 @@ export const initialProjects: Project[] = [
     notes: {
       mintNotes: "High priority client, CEO directly involved",
       projectNotes: "Checkout lite, PAN card implementation and KP Integration",
-      currentPhaseComment:
+      currentStageComment:
         "Initial scoping and API walkthrough is done. Awaiting update on API dev.",
-      phase2Comment: "",
+      stage2Comment: "",
     },
     salesSpoc: "Saurabh",
     integrationType: "Advanced",
     pgOnboarding: "Easebuzz",
     transferHistory: [],
     checklist: createChecklistForProject("proj-1", [
-      { title: "Requirement gathering", phase: "mint" },
-      { title: "Feasibility Analysis", phase: "mint" },
+      { title: "Requirement gathering", stage: "mint" },
+      { title: "Feasibility Analysis", stage: "mint" },
     ]),
     currentResponsibility: "merchant",
     projectState: "in_progress",
@@ -518,9 +518,9 @@ export const initialProjects: Project[] = [
         party: "gokwik",
         startedAt: "2025-01-13T09:00:00Z",
         endedAt: "2025-01-15T14:00:00Z",
-        phase: "mint",
+        stage: "mint",
       },
-      { id: "r2", party: "merchant", startedAt: "2025-01-15T14:00:00Z", phase: "mint" },
+      { id: "r2", party: "merchant", startedAt: "2025-01-15T14:00:00Z", stage: "mint" },
     ],
   },
   {
@@ -532,7 +532,7 @@ export const initialProjects: Project[] = [
     txnsPerDay: 15,
     aov: 25000,
     category: "Home Decor",
-    currentPhase: "integration",
+    currentStage: "integration",
     currentOwnerTeam: "integration",
     pendingAcceptance: true,
     goLivePercent: 60,
@@ -551,8 +551,8 @@ export const initialProjects: Project[] = [
     notes: {
       mintNotes: "Fast-track requested by sales",
       projectNotes: "Standard checkout integration",
-      currentPhaseComment: "API development in progress",
-      phase2Comment: "Need to coordinate with merchant tech team",
+      currentStageComment: "API development in progress",
+      stage2Comment: "Need to coordinate with merchant tech team",
     },
     salesSpoc: "Amit",
     integrationType: "Standard",
@@ -568,15 +568,15 @@ export const initialProjects: Project[] = [
       },
     ],
     checklist: createChecklistForProject("proj-2", [
-      { title: "Requirement gathering", phase: "mint" },
-      { title: "Feasibility Analysis", phase: "mint" },
-      { title: "BRD Details", phase: "mint" },
-      { title: "Technical Scoping", phase: "mint" },
-      { title: "Technical Walkthrough", phase: "mint" },
-      { title: "API Validation", phase: "mint" },
-      { title: "LCNC Config", phase: "mint" },
-      { title: "Create JIRA", phase: "mint" },
-      { title: "Transfer to Integration", phase: "mint" },
+      { title: "Requirement gathering", stage: "mint" },
+      { title: "Feasibility Analysis", stage: "mint" },
+      { title: "BRD Details", stage: "mint" },
+      { title: "Technical Scoping", stage: "mint" },
+      { title: "Technical Walkthrough", stage: "mint" },
+      { title: "API Validation", stage: "mint" },
+      { title: "LCNC Config", stage: "mint" },
+      { title: "Create JIRA", stage: "mint" },
+      { title: "Transfer to Integration", stage: "mint" },
     ]),
     currentResponsibility: "gokwik",
     projectState: "in_progress",
@@ -586,16 +586,16 @@ export const initialProjects: Project[] = [
         party: "gokwik",
         startedAt: "2025-01-14T09:00:00Z",
         endedAt: "2025-01-15T16:00:00Z",
-        phase: "mint",
+        stage: "mint",
       },
       {
         id: "r2",
         party: "merchant",
         startedAt: "2025-01-15T16:00:00Z",
         endedAt: "2025-01-16T10:30:00Z",
-        phase: "mint",
+        stage: "mint",
       },
-      { id: "r3", party: "gokwik", startedAt: "2025-01-16T10:30:00Z", phase: "integration" },
+      { id: "r3", party: "gokwik", startedAt: "2025-01-16T10:30:00Z", stage: "integration" },
     ],
   },
   {
@@ -607,7 +607,7 @@ export const initialProjects: Project[] = [
     txnsPerDay: 120,
     aov: 1500,
     category: "Services",
-    currentPhase: "ms",
+    currentStage: "ms",
     currentOwnerTeam: "ms",
     pendingAcceptance: true,
     goLivePercent: 85,
@@ -626,8 +626,8 @@ export const initialProjects: Project[] = [
     notes: {
       mintNotes: "Enterprise client",
       projectNotes: "Full checkout suite with loyalty integration",
-      currentPhaseComment: "Final testing before go-live",
-      phase2Comment: "Merchant team validated all test cases",
+      currentStageComment: "Final testing before go-live",
+      stage2Comment: "Merchant team validated all test cases",
     },
     salesSpoc: "Neha",
     integrationType: "Enterprise",
@@ -653,21 +653,21 @@ export const initialProjects: Project[] = [
       },
     ],
     checklist: createChecklistForProject("proj-3", [
-      { title: "Requirement gathering", phase: "mint" },
-      { title: "Feasibility Analysis", phase: "mint" },
-      { title: "BRD Details", phase: "mint" },
-      { title: "Technical Scoping", phase: "mint" },
-      { title: "Technical Walkthrough", phase: "mint" },
-      { title: "API Validation", phase: "mint" },
-      { title: "LCNC Config", phase: "mint" },
-      { title: "Create JIRA", phase: "mint" },
-      { title: "Transfer to Integration", phase: "mint" },
-      { title: "BRD Validation", phase: "integration" },
-      { title: "Integration Checklist", phase: "integration" },
-      { title: "Sandbox Testing", phase: "integration" },
-      { title: "Production Testing", phase: "integration" },
-      { title: "Dashboard Walkthrough with MS", phase: "integration" },
-      { title: "Go-Live", phase: "integration" },
+      { title: "Requirement gathering", stage: "mint" },
+      { title: "Feasibility Analysis", stage: "mint" },
+      { title: "BRD Details", stage: "mint" },
+      { title: "Technical Scoping", stage: "mint" },
+      { title: "Technical Walkthrough", stage: "mint" },
+      { title: "API Validation", stage: "mint" },
+      { title: "LCNC Config", stage: "mint" },
+      { title: "Create JIRA", stage: "mint" },
+      { title: "Transfer to Integration", stage: "mint" },
+      { title: "BRD Validation", stage: "integration" },
+      { title: "Integration Checklist", stage: "integration" },
+      { title: "Sandbox Testing", stage: "integration" },
+      { title: "Production Testing", stage: "integration" },
+      { title: "Dashboard Walkthrough with MS", stage: "integration" },
+      { title: "Go-Live", stage: "integration" },
     ]),
     currentResponsibility: "gokwik",
     projectState: "live",
@@ -677,30 +677,30 @@ export const initialProjects: Project[] = [
         party: "gokwik",
         startedAt: "2024-12-01T09:00:00Z",
         endedAt: "2024-12-05T17:00:00Z",
-        phase: "mint",
+        stage: "mint",
       },
       {
         id: "r2",
         party: "merchant",
         startedAt: "2024-12-05T17:00:00Z",
         endedAt: "2024-12-10T09:00:00Z",
-        phase: "mint",
+        stage: "mint",
       },
       {
         id: "r3",
         party: "gokwik",
         startedAt: "2024-12-10T11:00:00Z",
         endedAt: "2025-01-10T12:00:00Z",
-        phase: "integration",
+        stage: "integration",
       },
       {
         id: "r4",
         party: "merchant",
         startedAt: "2025-01-10T12:00:00Z",
         endedAt: "2025-01-15T14:00:00Z",
-        phase: "integration",
+        stage: "integration",
       },
-      { id: "r5", party: "gokwik", startedAt: "2025-01-15T14:00:00Z", phase: "ms" },
+      { id: "r5", party: "gokwik", startedAt: "2025-01-15T14:00:00Z", stage: "ms" },
     ],
   },
 ];

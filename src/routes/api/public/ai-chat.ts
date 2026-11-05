@@ -3,7 +3,7 @@ import {
   buddyCaller,
   corsHeaders,
   json,
-  PHASE_LABELS,
+  STAGE_LABELS,
   STATE_LABELS,
   todayIso,
 } from "@/lib/buddy/scope.server";
@@ -98,9 +98,9 @@ const TERM_KEYS = [
   "state_in_progress",
   "state_live",
   "state_blocked",
-  "phase_mint",
-  "phase_integration",
-  "phase_ms",
+  "stage_mint",
+  "stage_integration",
+  "stage_ms",
   "responsibility_internal",
   "responsibility_external",
 ];
@@ -161,13 +161,13 @@ async function handler(req: Request): Promise<Response> {
   if (body.page?.projectId) {
     const { data } = await caller.client
       .from("projects")
-      .select("id, merchant_name, mid, project_state, current_phase, assigned_owner")
+      .select("id, merchant_name, mid, project_state, current_stage, assigned_owner")
       .eq("tenant_id", caller.tenantId)
       .eq("id", body.page.projectId)
       .maybeSingle();
     const p = data as any;
     if (p && (caller.portfolio || p.assigned_owner === caller.userId)) {
-      pageLine = `The user has project "${p.merchant_name}" (MID ${p.mid}, project_id=${p.id}, ${STATE_LABELS[p.project_state] || p.project_state}, ${PHASE_LABELS[p.current_phase] || p.current_phase}) open. Questions like "this project" or "why is it slipping" mean this one unless they name another.`;
+      pageLine = `The user has project "${p.merchant_name}" (MID ${p.mid}, project_id=${p.id}, ${STATE_LABELS[p.project_state] || p.project_state}, ${STAGE_LABELS[p.current_stage] || p.current_stage}) open. Questions like "this project" or "why is it slipping" mean this one unless they name another.`;
       pageSources.push({ kind: "project", id: p.id, label: p.merchant_name });
     }
   } else if (body.page?.path) {

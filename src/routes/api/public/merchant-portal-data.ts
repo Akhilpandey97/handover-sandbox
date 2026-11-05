@@ -747,7 +747,7 @@ async function handler(req: Request): Promise<Response> {
         supabase
           .from("checklist_items")
           .select(
-            "id, title, completed, completed_at, phase, owner_team, sort_order, due_date, is_task",
+            "id, title, completed, completed_at, stage, owner_team, sort_order, due_date, is_task",
           )
           .eq("project_id", projectId)
           .eq("is_task", false)
@@ -786,10 +786,10 @@ async function handler(req: Request): Promise<Response> {
     }));
 
     // Show every checklist item (non-task) for the project
-    const phaseOrder: Record<string, number> = { mint: 0, integration: 1, ms: 2, completed: 3 };
+    const stageOrder: Record<string, number> = { mint: 0, integration: 1, ms: 2, completed: 3 };
     const checklist = [...(checklistRes.data ?? [])].sort((a: any, b: any) => {
-      const pa = phaseOrder[a.phase] ?? 99;
-      const pb = phaseOrder[b.phase] ?? 99;
+      const pa = stageOrder[a.stage] ?? 99;
+      const pb = stageOrder[b.stage] ?? 99;
       if (pa !== pb) return pa - pb;
       return (a.sort_order ?? 0) - (b.sort_order ?? 0);
     });
@@ -928,7 +928,7 @@ async function handler(req: Request): Promise<Response> {
         platform: project.platform,
         category: project.category,
         integration_type: project.integration_type,
-        current_phase: project.current_phase,
+        current_stage: project.current_stage,
         project_state: project.project_state,
         go_live_percent: project.go_live_percent,
         current_responsibility: project.current_responsibility,
@@ -969,7 +969,7 @@ async function handler(req: Request): Promise<Response> {
         title: c.title,
         completed: c.completed,
         completed_at: c.completed_at,
-        phase: c.phase,
+        stage: c.stage,
         owner_team: c.owner_team,
         due_date: c.due_date,
       })),

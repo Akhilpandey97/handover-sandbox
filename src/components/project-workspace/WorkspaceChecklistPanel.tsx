@@ -13,14 +13,14 @@ interface WorkspaceChecklistPanelProps {
   groupedChecklist: Array<{ team: string; label: string; items: ChecklistItemSummary[] }>;
   completedChecklist: number;
   totalChecklist: number;
-  currentPhase: string;
+  currentStage: string;
 }
 
 export const WorkspaceChecklistPanel = ({
   groupedChecklist,
   completedChecklist,
   totalChecklist,
-  currentPhase,
+  currentStage,
 }: WorkspaceChecklistPanelProps) => {
   const { labels } = useLabels();
   const sectionBackground = labels.color_workspace_section_bg || "#fcfdff";
@@ -39,7 +39,7 @@ export const WorkspaceChecklistPanel = ({
           value={String(completedChecklist)}
           eyebrow="Progress"
         />
-        <WorkspaceMetricCard label="Last milestone" value={currentPhase || "—"} eyebrow="Status" />
+        <WorkspaceMetricCard label="Last milestone" value={currentStage || "—"} eyebrow="Status" />
       </div>
 
       <div className="space-y-4">

@@ -11,7 +11,7 @@ import type {
   ChecklistResponsibilityLog,
   TransferRecord,
   ResponsibilityParty,
-  ProjectPhase,
+  ProjectStage,
   ProjectState,
 } from "@/data/projectsData";
 import type { TeamRole } from "@/data/teams";
@@ -28,7 +28,7 @@ const transformDbProject = (row: any): Project => ({
   txnsPerDay: row.txns_per_day || 0,
   aov: Number(row.aov) || 0,
   category: row.category || "",
-  currentPhase: row.current_phase as ProjectPhase,
+  currentStage: row.current_stage as ProjectStage,
   currentOwnerTeam: row.current_owner_team as TeamRole,
   pendingAcceptance: row.pending_acceptance || false,
   goLivePercent: row.go_live_percent || 0,
@@ -50,8 +50,8 @@ const transformDbProject = (row: any): Project => ({
   notes: {
     mintNotes: row.mint_notes || "",
     projectNotes: row.project_notes || "",
-    currentPhaseComment: row.current_phase_comment || "",
-    phase2Comment: row.phase2_comment || "",
+    currentStageComment: row.current_stage_comment || "",
+    stage2Comment: row.stage2_comment || "",
     opsComment: (row as any).ops_comment || "",
   },
   transferHistory: row.transfer_history || [],
@@ -98,7 +98,7 @@ const transformDbChecklistItem = (row: any): ProjectChecklist => ({
   completed: row.completed || false,
   completedBy: row.completed_by || undefined,
   completedAt: row.completed_at || undefined,
-  phase: row.phase as ProjectPhase,
+  stage: row.stage as ProjectStage,
   ownerTeam: (row.owner_team || "mint").toLowerCase() as TeamRole,
   currentResponsibility: (row.current_responsibility as ResponsibilityParty) || "neutral",
   responsibilityLog: row.responsibility_logs || [],
@@ -274,7 +274,7 @@ export const useProjectsQuery = () => {
           party: log.party,
           startedAt: log.started_at,
           endedAt: log.ended_at || undefined,
-          phase: log.phase,
+          stage: log.stage,
         });
         logsByProject.set(log.project_id, logs);
       });
@@ -333,7 +333,7 @@ export const useAddProject = () => {
           txns_per_day: project.txnsPerDay,
           aov: project.aov,
           category: project.category,
-          current_phase: project.currentPhase,
+          current_stage: project.currentStage,
           current_owner_team: project.currentOwnerTeam,
           pending_acceptance: project.pendingAcceptance,
           go_live_percent: project.goLivePercent,
@@ -348,8 +348,8 @@ export const useAddProject = () => {
           expected_go_live_date: project.dates.expectedGoLiveDate,
           mint_notes: project.notes.mintNotes,
           project_notes: project.notes.projectNotes,
-          current_phase_comment: project.notes.currentPhaseComment,
-          phase2_comment: project.notes.phase2Comment,
+          current_stage_comment: project.notes.currentStageComment,
+          stage2_comment: project.notes.stage2Comment,
           sales_spoc: project.salesSpoc,
           integration_type: project.integrationType,
           pg_onboarding: project.pgOnboarding,
@@ -372,7 +372,7 @@ export const useAddProject = () => {
         const logsToInsert = project.responsibilityLog.map((log) => ({
           project_id: newProject.id,
           party: log.party,
-          phase: log.phase,
+          stage: log.stage,
           started_at: log.startedAt,
           ended_at: log.endedAt || null,
           tenant_id: currentUser?.tenantId || null,
@@ -427,7 +427,7 @@ const diffProject = (
   check("Txns/Day", oldP.txnsPerDay, newP.txnsPerDay);
   check("AOV", oldP.aov, newP.aov);
   check("Category", oldP.category, newP.category);
-  check("Phase", oldP.currentPhase, newP.currentPhase);
+  check("Stage", oldP.currentStage, newP.currentStage);
   check("Owner Team", oldP.currentOwnerTeam, newP.currentOwnerTeam);
   check("Project State", oldP.projectState, newP.projectState);
   check("Go-Live %", oldP.goLivePercent, newP.goLivePercent);
@@ -451,8 +451,8 @@ const diffProject = (
   );
   check("MINT Notes", oldP.notes.mintNotes, newP.notes.mintNotes);
   check("Project Notes", oldP.notes.projectNotes, newP.notes.projectNotes);
-  check("Phase Comment", oldP.notes.currentPhaseComment, newP.notes.currentPhaseComment);
-  check("Phase 2 Comment", oldP.notes.phase2Comment, newP.notes.phase2Comment);
+  check("Stage Comment", oldP.notes.currentStageComment, newP.notes.currentStageComment);
+  check("Stage 2 Comment", oldP.notes.stage2Comment, newP.notes.stage2Comment);
   check("Archived", oldP.archived, newP.archived);
   return changes;
 };
@@ -490,7 +490,7 @@ export const useUpdateProject = () => {
           txns_per_day: project.txnsPerDay,
           aov: project.aov,
           category: project.category,
-          current_phase: project.currentPhase,
+          current_stage: project.currentStage,
           current_owner_team: project.currentOwnerTeam,
           pending_acceptance: project.pendingAcceptance,
           go_live_percent: project.goLivePercent,
@@ -505,8 +505,8 @@ export const useUpdateProject = () => {
           expected_go_live_date: project.dates.expectedGoLiveDate,
           mint_notes: project.notes.mintNotes,
           project_notes: project.notes.projectNotes,
-          current_phase_comment: project.notes.currentPhaseComment,
-          phase2_comment: project.notes.phase2Comment,
+          current_stage_comment: project.notes.currentStageComment,
+          stage2_comment: project.notes.stage2Comment,
           sales_spoc: project.salesSpoc,
           integration_type: project.integrationType,
           pg_onboarding: project.pgOnboarding,
@@ -760,7 +760,7 @@ export const useTransferProject = () => {
       const nextTeam = getNextTeam(currentUser.team);
       if (!nextTeam) throw new Error("Cannot transfer from this team");
 
-      const nextPhase =
+      const nextStage =
         nextTeam === "integration" ? "integration" : nextTeam === "ms" ? "ms" : undefined;
 
       // Update project with new owner
@@ -768,7 +768,7 @@ export const useTransferProject = () => {
         .from("projects")
         .update({
           current_owner_team: nextTeam,
-          current_phase: nextPhase,
+          current_stage: nextStage,
           pending_acceptance: true,
           assigned_owner: assigneeId || null,
         })
@@ -881,7 +881,7 @@ export const useRejectProject = () => {
         fallbackPreviousTeam(currentTeam)) as TeamRole | null;
       if (!previousTeam) throw new Error("No previous team to send this project back to");
 
-      const previousPhase = previousTeam as "mint" | "integration" | "ms";
+      const previousStage = previousTeam as "mint" | "integration" | "ms";
 
       // Look up the previous assigned_owner from the project's history
       let previousOwnerId: string | null = null;
@@ -902,7 +902,7 @@ export const useRejectProject = () => {
         .from("projects")
         .update({
           current_owner_team: previousTeam,
-          current_phase: previousPhase,
+          current_stage: previousStage,
           pending_acceptance: false,
           assigned_owner: previousOwnerId,
         })
@@ -1123,11 +1123,11 @@ export const useToggleResponsibility = () => {
     mutationFn: async ({
       projectId,
       party,
-      currentPhase,
+      currentStage,
     }: {
       projectId: string;
       party: ResponsibilityParty;
-      currentPhase: ProjectPhase;
+      currentStage: ProjectStage;
     }) => {
       // Close current log entry
       const { data: currentLogs, error: fetchError } = await supabase
@@ -1153,7 +1153,7 @@ export const useToggleResponsibility = () => {
       const { error: insertError } = await supabase.from("project_responsibility_logs").insert({
         project_id: projectId,
         party,
-        phase: currentPhase,
+        stage: currentStage,
         started_at: new Date().toISOString(),
         tenant_id: currentUser?.tenantId || null,
       });

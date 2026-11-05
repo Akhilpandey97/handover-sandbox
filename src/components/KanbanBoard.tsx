@@ -101,7 +101,7 @@ const STATE_ARR_STYLES: Record<string, { text: string; bg: string; ring: string 
   live: { text: "text-success-strong", bg: "bg-success-soft", ring: "ring-success/30" },
 };
 
-const PHASE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
+const STAGE_STYLES: Record<string, { text: string; bar: string; bg: string; ring: string }> = {
   mint: { text: "text-foreground", bar: "bg-border", bg: "bg-muted/30", ring: "ring-border" },
   integration: {
     text: "text-foreground",
@@ -131,8 +131,8 @@ function getFieldValue(
       return getProjectFunnelStage(project);
     case "projectState":
       return project.projectState;
-    case "currentPhase":
-      return project.currentPhase;
+    case "currentStage":
+      return project.currentStage;
     case "currentOwnerTeam":
       return project.currentOwnerTeam;
     case "platform":
@@ -158,8 +158,8 @@ function getFieldLabel(value: string, field: string, labels: any): string {
       return funnelStageLabels[value as FunnelStage] || value;
     case "projectState":
       return labels.stateLabels[value] || projectStateLabels[value as ProjectState] || value;
-    case "currentPhase":
-      return labels.phaseLabels[value] || value;
+    case "currentStage":
+      return labels.stageLabels[value] || value;
     case "currentOwnerTeam":
       return labels.teamLabels[value] || value;
     case "currentResponsibility":
@@ -173,7 +173,7 @@ function getColumnStyle(value: string, field: string) {
   if (field === "funnelStage")
     return FUNNEL_STAGE_STYLES[value as FunnelStage] || FUNNEL_STAGE_STYLES.none;
   if (field === "projectState") return STATE_STYLES[value] || FUNNEL_STAGE_STYLES.none;
-  if (field === "currentPhase") return PHASE_STYLES[value] || FUNNEL_STAGE_STYLES.none;
+  if (field === "currentStage") return STAGE_STYLES[value] || FUNNEL_STAGE_STYLES.none;
   const hash = value.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   return FALLBACK_STYLES[hash % FALLBACK_STYLES.length];
 }
@@ -195,7 +195,7 @@ export const KanbanBoard = ({
   const [groupField, setGroupField] = useState("funnelStage");
   const [funnelStageFilter, setFunnelStageFilter] = useState<string[]>([]);
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
-  const [phaseFilter, setPhaseFilter] = useState<string[]>([]);
+  const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [stateFilter, setStateFilter] = useState<string[]>([]);
   const [platformFilter, setPlatformFilter] = useState<string[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
@@ -228,7 +228,7 @@ export const KanbanBoard = ({
   // Derive filter options from data
   const filterOptions = useMemo(() => {
     const teams = new Set<string>();
-    const phases = new Set<string>();
+    const stages = new Set<string>();
     const states = new Set<string>();
     const platforms = new Set<string>();
     const categories = new Set<string>();
@@ -238,7 +238,7 @@ export const KanbanBoard = ({
     const csmField = customFields.find((f) => f.field_key === "custom_csm_manager");
     activeProjects.forEach((p) => {
       if (p.currentOwnerTeam) teams.add(p.currentOwnerTeam);
-      if (p.currentPhase) phases.add(p.currentPhase);
+      if (p.currentStage) stages.add(p.currentStage);
       if (p.projectState) states.add(p.projectState);
       if (p.platform) platforms.add(p.platform);
       if (p.category) categories.add(p.category);
@@ -252,7 +252,7 @@ export const KanbanBoard = ({
     });
     return {
       teams: [...teams].sort(),
-      phases: [...phases].sort(),
+      stages: [...stages].sort(),
       states: [...states].sort(),
       platforms: [...platforms].sort(),
       categories: [...categories].sort(),
@@ -273,7 +273,7 @@ export const KanbanBoard = ({
       const matchesFunnel =
         funnelStageFilter.length === 0 || funnelStageFilter.includes(getProjectFunnelStage(p));
       const matchesTeam = teamFilter.length === 0 || teamFilter.includes(p.currentOwnerTeam);
-      const matchesPhase = phaseFilter.length === 0 || phaseFilter.includes(p.currentPhase);
+      const matchesStage = stageFilter.length === 0 || stageFilter.includes(p.currentStage);
       const matchesState = stateFilter.length === 0 || stateFilter.includes(p.projectState);
       const matchesPlatform =
         platformFilter.length === 0 || platformFilter.includes(p.platform || "");
@@ -299,7 +299,7 @@ export const KanbanBoard = ({
         matchesSearch &&
         matchesFunnel &&
         matchesTeam &&
-        matchesPhase &&
+        matchesStage &&
         matchesState &&
         matchesPlatform &&
         matchesCategory &&
@@ -319,7 +319,7 @@ export const KanbanBoard = ({
     searchQuery,
     funnelStageFilter,
     teamFilter,
-    phaseFilter,
+    stageFilter,
     stateFilter,
     platformFilter,
     categoryFilter,
@@ -469,7 +469,7 @@ export const KanbanBoard = ({
   const activeFilterCount =
     funnelStageFilter.length +
     teamFilter.length +
-    phaseFilter.length +
+    stageFilter.length +
     stateFilter.length +
     platformFilter.length +
     categoryFilter.length +
@@ -489,7 +489,7 @@ export const KanbanBoard = ({
     setNeedsAttentionOnly(false);
     setFunnelStageFilter([]);
     setTeamFilter([]);
-    setPhaseFilter([]);
+    setStageFilter([]);
     setStateFilter([]);
     setPlatformFilter([]);
     setCategoryFilter([]);
@@ -503,9 +503,9 @@ export const KanbanBoard = ({
     setGoLiveInProgressOnly(false);
   };
 
-  const labelize = (val: string, kind: "team" | "phase" | "state" | "responsibility") => {
+  const labelize = (val: string, kind: "team" | "stage" | "state" | "responsibility") => {
     if (kind === "team") return labels.teamLabels[val] || val;
-    if (kind === "phase") return labels.phaseLabels[val] || val;
+    if (kind === "stage") return labels.stageLabels[val] || val;
     if (kind === "state")
       return labels.stateLabels[val] || projectStateLabels[val as ProjectState] || val;
     if (kind === "responsibility") return labels.responsibilityLabels[val] || val;

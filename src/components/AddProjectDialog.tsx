@@ -591,31 +591,31 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
               </div>
               <div className="space-y-1.5">
                 <Label
-                  htmlFor="currentPhaseComment"
+                  htmlFor="currentStageComment"
                   className="text-xs font-medium text-muted-foreground"
                 >
-                  {getLabel("field_current_phase_comment")}
+                  {getLabel("field_current_stage_comment")}
                 </Label>
                 <Textarea
-                  id="currentPhaseComment"
-                  value={project.notes.currentPhaseComment || ""}
-                  onChange={(e) => updateNotes("currentPhaseComment", e.target.value)}
-                  placeholder={`Add ${getLabel("field_current_phase_comment").toLowerCase()}...`}
+                  id="currentStageComment"
+                  value={project.notes.currentStageComment || ""}
+                  onChange={(e) => updateNotes("currentStageComment", e.target.value)}
+                  placeholder={`Add ${getLabel("field_current_stage_comment").toLowerCase()}...`}
                   rows={2}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label
-                  htmlFor="phase2Comment"
+                  htmlFor="stage2Comment"
                   className="text-xs font-medium text-muted-foreground"
                 >
-                  {getLabel("field_phase2_comment")}
+                  {getLabel("field_stage2_comment")}
                 </Label>
                 <Textarea
-                  id="phase2Comment"
-                  value={project.notes.phase2Comment || ""}
-                  onChange={(e) => updateNotes("phase2Comment", e.target.value)}
-                  placeholder={`Add ${getLabel("field_phase2_comment").toLowerCase()}...`}
+                  id="stage2Comment"
+                  value={project.notes.stage2Comment || ""}
+                  onChange={(e) => updateNotes("stage2Comment", e.target.value)}
+                  placeholder={`Add ${getLabel("field_stage2_comment").toLowerCase()}...`}
                   rows={2}
                 />
               </div>

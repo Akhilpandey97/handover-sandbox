@@ -61,7 +61,7 @@ function isDueNow(schedule: string): boolean {
 
 const PIVOT_FIELD_LABELS: Record<string, string> = {
   projectState: "Project State",
-  currentPhase: "Current Phase",
+  currentStage: "Current Stage",
   currentOwnerTeam: "Current Team",
   platform: "Platform",
   category: "Category",
@@ -79,7 +79,7 @@ const PIVOT_FIELD_LABELS: Record<string, string> = {
 
 const PIVOT_DB_COL: Record<string, string> = {
   projectState: "project_state",
-  currentPhase: "current_phase",
+  currentStage: "current_stage",
   currentOwnerTeam: "current_owner_team",
   platform: "platform",
   category: "category",
@@ -462,7 +462,7 @@ const columnLabels: Record<string, string> = {
   txnsPerDay: "Txns/Day",
   aov: "AOV",
   projectState: "Project State",
-  currentPhase: "Current Phase",
+  currentStage: "Current Stage",
   currentOwnerTeam: "Current Team",
   assignedOwnerName: "Assigned Owner",
   currentResponsibility: "Responsibility",
@@ -479,7 +479,7 @@ const columnLabels: Record<string, string> = {
   brdLink: "BRD Link",
   mintNotes: "MINT Notes",
   projectNotes: "Project Notes",
-  currentPhaseComment: "Phase Comment",
+  currentStageComment: "Stage Comment",
 };
 
 const dbToField: Record<string, string> = {
@@ -491,7 +491,7 @@ const dbToField: Record<string, string> = {
   txnsPerDay: "txns_per_day",
   aov: "aov",
   projectState: "project_state",
-  currentPhase: "current_phase",
+  currentStage: "current_stage",
   currentOwnerTeam: "current_owner_team",
   assignedOwnerName: "assigned_owner_name",
   currentResponsibility: "current_responsibility",
@@ -508,7 +508,7 @@ const dbToField: Record<string, string> = {
   brdLink: "brd_link",
   mintNotes: "mint_notes",
   projectNotes: "project_notes",
-  currentPhaseComment: "current_phase_comment",
+  currentStageComment: "current_stage_comment",
 };
 
 function getFlatCellValue(project: any, key: string): string {

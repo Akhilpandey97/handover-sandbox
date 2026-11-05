@@ -195,7 +195,7 @@ export async function analyseMeeting(
   try {
     const { data: project } = await supabase
       .from("projects")
-      .select("merchant_name, current_phase, project_state, expected_go_live_date")
+      .select("merchant_name, current_stage, project_state, expected_go_live_date")
       .eq("id", meeting.project_id)
       .maybeSingle();
     const { data: item } = await supabase
@@ -206,7 +206,7 @@ export async function analyseMeeting(
 
     const context = [
       `MERCHANT: ${project?.merchant_name ?? "Unknown"}`,
-      `CURRENT PHASE: ${project?.current_phase ?? "unknown"} (${project?.project_state ?? "unknown"})`,
+      `CURRENT STAGE: ${project?.current_stage ?? "unknown"} (${project?.project_state ?? "unknown"})`,
       project?.expected_go_live_date ? `EXPECTED GO-LIVE: ${project.expected_go_live_date}` : "",
       `CHECKLIST ITEM: ${item?.title ?? "Unknown"}`,
       `MEETING: ${meeting.title} on ${meeting.scheduled_at}`,

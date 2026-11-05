@@ -54,7 +54,7 @@ export const exportProjectsToCSV = (
         field_brd_link: "BRD Link",
         field_mint_notes: "MINT Notes",
         field_project_notes: "Project Notes",
-        field_current_phase_comment: "Phase Comment",
+        field_current_stage_comment: "Stage Comment",
       };
       return defaults[key] || key;
     });
@@ -67,7 +67,7 @@ export const exportProjectsToCSV = (
   const titleSet = new Set<string>();
   projects.forEach((p) => {
     p.checklist.forEach((item) => {
-      const key = `${item.phase}|${item.title}`;
+      const key = `${item.stage}|${item.title}`;
       if (!titleSet.has(key)) {
         titleSet.add(key);
         allChecklistTitles.push(key);
@@ -88,7 +88,7 @@ export const exportProjectsToCSV = (
     getLabel("field_arr"),
     getLabel("field_txns_per_day"),
     getLabel("field_aov"),
-    "Current Phase",
+    "Current Stage",
     "Current Team",
     "Assigned Owner",
     "Project State",
@@ -106,7 +106,7 @@ export const exportProjectsToCSV = (
     getLabel("field_brd_link"),
     getLabel("field_mint_notes"),
     getLabel("field_project_notes"),
-    "Phase Comment",
+    "Stage Comment",
     // Custom field headers
     ...customFields.map((f) => f.field_label),
     "Checklist Total",
@@ -161,7 +161,7 @@ export const exportProjectsToCSV = (
 
     const checklistMap = new Map<string, (typeof p.checklist)[0]>();
     p.checklist.forEach((item) => {
-      checklistMap.set(`${item.phase}|${item.title}`, item);
+      checklistMap.set(`${item.stage}|${item.title}`, item);
     });
 
     const checklistColumns = allChecklistTitles.flatMap((key) => {
@@ -192,7 +192,7 @@ export const exportProjectsToCSV = (
       p.arr,
       p.txnsPerDay,
       p.aov,
-      p.currentPhase,
+      p.currentStage,
       teamLbls[p.currentOwnerTeam] || p.currentOwnerTeam,
       p.assignedOwnerName || "",
       stateLbls[p.projectState] || p.projectState,
@@ -210,7 +210,7 @@ export const exportProjectsToCSV = (
       p.links.brdLink || "",
       p.notes.mintNotes || "",
       p.notes.projectNotes || "",
-      p.notes.currentPhaseComment || "",
+      p.notes.currentStageComment || "",
       ...customFieldColumns,
       p.checklist.length,
       completedChecklist,

@@ -91,7 +91,7 @@ interface PortalData {
     platform: string;
     category: string;
     integration_type: string;
-    current_phase: string;
+    current_stage: string;
     project_state: string;
     go_live_percent: number;
     current_responsibility: string;
@@ -121,7 +121,7 @@ interface PortalData {
     title: string;
     completed: boolean;
     completed_at: string | null;
-    phase: string;
+    stage: string;
     owner_team: string;
     due_date: string | null;
   }[];

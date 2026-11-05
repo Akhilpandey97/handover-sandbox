@@ -73,7 +73,7 @@ async function handler(req: Request): Promise<Response> {
     const { data: project } = await supabase
       .from("projects")
       .select(
-        "id, tenant_id, merchant_name, mid, platform, category, arr, project_state, current_owner_team, current_responsibility, pending_acceptance, kick_off_date, expected_go_live_date, go_live_date, sales_spoc, integration_type, pg_onboarding, project_notes, mint_notes, current_phase_comment",
+        "id, tenant_id, merchant_name, mid, platform, category, arr, project_state, current_owner_team, current_responsibility, pending_acceptance, kick_off_date, expected_go_live_date, go_live_date, sales_spoc, integration_type, pg_onboarding, project_notes, mint_notes, current_stage_comment",
       )
       .eq("id", projectId)
       .maybeSingle();
@@ -154,7 +154,7 @@ Platform: ${project.platform || "N/A"} | Category: ${project.category || "N/A"} 
 State: ${(project.project_state || "not_started").replace(/_/g, " ")} | Owner team: ${teamLabel(project.current_owner_team)} | Pending with: ${project.current_responsibility || "neutral"} | Handover accepted: ${project.pending_acceptance ? "NO" : "yes"}
 Kick-off: ${project.kick_off_date || "N/A"} | Expected go-live: ${project.expected_go_live_date || "not set"} | Actual go-live: ${project.go_live_date || "not live"}
 Integration type: ${project.integration_type || "N/A"} | PG onboarding: ${project.pg_onboarding || "N/A"} | Sales SPOC: ${project.sales_spoc || "N/A"}
-Notes: ${[project.project_notes, project.mint_notes, project.current_phase_comment].filter(Boolean).join(" | ") || "none"}
+Notes: ${[project.project_notes, project.mint_notes, project.current_stage_comment].filter(Boolean).join(" | ") || "none"}
 Today: ${today}
 
 Checklist progress: ${done.length}/${done.length + open.length} complete.

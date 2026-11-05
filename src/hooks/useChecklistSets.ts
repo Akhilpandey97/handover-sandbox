@@ -28,7 +28,7 @@ export interface ChecklistTemplate {
   checklist_set_id: string | null;
   tenant_id: string | null;
   title: string;
-  phase: string;
+  stage: string;
   owner_team: string;
   standard_duration: number | null;
   sort_order: number;
@@ -49,7 +49,7 @@ export const RULE_OPERATORS = [
   { value: "in", label: "is one of" },
 ] as const;
 
-export const PHASE_OPTIONS = [
+export const STAGE_OPTIONS = [
   { value: "mint", label: "Mint" },
   { value: "integration", label: "Integration" },
   { value: "ms", label: "MS" },
@@ -180,7 +180,7 @@ export const useChecklistSets = () => {
     async (
       setId: string,
       title: string,
-      phase: string,
+      stage: string,
       ownerTeam: string,
       standardDuration?: number | null,
     ) => {
@@ -192,7 +192,7 @@ export const useChecklistSets = () => {
           tenant_id: tenantId,
           checklist_set_id: setId,
           title,
-          phase,
+          stage,
           owner_team: ownerTeam,
           standard_duration: standardDuration ?? null,
           sort_order: maxOrder + 1,
@@ -208,7 +208,7 @@ export const useChecklistSets = () => {
     async (
       id: string,
       patch: Partial<
-        Pick<ChecklistTemplate, "title" | "phase" | "owner_team" | "standard_duration">
+        Pick<ChecklistTemplate, "title" | "stage" | "owner_team" | "standard_duration">
       >,
     ) => {
       const updates = { ...patch, updated_at: new Date().toISOString() };

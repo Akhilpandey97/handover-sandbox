@@ -28,9 +28,9 @@ interface ImportResult {
   error?: string;
 }
 
-// Map CSV phase to valid enum values
-const mapPhaseToEnum = (phase: string): string => {
-  const phaseMap: Record<string, string> = {
+// Map CSV stage to valid enum values
+const mapStageToEnum = (stage: string): string => {
+  const stageMap: Record<string, string> = {
     "feasibility analysis": "mint",
     scoping: "mint",
     "api build": "mint",
@@ -43,12 +43,12 @@ const mapPhaseToEnum = (phase: string): string => {
     golive: "ms",
     completed: "completed",
   };
-  const normalized = phase.toLowerCase().trim();
-  return phaseMap[normalized] || "mint";
+  const normalized = stage.toLowerCase().trim();
+  return stageMap[normalized] || "mint";
 };
 
-const mapPhaseToTeam = (phase: string): string => {
-  const mapped = mapPhaseToEnum(phase);
+const mapStageToTeam = (stage: string): string => {
+  const mapped = mapStageToEnum(stage);
   if (mapped === "integration") return "integration";
   if (mapped === "ms" || mapped === "completed") return "ms";
   return "mint";
@@ -119,7 +119,7 @@ const buildProject = (row: string[], headers: string[], mapping: Record<string, 
   let mid = getVal("mid");
   if (!mid) mid = `mid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  const phase = getVal("current_phase") || "mint";
+  const stage = getVal("current_stage") || "mint";
 
   // Extract custom field values (keys starting with "custom_")
   const customFieldValues: Record<string, string> = {};
@@ -144,7 +144,7 @@ const buildProject = (row: string[], headers: string[], mapping: Record<string, 
     sales_spoc: getVal("sales_spoc") || "",
     mint_notes: getVal("mint_notes") || "",
     project_notes: getVal("project_notes") || "",
-    current_phase_comment: getVal("current_phase_comment") || "",
+    current_stage_comment: getVal("current_stage_comment") || "",
     integration_type: getVal("integration_type") || "Standard",
     pg_onboarding: getVal("pg_onboarding") || "",
     jira_link: getVal("jira_link") || "",
@@ -152,8 +152,8 @@ const buildProject = (row: string[], headers: string[], mapping: Record<string, 
     kick_off_date: getVal("kick_off_date") || new Date().toISOString().split("T")[0],
     expected_go_live_date: getVal("expected_go_live_date") || "",
     go_live_percent: parseInt(getVal("go_live_percent")) || 0,
-    current_phase: mapPhaseToEnum(phase),
-    current_owner_team: mapPhaseToTeam(phase),
+    current_stage: mapStageToEnum(stage),
+    current_owner_team: mapStageToTeam(stage),
     _customFieldValues: customFieldValues,
   };
 };
@@ -248,7 +248,7 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
             .insert({
               ...projectData,
               expected_go_live_date: projectData.expected_go_live_date || null,
-              current_phase: projectData.current_phase as any,
+              current_stage: projectData.current_stage as any,
               current_owner_team: projectData.current_owner_team as any,
               current_responsibility: "neutral",
               pending_acceptance: false,
@@ -264,7 +264,7 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
           await supabase.from("project_responsibility_logs").insert({
             project_id: newProject.id,
             party: "neutral",
-            phase: project.current_phase as any,
+            stage: project.current_stage as any,
             started_at: new Date().toISOString(),
             tenant_id: currentUser?.tenantId || null,
           });

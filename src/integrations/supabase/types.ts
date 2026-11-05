@@ -735,7 +735,7 @@ export type Database = {
           id: string;
           is_task: boolean;
           owner_team: string;
-          phase: string;
+          stage: string;
           project_id: string;
           sort_order: number | null;
           tenant_id: string | null;
@@ -754,7 +754,7 @@ export type Database = {
           id?: string;
           is_task?: boolean;
           owner_team: string;
-          phase: string;
+          stage: string;
           project_id: string;
           sort_order?: number | null;
           tenant_id?: string | null;
@@ -773,7 +773,7 @@ export type Database = {
           id?: string;
           is_task?: boolean;
           owner_team?: string;
-          phase?: string;
+          stage?: string;
           project_id?: string;
           sort_order?: number | null;
           tenant_id?: string | null;
@@ -1030,7 +1030,7 @@ export type Database = {
           created_at: string;
           id: string;
           owner_team: string;
-          phase: string;
+          stage: string;
           sort_order: number;
           standard_duration: number | null;
           tenant_id: string | null;
@@ -1042,7 +1042,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           owner_team: string;
-          phase: string;
+          stage: string;
           sort_order?: number;
           standard_duration?: number | null;
           tenant_id?: string | null;
@@ -1054,7 +1054,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           owner_team?: string;
-          phase?: string;
+          stage?: string;
           sort_order?: number;
           standard_duration?: number | null;
           tenant_id?: string | null;
@@ -2128,7 +2128,7 @@ export type Database = {
           ended_at: string | null;
           id: string;
           party: Database["public"]["Enums"]["responsibility_party"];
-          phase: Database["public"]["Enums"]["project_phase"];
+          stage: Database["public"]["Enums"]["project_stage"];
           project_id: string;
           started_at: string;
           tenant_id: string | null;
@@ -2138,7 +2138,7 @@ export type Database = {
           ended_at?: string | null;
           id?: string;
           party: Database["public"]["Enums"]["responsibility_party"];
-          phase: Database["public"]["Enums"]["project_phase"];
+          stage: Database["public"]["Enums"]["project_stage"];
           project_id: string;
           started_at?: string;
           tenant_id?: string | null;
@@ -2148,7 +2148,7 @@ export type Database = {
           ended_at?: string | null;
           id?: string;
           party?: Database["public"]["Enums"]["responsibility_party"];
-          phase?: Database["public"]["Enums"]["project_phase"];
+          stage?: Database["public"]["Enums"]["project_stage"];
           project_id?: string;
           started_at?: string;
           tenant_id?: string | null;
@@ -2297,8 +2297,8 @@ export type Database = {
           created_at: string | null;
           created_by: string | null;
           current_owner_team: string | null;
-          current_phase: Database["public"]["Enums"]["project_phase"] | null;
-          current_phase_comment: string | null;
+          current_stage: Database["public"]["Enums"]["project_stage"] | null;
+          current_stage_comment: string | null;
           current_responsibility: Database["public"]["Enums"]["responsibility_party"] | null;
           enable_kp: boolean;
           enable_mcp_document: boolean;
@@ -2322,7 +2322,7 @@ export type Database = {
           payment_simulator_link: string | null;
           pending_acceptance: boolean | null;
           pg_onboarding: string | null;
-          phase2_comment: string | null;
+          stage2_comment: string | null;
           platform: string | null;
           prod_app_id: string | null;
           prod_base_url: string | null;
@@ -2356,8 +2356,8 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           current_owner_team?: string | null;
-          current_phase?: Database["public"]["Enums"]["project_phase"] | null;
-          current_phase_comment?: string | null;
+          current_stage?: Database["public"]["Enums"]["project_stage"] | null;
+          current_stage_comment?: string | null;
           current_responsibility?: Database["public"]["Enums"]["responsibility_party"] | null;
           enable_kp?: boolean;
           enable_mcp_document?: boolean;
@@ -2381,7 +2381,7 @@ export type Database = {
           payment_simulator_link?: string | null;
           pending_acceptance?: boolean | null;
           pg_onboarding?: string | null;
-          phase2_comment?: string | null;
+          stage2_comment?: string | null;
           platform?: string | null;
           prod_app_id?: string | null;
           prod_base_url?: string | null;
@@ -2415,8 +2415,8 @@ export type Database = {
           created_at?: string | null;
           created_by?: string | null;
           current_owner_team?: string | null;
-          current_phase?: Database["public"]["Enums"]["project_phase"] | null;
-          current_phase_comment?: string | null;
+          current_stage?: Database["public"]["Enums"]["project_stage"] | null;
+          current_stage_comment?: string | null;
           current_responsibility?: Database["public"]["Enums"]["responsibility_party"] | null;
           enable_kp?: boolean;
           enable_mcp_document?: boolean;
@@ -2440,7 +2440,7 @@ export type Database = {
           payment_simulator_link?: string | null;
           pending_acceptance?: boolean | null;
           pg_onboarding?: string | null;
-          phase2_comment?: string | null;
+          stage2_comment?: string | null;
           platform?: string | null;
           prod_app_id?: string | null;
           prod_base_url?: string | null;
@@ -3377,7 +3377,7 @@ export type Database = {
       };
     };
     Enums: {
-      project_phase: "mint" | "integration" | "ms" | "completed";
+      project_stage: "mint" | "integration" | "ms" | "completed";
       project_state: "not_started" | "on_hold" | "in_progress" | "live" | "blocked";
       responsibility_party: "gokwik" | "merchant" | "neutral";
       team_role: "mint" | "integration" | "ms" | "manager" | "super_admin" | "gokwik_general";
@@ -3505,7 +3505,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      project_phase: ["mint", "integration", "ms", "completed"],
+      project_stage: ["mint", "integration", "ms", "completed"],
       project_state: ["not_started", "on_hold", "in_progress", "live", "blocked"],
       responsibility_party: ["gokwik", "merchant", "neutral"],
       team_role: ["mint", "integration", "ms", "manager", "super_admin", "gokwik_general"],

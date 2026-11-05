@@ -26,10 +26,10 @@ interface Props {
   projects: Project[];
 }
 
-const phaseOrder = ["mint", "integration", "ms", "completed"];
+const stageOrder = ["mint", "integration", "ms", "completed"];
 
 export const ExecutiveDashboard = ({ projects }: Props) => {
-  const { phaseLabels, getLabel } = useLabels();
+  const { stageLabels, getLabel } = useLabels();
   const [expandedSection, setExpandedSection] = useState<string | null>("revenue");
 
   // Revenue Realization Forecast
@@ -75,11 +75,11 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
 
   // Pipeline Funnel
   const pipelineFunnel = useMemo(() => {
-    return phaseOrder.map((phase) => {
-      const count = projects.filter((p) => p.currentPhase === phase).length;
-      return { phase, label: phaseLabels[phase] || phase, count };
+    return stageOrder.map((stage) => {
+      const count = projects.filter((p) => p.currentStage === stage).length;
+      return { stage, label: stageLabels[stage] || stage, count };
     });
-  }, [projects, phaseLabels]);
+  }, [projects, stageLabels]);
 
   const maxFunnelCount = Math.max(...pipelineFunnel.map((f) => f.count), 1);
 

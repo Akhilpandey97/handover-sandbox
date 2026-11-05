@@ -53,7 +53,7 @@ async function handler(req: Request): Promise<Response> {
       const timeframe = body.timeframe || "weekly";
       const { orgName: insightsOrgName } = await getTenantBranding(body.tenant_id ?? null);
 
-      const systemPrompt = `You are a project status analyst for ${insightsOrgName}. You receive recent project activity (internal notes, checklist updates, comments, state/phase changes) over the last ${timeframe === "daily" ? "24 hours" : "7 days"} for multiple merchants.
+      const systemPrompt = `You are a project status analyst for ${insightsOrgName}. You receive recent project activity (internal notes, checklist updates, comments, state/stage changes) over the last ${timeframe === "daily" ? "24 hours" : "7 days"} for multiple merchants.
 
 The bucket (wins/updates/lowlights) has ALREADY been deterministically classified for you — do NOT re-classify. Just echo back the provided bucket and write the 2-line prose summary.
 
@@ -218,7 +218,7 @@ For EACH merchant, produce:
       // Fetch project details for context
       const { data: project } = await supabase
         .from("projects")
-        .select("merchant_name, mid, platform, current_phase, project_notes")
+        .select("merchant_name, mid, platform, current_stage, project_notes")
         .eq("id", project_id)
         .single();
 
@@ -277,7 +277,7 @@ Rules:
 - If nothing is pending, return an empty action_items array.`;
 
       const userContent = `Project: ${project?.merchant_name || "Unknown"} (MID: ${project?.mid || "N/A"})
-Platform: ${project?.platform || "N/A"} | Phase: ${project?.current_phase || "N/A"}
+Platform: ${project?.platform || "N/A"} | Stage: ${project?.current_stage || "N/A"}
 
 Email threads (${(threads || []).length} total):
 ${threadsSummary || "No threads available."}
@@ -371,7 +371,7 @@ ${jiraSummary}`;
               .map((c: any) => c.title)
               .slice(0, 3)
               .join(", ") || "None";
-          return `- ${p.merchantName} (${p.currentPhase}/${p.projectState || "not_started"}): ${completed}/${total} done. Next: ${pending}`;
+          return `- ${p.merchantName} (${p.currentStage}/${p.projectState || "not_started"}): ${completed}/${total} done. Next: ${pending}`;
         })
         .join("\n");
 
@@ -406,7 +406,7 @@ ${jiraSummary}`;
 
     const projectSummary = `
 Project: ${project.merchantName} (MID: ${project.mid})
-Phase: ${project.currentPhase}
+Stage: ${project.currentStage}
 State: ${project.projectState || "not_started"}
 ARR: ${(Math.abs(Number(project.arr) || 0) >= 100000 ? (Number(project.arr) || 0) / 1e7 : Number(project.arr) || 0).toFixed(2)} Cr
 Platform: ${project.platform}

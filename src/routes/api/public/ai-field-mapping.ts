@@ -19,7 +19,7 @@ const PROJECT_FIELDS = [
   { key: "sales_spoc", label: "Sales SPOC / Contact" },
   { key: "mint_notes", label: "Pre-Sales Notes" },
   { key: "project_notes", label: "Project Notes" },
-  { key: "current_phase_comment", label: "Current Phase Comment" },
+  { key: "current_stage_comment", label: "Current Stage Comment" },
   { key: "integration_type", label: "Integration Type" },
   { key: "pg_onboarding", label: "PG Onboarding" },
   { key: "jira_link", label: "JIRA Link" },
@@ -27,7 +27,7 @@ const PROJECT_FIELDS = [
   { key: "kick_off_date", label: "Kick Off / Start Date" },
   { key: "expected_go_live_date", label: "Expected Go Live Date" },
   { key: "go_live_percent", label: "Go Live Percentage" },
-  { key: "current_phase", label: "Current Phase (mint/integration/ms/completed)" },
+  { key: "current_stage", label: "Current Stage (mint/integration/ms/completed)" },
 ];
 
 async function handler(req: Request): Promise<Response> {

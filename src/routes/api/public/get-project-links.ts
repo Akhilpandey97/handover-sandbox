@@ -88,7 +88,7 @@ async function handler(req: Request): Promise<Response> {
       supabase
         .from("checklist_items")
         .select(
-          "id, title, completed, completed_by, completed_at, phase, owner_team, current_responsibility, comment, sort_order, due_date, is_task",
+          "id, title, completed, completed_by, completed_at, stage, owner_team, current_responsibility, comment, sort_order, due_date, is_task",
         )
         .eq("project_id", projectId)
         .order("sort_order", { ascending: true }),
@@ -121,7 +121,7 @@ async function handler(req: Request): Promise<Response> {
         .eq("project_id", projectId),
       supabase
         .from("project_responsibility_logs")
-        .select("party, phase, started_at, ended_at")
+        .select("party, stage, started_at, ended_at")
         .eq("project_id", projectId)
         .order("started_at", { ascending: true }),
     ]);
@@ -153,7 +153,7 @@ async function handler(req: Request): Promise<Response> {
       contact_email: project.contact_email,
 
       // Status
-      current_phase: project.current_phase,
+      current_stage: project.current_stage,
       current_owner_team: project.current_owner_team,
       current_responsibility: project.current_responsibility,
       project_state: project.project_state,
@@ -187,8 +187,8 @@ async function handler(req: Request): Promise<Response> {
       notes: {
         mint_notes: project.mint_notes,
         project_notes: project.project_notes,
-        current_phase_comment: project.current_phase_comment,
-        phase2_comment: project.phase2_comment,
+        current_stage_comment: project.current_stage_comment,
+        stage2_comment: project.stage2_comment,
       },
 
       // Owner

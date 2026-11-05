@@ -1,7 +1,7 @@
 import { buddyLabels } from "@/lib/buddy/labels.server";
 import {
   type BuddyCaller,
-  PHASE_LABELS,
+  STAGE_LABELS,
   RESPONSIBILITY_LABELS,
   STATE_LABELS,
   todayIso,
@@ -16,7 +16,7 @@ import type { BuddySource, ReadToolResult } from "@/lib/buddy/read-tools.server"
  * areas; comparing categories is a column or bar chart; share of a whole with
  * few groups can be a pie or donut; a second dimension becomes stacked or
  * grouped columns or several lines. Categories that are ordered in the product
- * (states, phases) keep that order everywhere, so a colour always means the
+ * (states, stages) keep that order everywhere, so a colour always means the
  * same thing. Column keys for project lists match the Reports builder.
  */
 
@@ -73,7 +73,7 @@ type Dimension =
   | "go_live_month"
   | "kick_off_month"
   | "state"
-  | "phase"
+  | "stage"
   | "owner"
   | "platform"
   | "responsibility"
@@ -83,7 +83,7 @@ const DIMENSION_LABELS: Record<Dimension, string> = {
   go_live_month: "Expected go-live month",
   kick_off_month: "Kick-off month",
   state: "State",
-  phase: "Phase",
+  stage: "Stage",
   owner: "Owner",
   platform: "Platform",
   responsibility: "Waiting on",
@@ -93,7 +93,7 @@ const DIMENSION_LABELS: Record<Dimension, string> = {
 /** Categories with a fixed order in the product keep it, so their colours stay put across charts. */
 const FIXED_ORDER: Partial<Record<Dimension, string[]>> = {
   state: ["Not started", "In progress", "On hold", "Blocked", "Live"],
-  phase: ["Sales", "Integration", "Merchant Success", "Completed"],
+  stage: ["Sales", "Integration", "Merchant Success", "Completed"],
   responsibility: ["Internal team", "Merchant", "Neutral"],
 };
 
@@ -118,7 +118,7 @@ export const REPORT_TOOL_DEF = {
             "go_live_month",
             "kick_off_month",
             "state",
-            "phase",
+            "stage",
             "owner",
             "platform",
             "responsibility",
@@ -127,7 +127,7 @@ export const REPORT_TOOL_DEF = {
         },
         split_by: {
           type: "string",
-          enum: ["state", "phase", "owner", "platform", "responsibility", "category"],
+          enum: ["state", "stage", "owner", "platform", "responsibility", "category"],
           description: "Second dimension for stacked, grouped or multi-line charts",
         },
         metric: {
@@ -155,7 +155,7 @@ export const REPORT_TOOL_DEF = {
           type: "string",
           enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
         },
-        phase: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
+        stage: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
         platform: { type: "string" },
         owner_id: { type: "string" },
         go_live_from: { type: "string", description: "YYYY-MM-DD" },
@@ -194,7 +194,7 @@ export async function runReportTool(
       "id",
       "merchant_name",
       "project_state",
-      "current_phase",
+      "current_stage",
       "current_owner_team",
       "assigned_owner",
       "platform",
@@ -214,7 +214,7 @@ export async function runReportTool(
     if (!caller.portfolio)
       q = q.eq("assigned_owner", caller.userId).eq("pending_acceptance", false);
     if (args.state) q = q.eq("project_state", args.state);
-    if (args.phase) q = q.eq("current_phase", args.phase);
+    if (args.stage) q = q.eq("current_stage", args.stage);
     if (args.platform) q = q.ilike("platform", String(args.platform));
     if (args.owner_id) q = q.eq("assigned_owner", args.owner_id);
     if (args.go_live_from) q = q.gte("expected_go_live_date", args.go_live_from);
@@ -240,7 +240,7 @@ export async function runReportTool(
     const title = String(args.title || "Report");
     const filterBits = [
       args.state && STATE_LABELS[args.state],
-      args.phase && PHASE_LABELS[args.phase],
+      args.stage && STAGE_LABELS[args.stage],
       args.platform,
       args.go_live_from && `go-live from ${args.go_live_from}`,
       args.go_live_to && `to ${args.go_live_to}`,
@@ -263,8 +263,8 @@ export async function runReportTool(
           return p.expected_go_live_date ? String(p.expected_go_live_date).slice(0, 7) : "No date";
         case "kick_off_month":
           return p.kick_off_date ? String(p.kick_off_date).slice(0, 7) : "No date";
-        case "phase":
-          return PHASE_LABELS[p.current_phase] || p.current_phase || "None";
+        case "stage":
+          return STAGE_LABELS[p.current_stage] || p.current_stage || "None";
         case "owner":
           return ownerName.get(p.assigned_owner) || "Unassigned";
         case "platform":

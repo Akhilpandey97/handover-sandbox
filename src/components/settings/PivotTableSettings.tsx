@@ -108,8 +108,8 @@ function getCellValue(project: Project, key: string, labels: any): string {
       return String(project.aov);
     case "projectState":
       return labels.stateLabels?.[project.projectState] || projectStateLabels[project.projectState];
-    case "currentPhase":
-      return labels.phaseLabels?.[project.currentPhase] || project.currentPhase;
+    case "currentStage":
+      return labels.stageLabels?.[project.currentStage] || project.currentStage;
     case "currentOwnerTeam":
       return labels.teamLabels?.[project.currentOwnerTeam] || project.currentOwnerTeam;
     case "assignedOwnerName":
@@ -180,9 +180,9 @@ export const PivotTableSettings = ({
   customFields?: CustomField[];
   customValuesMap?: Record<string, Record<string, string>>;
 }) => {
-  const { teamLabels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
+  const { teamLabels, responsibilityLabels, stageLabels, stateLabels } = useLabels();
   const { currentUser } = useAuth();
-  const labels = { teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap };
+  const labels = { teamLabels, responsibilityLabels, stageLabels, stateLabels, customValuesMap };
 
   const [pivotRowField, setPivotRowField] = useState<string>("none");
   const [pivotColField, setPivotColField] = useState<string>("none");

@@ -1,7 +1,7 @@
 import { buddyLabels } from "@/lib/buddy/labels.server";
 import {
   type BuddyCaller,
-  PHASE_LABELS,
+  STAGE_LABELS,
   RESPONSIBILITY_LABELS,
   STATE_LABELS,
   todayIso,
@@ -42,7 +42,7 @@ export const READ_TOOL_DEFS = [
             type: "string",
             enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
           },
-          phase: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
+          stage: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
           owner_id: { type: "string", description: "Only projects owned by this user id" },
           platform: { type: "string" },
           go_live_from: {
@@ -83,13 +83,13 @@ export const READ_TOOL_DEFS = [
         properties: {
           group_by: {
             type: "string",
-            enum: ["state", "phase", "owner", "platform", "go_live_month", "responsibility"],
+            enum: ["state", "stage", "owner", "platform", "go_live_month", "responsibility"],
           },
           state: {
             type: "string",
             enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
           },
-          phase: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
+          stage: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
         },
         required: ["group_by"],
       },
@@ -115,7 +115,7 @@ export const READ_TOOL_DEFS = [
 export const READ_TOOL_NAMES = new Set<string>(READ_TOOL_DEFS.map((t) => t.function.name));
 
 const PROJECT_COLUMNS =
-  "id, merchant_name, mid, project_state, current_phase, current_owner_team, assigned_owner, expected_go_live_date, go_live_date, arr, platform, category, current_responsibility, kick_off_date, updated_at, pending_acceptance";
+  "id, merchant_name, mid, project_state, current_stage, current_owner_team, assigned_owner, expected_go_live_date, go_live_date, arr, platform, category, current_responsibility, kick_off_date, updated_at, pending_acceptance";
 
 const TASK_STATUS_LABELS: Record<string, string> = {
   open: "Open",
@@ -202,7 +202,7 @@ async function searchProjects(
     if (term) q = q.or(`merchant_name.ilike.%${term}%,mid.ilike.%${term}%`);
   }
   if (args.state) q = q.eq("project_state", args.state);
-  if (args.phase) q = q.eq("current_phase", args.phase);
+  if (args.stage) q = q.eq("current_stage", args.stage);
   if (args.owner_id) q = q.eq("assigned_owner", args.owner_id);
   if (args.platform) q = q.ilike("platform", safeLike(String(args.platform)));
   if (args.go_live_from) q = q.gte("expected_go_live_date", args.go_live_from);
@@ -234,7 +234,7 @@ async function searchProjects(
       merchant: r.merchant_name,
       mid: r.mid,
       state: STATE_LABELS[r.project_state] || r.project_state,
-      phase: L.phase[r.current_phase] || r.current_phase,
+      stage: L.stage[r.current_stage] || r.current_stage,
       owner: owners.get(r.assigned_owner) || "Unassigned",
       owner_id: r.assigned_owner,
       with: L.responsibility[r.current_responsibility] || r.current_responsibility,
@@ -274,7 +274,7 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
   const { data: project, error } = await caller.client
     .from("projects")
     .select(
-      `${PROJECT_COLUMNS}, brand_url, contact_email, sales_spoc, integration_type, pg_onboarding, go_live_percent, project_notes, current_phase_comment, jira_link, brd_link, sow_link, txns_per_day, aov`,
+      `${PROJECT_COLUMNS}, brand_url, contact_email, sales_spoc, integration_type, pg_onboarding, go_live_percent, project_notes, current_stage_comment, jira_link, brd_link, sow_link, txns_per_day, aov`,
     )
     .eq("tenant_id", caller.tenantId)
     .eq("id", id)
@@ -300,7 +300,7 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
     caller.client
       .from("checklist_items")
       .select(
-        "id, title, phase, owner_team, completed, completed_at, due_date, current_responsibility",
+        "id, title, stage, owner_team, completed, completed_at, due_date, current_responsibility",
       )
       .eq("tenant_id", caller.tenantId)
       .eq("project_id", id)
@@ -401,7 +401,7 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
         merchant: p.merchant_name,
         mid: p.mid,
         state: STATE_LABELS[p.project_state] || p.project_state,
-        phase: L.phase[p.current_phase] || p.current_phase,
+        stage: L.stage[p.current_stage] || p.current_stage,
         owner: owners.get(p.assigned_owner) || "Unassigned",
         with: L.responsibility[p.current_responsibility] || p.current_responsibility,
         kick_off: p.kick_off_date,
@@ -416,7 +416,7 @@ async function getProject(caller: BuddyCaller, args: Record<string, any>): Promi
         sales_spoc: p.sales_spoc,
         awaiting_acceptance: !!p.pending_acceptance,
         notes: clampText(p.project_notes, 1200),
-        phase_comment: clampText(p.current_phase_comment, 600),
+        stage_comment: clampText(p.current_stage_comment, 600),
         links: { jira: p.jira_link, brd: p.brd_link, sow: p.sow_link, brand: p.brand_url },
       },
       checklist_summary: {
@@ -471,14 +471,14 @@ async function portfolioStats(
   let q = caller.client
     .from("projects")
     .select(
-      "project_state, current_phase, assigned_owner, platform, expected_go_live_date, current_responsibility, arr",
+      "project_state, current_stage, assigned_owner, platform, expected_go_live_date, current_responsibility, arr",
     )
     .eq("tenant_id", caller.tenantId)
     .eq("archived", false);
   // Not yours until accepted, so it is not in your list or your numbers.
   if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId).eq("pending_acceptance", false);
   if (args.state) q = q.eq("project_state", args.state);
-  if (args.phase) q = q.eq("current_phase", args.phase);
+  if (args.stage) q = q.eq("current_stage", args.stage);
   const { data, error } = await q.limit(5000);
   if (error) throw error;
   const rows = (data || []) as any[];
@@ -493,8 +493,8 @@ async function portfolioStats(
       : new Map<string, string>();
   const keyOf = (r: any): string => {
     switch (groupBy) {
-      case "phase":
-        return L.phase[r.current_phase] || r.current_phase || "None";
+      case "stage":
+        return L.stage[r.current_stage] || r.current_stage || "None";
       case "owner":
         return owners.get(r.assigned_owner) || "Unassigned";
       case "platform":

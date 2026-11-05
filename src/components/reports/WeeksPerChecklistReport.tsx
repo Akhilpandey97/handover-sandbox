@@ -74,7 +74,7 @@ export const WeeksPerChecklistReport = ({ projects }: Props) => {
   const { columns, rows } = useMemo(() => {
     const filtered = projects.filter((p) => includeArchived || !p.archived);
 
-    // Collect unique checklist item titles (non-task), preserving an order grouped by phase.
+    // Collect unique checklist item titles (non-task), preserving an order grouped by stage.
     const titleOrder: string[] = [];
     const seen = new Set<string>();
     filtered.forEach((p) => {

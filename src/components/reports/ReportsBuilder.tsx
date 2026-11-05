@@ -91,7 +91,7 @@ const AVAILABLE_COLUMNS: { key: string; label: string; group: string }[] = [
   { key: "brdLink", label: "BRD Link", group: "Links" },
   { key: "mintNotes", label: "MINT Notes", group: "Notes" },
   { key: "projectNotes", label: "Project Notes", group: "Notes" },
-  { key: "currentPhaseComment", label: "Phase Comment", group: "Notes" },
+  { key: "currentStageComment", label: "Stage Comment", group: "Notes" },
   { key: "checklistProgress", label: "Checklist Progress", group: "Metrics" },
   { key: "gokwikTime", label: "GoKwik Time", group: "Metrics" },
   { key: "merchantTime", label: "Merchant Time", group: "Metrics" },
@@ -175,8 +175,8 @@ function getCellValue(project: Project, key: string, labels: any): string {
       return String(project.aov);
     case "projectState":
       return labels.stateLabels[project.projectState] || project.projectState;
-    case "currentPhase":
-      return labels.phaseLabels[project.currentPhase] || project.currentPhase;
+    case "currentStage":
+      return labels.stageLabels[project.currentStage] || project.currentStage;
     case "currentOwnerTeam":
       return labels.teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam;
     case "assignedOwnerName":
@@ -211,8 +211,8 @@ function getCellValue(project: Project, key: string, labels: any): string {
       return project.notes.mintNotes || "";
     case "projectNotes":
       return project.notes.projectNotes || "";
-    case "currentPhaseComment":
-      return project.notes.currentPhaseComment || "";
+    case "currentStageComment":
+      return project.notes.currentStageComment || "";
     case "checklistProgress": {
       const done = project.checklist.filter((c) => c.completed).length;
       return `${done}/${project.checklist.length}`;
@@ -292,13 +292,13 @@ export const ReportsBuilder = ({
   customValuesMap?: Record<string, Record<string, string>>;
   initialPivot?: boolean;
 }) => {
-  const { teamLabels, responsibilityLabels, phaseLabels, stateLabels } = useLabels();
+  const { teamLabels, responsibilityLabels, stageLabels, stateLabels } = useLabels();
   const { currentUser } = useAuth();
   // Rebuilt on every render this re-ran every aggregation below it, grouping and
   // charting included, for a value that rarely changes.
   const labels = useMemo(
-    () => ({ teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap }),
-    [teamLabels, responsibilityLabels, phaseLabels, stateLabels, customValuesMap],
+    () => ({ teamLabels, responsibilityLabels, stageLabels, stateLabels, customValuesMap }),
+    [teamLabels, responsibilityLabels, stageLabels, stateLabels, customValuesMap],
   );
 
   const [selectedColumns, setSelectedColumns] = useState<string[]>([

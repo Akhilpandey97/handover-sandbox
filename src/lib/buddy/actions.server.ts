@@ -1,6 +1,6 @@
 import {
   type BuddyCaller,
-  PHASE_LABELS,
+  STAGE_LABELS,
   RESPONSIBILITY_LABELS,
   STATE_LABELS,
 } from "@/lib/buddy/scope.server";
@@ -174,7 +174,7 @@ const FIELDS: Record<
   }
 > = {
   project_state: { label: "State", kind: "enum", values: STATE_LABELS },
-  current_phase: { label: "Phase", kind: "enum", values: PHASE_LABELS },
+  current_stage: { label: "Stage", kind: "enum", values: STAGE_LABELS },
   platform: { label: "Platform", kind: "text" },
   category: { label: "Category", kind: "text" },
   arr: { label: "ARR (₹ Cr)", kind: "number" },
@@ -187,7 +187,7 @@ const FIELDS: Record<
   expected_go_live_date: { label: "Expected go-live", kind: "date" },
   project_notes: { label: "Project notes", kind: "note" },
   mint_notes: { label: "Sales notes", kind: "note" },
-  current_phase_comment: { label: "Phase comment", kind: "note" },
+  current_stage_comment: { label: "Stage comment", kind: "note" },
 };
 
 const fmtDate = (v: unknown) => {
@@ -300,7 +300,7 @@ export const ACTION_TOOL_DEFS: any[] = [
     function: {
       name: "update_project_field",
       description:
-        "Change one field on a project. Fields: project_state (not_started|on_hold|in_progress|live|blocked), current_phase (mint|integration|ms|completed), platform, category, arr (₹ Cr), txns_per_day, aov, sales_spoc, integration_type, pg_onboarding, go_live_percent (0-100), expected_go_live_date (YYYY-MM-DD), project_notes, mint_notes, current_phase_comment (notes are appended).",
+        "Change one field on a project. Fields: project_state (not_started|on_hold|in_progress|live|blocked), current_stage (mint|integration|ms|completed), platform, category, arr (₹ Cr), txns_per_day, aov, sales_spoc, integration_type, pg_onboarding, go_live_percent (0-100), expected_go_live_date (YYYY-MM-DD), project_notes, mint_notes, current_stage_comment (notes are appended).",
       parameters: {
         type: "object",
         properties: {

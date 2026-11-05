@@ -3,7 +3,7 @@ import {
   useChecklistSets,
   RULE_FIELDS,
   RULE_OPERATORS,
-  PHASE_OPTIONS,
+  STAGE_OPTIONS,
   TEAM_OPTIONS,
   type ChecklistSet,
   type ChecklistSetRule,
@@ -131,7 +131,7 @@ const TemplateRow = ({
   onDelete: (id: string) => Promise<void>;
 }) => {
   const [title, setTitle] = useState(template.title);
-  const [phase, setPhase] = useState(template.phase);
+  const [stage, setStage] = useState(template.stage);
   const [ownerTeam, setOwnerTeam] = useState(template.owner_team);
   const [duration, setDuration] = useState(
     template.standard_duration != null ? String(template.standard_duration) : "",
@@ -140,7 +140,7 @@ const TemplateRow = ({
 
   const isDirty =
     title !== template.title ||
-    phase !== template.phase ||
+    stage !== template.stage ||
     ownerTeam !== template.owner_team ||
     (duration === "" ? null : Number(duration)) !== template.standard_duration;
 
@@ -149,7 +149,7 @@ const TemplateRow = ({
     setSaving(true);
     await onUpdate(template.id, {
       title: title.trim(),
-      phase,
+      stage,
       owner_team: ownerTeam,
       standard_duration: duration === "" ? null : Number(duration),
     });
@@ -165,12 +165,12 @@ const TemplateRow = ({
         onChange={(e) => setTitle(e.target.value)}
       />
 
-      <Select value={phase} onValueChange={setPhase}>
+      <Select value={stage} onValueChange={setStage}>
         <SelectTrigger className="h-7 w-28 shrink-0 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {PHASE_OPTIONS.map((p) => (
+          {STAGE_OPTIONS.map((p) => (
             <SelectItem key={p.value} value={p.value} className="text-xs">
               {p.label}
             </SelectItem>
@@ -252,7 +252,7 @@ const SetDetail = ({
   onAddTemplate: (
     setId: string,
     title: string,
-    phase: string,
+    stage: string,
     ownerTeam: string,
     standardDuration?: number | null,
   ) => Promise<void>;
@@ -269,13 +269,13 @@ const SetDetail = ({
   const [addingRule, setAddingRule] = useState(false);
 
   const [newItemTitle, setNewItemTitle] = useState("");
-  const [newItemPhase, setNewItemPhase] = useState<string>(PHASE_OPTIONS[0].value);
+  const [newItemStage, setNewItemStage] = useState<string>(STAGE_OPTIONS[0].value);
   const [newItemTeam, setNewItemTeam] = useState<string>(TEAM_OPTIONS[0].value);
   const [newItemDuration, setNewItemDuration] = useState("");
   const [addingItem, setAddingItem] = useState(false);
 
   const [csvPreview, setCsvPreview] = useState<
-    { title: string; phase: string; team: string; duration: number | null }[]
+    { title: string; stage: string; team: string; duration: number | null }[]
   >([]);
   const [csvOpen, setCsvOpen] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -303,7 +303,7 @@ const SetDetail = ({
     await onAddTemplate(
       set.id,
       newItemTitle.trim(),
-      newItemPhase,
+      newItemStage,
       newItemTeam,
       newItemDuration === "" ? null : Number(newItemDuration),
     );
@@ -328,18 +328,18 @@ const SetDetail = ({
         Integration: "integration",
         MS: "ms",
       };
-      const validPhases = PHASE_OPTIONS.map((p) => p.value);
+      const validStages = STAGE_OPTIONS.map((p) => p.value);
       const startIdx = lines[0]?.toLowerCase().includes("title") ? 1 : 0;
-      const items: { title: string; phase: string; team: string; duration: number | null }[] = [];
+      const items: { title: string; stage: string; team: string; duration: number | null }[] = [];
       for (let i = startIdx; i < lines.length; i++) {
         const parts = lines[i].split(",").map((p) => p.trim().replace(/^"|"$/g, ""));
         const title = parts[0];
         if (!title) continue;
-        const rawPhase = parts[1]?.toLowerCase() ?? "";
-        const phase = (validPhases as readonly string[]).includes(rawPhase) ? rawPhase : "mint";
+        const rawStage = parts[1]?.toLowerCase() ?? "";
+        const stage = (validStages as readonly string[]).includes(rawStage) ? rawStage : "mint";
         const team = teamAliases[parts[2]] ?? "mint";
         const duration = parts[3] ? parseInt(parts[3], 10) : null;
-        items.push({ title, phase, team, duration: Number.isNaN(duration) ? null : duration });
+        items.push({ title, stage, team, duration: Number.isNaN(duration) ? null : duration });
       }
       if (items.length === 0) {
         toast.error("No valid items found in CSV");
@@ -355,7 +355,7 @@ const SetDetail = ({
   const handleCsvImport = async () => {
     setImporting(true);
     for (const item of csvPreview) {
-      await onAddTemplate(set.id, item.title, item.phase, item.team, item.duration);
+      await onAddTemplate(set.id, item.title, item.stage, item.team, item.duration);
     }
     setImporting(false);
     setCsvOpen(false);
@@ -546,12 +546,12 @@ const SetDetail = ({
             onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
           />
 
-          <Select value={newItemPhase} onValueChange={setNewItemPhase}>
+          <Select value={newItemStage} onValueChange={setNewItemStage}>
             <SelectTrigger className="h-7 w-28 shrink-0 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {PHASE_OPTIONS.map((p) => (
+              {STAGE_OPTIONS.map((p) => (
                 <SelectItem key={p.value} value={p.value} className="text-xs">
                   {p.label}
                 </SelectItem>
@@ -618,7 +618,7 @@ const SetDetail = ({
                 {csvPreview.map((item, i) => (
                   <tr key={i} className="hover:bg-muted/40">
                     <td className="px-3 py-1.5">{item.title}</td>
-                    <td className="px-3 py-1.5 capitalize">{item.phase}</td>
+                    <td className="px-3 py-1.5 capitalize">{item.stage}</td>
                     <td className="px-3 py-1.5 capitalize">{item.team}</td>
                     <td className="px-3 py-1.5">{item.duration ?? "—"}</td>
                   </tr>

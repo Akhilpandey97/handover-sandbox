@@ -738,29 +738,29 @@ export const EditProjectDialog = ({
               </div>
               <div className="space-y-1.5">
                 <Label
-                  htmlFor="edit-currentPhaseComment"
+                  htmlFor="edit-currentStageComment"
                   className="text-xs font-medium text-muted-foreground"
                 >
-                  {getLabel("field_current_phase_comment")}
+                  {getLabel("field_current_stage_comment")}
                 </Label>
                 <Textarea
-                  id="edit-currentPhaseComment"
-                  value={editedProject.notes.currentPhaseComment || ""}
-                  onChange={(e) => updateNotes("currentPhaseComment", e.target.value)}
+                  id="edit-currentStageComment"
+                  value={editedProject.notes.currentStageComment || ""}
+                  onChange={(e) => updateNotes("currentStageComment", e.target.value)}
                   rows={2}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label
-                  htmlFor="edit-phase2Comment"
+                  htmlFor="edit-stage2Comment"
                   className="text-xs font-medium text-muted-foreground"
                 >
-                  {getLabel("field_phase2_comment")}
+                  {getLabel("field_stage2_comment")}
                 </Label>
                 <Textarea
-                  id="edit-phase2Comment"
-                  value={editedProject.notes.phase2Comment || ""}
-                  onChange={(e) => updateNotes("phase2Comment", e.target.value)}
+                  id="edit-stage2Comment"
+                  value={editedProject.notes.stage2Comment || ""}
+                  onChange={(e) => updateNotes("stage2Comment", e.target.value)}
                   rows={2}
                 />
               </div>

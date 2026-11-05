@@ -42,7 +42,7 @@ import {
   workflowProblem,
 } from "@/data/workflowConfig";
 import { checklistDueDate } from "@/lib/checklistDueDate";
-import { teamToProjectPhase } from "@/data/projectsData";
+import { teamToProjectStage } from "@/data/projectsData";
 import { invalidateTenantIntegrations } from "@/lib/tenant-integrations.server";
 import { runWorkflowOnProjects } from "@/lib/workflows.server";
 import { createWorkspaceUser, sendInviteEmail, setUserRole } from "@/lib/users.server";
@@ -547,7 +547,7 @@ type Template = {
   owner_team: string;
   sort_order: number;
   standard_duration: number | null;
-  phase: string;
+  stage: string;
   tenant_id: string;
 };
 
@@ -604,7 +604,7 @@ async function planSteps(c: BuddyCaller, p: P) {
         owner_team: team.slug,
         sort_order: Number.MAX_SAFE_INTEGER,
         standard_duration: duration,
-        phase: "",
+        stage: "",
         tenant_id: c.tenantId,
       });
       ops.push({ op, team: team.slug, title, duration, position });
@@ -748,13 +748,13 @@ const manageChecklistSteps: ActionDef = {
         .sort((a, b) => a.sort_order - b.sort_order);
       if (o.op === "add") {
         const sortOrder = team.reduce((max, t) => Math.max(max, t.sort_order), -1) + 1;
-        const phase = teamToProjectPhase(o.team);
+        const stage = teamToProjectStage(o.team);
         const { data, error } = await c.client
           .from("checklist_templates")
           .insert({
             title: o.title,
             owner_team: o.team,
-            phase,
+            stage,
             sort_order: sortOrder,
             standard_duration: o.duration,
             tenant_id: c.tenantId,
@@ -777,7 +777,7 @@ const manageChecklistSteps: ActionDef = {
               project_id: pr.id,
               title: o.title,
               owner_team: o.team,
-              phase,
+              stage,
               sort_order: sortOrder,
               completed: false,
               current_responsibility: "neutral" as const,
@@ -2281,7 +2281,7 @@ const fn = (name: string, description: string, properties: P, required: string[]
 export const SETUP_ACTION_TOOL_DEFS: any[] = [
   fn(
     "update_workspace_settings",
-    'Change key/value workspace settings: branding (org_name, app_title, app_subtitle, org_logo_url), terminology labels (field_*, state_*, phase_*, responsibility_*), email intake (email_monitor_address, email_subject_keywords), Slack alerts (slack_alerts_enabled, slack_channel_email, slack_alert_tag, slack_alert_hours), colours (color_*, hex) and tab visibility (nav:<tab> true/false). Use keys exactly as get_workspace_setup returns them. Value "reset" restores the default. Several keys in one call.',
+    'Change key/value workspace settings: branding (org_name, app_title, app_subtitle, org_logo_url), terminology labels (field_*, state_*, stage_*, responsibility_*), email intake (email_monitor_address, email_subject_keywords), Slack alerts (slack_alerts_enabled, slack_channel_email, slack_alert_tag, slack_alert_hours), colours (color_*, hex) and tab visibility (nav:<tab> true/false). Use keys exactly as get_workspace_setup returns them. Value "reset" restores the default. Several keys in one call.',
     { changes: { type: "object", description: "{ key: value }", additionalProperties: true } },
     ["changes"],
   ),

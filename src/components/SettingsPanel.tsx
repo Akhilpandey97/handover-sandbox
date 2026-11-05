@@ -162,8 +162,8 @@ const FIELD_GROUPS: LabelGroup[] = [
     keys: [
       { key: "field_project_notes", label: "Project Notes Label" },
       { key: "field_mint_notes", label: "MINT Notes Label" },
-      { key: "field_current_phase_comment", label: "Current Phase Comment Label" },
-      { key: "field_phase2_comment", label: "Phase 2 Comment Label" },
+      { key: "field_current_stage_comment", label: "Current Stage Comment Label" },
+      { key: "field_stage2_comment", label: "Stage 2 Comment Label" },
     ],
   },
 ];

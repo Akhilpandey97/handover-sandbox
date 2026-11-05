@@ -110,7 +110,7 @@ async function POST({ request }: { request: Request }): Promise<Response> {
     mid: input.mid || slugMid(input.merchant_name),
     kick_off_date: input.kick_off_date || new Date().toISOString().slice(0, 10),
     project_state: "not_started",
-    current_phase: "mint",
+    current_stage: "mint",
     current_owner_team: "mint",
   };
 

@@ -27,7 +27,7 @@ async function handler(req: Request): Promise<Response> {
       sb
         .from("projects")
         .select(
-          "id, merchant_name, project_state, current_phase, current_responsibility, expected_go_live_date, assigned_owner",
+          "id, merchant_name, project_state, current_stage, current_responsibility, expected_go_live_date, assigned_owner",
         )
         .in("id", projectIds),
       sb
@@ -108,7 +108,7 @@ async function handler(req: Request): Promise<Response> {
 - "confidence": High/Medium/Low confidence that merchant goes live on expected date.
 
 Project: ${p.merchant_name}
-State: ${p.project_state}, Phase: ${p.current_phase}, Responsibility: ${p.current_responsibility}
+State: ${p.project_state}, Stage: ${p.current_stage}, Responsibility: ${p.current_responsibility}
 Expected Go-Live: ${p.expected_go_live_date || "TBD"}
 Open JIRA: ${jiraLine || "none"}
 

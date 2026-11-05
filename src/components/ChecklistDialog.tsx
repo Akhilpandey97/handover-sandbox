@@ -75,15 +75,15 @@ import {
 const shortDate = (value: string | Date) =>
   new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
-/** Phase-to-stage label mapping for "Project Stages" grouping */
-const PHASE_STAGE_LABELS: Record<string, string> = {
+/** Stage-to-stage label mapping for "Project Stages" grouping */
+const STAGE_STAGE_LABELS: Record<string, string> = {
   mint: "Pre Sales",
   integration: "Implementation",
   ms: "Go Live",
   completed: "Closure",
 };
 
-const PHASE_ORDER = ["mint", "integration", "ms", "completed"];
+const STAGE_ORDER = ["mint", "integration", "ms", "completed"];
 
 type ItemStatus = "completed" | "overdue" | "in_progress" | "upcoming" | "todo";
 
@@ -346,15 +346,15 @@ export const ChecklistDialog = ({
     if (groupBy === "stages") {
       const map: Record<string, ProjectChecklist[]> = {};
       items.forEach((item) => {
-        const phase = PHASE_ORDER.includes(item.phase as string)
-          ? (item.phase as string)
+        const stage = STAGE_ORDER.includes(item.stage as string)
+          ? (item.stage as string)
           : "integration";
-        if (!map[phase]) map[phase] = [];
-        map[phase].push(item);
+        if (!map[stage]) map[stage] = [];
+        map[stage].push(item);
       });
-      return PHASE_ORDER.filter((p) => map[p]?.length > 0).map((p) => ({
+      return STAGE_ORDER.filter((p) => map[p]?.length > 0).map((p) => ({
         key: p,
-        label: PHASE_STAGE_LABELS[p] || p,
+        label: STAGE_STAGE_LABELS[p] || p,
         color: getTeamColor(p),
         items: map[p],
         completed: map[p].filter((i) => i.completed).length,

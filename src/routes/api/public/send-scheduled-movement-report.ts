@@ -61,11 +61,11 @@ const formatEgl = (d: string | null | undefined) => {
 
 function getFunnelStage(p: any): string {
   const state = p.project_state;
-  const phase = p.current_phase;
+  const stage = p.current_stage;
   if (state === "live") return "live";
-  if (phase === "mint" || phase === "integration") return "under_integration";
-  if (phase === "sales") return "sales";
-  if (phase === "pre_integration") return "pre_integration";
+  if (stage === "mint" || stage === "integration") return "under_integration";
+  if (stage === "sales") return "sales";
+  if (stage === "pre_integration") return "pre_integration";
   return "none";
 }
 
@@ -94,7 +94,7 @@ async function fetchAll<T>(
   return out;
 }
 
-const PHASE_RANK: Record<string, number> = {
+const STAGE_RANK: Record<string, number> = {
   sales: 0,
   pre_integration: 1,
   mint: 2,
@@ -103,16 +103,16 @@ const PHASE_RANK: Record<string, number> = {
   ms: 2,
   live: 3,
 };
-const phaseRank = (v: any): number => {
+const stageRank = (v: any): number => {
   if (!v) return -1;
-  return PHASE_RANK[String(v).toLowerCase().trim()] ?? -1;
+  return STAGE_RANK[String(v).toLowerCase().trim()] ?? -1;
 };
 const LOWLIGHT_KW =
   /\b(not getting any update|no response|no responses|unresponsive|following up|awaiting response|chasing|reminder sent|haven't heard|still waiting|no eta)\b/i;
 const WIN_KW =
   /\b(resolved|unblocked|cleared|sign(ed)?[- ]off|approved|pg done|sandbox cleared|api(s)? validated)\b/i;
 const EGL_FIELD = /expected.?go.?live/i;
-const PHASE_FIELD = /^(current_phase|phase|project_state|state|funnel|stage)$/i;
+const STAGE_FIELD = /^(current_stage|stage|project_state|state|funnel|stage)$/i;
 
 function classify(p: any, entries: any[]): "wins" | "updates" | "lowlights" {
   if (p.project_state === "blocked" || p.project_state === "on_hold") return "lowlights";
@@ -125,9 +125,9 @@ function classify(p: any, entries: any[]): "wins" | "updates" | "lowlights" {
     checklistDone = 0;
   for (const e of entries) {
     for (const c of e.changes || []) {
-      if (PHASE_FIELD.test(c.field)) {
-        const fr = phaseRank(c.from),
-          tr = phaseRank(c.to);
+      if (STAGE_FIELD.test(c.field)) {
+        const fr = stageRank(c.from),
+          tr = stageRank(c.to);
         if (fr >= 0 && tr >= 0) {
           if (tr > fr) fwd = true;
           if (tr < fr) regr = true;

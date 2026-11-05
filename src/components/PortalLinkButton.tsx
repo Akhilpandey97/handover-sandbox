@@ -122,7 +122,7 @@ export const PortalLinkButton = ({
           <DialogHeader>
             <DialogTitle>Customer portal link</DialogTitle>
             <DialogDescription>
-              Share this read-only page with the merchant. It shows live phase, go-live readiness
+              Share this read-only page with the merchant. It shows live stage, go-live readiness
               and the checklist steps waiting on them — no login required.
             </DialogDescription>
           </DialogHeader>

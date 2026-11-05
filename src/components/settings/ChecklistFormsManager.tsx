@@ -109,7 +109,7 @@ export const ChecklistFormsManager = () => {
     const fetch = async () => {
       const { data } = await supabase
         .from("checklist_templates")
-        .select("id, title, phase, owner_team")
+        .select("id, title, stage, owner_team")
         .eq("tenant_id", tenantScope(currentUser?.tenantId))
         .order("sort_order");
       if (data) setChecklistTemplates(data);
@@ -719,7 +719,7 @@ export const ChecklistFormsManager = () => {
                       <span className="text-sm font-medium">{ct.title}</span>
                       <div className="flex gap-2 mt-0.5">
                         <Badge variant="outline" className="text-xs">
-                          {ct.phase}
+                          {ct.stage}
                         </Badge>
                         <Badge variant="secondary" className="text-xs">
                           {ct.owner_team}

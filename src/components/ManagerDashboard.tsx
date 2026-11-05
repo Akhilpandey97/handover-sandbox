@@ -34,7 +34,7 @@ import {
   projectStateLabels,
   projectStateColors,
   ProjectState,
-  ProjectPhase,
+  ProjectStage,
   isProjectUnderIntegration,
   getProjectFunnelStage,
   funnelStageLabels,
@@ -282,7 +282,7 @@ export const ManagerDashboard = () => {
     getLabel,
     teamLabels,
     responsibilityLabels,
-    phaseLabels,
+    stageLabels,
     stateLabels: stateLabelsFromCtx,
     updateLabels,
   } = useLabels();
@@ -334,7 +334,7 @@ export const ManagerDashboard = () => {
   const [projectToolbarHost, setProjectToolbarHost] = useState<HTMLDivElement | null>(null);
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
   const [ownerFilter, setOwnerFilter] = useState<string[]>([]);
-  const [phaseFilter, setPhaseFilter] = useState<string[]>([]);
+  const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [stateFilter, setStateFilter] = useState<string[]>([]);
   const [platformFilter, setPlatformFilter] = useState<string[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
@@ -410,7 +410,7 @@ export const ManagerDashboard = () => {
   // Independent list view filters
   const [lvTeamFilter, setLvTeamFilter] = useState<string[]>([]);
   const [lvOwnerFilter, setLvOwnerFilter] = useState<string[]>([]);
-  const [lvPhaseFilter, setLvPhaseFilter] = useState<string[]>([]);
+  const [lvStageFilter, setLvStageFilter] = useState<string[]>([]);
   const [lvStateFilter, setLvStateFilter] = useState<string[]>([]);
   const [lvPlatformFilter, setLvPlatformFilter] = useState<string[]>([]);
   const [lvCategoryFilter, setLvCategoryFilter] = useState<string[]>([]);
@@ -435,7 +435,7 @@ export const ManagerDashboard = () => {
     { key: "platform", label: getLabel("field_platform") },
     { key: "category", label: getLabel("field_category") },
     { key: "merchantState", label: `${getLabel("field_merchant_name")} State` },
-    { key: "mintComment", label: getLabel("field_current_phase_comment") },
+    { key: "mintComment", label: getLabel("field_current_stage_comment") },
     { key: "liveDate", label: getLabel("field_actual_go_live_date") },
     { key: "recentComments", label: "Recent Comments" },
     { key: "status", label: "Status" },
@@ -452,7 +452,7 @@ export const ManagerDashboard = () => {
     { key: "mintNotes", label: getLabel("field_mint_notes") },
     { key: "projectNotes", label: getLabel("field_project_notes") },
     { key: "opsComment", label: "Ops Comment" },
-    { key: "phase2Comment", label: getLabel("field_phase2_comment") },
+    { key: "stage2Comment", label: getLabel("field_stage2_comment") },
   ];
   const [listViewColumns, setListViewColumns] = useState<string[]>(() => {
     try {
@@ -591,7 +591,7 @@ export const ManagerDashboard = () => {
             id: item.id,
             checklistTitle: item.title,
             team: item.ownerTeam,
-            phase: item.phase,
+            stage: item.stage,
             gokwikTime: time.gokwik,
             merchantTime: time.merchant,
             totalTime: time.gokwik + time.merchant,
@@ -816,10 +816,10 @@ export const ManagerDashboard = () => {
         patched.notes = { ...patched.notes, mintNotes: updates.mintNotes };
       if (updates.projectNotes !== undefined)
         patched.notes = { ...patched.notes, projectNotes: updates.projectNotes };
-      if (updates.currentPhaseComment !== undefined)
-        patched.notes = { ...patched.notes, currentPhaseComment: updates.currentPhaseComment };
-      if (updates.phase2Comment !== undefined)
-        patched.notes = { ...patched.notes, phase2Comment: updates.phase2Comment };
+      if (updates.currentStageComment !== undefined)
+        patched.notes = { ...patched.notes, currentStageComment: updates.currentStageComment };
+      if (updates.stage2Comment !== undefined)
+        patched.notes = { ...patched.notes, stage2Comment: updates.stage2Comment };
       updateProject(patched);
 
       // Save custom field values
@@ -848,17 +848,17 @@ export const ManagerDashboard = () => {
     toast.success(`Updated ${ids.length} project(s)`);
   };
 
-  // Helper to get project phase label (next incomplete checklist item from current owner team)
-  const getProjectPhaseLabel = (p: Project) => {
+  // Helper to get project stage label (next incomplete checklist item from current owner team)
+  const getProjectStageLabel = (p: Project) => {
     const teamItems = p.checklist.filter((c) => c.ownerTeam === p.currentOwnerTeam);
     const nextItem = teamItems.find((c) => !c.completed) || p.checklist.find((c) => !c.completed);
     return nextItem ? nextItem.title : "All Complete";
   };
 
-  // Collect unique phase labels for filter dropdown
-  const uniquePhaseLabels = useMemo(() => {
+  // Collect unique stage labels for filter dropdown
+  const uniqueStageLabels = useMemo(() => {
     const labels = new Set<string>();
-    projects.forEach((p) => labels.add(getProjectPhaseLabel(p)));
+    projects.forEach((p) => labels.add(getProjectStageLabel(p)));
     return Array.from(labels).sort();
   }, [projects]);
 
@@ -911,7 +911,7 @@ export const ManagerDashboard = () => {
       (ownerFilter.includes("unassigned")
         ? !p.assignedOwner
         : ownerFilter.includes(p.assignedOwner || ""));
-    const matchesPhase = phaseFilter.length === 0 || phaseFilter.includes(getProjectPhaseLabel(p));
+    const matchesStage = stageFilter.length === 0 || stageFilter.includes(getProjectStageLabel(p));
     const matchesState = stateFilter.length === 0 || stateFilter.includes(p.projectState);
     const matchesPlatform =
       platformFilter.length === 0 || platformFilter.includes(p.platform || "");
@@ -951,7 +951,7 @@ export const ManagerDashboard = () => {
       matchesSearch &&
       matchesTeam &&
       matchesOwner &&
-      matchesPhase &&
+      matchesStage &&
       matchesState &&
       matchesPlatform &&
       matchesCategory &&
@@ -1021,7 +1021,7 @@ export const ManagerDashboard = () => {
   const clearFilters = () => {
     setTeamFilter([]);
     setOwnerFilter([]);
-    setPhaseFilter([]);
+    setStageFilter([]);
     setStateFilter([]);
     setPlatformFilter([]);
     setCategoryFilter([]);
@@ -1046,7 +1046,7 @@ export const ManagerDashboard = () => {
   const hasActiveFilters =
     teamFilter.length > 0 ||
     ownerFilter.length > 0 ||
-    phaseFilter.length > 0 ||
+    stageFilter.length > 0 ||
     stateFilter.length > 0 ||
     platformFilter.length > 0 ||
     categoryFilter.length > 0 ||
@@ -1076,8 +1076,8 @@ export const ManagerDashboard = () => {
       (lvOwnerFilter.includes("unassigned")
         ? !p.assignedOwner
         : lvOwnerFilter.includes(p.assignedOwner || ""));
-    const matchesPhase =
-      lvPhaseFilter.length === 0 || lvPhaseFilter.includes(getProjectPhaseLabel(p));
+    const matchesStage =
+      lvStageFilter.length === 0 || lvStageFilter.includes(getProjectStageLabel(p));
     const matchesState = lvStateFilter.length === 0 || lvStateFilter.includes(p.projectState);
     const matchesPlatform =
       lvPlatformFilter.length === 0 || lvPlatformFilter.includes(p.platform || "");
@@ -1110,7 +1110,7 @@ export const ManagerDashboard = () => {
       matchesSearch &&
       matchesTeam &&
       matchesOwner &&
-      matchesPhase &&
+      matchesStage &&
       matchesState &&
       matchesPlatform &&
       matchesCategory &&
@@ -1130,7 +1130,7 @@ export const ManagerDashboard = () => {
   const clearLvFilters = () => {
     setLvTeamFilter([]);
     setLvOwnerFilter([]);
-    setLvPhaseFilter([]);
+    setLvStageFilter([]);
     setLvStateFilter([]);
     setLvPlatformFilter([]);
     setLvCategoryFilter([]);
@@ -1159,7 +1159,7 @@ export const ManagerDashboard = () => {
   const lvHasActiveFilters =
     lvTeamFilter.length > 0 ||
     lvOwnerFilter.length > 0 ||
-    lvPhaseFilter.length > 0 ||
+    lvStageFilter.length > 0 ||
     lvStateFilter.length > 0 ||
     lvPlatformFilter.length > 0 ||
     lvCategoryFilter.length > 0 ||
@@ -1387,7 +1387,7 @@ export const ManagerDashboard = () => {
         project: {
           merchantName: `Project & Checklist Summary: ${projects.length} total projects. Top by time: ${topProjects}`,
           mid: "PCR",
-          currentPhase: "overview",
+          currentStage: "overview",
           projectState: "overview",
           arr: 0,
           platform: "All",
@@ -1420,7 +1420,7 @@ export const ManagerDashboard = () => {
         project: {
           merchantName: `Team & Owner Summary: ${teamSummary}`,
           mid: "TOR",
-          currentPhase: "overview",
+          currentStage: "overview",
           projectState: "overview",
           arr: 0,
           platform: "All",
@@ -2093,7 +2093,7 @@ export const ManagerDashboard = () => {
                         <div className="min-h-0 flex-1 overflow-y-auto p-4">
                           <div className="flex h-full items-end gap-3">
                             {(() => {
-                              const phaseGroups: Record<string, Project[]> = {};
+                              const stageGroups: Record<string, Project[]> = {};
                               displayProjects.forEach((p) => {
                                 const teamItems = p.checklist.filter(
                                   (c) => c.ownerTeam === p.currentOwnerTeam,
@@ -2102,9 +2102,9 @@ export const ManagerDashboard = () => {
                                   teamItems.find((c) => !c.completed) ||
                                   p.checklist.find((c) => !c.completed);
                                 const label = nextItem ? nextItem.title : "All Complete";
-                                (phaseGroups[label] = phaseGroups[label] || []).push(p);
+                                (stageGroups[label] = stageGroups[label] || []).push(p);
                               });
-                              const sorted = Object.entries(phaseGroups).sort(
+                              const sorted = Object.entries(stageGroups).sort(
                                 (a, b) => b[1].length - a[1].length,
                               );
                               return sorted.map(([label, list]) => {
@@ -2801,10 +2801,10 @@ export const ManagerDashboard = () => {
                                   case "category":
                                     return project.category || "—";
                                   case "merchantState":
-                                    return getProjectPhaseLabel(project);
+                                    return getProjectStageLabel(project);
                                   case "mintComment":
                                     return (
-                                      project.notes?.currentPhaseComment ||
+                                      project.notes?.currentStageComment ||
                                       project.notes?.mintNotes ||
                                       "—"
                                     );
@@ -2862,8 +2862,8 @@ export const ManagerDashboard = () => {
                                     return project.notes?.projectNotes || "—";
                                   case "opsComment":
                                     return project.notes?.opsComment || "—";
-                                  case "phase2Comment":
-                                    return project.notes?.phase2Comment || "—";
+                                  case "stage2Comment":
+                                    return project.notes?.stage2Comment || "—";
                                   default: {
                                     if (key.startsWith("custom_field_")) {
                                       const fieldId = key.replace("custom_field_", "");
@@ -2915,7 +2915,7 @@ export const ManagerDashboard = () => {
                                           "mintNotes",
                                           "projectNotes",
                                           "opsComment",
-                                          "phase2Comment",
+                                          "stage2Comment",
                                         ].includes(colKey) ? (
                                         <span
                                           className="truncate block max-w-[200px]"
@@ -3221,7 +3221,7 @@ export const ManagerDashboard = () => {
                                     exportProjectChecklistCSV(displayProjects, {
                                       teamLabels,
                                       responsibilityLabels,
-                                      phaseLabels,
+                                      stageLabels,
                                       stateLabels: stateLabelsFromCtx,
                                       getLabel,
                                     })

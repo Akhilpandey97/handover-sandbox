@@ -10,7 +10,7 @@ import {
   sendResendEmail,
 } from "@/lib/buddy/actions.server";
 import type { BuddyCaller } from "@/lib/buddy/scope.server";
-import { PHASE_LABELS } from "@/lib/buddy/scope.server";
+import { STAGE_LABELS } from "@/lib/buddy/scope.server";
 import { teamNameMap } from "@/lib/buddy/setup-read.server";
 import { buddyLabels } from "@/lib/buddy/labels.server";
 
@@ -319,7 +319,7 @@ const MORE: Record<string, ActionDef> = {
         .from("projects")
         .update({
           current_owner_team: next,
-          current_phase: next,
+          current_stage: next,
           pending_acceptance: true,
           assigned_owner: assignee?.id || null,
         })

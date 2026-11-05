@@ -113,7 +113,7 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
     toggleResponsibilityMutation.mutate({
       projectId,
       party: newParty,
-      currentPhase: project.currentPhase,
+      currentStage: project.currentStage,
     });
   };
 
@@ -140,14 +140,14 @@ export const ProjectProvider = ({ children }: { children: ReactNode }) => {
 
   const getActiveProjects = (team: TeamRole) => {
     if (team === "manager")
-      return projects.filter((p) => !p.pendingAcceptance && p.currentPhase !== "completed");
+      return projects.filter((p) => !p.pendingAcceptance && p.currentStage !== "completed");
     return projects.filter(
-      (p) => p.currentOwnerTeam === team && !p.pendingAcceptance && p.currentPhase !== "completed",
+      (p) => p.currentOwnerTeam === team && !p.pendingAcceptance && p.currentStage !== "completed",
     );
   };
 
   const getCompletedProjects = (team: TeamRole) => {
-    return projects.filter((p) => p.currentPhase === "completed");
+    return projects.filter((p) => p.currentStage === "completed");
   };
 
   const getAllProjects = () => projects;

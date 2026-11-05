@@ -44,7 +44,7 @@ type Project = {
   id: string;
   merchant_name: string;
   arr: number | null;
-  current_phase: string | null;
+  current_stage: string | null;
   project_state: string | null;
   assigned_owner: string | null;
   expected_go_live_date: string | null;
@@ -325,7 +325,7 @@ export const MonthlyGoLiveTracker = ({
       let projectQuery = supabase
         .from("projects")
         .select(
-          "id, merchant_name, arr, current_phase, project_state, assigned_owner, expected_go_live_date, tracker_month, platform",
+          "id, merchant_name, arr, current_stage, project_state, assigned_owner, expected_go_live_date, tracker_month, platform",
         )
         .eq("tenant_id", tenantScope(currentUser?.tenantId))
         .eq("archived", false)

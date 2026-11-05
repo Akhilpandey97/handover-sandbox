@@ -29,7 +29,7 @@ interface Props {
 }
 
 export const TacticalLists = ({ projects }: Props) => {
-  const { teamLabels, getLabel, phaseLabels, stateLabels } = useLabels();
+  const { teamLabels, getLabel, stageLabels, stateLabels } = useLabels();
   const [expandedSection, setExpandedSection] = useState<string | null>("atrisk");
 
   // At Risk Watchlist — same verdict as the Risks tab and the project workspace.
@@ -55,7 +55,7 @@ export const TacticalLists = ({ projects }: Props) => {
   // Task Completion Leaderboard
   const leaderboard = useMemo(() => {
     return projects
-      .filter((p) => p.projectState !== "live" && p.currentPhase !== "completed")
+      .filter((p) => p.projectState !== "live" && p.currentStage !== "completed")
       .map((p) => {
         const mintTasks = p.checklist.filter((c) => c.ownerTeam === "mint");
         const intTasks = p.checklist.filter((c) => c.ownerTeam === "integration");
@@ -68,7 +68,7 @@ export const TacticalLists = ({ projects }: Props) => {
         return {
           id: p.id,
           name: p.merchantName,
-          phase: p.currentPhase,
+          stage: p.currentStage,
           state: p.projectState,
           mintProgress: mintTasks.length > 0 ? `${mintDone}/${mintTasks.length}` : "—",
           intProgress: intTasks.length > 0 ? `${intDone}/${intTasks.length}` : "—",
@@ -178,7 +178,7 @@ export const TacticalLists = ({ projects }: Props) => {
               </div>
               <CardDescription>
                 {teamLabels.mint} & {teamLabels.integration} task completion — how close each
-                project is to the next phase
+                project is to the next stage
               </CardDescription>
             </CardHeader>
           </CollapsibleTrigger>

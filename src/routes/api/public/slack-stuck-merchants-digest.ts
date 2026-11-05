@@ -230,7 +230,7 @@ async function findStuckItems(
 
   const { data: projects } = await supabase
     .from("projects")
-    .select("id, merchant_name, current_phase, project_state, sales_spoc, archived")
+    .select("id, merchant_name, current_stage, project_state, sales_spoc, archived")
     .in("id", projectIds);
 
   const projectById = new Map<string, any>((projects || []).map((p: any) => [p.id, p]));
@@ -247,7 +247,7 @@ async function findStuckItems(
       checklist_item_id: itemId,
       comment_id: tagCmt.id,
       merchant_name: project.merchant_name,
-      funnel_stage: humanPhase(project.current_phase, project.project_state),
+      funnel_stage: humanStage(project.current_stage, project.project_state),
       project_state: project.project_state,
       sales_spoc: project.sales_spoc,
       item_title: item.title,
@@ -263,14 +263,14 @@ async function findStuckItems(
   return stuck;
 }
 
-function humanPhase(phase: string, state: string): string {
+function humanStage(stage: string, state: string): string {
   if (state === "live") return "Live";
   const map: Record<string, string> = {
     sales: "Sales",
     mint: "MINT (Under Integration)",
     ms: "Merchant Success",
   };
-  return map[phase] || phase;
+  return map[stage] || stage;
 }
 
 function formatDateIST(): string {

@@ -15,7 +15,7 @@ interface LabelsContextType {
   // Convenience getters
   teamLabels: Record<string, string>;
   responsibilityLabels: Record<string, string>;
-  phaseLabels: Record<string, string>;
+  stageLabels: Record<string, string>;
   stateLabels: Record<string, string>;
 }
 
@@ -127,11 +127,11 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
     neutral: labels.responsibility_neutral,
   };
 
-  const phaseLabels: Record<string, string> = {
-    mint: labels.phase_mint,
-    integration: labels.phase_integration,
-    ms: labels.phase_ms,
-    completed: labels.phase_completed,
+  const stageLabels: Record<string, string> = {
+    mint: labels.stage_mint,
+    integration: labels.stage_integration,
+    ms: labels.stage_ms,
+    completed: labels.stage_completed,
   };
 
   const stateLabels: Record<string, string> = {
@@ -152,7 +152,7 @@ export const LabelsProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         teamLabels,
         responsibilityLabels,
-        phaseLabels,
+        stageLabels,
         stateLabels,
       }}
     >

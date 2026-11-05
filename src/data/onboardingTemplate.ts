@@ -154,8 +154,8 @@ export function onboardingTemplate(): TemplateSheet[] {
           "state_live",
           "state_blocked",
         ].map((k) => [`State: ${label(k)}`, ""]),
-        ...["phase_mint", "phase_integration", "phase_ms", "phase_completed"].map((k) => [
-          `Phase: ${label(k)}`,
+        ...["stage_mint", "stage_integration", "stage_ms", "stage_completed"].map((k) => [
+          `Stage: ${label(k)}`,
           "",
         ]),
         [`Your side of the work: ${label("responsibility_internal")}`, ""],

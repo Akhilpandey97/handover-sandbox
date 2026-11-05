@@ -1,5 +1,5 @@
 import type { BuddyCaller } from "@/lib/buddy/scope.server";
-import { PHASE_LABELS, RESPONSIBILITY_LABELS, STATE_LABELS } from "@/lib/buddy/scope.server";
+import { STAGE_LABELS, RESPONSIBILITY_LABELS, STATE_LABELS } from "@/lib/buddy/scope.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { teamNameMap } from "@/lib/buddy/setup-read.server";
 import { DEFAULT_LABELS } from "@/data/defaultLabels";
@@ -15,7 +15,7 @@ export interface BuddyLabels {
   merchant: string;
   merchantPlural: string;
   state: Record<string, string>;
-  phase: Record<string, string>;
+  stage: Record<string, string>;
   responsibility: Record<string, string>;
   team: Record<string, string>;
   label: (key: string) => string;
@@ -26,12 +26,12 @@ export async function buddyLabels(caller: BuddyCaller): Promise<BuddyLabels> {
     getTenantBranding(caller.tenantId),
     teamNameMap(caller).catch(() => ({}) as Record<string, string>),
   ]);
-  const phase: Record<string, string> = {
-    ...PHASE_LABELS,
-    mint: teams.mint || branding.label("phase_mint") || PHASE_LABELS.mint,
+  const stage: Record<string, string> = {
+    ...STAGE_LABELS,
+    mint: teams.mint || branding.label("stage_mint") || STAGE_LABELS.mint,
     integration:
-      teams.integration || branding.label("phase_integration") || PHASE_LABELS.integration,
-    ms: teams.ms || branding.label("phase_ms") || PHASE_LABELS.ms,
+      teams.integration || branding.label("stage_integration") || STAGE_LABELS.integration,
+    ms: teams.ms || branding.label("stage_ms") || STAGE_LABELS.ms,
   };
   const state: Record<string, string> = { ...STATE_LABELS };
   for (const [key, value] of Object.entries({
@@ -48,14 +48,14 @@ export async function buddyLabels(caller: BuddyCaller): Promise<BuddyLabels> {
     merchant: branding.merchantLabel,
     merchantPlural: branding.merchantPluralLabel,
     state,
-    phase,
+    stage,
     responsibility: {
       ...RESPONSIBILITY_LABELS,
       gokwik: branding.internalLabel,
       merchant: branding.externalLabel,
       neutral: branding.label("responsibility_neutral"),
     },
-    team: { ...phase, ...teams },
+    team: { ...stage, ...teams },
     label: branding.label,
   };
 }

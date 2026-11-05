@@ -79,7 +79,7 @@ interface ProjectCardNewProps {
   riskVerdict?: RiskVerdict;
 }
 
-const defaultPhaseConfig = {
+const defaultStageConfig = {
   mint: {
     bg: "bg-card dark:bg-[hsl(222,18%,16%)]",
     border: "border-info/60",
@@ -136,22 +136,22 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
   const timeByParty = calculateTimeFromChecklist(project.checklist);
 
   // Dynamic colors from settings
-  const badgeColor = getLabel(`color_team_${project.currentPhase}_badge`);
-  const cardBgColor = getLabel(`color_card_${project.currentPhase}_bg`);
+  const badgeColor = getLabel(`color_team_${project.currentStage}_badge`);
+  const cardBgColor = getLabel(`color_card_${project.currentStage}_bg`);
   const hasDynamicBadge = badgeColor.startsWith("#");
   const hasDynamicCardBg = cardBgColor.startsWith("#");
-  const phaseStyle = defaultPhaseConfig[project.currentPhase] || defaultPhaseConfig.completed;
+  const stageStyle = defaultStageConfig[project.currentStage] || defaultStageConfig.completed;
   const teamDisplayLabel =
-    teamLabels[project.currentOwnerTeam] || project.currentPhase || "Project";
+    teamLabels[project.currentOwnerTeam] || project.currentStage || "Project";
 
-  // Find next incomplete checklist item title (Project Phase display)
+  // Find next incomplete checklist item title (Project Stage display)
   // First try to find next incomplete item from the current owner team, then fallback to any team
   const currentTeamItems = project.checklist.filter(
     (c) => c.ownerTeam === project.currentOwnerTeam,
   );
   const nextIncompleteItem =
     currentTeamItems.find((c) => !c.completed) || project.checklist.find((c) => !c.completed);
-  const projectPhaseDisplay = nextIncompleteItem ? nextIncompleteItem.title : "All Complete";
+  const projectStageDisplay = nextIncompleteItem ? nextIncompleteItem.title : "All Complete";
 
   // Check if all current team's checklist items are completed
   const currentTeamChecklist = project.checklist.filter(
@@ -174,7 +174,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
   const canTransfer =
     currentUser?.team === project.currentOwnerTeam &&
     !project.pendingAcceptance &&
-    project.currentPhase !== "completed" &&
+    project.currentStage !== "completed" &&
     project.currentOwnerTeam !== "ms" &&
     currentUser?.team !== "manager";
 
@@ -315,7 +315,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                       </Badge>
                     )}
                     {!project.assignedOwner &&
-                      project.notes?.currentPhaseComment?.includes("needs manager review") && (
+                      project.notes?.currentStageComment?.includes("needs manager review") && (
                         <Badge className="bg-warning text-warning-foreground px-2 py-0.5 text-xs font-semibold animate-pulse">
                           <UserPlus className="h-3 w-3 mr-1" />
                           NEEDS ASSIGNMENT
@@ -324,7 +324,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
                     <Badge
-                      className={`${hasDynamicBadge ? "" : phaseStyle.badge} text-white text-xs px-2.5 py-0.5`}
+                      className={`${hasDynamicBadge ? "" : stageStyle.badge} text-white text-xs px-2.5 py-0.5`}
                       style={hasDynamicBadge ? { backgroundColor: badgeColor } : undefined}
                     >
                       {teamDisplayLabel.toUpperCase()}

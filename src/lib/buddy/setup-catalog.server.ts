@@ -97,9 +97,9 @@ export const AREAS: AreaDef[] = [
     id: "terminology",
     title: "Terminology",
     purpose:
-      "Rename fields, project states, phases and the responsibility parties to match how the company talks.",
+      "Rename fields, project states, stages and the responsibility parties to match how the company talks.",
     role: "manager",
-    ask: "Ask about core field names, project states, phases and responsibility parties together. Offer link, notes and credential labels only if they want more.",
+    ask: "Ask about core field names, project states, stages and responsibility parties together. Offer link, notes and credential labels only if they want more.",
     actions: ["update_workspace_settings"],
   },
   {
@@ -253,8 +253,8 @@ const LINK_LABELS: [string, string][] = [
 const NOTE_LABELS: [string, string][] = [
   ["field_project_notes", "Project notes"],
   ["field_mint_notes", "Sales notes"],
-  ["field_current_phase_comment", "Current phase comment"],
-  ["field_phase2_comment", "Phase 2 comment"],
+  ["field_current_stage_comment", "Current stage comment"],
+  ["field_stage2_comment", "Stage 2 comment"],
 ];
 const CREDENTIAL_LABELS: [string, string][] = [
   ["field_sandbox_mid", "Sandbox MID"],
@@ -322,10 +322,10 @@ export const SETTINGS: SettingDef[] = [
   text("state_in_progress", "State: in progress", "terminology"),
   text("state_live", "State: live", "terminology"),
   text("state_blocked", "State: blocked", "terminology"),
-  text("phase_mint", "Phase: stage 1", "terminology"),
-  text("phase_integration", "Phase: stage 2", "terminology"),
-  text("phase_ms", "Phase: stage 3", "terminology"),
-  text("phase_completed", "Phase: completed", "terminology"),
+  text("stage_mint", "Stage: stage 1", "terminology"),
+  text("stage_integration", "Stage: stage 2", "terminology"),
+  text("stage_ms", "Stage: stage 3", "terminology"),
+  text("stage_completed", "Stage: completed", "terminology"),
   text("responsibility_internal", "Your side of the work", "terminology"),
   text("responsibility_external", "The merchant's side", "terminology"),
   text("responsibility_neutral", "Neither side", "terminology"),

@@ -49,7 +49,7 @@ const formatTimestamp = (value?: string) => {
 };
 
 export const WorkspaceActivityTimeline = ({ project }: WorkspaceActivityTimelineProps) => {
-  const { labels, teamLabels, phaseLabels, responsibilityLabels, stateLabels } = useLabels();
+  const { labels, teamLabels, stageLabels, responsibilityLabels, stateLabels } = useLabels();
   const metricBackground = labels.color_workspace_metric_bg || "#ffffff";
   const metricBorder = labels.color_workspace_metric_border || "#dce4ee";
   const sectionBorder = labels.color_workspace_section_border || "#dbe5ef";
@@ -141,7 +141,7 @@ export const WorkspaceActivityTimeline = ({ project }: WorkspaceActivityTimeline
         id: `project-responsibility-start-${log.id}`,
         kind: "system",
         title: `${responsibilityLabels[log.party] || log.party} responsibility started`,
-        source: `${phaseLabels[log.phase] || log.phase} phase`,
+        source: `${stageLabels[log.stage] || log.stage} stage`,
         description: `Project-level execution moved to ${responsibilityLabels[log.party] || log.party}.`,
         actor: "System",
         date: log.startedAt,
@@ -151,7 +151,7 @@ export const WorkspaceActivityTimeline = ({ project }: WorkspaceActivityTimeline
         id: `project-responsibility-end-${log.id}`,
         kind: "system",
         title: `${responsibilityLabels[log.party] || log.party} responsibility closed`,
-        source: `${phaseLabels[log.phase] || log.phase} phase`,
+        source: `${stageLabels[log.stage] || log.stage} stage`,
         description: "A new responsibility owner or execution state replaced this window.",
         actor: "System",
         date: log.endedAt,
@@ -203,7 +203,7 @@ export const WorkspaceActivityTimeline = ({ project }: WorkspaceActivityTimeline
     });
 
     return timeline.sort((a, b) => b.timestamp - a.timestamp);
-  }, [project, teamLabels, phaseLabels, responsibilityLabels, stateLabels]);
+  }, [project, teamLabels, stageLabels, responsibilityLabels, stateLabels]);
 
   const userEvents = events.filter((event) => event.kind === "user").length;
   const systemEvents = events.filter((event) => event.kind === "system").length;

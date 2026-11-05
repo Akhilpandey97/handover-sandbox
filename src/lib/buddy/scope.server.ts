@@ -102,7 +102,7 @@ export const STATE_LABELS: Record<string, string> = {
   blocked: "Blocked",
 };
 
-export const PHASE_LABELS: Record<string, string> = {
+export const STAGE_LABELS: Record<string, string> = {
   mint: "Sales",
   integration: "Integration",
   ms: "Merchant Success",

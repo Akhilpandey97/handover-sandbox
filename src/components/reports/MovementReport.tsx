@@ -116,7 +116,7 @@ const initials = (name: string) =>
     .join("")
     .toUpperCase() || "?";
 
-const PHASE_RANK: Record<string, number> = {
+const STAGE_RANK: Record<string, number> = {
   sales: 0,
   pre_integration: 1,
   mint: 2,
@@ -125,17 +125,17 @@ const PHASE_RANK: Record<string, number> = {
   ms: 2,
   live: 3,
 };
-const phaseRank = (v: string | undefined | null): number => {
+const stageRank = (v: string | undefined | null): number => {
   if (!v) return -1;
   const k = String(v).toLowerCase().trim();
-  return PHASE_RANK[k] ?? -1;
+  return STAGE_RANK[k] ?? -1;
 };
 const LOWLIGHT_KEYWORDS_RX =
   /\b(not getting any update|no response|no responses|unresponsive|following up|awaiting response|chasing|reminder sent|haven't heard|still waiting|no eta)\b/i;
 const WIN_RESOLVED_RX =
   /\b(resolved|unblocked|cleared|sign(ed)?[- ]off|approved|pg done|sandbox cleared|api(s)? validated)\b/i;
 const EGL_FIELD_RX = /expected.?go.?live/i;
-const PHASE_FIELD_RX = /^(current_phase|phase|project_state|state|funnel|stage)$/i;
+const STAGE_FIELD_RX = /^(current_stage|stage|project_state|state|funnel|stage)$/i;
 
 const classifyProject = (p: Project, entries: MovementEntry[]): Bucket => {
   if (p.projectState === "on_hold" || p.projectState === "blocked") return "lowlights";
@@ -149,9 +149,9 @@ const classifyProject = (p: Project, entries: MovementEntry[]): Bucket => {
 
   for (const e of entries) {
     for (const c of e.changes || []) {
-      if (PHASE_FIELD_RX.test(c.field)) {
-        const fr = phaseRank(c.from);
-        const tr = phaseRank(c.to);
+      if (STAGE_FIELD_RX.test(c.field)) {
+        const fr = stageRank(c.from);
+        const tr = stageRank(c.to);
         if (fr >= 0 && tr >= 0) {
           if (tr > fr) funnelForward = true;
           if (tr < fr) funnelRegressed = true;

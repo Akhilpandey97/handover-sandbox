@@ -48,11 +48,11 @@ export const DEFAULT_LABELS: Record<string, string> = {
   responsibility_external: "Customer",
   responsibility_neutral: "Neutral",
 
-  // Phase labels
-  phase_mint: "MINT",
-  phase_integration: "Integration",
-  phase_ms: "MS",
-  phase_completed: "Completed",
+  // Stage labels
+  stage_mint: "MINT",
+  stage_integration: "Integration",
+  stage_ms: "MS",
+  stage_completed: "Completed",
 
   // State labels
   state_not_started: "Not Started",
@@ -89,8 +89,8 @@ export const DEFAULT_LABELS: Record<string, string> = {
   field_expected_go_live_date: "Expected Go Live Date",
   field_actual_go_live_date: "Actual Go Live Date",
   field_mint_notes: "MINT Notes",
-  field_current_phase_comment: "Current Phase Comment",
-  field_phase2_comment: "Phase 2 Comment",
+  field_current_stage_comment: "Current Stage Comment",
+  field_stage2_comment: "Stage 2 Comment",
   field_contact_email: "Customer Contact Email",
   field_sow_link: "SOW Link",
 

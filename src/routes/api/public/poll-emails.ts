@@ -413,7 +413,7 @@ async function handler(req: Request): Promise<Response> {
             txns_per_day: txnsPerDay || 0,
             aov: aov || 0,
             category: category || null,
-            current_phase: "mint",
+            current_stage: "mint",
             current_owner_team: "mint",
             current_responsibility: "neutral",
             pending_acceptance: false,
@@ -422,7 +422,7 @@ async function handler(req: Request): Promise<Response> {
             kick_off_date: new Date().toISOString().split("T")[0],
             brand_url: brandUrl || null,
             project_notes: notes || null,
-            current_phase_comment: "Auto-created from email",
+            current_stage_comment: "Auto-created from email",
             integration_type: "Standard",
             assigned_owner: prof?.id ?? null,
           })

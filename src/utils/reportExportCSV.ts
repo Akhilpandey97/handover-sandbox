@@ -28,13 +28,13 @@ const downloadCSV = (csv: string, filename: string) => {
 interface Labels {
   teamLabels: Record<string, string>;
   responsibilityLabels: Record<string, string>;
-  phaseLabels: Record<string, string>;
+  stageLabels: Record<string, string>;
   stateLabels: Record<string, string>;
   getLabel: (key: string) => string;
 }
 
 export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) => {
-  const { teamLabels, responsibilityLabels, phaseLabels, stateLabels, getLabel } = labels;
+  const { teamLabels, responsibilityLabels, stageLabels, stateLabels, getLabel } = labels;
   const internal = responsibilityLabels.gokwik || "Internal";
   const external = responsibilityLabels.merchant || "Merchant";
 
@@ -42,7 +42,7 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
     getLabel("field_merchant_name"),
     getLabel("field_mid"),
     "Current Team",
-    "Current Phase",
+    "Current Stage",
     getLabel("field_project_state"),
     getLabel("field_assigned_owner"),
     "Tasks Completed",
@@ -51,7 +51,7 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
     `${internal} Time`,
     `${external} Time`,
     "Checklist Item",
-    "Item Phase",
+    "Item Stage",
     "Item Team",
     "Item Responsibility",
     `Item ${internal} Time`,
@@ -73,7 +73,7 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
           project.merchantName,
           project.mid,
           teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam,
-          phaseLabels[project.currentPhase] || project.currentPhase,
+          stageLabels[project.currentStage] || project.currentStage,
           stateLabels[project.projectState] || project.projectState,
           project.assignedOwnerName || "Unassigned",
           String(completed),
@@ -98,7 +98,7 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
             project.merchantName,
             project.mid,
             teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam,
-            phaseLabels[project.currentPhase] || project.currentPhase,
+            stageLabels[project.currentStage] || project.currentStage,
             stateLabels[project.projectState] || project.projectState,
             project.assignedOwnerName || "Unassigned",
             String(completed),
@@ -107,7 +107,7 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
             formatDuration(projectTime.gokwik),
             formatDuration(projectTime.merchant),
             item.title,
-            phaseLabels[item.phase] || item.phase,
+            stageLabels[item.stage] || item.stage,
             teamLabels[item.ownerTeam] || item.ownerTeam,
             responsibilityLabels[item.currentResponsibility] || item.currentResponsibility,
             formatDuration(time.gokwik),

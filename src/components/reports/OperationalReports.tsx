@@ -33,7 +33,7 @@ export const OperationalReports = ({ projects }: Props) => {
   const stageDuration = useMemo(() => {
     const stageMap = new Map<
       string,
-      { title: string; phase: string; totalTime: number; count: number }
+      { title: string; stage: string; totalTime: number; count: number }
     >();
 
     projects.forEach((p) => {
@@ -41,10 +41,10 @@ export const OperationalReports = ({ projects }: Props) => {
         const time = calculateTimeByParty(item.responsibilityLog);
         const totalMs = time.gokwik + time.merchant;
         if (totalMs > 0) {
-          const key = `${item.phase}|${item.title}`;
+          const key = `${item.stage}|${item.title}`;
           const existing = stageMap.get(key) || {
             title: item.title,
-            phase: item.phase,
+            stage: item.stage,
             totalTime: 0,
             count: 0,
           };
@@ -64,7 +64,7 @@ export const OperationalReports = ({ projects }: Props) => {
   const agingReport = useMemo(() => {
     const now = Date.now();
     return projects
-      .filter((p) => p.projectState !== "live" && p.currentPhase !== "completed")
+      .filter((p) => p.projectState !== "live" && p.currentStage !== "completed")
       .map((p) => {
         const kickOff = new Date(p.dates.kickOffDate).getTime();
         const daysSinceStart = Math.floor((now - kickOff) / (1000 * 60 * 60 * 24));
@@ -87,7 +87,7 @@ export const OperationalReports = ({ projects }: Props) => {
     >();
 
     projects
-      .filter((p) => p.projectState !== "live" && p.currentPhase !== "completed")
+      .filter((p) => p.projectState !== "live" && p.currentStage !== "completed")
       .forEach((p) => {
         const key = p.assignedOwner || "unassigned";
         const name = p.assignedOwnerName || "Unassigned";

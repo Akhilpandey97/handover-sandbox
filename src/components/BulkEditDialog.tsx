@@ -58,8 +58,8 @@ export interface BulkFieldUpdates {
   // Notes
   mintNotes: string;
   projectNotes: string;
-  currentPhaseComment: string;
-  phase2Comment: string;
+  currentStageComment: string;
+  stage2Comment: string;
 }
 
 type FieldKey = keyof BulkFieldUpdates;
@@ -85,8 +85,8 @@ const EMPTY_VALUES: BulkFieldUpdates = {
   goLiveDate: "",
   mintNotes: "",
   projectNotes: "",
-  currentPhaseComment: "",
-  phase2Comment: "",
+  currentStageComment: "",
+  stage2Comment: "",
 };
 
 export const BulkEditDialog = ({
@@ -423,20 +423,20 @@ export const BulkEditDialog = ({
                 />,
               )}
               {renderField(
-                "currentPhaseComment",
-                getLabel("field_current_phase_comment"),
+                "currentStageComment",
+                getLabel("field_current_stage_comment"),
                 <Textarea
-                  value={values.currentPhaseComment}
-                  onChange={(e) => updateValue("currentPhaseComment", e.target.value)}
+                  value={values.currentStageComment}
+                  onChange={(e) => updateValue("currentStageComment", e.target.value)}
                   rows={2}
                 />,
               )}
               {renderField(
-                "phase2Comment",
-                getLabel("field_phase2_comment"),
+                "stage2Comment",
+                getLabel("field_stage2_comment"),
                 <Textarea
-                  value={values.phase2Comment}
-                  onChange={(e) => updateValue("phase2Comment", e.target.value)}
+                  value={values.stage2Comment}
+                  onChange={(e) => updateValue("stage2Comment", e.target.value)}
                   rows={2}
                 />,
               )}
