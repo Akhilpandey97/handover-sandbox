@@ -62,6 +62,8 @@ interface ChecklistCommentThreadProps {
   projectName?: string;
   /** Changing this opens the thread and puts the cursor in the box. */
   focusSignal?: number;
+  /** Map of task id → task title, used to label task-linked comments. */
+  taskTitleMap?: Record<string, string>;
 }
 
 export const ChecklistCommentThread = ({
@@ -70,6 +72,7 @@ export const ChecklistCommentThread = ({
   projectId,
   projectName,
   focusSignal,
+  taskTitleMap,
 }: ChecklistCommentThreadProps) => {
   const { currentUser } = useAuth();
   const { data: comments = [], isLoading } = useChecklistComments(checklistItemId);
@@ -213,12 +216,19 @@ export const ChecklistCommentThread = ({
         <ScrollArea className="mb-3 max-h-[240px] overflow-y-auto">
           <div className="space-y-2 pr-2">
             {comments.map((c) => (
-              <CommentBubble
-                key={c.id}
-                comment={c}
-                currentUserId={currentUser?.id}
-                knownNames={knownNames}
-              />
+              <div key={c.id}>
+                {c.checklist_task_id && taskTitleMap?.[c.checklist_task_id] && (
+                  <p className="mb-0.5 flex items-center gap-1 text-2xs text-muted-foreground">
+                    <span className="inline-block h-3 w-0.5 rounded-full bg-muted-foreground/40" />
+                    Re: <span className="font-medium">{taskTitleMap[c.checklist_task_id]}</span>
+                  </p>
+                )}
+                <CommentBubble
+                  comment={c}
+                  currentUserId={currentUser?.id}
+                  knownNames={knownNames}
+                />
+              </div>
             ))}
           </div>
         </ScrollArea>

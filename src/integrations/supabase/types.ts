@@ -392,6 +392,7 @@ export type Database = {
           attachment_name: string | null;
           attachment_url: string | null;
           checklist_item_id: string;
+          checklist_task_id: string | null;
           comment: string;
           created_at: string;
           id: string;
@@ -403,6 +404,7 @@ export type Database = {
           attachment_name?: string | null;
           attachment_url?: string | null;
           checklist_item_id: string;
+          checklist_task_id?: string | null;
           comment: string;
           created_at?: string;
           id?: string;
@@ -414,6 +416,7 @@ export type Database = {
           attachment_name?: string | null;
           attachment_url?: string | null;
           checklist_item_id?: string;
+          checklist_task_id?: string | null;
           comment?: string;
           created_at?: string;
           id?: string;
@@ -427,6 +430,13 @@ export type Database = {
             columns: ["checklist_item_id"];
             isOneToOne: false;
             referencedRelation: "checklist_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "checklist_comments_checklist_task_id_fkey";
+            columns: ["checklist_task_id"];
+            isOneToOne: false;
+            referencedRelation: "checklist_tasks";
             referencedColumns: ["id"];
           },
           {

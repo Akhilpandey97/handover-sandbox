@@ -6,6 +6,7 @@ import { toast } from "sonner";
 export interface ChecklistComment {
   id: string;
   checklist_item_id: string;
+  checklist_task_id: string | null;
   user_name: string;
   user_id: string | null;
   comment: string;
@@ -40,10 +41,12 @@ export const useAddChecklistComment = () => {
   return useMutation({
     mutationFn: async ({
       checklistItemId,
+      checklistTaskId,
       comment,
       file,
     }: {
       checklistItemId: string;
+      checklistTaskId?: string | null;
       comment: string;
       file?: File;
     }) => {
@@ -73,6 +76,7 @@ export const useAddChecklistComment = () => {
         .from("checklist_comments")
         .insert({
           checklist_item_id: checklistItemId,
+          checklist_task_id: checklistTaskId ?? null,
           user_name: currentUser.name,
           user_id: currentUser.id,
           comment,
