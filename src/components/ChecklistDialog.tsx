@@ -225,7 +225,27 @@ export const ChecklistDialog = ({
     open: boolean;
     checklistItemId: string;
     checklistItemTitle: string;
+    task?: { id: string; title: string; description?: string | null; assigned_to?: string | null; due_date?: string | null };
   } | null>(null);
+  const [addItemState, setAddItemState] = useState<{ stage: string; team: string } | null>(null);
+  const [addItemTitle, setAddItemTitle] = useState("");
+
+  const handleAddItem = async (stage: string, team: string, title: string) => {
+    if (!title.trim() || !project) return;
+    await supabase.from("checklist_items").insert({
+      project_id: project.id,
+      tenant_id: currentUser?.tenantId ?? null,
+      title: title.trim(),
+      stage,
+      owner_team: team,
+      completed: false,
+      is_task: false,
+      current_responsibility: "neutral",
+    });
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
+    setAddItemState(null);
+    setAddItemTitle("");
+  };
 
   const [meetingDialogState, setMeetingDialogState] = useState<{
     open: boolean;
@@ -459,6 +479,7 @@ export const ChecklistDialog = ({
           checklistItemTitle={taskDialogState.checklistItemTitle}
           projectId={project.id}
           profiles={profiles}
+          task={taskDialogState.task}
         />
       )}
       {meetingDialogState && project && (
@@ -678,22 +699,42 @@ export const ChecklistDialog = ({
                                   })()}
                                 </div>
                               </div>
-                              {(item.dueDate || (canEdit && !item.completed)) && (
-                                <div className="flex items-center gap-2 mb-2">
+                              {(item.startDate || item.dueDate || (canEdit && !item.completed)) && (
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
                                   <Calendar className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground">Start:</span>
+                                  {canEdit && !item.completed ? (
+                                    <Input
+                                      type="date"
+                                      defaultValue={item.startDate || ""}
+                                      aria-label="Start date"
+                                      className="h-6 w-32 text-xs px-1"
+                                      onChange={async (e) => {
+                                        const nd = e.target.value || null;
+                                        await supabase
+                                          .from("checklist_items")
+                                          .update({ start_date: nd })
+                                          .eq("id", item.id);
+                                        queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                      }}
+                                    />
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">
+                                      {item.startDate ? shortDate(item.startDate) : "—"}
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-muted-foreground">→ Due:</span>
                                   {item.dueDate ? (
                                     <span
                                       className={`text-xs ${!item.completed && new Date(item.dueDate) < new Date() ? "text-destructive font-medium" : "text-muted-foreground"}`}
                                     >
-                                      Due: {shortDate(item.dueDate)}
+                                      {shortDate(item.dueDate)}
                                       {!item.completed &&
                                         new Date(item.dueDate) < new Date() &&
                                         " (Overdue)"}
                                     </span>
                                   ) : (
-                                    <span className="text-xs text-muted-foreground">
-                                      No due date
-                                    </span>
+                                    <span className="text-xs text-muted-foreground">—</span>
                                   )}
                                   {canEdit && !item.completed && (
                                     <Input
@@ -865,6 +906,22 @@ export const ChecklistDialog = ({
                                             <Button
                                               variant="ghost"
                                               size="sm"
+                                              className="h-5 w-5 shrink-0 p-0 opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setTaskDialogState({
+                                                  open: true,
+                                                  checklistItemId: item.id,
+                                                  checklistItemTitle: item.title,
+                                                  task,
+                                                });
+                                              }}
+                                            >
+                                              <Pencil className="h-3 w-3" />
+                                            </Button>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
                                               className="h-5 w-5 shrink-0 p-0 text-destructive opacity-0 hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
                                               onClick={() => deleteTaskMutation.mutate(task.id)}
                                             >
@@ -973,6 +1030,34 @@ export const ChecklistDialog = ({
                         </div>
                       );
                     })}
+                    {/* Inline add item row */}
+                    {canEditSection && (
+                      addItemState?.stage === team ? (
+                        <div className="flex items-center gap-2 mt-2 px-1">
+                          <Input
+                            autoFocus
+                            placeholder="New item title… (Enter to save, Esc to cancel)"
+                            value={addItemTitle}
+                            onChange={(e) => setAddItemTitle(e.target.value)}
+                            className="h-7 text-xs flex-1"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleAddItem(team, team, addItemTitle);
+                              if (e.key === "Escape") { setAddItemState(null); setAddItemTitle(""); }
+                            }}
+                          />
+                          <Button size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddItem(team, team, addItemTitle)} disabled={!addItemTitle.trim()}>Save</Button>
+                          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => { setAddItemState(null); setAddItemTitle(""); }}>Cancel</Button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="mt-2 flex items-center gap-1.5 px-1 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={() => { setAddItemState({ stage: team, team }); setAddItemTitle(""); }}
+                        >
+                          <Plus className="h-3 w-3" /> Add item
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               );
@@ -1177,6 +1262,9 @@ export const ChecklistDialog = ({
                 <th className="text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
                   Checklist
                 </th>
+                <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
+                  Start
+                </th>
                 <th className="w-28 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
                   Due date
                 </th>
@@ -1251,6 +1339,15 @@ export const ChecklistDialog = ({
                             <Paperclip className="h-3 w-3 text-muted-foreground" />
                           )}
                         </div>
+                      </td>
+
+                      {/* Start date */}
+                      <td className="px-3 py-2.5 align-middle">
+                        {item.startDate ? (
+                          <span className="text-xs text-muted-foreground">{shortDate(item.startDate)}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">—</span>
+                        )}
                       </td>
 
                       {/* Due date */}
@@ -1426,14 +1523,34 @@ export const ChecklistDialog = ({
 
                               <span className="h-4 w-px bg-border/60 hidden sm:block" />
 
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">Due date</span>
+                                <span className="text-xs text-muted-foreground">Start</span>
+                                {canEdit && !item.completed ? (
+                                  <Input
+                                    type="date"
+                                    defaultValue={item.startDate || ""}
+                                    className="h-7 w-32 text-xs px-2 border-border/60"
+                                    onChange={async (e) => {
+                                      const nd = e.target.value || null;
+                                      await supabase
+                                        .from("checklist_items")
+                                        .update({ start_date: nd })
+                                        .eq("id", item.id);
+                                      queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="text-xs font-medium text-foreground">
+                                    {item.startDate ? shortDate(item.startDate) : "—"}
+                                  </span>
+                                )}
+                                <span className="text-xs text-muted-foreground">→ Due</span>
                                 {canEdit && !item.completed ? (
                                   <Input
                                     type="date"
                                     defaultValue={item.dueDate || ""}
-                                    className="h-7 w-36 text-xs px-2 border-border/60"
+                                    className="h-7 w-32 text-xs px-2 border-border/60"
                                     onChange={async (e) => {
                                       const nd = e.target.value || null;
                                       await supabase
@@ -1545,6 +1662,22 @@ export const ChecklistDialog = ({
                                                 {shortDate(task.due_date)}
                                               </span>
                                             )}
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-4 w-4 shrink-0 p-0 opacity-0 group-hover:opacity-100"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setTaskDialogState({
+                                                  open: true,
+                                                  checklistItemId: item.id,
+                                                  checklistItemTitle: item.title,
+                                                  task,
+                                                });
+                                              }}
+                                            >
+                                              <Pencil className="h-2.5 w-2.5" />
+                                            </Button>
                                           </div>
                                           {isAwaitingComment && (
                                             <div className="ml-5 mt-1 flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1">
@@ -1624,6 +1757,36 @@ export const ChecklistDialog = ({
                   </Fragment>
                 );
               })}
+              {/* Inline add row */}
+              <tr>
+                <td colSpan={7} className="px-3 py-1.5">
+                  {addItemState?.stage === "table" ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        autoFocus
+                        placeholder="New item title… (Enter to save, Esc to cancel)"
+                        value={addItemTitle}
+                        onChange={(e) => setAddItemTitle(e.target.value)}
+                        className="h-7 text-xs flex-1"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleAddItem(effectiveSelectedGroup || "mint", effectiveSelectedGroup || "mint", addItemTitle);
+                          if (e.key === "Escape") { setAddItemState(null); setAddItemTitle(""); }
+                        }}
+                      />
+                      <Button size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddItem(effectiveSelectedGroup || "mint", effectiveSelectedGroup || "mint", addItemTitle)} disabled={!addItemTitle.trim()}>Save</Button>
+                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => { setAddItemState(null); setAddItemTitle(""); }}>Cancel</Button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-0.5"
+                      onClick={() => { setAddItemState({ stage: "table", team: effectiveSelectedGroup || "mint" }); setAddItemTitle(""); }}
+                    >
+                      <Plus className="h-3 w-3" /> Add item
+                    </button>
+                  )}
+                </td>
+              </tr>
             </tbody>
           </table>
         </ScrollArea>

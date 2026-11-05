@@ -10,8 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAddChecklistTask } from "@/hooks/useChecklistTasks";
+import { useAddChecklistTask, useUpdateChecklistTask } from "@/hooks/useChecklistTasks";
 import { ListTodo } from "lucide-react";
+
+interface ExistingTask {
+  id: string;
+  title: string;
+  description?: string | null;
+  assigned_to?: string | null;
+  due_date?: string | null;
+}
 
 interface TaskManagementDialogProps {
   open: boolean;
@@ -21,14 +29,10 @@ interface TaskManagementDialogProps {
   projectId: string;
   projectName?: string;
   profiles?: { id: string; name: string }[];
+  /** Pass an existing task to open in edit mode instead of add mode. */
+  task?: ExistingTask;
 }
 
-/**
- * Adding a task, and nothing else.
- *
- * The tasks themselves are listed against their checklist item, so repeating them here
- * only asked which of the two lists was the real one.
- */
 export const TaskManagementDialog = ({
   open,
   onOpenChange,
@@ -37,39 +41,55 @@ export const TaskManagementDialog = ({
   projectId,
   projectName,
   profiles = [],
+  task,
 }: TaskManagementDialogProps) => {
   const addTask = useAddChecklistTask();
+  const updateTask = useUpdateChecklistTask();
 
-  const [newTitle, setNewTitle] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [newAssignedTo, setNewAssignedTo] = useState("");
-  const [newDueDate, setNewDueDate] = useState("");
+  const isEditMode = Boolean(task);
 
-  // A reopened dialog starts empty, not on the last thing typed.
+  const [newTitle, setNewTitle] = useState(task?.title ?? "");
+  const [newDescription, setNewDescription] = useState(task?.description ?? "");
+  const [newAssignedTo, setNewAssignedTo] = useState(task?.assigned_to ?? "");
+  const [newDueDate, setNewDueDate] = useState(task?.due_date ?? "");
+
   useEffect(() => {
     if (open) {
-      setNewTitle("");
-      setNewDescription("");
-      setNewAssignedTo("");
-      setNewDueDate("");
+      setNewTitle(task?.title ?? "");
+      setNewDescription(task?.description ?? "");
+      setNewAssignedTo(task?.assigned_to ?? "");
+      setNewDueDate(task?.due_date ?? "");
     }
-  }, [open]);
+  }, [open, task]);
 
-  const handleAdd = () => {
+  const handleSave = () => {
     if (!newTitle.trim()) return;
-    addTask.mutate(
-      {
-        checklist_item_id: checklistItemId,
-        project_id: projectId,
-        project_name: projectName,
-        checklist_item_title: checklistItemTitle,
-        title: newTitle.trim(),
-        description: newDescription.trim() || undefined,
-        assigned_to: newAssignedTo || undefined,
-        due_date: newDueDate || undefined,
-      },
-      { onSuccess: () => onOpenChange(false) },
-    );
+    if (isEditMode && task) {
+      updateTask.mutate(
+        {
+          id: task.id,
+          title: newTitle.trim(),
+          description: newDescription.trim() || undefined,
+          assigned_to: newAssignedTo || undefined,
+          due_date: newDueDate || undefined,
+        },
+        { onSuccess: () => onOpenChange(false) },
+      );
+    } else {
+      addTask.mutate(
+        {
+          checklist_item_id: checklistItemId,
+          project_id: projectId,
+          project_name: projectName,
+          checklist_item_title: checklistItemTitle,
+          title: newTitle.trim(),
+          description: newDescription.trim() || undefined,
+          assigned_to: newAssignedTo || undefined,
+          due_date: newDueDate || undefined,
+        },
+        { onSuccess: () => onOpenChange(false) },
+      );
+    }
   };
 
   return (
@@ -78,7 +98,7 @@ export const TaskManagementDialog = ({
         <DialogHeader className="space-y-1">
           <DialogTitle className="flex items-center gap-2 text-base">
             <ListTodo className="h-4 w-4 text-muted-foreground" />
-            Add task
+            {isEditMode ? "Edit task" : "Add task"}
           </DialogTitle>
           <p className="truncate text-xs text-muted-foreground">{checklistItemTitle}</p>
         </DialogHeader>
@@ -89,7 +109,7 @@ export const TaskManagementDialog = ({
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) handleAdd();
+              if (e.key === "Enter" && !e.shiftKey) handleSave();
             }}
             className="h-9"
             autoFocus
@@ -128,10 +148,12 @@ export const TaskManagementDialog = ({
               <Button
                 size="sm"
                 className="h-8"
-                onClick={handleAdd}
-                disabled={!newTitle.trim() || addTask.isPending}
+                onClick={handleSave}
+                disabled={!newTitle.trim() || addTask.isPending || updateTask.isPending}
               >
-                {addTask.isPending ? "Adding..." : "Add Task"}
+                {isEditMode
+                  ? (updateTask.isPending ? "Saving..." : "Save")
+                  : (addTask.isPending ? "Adding..." : "Add Task")}
               </Button>
             </div>
           </div>
