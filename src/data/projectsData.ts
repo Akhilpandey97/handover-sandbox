@@ -80,6 +80,8 @@ export interface ProjectChecklist {
   commentAt?: string;
   isTask?: boolean; // Tasks sit on top of checklists
   dueDate?: string; // Auto-calculated or manually overridden
+  startDate?: string;
+  status?: 'todo' | 'in_progress' | 'blocked' | 'done';
 }
 
 export interface ProjectLinks {

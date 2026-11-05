@@ -746,6 +746,8 @@ export type Database = {
           is_task: boolean;
           owner_team: string;
           stage: string;
+          start_date: string | null;
+          status: Database["public"]["Enums"]["checklist_status"] | null;
           project_id: string;
           sort_order: number | null;
           tenant_id: string | null;
@@ -765,6 +767,8 @@ export type Database = {
           is_task?: boolean;
           owner_team: string;
           stage: string;
+          start_date?: string | null;
+          status?: Database["public"]["Enums"]["checklist_status"] | null;
           project_id: string;
           sort_order?: number | null;
           tenant_id?: string | null;
@@ -784,6 +788,8 @@ export type Database = {
           is_task?: boolean;
           owner_team?: string;
           stage?: string;
+          start_date?: string | null;
+          status?: Database["public"]["Enums"]["checklist_status"] | null;
           project_id?: string;
           sort_order?: number | null;
           tenant_id?: string | null;
@@ -3387,6 +3393,7 @@ export type Database = {
       };
     };
     Enums: {
+      checklist_status: "todo" | "in_progress" | "blocked" | "done";
       project_stage: "mint" | "integration" | "ms" | "completed";
       project_state: "not_started" | "on_hold" | "in_progress" | "live" | "blocked";
       responsibility_party: "gokwik" | "merchant" | "neutral";

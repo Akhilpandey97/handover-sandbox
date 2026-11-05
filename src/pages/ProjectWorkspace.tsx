@@ -5,7 +5,7 @@ import { apiAuthHeaders } from "@/lib/api-invoke";
 import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import { LoginScreen } from "@/components/LoginScreen";
 import { AssignOwnerDialog } from "@/components/AssignOwnerDialog";
-import { ChecklistDialog } from "@/components/ChecklistDialog";
+import { WorkspaceChecklistTab } from "@/components/project-workspace/WorkspaceChecklistTab";
 import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { TransferDialog } from "@/components/TransferDialog";
 import { PortalLinkButton } from "@/components/PortalLinkButton";
@@ -580,11 +580,8 @@ export const ProjectWorkspaceView = ({
         {/* ── BODY ──────────────────────────────────────────────────────── */}
         <div className="flex-1 min-h-0 overflow-hidden bg-background">
           <TabsContent value="checklists" className="m-0 h-full">
-            <ChecklistDialog
+            <WorkspaceChecklistTab
               project={project}
-              open={true}
-              onOpenChange={() => undefined}
-              variant="inline"
               onEditProject={() => setEditOpen(true)}
               onAssignOwner={canAssignOwner ? () => setAssignOpen(true) : undefined}
             />
