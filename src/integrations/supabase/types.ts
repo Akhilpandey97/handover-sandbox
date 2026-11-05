@@ -749,6 +749,7 @@ export type Database = {
           start_date: string | null;
           status: Database["public"]["Enums"]["checklist_status"] | null;
           project_id: string;
+          sla_days: number | null;
           sort_order: number | null;
           tenant_id: string | null;
           title: string;
@@ -767,6 +768,7 @@ export type Database = {
           is_task?: boolean;
           owner_team: string;
           stage: string;
+          sla_days?: number | null;
           start_date?: string | null;
           status?: Database["public"]["Enums"]["checklist_status"] | null;
           project_id: string;
@@ -788,6 +790,7 @@ export type Database = {
           is_task?: boolean;
           owner_team?: string;
           stage?: string;
+          sla_days?: number | null;
           start_date?: string | null;
           status?: Database["public"]["Enums"]["checklist_status"] | null;
           project_id?: string;
@@ -973,14 +976,19 @@ export type Database = {
       checklist_tasks: {
         Row: {
           assigned_to: string | null;
+          assigned_to_ext: string | null;
           checklist_item_id: string;
           created_at: string;
           created_by: string | null;
           description: string | null;
           due_date: string | null;
+          estimated_hours: number | null;
           id: string;
+          is_client_visible: boolean | null;
           priority: string;
           project_id: string;
+          sort_order: number | null;
+          start_date: string | null;
           status: string;
           tenant_id: string | null;
           title: string;
@@ -988,14 +996,19 @@ export type Database = {
         };
         Insert: {
           assigned_to?: string | null;
+          assigned_to_ext?: string | null;
           checklist_item_id: string;
           created_at?: string;
           created_by?: string | null;
           description?: string | null;
           due_date?: string | null;
+          estimated_hours?: number | null;
           id?: string;
+          is_client_visible?: boolean | null;
           priority?: string;
           project_id: string;
+          sort_order?: number | null;
+          start_date?: string | null;
           status?: string;
           tenant_id?: string | null;
           title: string;
@@ -1003,14 +1016,19 @@ export type Database = {
         };
         Update: {
           assigned_to?: string | null;
+          assigned_to_ext?: string | null;
           checklist_item_id?: string;
           created_at?: string;
           created_by?: string | null;
           description?: string | null;
           due_date?: string | null;
+          estimated_hours?: number | null;
           id?: string;
+          is_client_visible?: boolean | null;
           priority?: string;
           project_id?: string;
+          sort_order?: number | null;
+          start_date?: string | null;
           status?: string;
           tenant_id?: string | null;
           title?: string;

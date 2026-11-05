@@ -70,6 +70,10 @@ import {
   ChevronDown,
   FileStack,
   Paperclip,
+  Copy,
+  CheckSquare,
+  Square,
+  X,
 } from "lucide-react";
 
 /** "9 Sep 2026" */
@@ -111,6 +115,46 @@ const getItemStatus = (item: ProjectChecklist): ItemStatus => {
   if (item.currentResponsibility !== "neutral") return "in_progress";
   if (item.dueDate && new Date(item.dueDate) >= now) return "upcoming";
   return "todo";
+};
+
+/** §8.1 Health & Risk Flags — colored dot indicators derived from existing fields */
+type HealthFlag = { key: string; color: string; title: string };
+const getHealthFlags = (item: ProjectChecklist): HealthFlag[] => {
+  if (item.completed) return [];
+  const now = new Date();
+  const flags: HealthFlag[] = [];
+  if (item.dueDate && new Date(item.dueDate) < now) {
+    flags.push({ key: "overdue", color: "bg-red-500", title: "Overdue" });
+  } else if (item.dueDate) {
+    const daysLeft = Math.ceil((new Date(item.dueDate).getTime() - now.getTime()) / 86_400_000);
+    if (daysLeft <= 3) flags.push({ key: "at_risk", color: "bg-amber-400", title: `At risk (${daysLeft}d)` });
+  } else {
+    flags.push({ key: "no_date", color: "bg-slate-300 dark:bg-slate-600", title: "No due date" });
+  }
+  if (item.status === "blocked") {
+    flags.push({ key: "blocked", color: "bg-blue-500", title: "Blocked" });
+  }
+  return flags;
+};
+
+/** §8.5 SLA chip for completed items */
+const SlaChip = ({ item }: { item: ProjectChecklist }) => {
+  if (!item.completed || !item.slaDays || !item.startDate || !item.completedAt) return null;
+  const msPerDay = 86_400_000;
+  const actual = Math.round((new Date(item.completedAt).getTime() - new Date(item.startDate).getTime()) / msPerDay);
+  const variance = actual - item.slaDays;
+  if (variance <= 0) {
+    return (
+      <span className="ml-1 inline-flex items-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 text-2xs px-1.5 py-0 font-medium">
+        {Math.abs(variance)}d early
+      </span>
+    );
+  }
+  return (
+    <span className="ml-1 inline-flex items-center rounded-full bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 text-2xs px-1.5 py-0 font-medium">
+      {variance}d late
+    </span>
+  );
 };
 
 const StatusBadge = ({ status }: { status: ItemStatus }) => {
@@ -272,6 +316,66 @@ export const ChecklistDialog = ({
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [detailsTab, setDetailsTab] = useState<"details" | "people">("details");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+
+  // §4.3 Bulk edit mode
+  const [bulkSelectMode, setBulkSelectMode] = useState(false);
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+
+  function toggleBulkItem(id: string) {
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function bulkComplete() {
+    if (!project) return;
+    const ids = [...selectedItemIds];
+    await Promise.all(ids.map((id) =>
+      supabase.from("checklist_items").update({
+        completed: true, status: "done",
+        completed_at: new Date().toISOString(),
+        completed_by: currentUser?.name || "Unknown",
+      }).eq("id", id)
+    ));
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
+    setSelectedItemIds(new Set());
+    setBulkSelectMode(false);
+  }
+
+  async function bulkDelete() {
+    if (!project) return;
+    const ids = [...selectedItemIds];
+    await Promise.all(ids.map((id) =>
+      supabase.from("checklist_items").delete().eq("id", id)
+    ));
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
+    setSelectedItemIds(new Set());
+    setBulkSelectMode(false);
+  }
+
+  async function bulkChangeStage(stage: string) {
+    if (!project) return;
+    const ids = [...selectedItemIds];
+    await Promise.all(ids.map((id) =>
+      supabase.from("checklist_items").update({ stage }).eq("id", id)
+    ));
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
+    setSelectedItemIds(new Set());
+    setBulkSelectMode(false);
+  }
+
+  async function bulkChangeTeam(team: string) {
+    if (!project) return;
+    const ids = [...selectedItemIds];
+    await Promise.all(ids.map((id) =>
+      supabase.from("checklist_items").update({ owner_team: team }).eq("id", id)
+    ));
+    queryClient.invalidateQueries({ queryKey: ["projects"] });
+    setSelectedItemIds(new Set());
+    setBulkSelectMode(false);
+  }
 
   const formsByChecklistTemplateId = useMemo(() => {
     const map = new Map<string, { formTemplateId: string; formTemplateName: string }>();
@@ -1206,6 +1310,19 @@ export const ChecklistDialog = ({
               </p>
             </div>
             <div className="flex items-center gap-1.5">
+              {/* §4.3 Bulk select toggle */}
+              <Button
+                size="sm"
+                variant={bulkSelectMode ? "default" : "outline"}
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => {
+                  setBulkSelectMode((v) => !v);
+                  setSelectedItemIds(new Set());
+                }}
+              >
+                {bulkSelectMode ? <CheckSquare className="h-3 w-3" /> : <Square className="h-3 w-3" />}
+                {bulkSelectMode ? `${selectedItemIds.size} selected` : "Select"}
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -1302,9 +1419,18 @@ export const ChecklistDialog = ({
                         "hover:bg-muted/10",
                       )}
                     >
-                      {/* Row number */}
+                      {/* Row number / bulk checkbox */}
                       <td className="px-3 py-2.5 text-xs text-muted-foreground align-middle">
-                        {index + 1}
+                        {bulkSelectMode ? (
+                          <span onClick={(e) => { e.stopPropagation(); toggleBulkItem(item.id); }}>
+                            <Checkbox
+                              checked={selectedItemIds.has(item.id)}
+                              className="h-4 w-4"
+                            />
+                          </span>
+                        ) : (
+                          index + 1
+                        )}
                       </td>
 
                       {/* Checkbox + Title */}
@@ -1321,6 +1447,14 @@ export const ChecklistDialog = ({
                               className="h-4 w-4 shrink-0"
                             />
                           </span>
+                          {/* §8.1 Health & Risk Flags */}
+                          {getHealthFlags(item).map((flag) => (
+                            <span
+                              key={flag.key}
+                              title={flag.title}
+                              className={`h-2 w-2 rounded-full shrink-0 ${flag.color}`}
+                            />
+                          ))}
                           <span
                             className={cn(
                               "font-medium",
@@ -1329,6 +1463,8 @@ export const ChecklistDialog = ({
                           >
                             {item.title}
                           </span>
+                          {/* §8.5 SLA chip */}
+                          <SlaChip item={item} />
                           {taskCount > 0 && (
                             <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
                               <MessageSquare className="h-3 w-3" />
@@ -1462,6 +1598,31 @@ export const ChecklistDialog = ({
                                 >
                                   <Calendar className="mr-2 h-3.5 w-3.5" />
                                   Clear due date
+                                </DropdownMenuItem>
+                              )}
+                              {/* §4.4 Duplicate item */}
+                              {canEdit && (
+                                <DropdownMenuItem
+                                  onSelect={async () => {
+                                    if (!project) return;
+                                    await supabase.from("checklist_items").insert({
+                                      project_id: project.id,
+                                      tenant_id: currentUser?.tenantId ?? null,
+                                      title: `${item.title} (copy)`,
+                                      stage: item.stage as string,
+                                      owner_team: item.ownerTeam as string,
+                                      current_responsibility: item.currentResponsibility || "neutral",
+                                      completed: false,
+                                      is_task: false,
+                                      start_date: item.startDate || null,
+                                      due_date: item.dueDate || null,
+                                      sort_order: index + 1,
+                                    });
+                                    queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                  }}
+                                >
+                                  <Copy className="mr-2 h-3.5 w-3.5" />
+                                  Duplicate
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
@@ -1757,6 +1918,54 @@ export const ChecklistDialog = ({
                   </Fragment>
                 );
               })}
+              {/* §4.3 Bulk action bar */}
+              {bulkSelectMode && selectedItemIds.size > 0 && (
+                <tr>
+                  <td colSpan={7} className="px-3 py-2 border-t border-primary/20 bg-primary/5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-medium text-primary">{selectedItemIds.size} selected</span>
+                      <Button size="sm" variant="outline" className="h-6 px-2 text-xs gap-1" onClick={bulkComplete}>
+                        <CheckSquare className="h-3 w-3" /> Complete
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" className="h-6 px-2 text-xs gap-1">
+                            Stage <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {["mint", "integration", "ms", "completed"].map((s) => (
+                            <DropdownMenuItem key={s} onSelect={() => bulkChangeStage(s)}>
+                              {s.charAt(0).toUpperCase() + s.slice(1)}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" className="h-6 px-2 text-xs gap-1">
+                            Team <ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {["mint", "integration", "ms"].map((t) => (
+                            <DropdownMenuItem key={t} onSelect={() => bulkChangeTeam(t)}>
+                              {t.charAt(0).toUpperCase() + t.slice(1)}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button size="sm" variant="outline" className="h-6 px-2 text-xs gap-1 text-destructive border-destructive/40 hover:bg-destructive/10" onClick={bulkDelete}>
+                        <Trash2 className="h-3 w-3" /> Delete
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-6 px-2 text-xs ml-auto" onClick={() => { setSelectedItemIds(new Set()); setBulkSelectMode(false); }}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
               {/* Inline add row */}
               <tr>
                 <td colSpan={7} className="px-3 py-1.5">

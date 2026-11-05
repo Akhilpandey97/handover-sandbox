@@ -82,6 +82,7 @@ export interface ProjectChecklist {
   dueDate?: string; // Auto-calculated or manually overridden
   startDate?: string;
   status?: 'todo' | 'in_progress' | 'blocked' | 'done';
+  slaDays?: number;
 }
 
 export interface ProjectLinks {

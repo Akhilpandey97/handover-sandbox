@@ -13,7 +13,12 @@ export interface ChecklistTask {
   description: string | null;
   status: "open" | "in_progress" | "done";
   assigned_to: string | null;
+  assigned_to_ext: string | null;
   due_date: string | null;
+  start_date: string | null;
+  sort_order: number;
+  is_client_visible: boolean;
+  estimated_hours: number | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -63,7 +68,9 @@ export const useAddChecklistTask = () => {
       title: string;
       description?: string;
       assigned_to?: string;
+      assigned_to_ext?: string;
       due_date?: string;
+      is_client_visible?: boolean;
       project_name?: string;
       checklist_item_title?: string;
     }) => {
@@ -141,6 +148,25 @@ export const useUpdateChecklistTask = () => {
 
       const { error } = await supabase.from("checklist_tasks").update(updates).eq("id", id);
       if (error) throw error;
+
+      // §12.4 Completion rollup: when all tasks under an item are done, auto-complete the item
+      if (updates.status === "done" && existing?.checklist_item_id) {
+        const { data: siblings } = await supabase
+          .from("checklist_tasks")
+          .select("id, status")
+          .eq("checklist_item_id", existing.checklist_item_id);
+        if (siblings && siblings.length > 0 && siblings.every((t) => t.status === "done")) {
+          await supabase
+            .from("checklist_items")
+            .update({
+              status: "done",
+              completed: true,
+              completed_at: new Date().toISOString(),
+              completed_by: currentUser?.name || "Auto (all tasks done)",
+            })
+            .eq("id", existing.checklist_item_id);
+        }
+      }
 
       const newAssignee = updates.assigned_to;
       if (newAssignee && newAssignee !== existing?.assigned_to && newAssignee !== currentUser?.id) {

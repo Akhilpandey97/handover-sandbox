@@ -109,6 +109,7 @@ const transformDbChecklistItem = (row: any): ProjectChecklist => ({
   dueDate: row.due_date || undefined,
   startDate: row.start_date || undefined,
   status: (row.status as 'todo' | 'in_progress' | 'blocked' | 'done') || 'todo',
+  slaDays: row.sla_days ?? undefined,
 });
 
 // Optimistic-cache helpers: the projects query key is ["projects", userId],

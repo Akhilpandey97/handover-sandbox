@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,14 +13,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAddChecklistTask, useUpdateChecklistTask } from "@/hooks/useChecklistTasks";
-import { ListTodo } from "lucide-react";
+import { Globe, ListTodo } from "lucide-react";
 
 interface ExistingTask {
   id: string;
   title: string;
   description?: string | null;
   assigned_to?: string | null;
+  assigned_to_ext?: string | null;
   due_date?: string | null;
+  is_client_visible?: boolean | null;
 }
 
 interface TaskManagementDialogProps {
@@ -51,14 +55,18 @@ export const TaskManagementDialog = ({
   const [newTitle, setNewTitle] = useState(task?.title ?? "");
   const [newDescription, setNewDescription] = useState(task?.description ?? "");
   const [newAssignedTo, setNewAssignedTo] = useState(task?.assigned_to ?? "");
+  const [newAssignedToExt, setNewAssignedToExt] = useState(task?.assigned_to_ext ?? "");
   const [newDueDate, setNewDueDate] = useState(task?.due_date ?? "");
+  const [isClientVisible, setIsClientVisible] = useState(task?.is_client_visible ?? false);
 
   useEffect(() => {
     if (open) {
       setNewTitle(task?.title ?? "");
       setNewDescription(task?.description ?? "");
       setNewAssignedTo(task?.assigned_to ?? "");
+      setNewAssignedToExt(task?.assigned_to_ext ?? "");
       setNewDueDate(task?.due_date ?? "");
+      setIsClientVisible(task?.is_client_visible ?? false);
     }
   }, [open, task]);
 
@@ -71,7 +79,9 @@ export const TaskManagementDialog = ({
           title: newTitle.trim(),
           description: newDescription.trim() || undefined,
           assigned_to: newAssignedTo || undefined,
+          assigned_to_ext: newAssignedToExt.trim() || undefined,
           due_date: newDueDate || undefined,
+          is_client_visible: isClientVisible,
         },
         { onSuccess: () => onOpenChange(false) },
       );
@@ -85,7 +95,9 @@ export const TaskManagementDialog = ({
           title: newTitle.trim(),
           description: newDescription.trim() || undefined,
           assigned_to: newAssignedTo || undefined,
+          assigned_to_ext: newAssignedToExt.trim() || undefined,
           due_date: newDueDate || undefined,
+          is_client_visible: isClientVisible,
         },
         { onSuccess: () => onOpenChange(false) },
       );
@@ -120,11 +132,13 @@ export const TaskManagementDialog = ({
             onChange={(e) => setNewDescription(e.target.value)}
             className="min-h-[60px] resize-none"
           />
+
+          {/* Assignees row */}
           <div className="flex flex-wrap items-center gap-2">
             {profiles.length > 0 && (
               <Select value={newAssignedTo} onValueChange={setNewAssignedTo}>
                 <SelectTrigger className="h-8 w-36 text-xs">
-                  <SelectValue placeholder="Assign to..." />
+                  <SelectValue placeholder="Internal assignee..." />
                 </SelectTrigger>
                 <SelectContent>
                   {profiles.map((p) => (
@@ -135,27 +149,52 @@ export const TaskManagementDialog = ({
                 </SelectContent>
               </Select>
             )}
+            {/* §12.2 Merchant contact (assigned_to_ext) */}
+            <Input
+              placeholder="Merchant contact (optional)"
+              value={newAssignedToExt}
+              onChange={(e) => setNewAssignedToExt(e.target.value)}
+              className="h-8 flex-1 min-w-[140px] text-xs"
+            />
+          </div>
+
+          {/* Due date + client-visible row */}
+          <div className="flex flex-wrap items-center gap-3">
             <Input
               type="date"
               value={newDueDate}
               onChange={(e) => setNewDueDate(e.target.value)}
               className="h-8 w-36 text-xs"
             />
-            <div className="ml-auto flex gap-2">
-              <Button variant="ghost" size="sm" className="h-8" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                className="h-8"
-                onClick={handleSave}
-                disabled={!newTitle.trim() || addTask.isPending || updateTask.isPending}
-              >
-                {isEditMode
-                  ? (updateTask.isPending ? "Saving..." : "Save")
-                  : (addTask.isPending ? "Adding..." : "Add Task")}
-              </Button>
+            {/* §12.5 Client-visible flag */}
+            <div className="flex items-center gap-1.5 ml-auto">
+              <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label htmlFor="client-visible" className="text-xs text-muted-foreground cursor-pointer">
+                Merchant visible
+              </Label>
+              <Switch
+                id="client-visible"
+                checked={isClientVisible}
+                onCheckedChange={setIsClientVisible}
+                className="scale-75"
+              />
             </div>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" className="h-8" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              className="h-8"
+              onClick={handleSave}
+              disabled={!newTitle.trim() || addTask.isPending || updateTask.isPending}
+            >
+              {isEditMode
+                ? (updateTask.isPending ? "Saving..." : "Save")
+                : (addTask.isPending ? "Adding..." : "Add Task")}
+            </Button>
           </div>
         </div>
       </DialogContent>
