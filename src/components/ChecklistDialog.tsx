@@ -47,6 +47,7 @@ import {
 } from "@/hooks/useChecklistTasks";
 import { useAddChecklistComment } from "@/hooks/useChecklistComments";
 import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
+import { useChecklistActivity } from "@/hooks/useChecklistActivity";
 import { formatArrCr } from "@/lib/arr";
 import { cn } from "@/lib/utils";
 import {
@@ -74,6 +75,9 @@ import {
   CheckSquare,
   Square,
   X,
+  Link2,
+  Activity,
+  GitBranch,
 } from "lucide-react";
 
 /** "9 Sep 2026" */
@@ -252,6 +256,7 @@ export const ChecklistDialog = ({
   const { allTeams, teamLabelMap, teamColorMap, checklistTeamSlugs } = useTeams();
   const { data: allTasks = [] } = useChecklistTasks(project?.id);
   const { data: allMeetings = [] } = useChecklistMeetings(project?.id);
+  const { data: activityEvents = [] } = useChecklistActivity(project?.id);
   const addTaskMutation = useAddChecklistTask();
   const updateTaskMutation = useUpdateChecklistTask();
   const deleteTaskMutation = useDeleteChecklistTask();
@@ -314,7 +319,7 @@ export const ChecklistDialog = ({
   // ── Inline-specific state ──
   const [groupBy, setGroupBy] = useState<"teams" | "stages">("teams");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [detailsTab, setDetailsTab] = useState<"details" | "people">("details");
+  const [detailsTab, setDetailsTab] = useState<"details" | "people" | "activity">("details");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   // §4.3 Bulk edit mode
@@ -1753,6 +1758,83 @@ export const ChecklistDialog = ({
                               })()}
                             </div>
 
+                            {/* §7.4 Depends on + §8.3 Link Meeting */}
+                            <div className="flex items-center gap-4 flex-wrap">
+                              {/* Depends-on */}
+                              <div className="flex items-center gap-2">
+                                <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">Depends on:</span>
+                                {checklist
+                                  .filter((other) => !other.isTask && other.id !== item.id)
+                                  .map((other) => {
+                                    const isLinked = (item.dependsOn ?? []).includes(other.id);
+                                    return (
+                                      <button
+                                        key={other.id}
+                                        type="button"
+                                        disabled={!canEdit}
+                                        className={cn(
+                                          "rounded px-2 py-0.5 text-2xs border transition-colors",
+                                          isLinked
+                                            ? "border-primary/50 bg-primary/10 text-primary font-medium"
+                                            : "border-border/50 bg-transparent text-muted-foreground hover:bg-muted/40",
+                                        )}
+                                        onClick={async () => {
+                                          const current = item.dependsOn ?? [];
+                                          const next = isLinked
+                                            ? current.filter((id) => id !== other.id)
+                                            : [...current, other.id];
+                                          await supabase
+                                            .from("checklist_items")
+                                            .update({ depends_on: next.length ? next : null })
+                                            .eq("id", item.id);
+                                          queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                        }}
+                                      >
+                                        {other.title.length > 24
+                                          ? other.title.slice(0, 22) + "…"
+                                          : other.title}
+                                      </button>
+                                    );
+                                  })}
+                                {checklist.filter((o) => !o.isTask && o.id !== item.id).length === 0 && (
+                                  <span className="text-2xs text-muted-foreground italic">No other items</span>
+                                )}
+                              </div>
+
+                              {/* §8.3 Link Meeting */}
+                              <div className="flex items-center gap-2 ml-auto">
+                                <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-xs text-muted-foreground">Link meeting:</span>
+                                {allMeetings.length === 0 ? (
+                                  <span className="text-2xs text-muted-foreground italic">None</span>
+                                ) : (
+                                  <select
+                                    className="text-xs border border-border/50 rounded px-2 py-0.5 bg-background text-foreground h-7"
+                                    defaultValue=""
+                                    onChange={async (e) => {
+                                      const meetingId = e.target.value;
+                                      if (!meetingId) return;
+                                      await supabase
+                                        .from("checklist_meetings")
+                                        .update({ checklist_item_id: item.id })
+                                        .eq("id", meetingId);
+                                      queryClient.invalidateQueries({ queryKey: ["checklist-meetings"] });
+                                      toast.success("Meeting linked to this item");
+                                      e.target.value = "";
+                                    }}
+                                  >
+                                    <option value="">Re-link a meeting…</option>
+                                    {allMeetings.map((m) => (
+                                      <option key={m.id} value={m.id}>
+                                        {m.title} {m.checklist_item_id === item.id ? "(linked here)" : ""}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
+                            </div>
+
                             {/* Row 2: Comment thread */}
                             <ChecklistCommentThread
                               checklistItemId={item.id}
@@ -2021,6 +2103,13 @@ export const ChecklistDialog = ({
             >
               People
             </TabsTrigger>
+            <TabsTrigger
+              value="activity"
+              className="rounded-none border-b-2 border-transparent px-3 py-2 text-xs font-medium data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            >
+              <Activity className="h-3 w-3 mr-1" />
+              Activity
+            </TabsTrigger>
           </TabsList>
 
           <ScrollArea className="flex-1 min-h-0">
@@ -2224,6 +2313,54 @@ export const ChecklistDialog = ({
                   </dd>
                 </div>
               </dl>
+            </TabsContent>
+
+            {/* §8.4 Activity tab */}
+            <TabsContent value="activity" className="m-0 p-3">
+              <div className="mb-3 flex items-center gap-2">
+                <Activity className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground">Activity</span>
+                <span className="text-xs text-muted-foreground">({activityEvents.length})</span>
+              </div>
+              {activityEvents.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">No activity yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {activityEvents.map((ev) => (
+                    <div key={ev.id} className="flex gap-2">
+                      <div
+                        className={cn(
+                          "mt-0.5 h-5 w-5 shrink-0 rounded-full flex items-center justify-center",
+                          ev.type === "completion"
+                            ? "bg-success/15 text-success-strong"
+                            : "bg-info/10 text-info-strong",
+                        )}
+                      >
+                        {ev.type === "completion" ? (
+                          <CheckCircle2 className="h-3 w-3" />
+                        ) : (
+                          <MessageSquare className="h-3 w-3" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">
+                          {ev.type === "completion" ? "Completed" : "Comment"}{" "}
+                          <span className="text-muted-foreground font-normal">on</span>{" "}
+                          <span className="font-medium">{ev.itemTitle}</span>
+                        </p>
+                        {ev.text && (
+                          <p className="text-2xs text-muted-foreground mt-0.5 line-clamp-2">
+                            {ev.text}
+                          </p>
+                        )}
+                        <p className="text-2xs text-muted-foreground mt-0.5">
+                          {ev.who} · {shortDate(ev.when)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </ScrollArea>
         </Tabs>

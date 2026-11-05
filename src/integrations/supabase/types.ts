@@ -749,6 +749,7 @@ export type Database = {
           start_date: string | null;
           status: Database["public"]["Enums"]["checklist_status"] | null;
           project_id: string;
+          depends_on: string[] | null;
           sla_days: number | null;
           sort_order: number | null;
           tenant_id: string | null;
@@ -763,6 +764,7 @@ export type Database = {
           completed_by?: string | null;
           created_at?: string | null;
           current_responsibility?: Database["public"]["Enums"]["responsibility_party"] | null;
+          depends_on?: string[] | null;
           due_date?: string | null;
           id?: string;
           is_task?: boolean;
@@ -785,6 +787,7 @@ export type Database = {
           completed_by?: string | null;
           created_at?: string | null;
           current_responsibility?: Database["public"]["Enums"]["responsibility_party"] | null;
+          depends_on?: string[] | null;
           due_date?: string | null;
           id?: string;
           is_task?: boolean;

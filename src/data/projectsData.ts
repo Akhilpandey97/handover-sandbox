@@ -83,6 +83,7 @@ export interface ProjectChecklist {
   startDate?: string;
   status?: 'todo' | 'in_progress' | 'blocked' | 'done';
   slaDays?: number;
+  dependsOn?: string[];
 }
 
 export interface ProjectLinks {
