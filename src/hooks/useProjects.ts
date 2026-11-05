@@ -366,6 +366,14 @@ export const useAddProject = () => {
       if (projectError) throw projectError;
 
       // Checklist items are seeded automatically by the database trigger on projects insert.
+      // If presales excluded specific items during scope review, remove them now.
+      if (project.checklistExclusions && project.checklistExclusions.length > 0) {
+        await supabase
+          .from("checklist_items")
+          .delete()
+          .eq("project_id", newProject.id)
+          .in("title", project.checklistExclusions);
+      }
 
       // Insert initial responsibility log
       if (project.responsibilityLog.length > 0) {

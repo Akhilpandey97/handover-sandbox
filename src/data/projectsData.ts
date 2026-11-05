@@ -170,6 +170,8 @@ export interface Project {
   faqHelp?: ProjectFaqHelp[];
   paymentSimulatorLink?: string;
   checklistSetId?: string | null;
+  /** Transient: template titles to remove after trigger seeds them. Never persisted. */
+  checklistExclusions?: string[];
 }
 
 // Helper to calculate time spent by each party (neutral time is not counted)

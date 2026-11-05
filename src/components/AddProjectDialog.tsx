@@ -12,6 +12,7 @@ import {
   useChecklistSets,
   type ChecklistSet,
   type ChecklistSetRule,
+  type ChecklistTemplate,
 } from "@/hooks/useChecklistSets";
 import { CustomFieldsForm } from "./CustomFieldsRenderer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
@@ -30,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building2, Calendar, Link2, FileText, Layers, ListChecks } from "lucide-react";
+import { Building2, Calendar, Link2, FileText, Layers, ListChecks, CheckSquare2, Square } from "lucide-react";
 import { DatePickerField } from "@/components/ui/date-picker-field";
 
 function resolveChecklistSet(
@@ -95,10 +96,11 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
   const { getLabel } = useLabels();
   const { fields: customFields } = useCustomFields();
   const { saveValues } = useCustomFieldValues(undefined);
-  const { sets, rules } = useChecklistSets();
+  const { sets, rules, templates: allTemplates } = useChecklistSets();
   const [project, setProject] = useState<Project>(createDefaultProject());
   const [customDraft, setCustomDraft] = useState<Record<string, string>>({});
   const [checklistSetOverride, setChecklistSetOverride] = useState<string>("__auto__");
+  const [excludedTemplateIds, setExcludedTemplateIds] = useState<Set<string>>(new Set());
 
   const autoSet = useMemo(
     () =>
@@ -117,6 +119,38 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
       project.pgOnboarding,
     ],
   );
+
+  const effectiveSet = useMemo(() => {
+    if (checklistSetOverride !== "__auto__") return sets.find((s) => s.id === checklistSetOverride) ?? autoSet;
+    return autoSet;
+  }, [checklistSetOverride, autoSet, sets]);
+
+  const effectiveTemplates = useMemo(
+    () => (effectiveSet ? allTemplates.filter((t) => t.checklist_set_id === effectiveSet.id) : []),
+    [effectiveSet, allTemplates],
+  );
+
+  // Group templates by team for the review panel
+  const templatesByTeam = useMemo(() => {
+    const map = new Map<string, ChecklistTemplate[]>();
+    for (const t of effectiveTemplates) {
+      const team = t.owner_team || "other";
+      if (!map.has(team)) map.set(team, []);
+      map.get(team)!.push(t);
+    }
+    return map;
+  }, [effectiveTemplates]);
+
+  const toggleTemplate = (id: string) => {
+    setExcludedTemplateIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectedCount = effectiveTemplates.length - excludedTemplateIds.size;
 
   const updateField = <K extends keyof Project>(field: K, value: Project[K]) => {
     setProject((prev) => ({ ...prev, [field]: value }));
@@ -161,15 +195,22 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
     if (!emailsValid(project.contactEmail || "")) {
       return;
     }
-    const effectiveSetId =
-      checklistSetOverride !== "__auto__" ? checklistSetOverride : (autoSet?.id ?? null);
-    onSave({ ...project, checklistSetId: effectiveSetId ?? undefined } as Project);
+    const effectiveSetId = effectiveSet?.id ?? null;
+    const exclusions = effectiveTemplates
+      .filter((t) => excludedTemplateIds.has(t.id))
+      .map((t) => t.title);
+    onSave({
+      ...project,
+      checklistSetId: effectiveSetId ?? undefined,
+      checklistExclusions: exclusions.length > 0 ? exclusions : undefined,
+    } as Project);
     if (Object.keys(customDraft).length > 0) {
       await saveValues(project.id, customDraft);
     }
     setProject(createDefaultProject());
     setCustomDraft({});
     setChecklistSetOverride("__auto__");
+    setExcludedTemplateIds(new Set());
     onOpenChange(false);
   };
 
@@ -177,6 +218,7 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
     setProject(createDefaultProject());
     setCustomDraft({});
     setChecklistSetOverride("__auto__");
+    setExcludedTemplateIds(new Set());
     onOpenChange(false);
   };
 
@@ -199,7 +241,7 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
         <ScrollArea className="min-h-0 flex-1 px-6 py-4">
           <Tabs defaultValue="info" className="w-full">
             <TabsList
-              className={`grid w-full mb-4 ${customFields.length > 0 ? "grid-cols-5" : "grid-cols-4"}`}
+              className={`grid w-full mb-4 ${customFields.length > 0 ? "grid-cols-6" : "grid-cols-5"}`}
             >
               <TabsTrigger value="info" className="gap-1 text-xs">
                 <Building2 className="h-3 w-3" />
@@ -216,6 +258,15 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
               <TabsTrigger value="notes" className="gap-1 text-xs">
                 <FileText className="h-3 w-3" />
                 Notes
+              </TabsTrigger>
+              <TabsTrigger value="checklist" className="gap-1 text-xs">
+                <ListChecks className="h-3 w-3" />
+                Checklist
+                {excludedTemplateIds.size > 0 && (
+                  <span className="ml-1 rounded-full bg-orange-500 px-1 text-2xs text-white leading-tight">
+                    {excludedTemplateIds.size}
+                  </span>
+                )}
               </TabsTrigger>
               {customFields.length > 0 && (
                 <TabsTrigger value="custom" className="gap-1 text-xs">
@@ -619,6 +670,83 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
                   rows={2}
                 />
               </div>
+            </TabsContent>
+
+            <TabsContent value="checklist" className="space-y-3">
+              {effectiveSet ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{effectiveSet.name}</p>
+                      {effectiveSet.description && (
+                        <p className="text-xs text-muted-foreground">{effectiveSet.description}</p>
+                      )}
+                    </div>
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      {selectedCount} / {effectiveTemplates.length} items
+                    </Badge>
+                  </div>
+
+                  {effectiveTemplates.length === 0 ? (
+                    <p className="rounded-md border border-dashed border-border px-3 py-4 text-xs text-center text-muted-foreground">
+                      No checklist items in this set yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {[...templatesByTeam.entries()].map(([team, items]) => (
+                        <div key={team}>
+                          <p className="mb-1.5 text-xs font-semibold capitalize text-muted-foreground">
+                            {team}
+                          </p>
+                          <div className="space-y-1">
+                            {items.map((t) => {
+                              const excluded = excludedTemplateIds.has(t.id);
+                              return (
+                                <button
+                                  key={t.id}
+                                  type="button"
+                                  onClick={() => toggleTemplate(t.id)}
+                                  className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition-colors ${
+                                    excluded
+                                      ? "opacity-40 hover:opacity-60"
+                                      : "hover:bg-muted/60"
+                                  }`}
+                                >
+                                  {excluded ? (
+                                    <Square className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                  ) : (
+                                    <CheckSquare2 className="h-3.5 w-3.5 shrink-0 text-primary" />
+                                  )}
+                                  <span className={excluded ? "line-through" : ""}>{t.title}</span>
+                                  {t.standard_duration != null && (
+                                    <span className="ml-auto shrink-0 text-2xs text-muted-foreground">
+                                      {t.standard_duration}d
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {excludedTemplateIds.size > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setExcludedTemplateIds(new Set())}
+                      className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                    >
+                      Re-include all
+                    </button>
+                  )}
+                </>
+              ) : (
+                <p className="rounded-md border border-dashed border-border px-3 py-4 text-xs text-center text-muted-foreground">
+                  No checklist set matched — fill in Platform and Integration Type on the Info tab.
+                </p>
+              )}
             </TabsContent>
 
             {customFields.length > 0 && (
