@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Project, ProjectChecklist } from "@/data/projectsData";
 import { useUpdateChecklistItem } from "@/hooks/useUpdateChecklistItem";
+import { useLabels } from "@/contexts/LabelsContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, MessageSquare, CheckSquare2, X } from "lucide-react";
@@ -12,12 +13,12 @@ interface Props {
 
 type KanbanStage = "mint" | "integration" | "ms" | "completed";
 
-const COLUMNS: { key: KanbanStage; label: string; color: string }[] = [
-  { key: "mint", label: "Mint", color: "bg-emerald-500/10 border-emerald-500/30" },
-  { key: "integration", label: "Integration", color: "bg-blue-500/10 border-blue-500/30" },
-  { key: "ms", label: "MS", color: "bg-amber-500/10 border-amber-500/30" },
-  { key: "completed", label: "Completed", color: "bg-slate-500/10 border-slate-500/30" },
-];
+const COLUMN_COLORS: Record<KanbanStage, string> = {
+  mint: "bg-emerald-500/10 border-emerald-500/30",
+  integration: "bg-blue-500/10 border-blue-500/30",
+  ms: "bg-amber-500/10 border-amber-500/30",
+  completed: "bg-slate-500/10 border-slate-500/30",
+};
 
 const STATUS_COLORS: Record<string, string> = {
   todo: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
@@ -88,8 +89,15 @@ function KanbanCard({
 
 export function ChecklistKanbanView({ project }: Props) {
   const updateItem = useUpdateChecklistItem(project.id);
+  const { stageLabels } = useLabels();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<KanbanStage | null>(null);
+
+  const COLUMNS = (["mint", "integration", "ms", "completed"] as KanbanStage[]).map((key) => ({
+    key,
+    label: stageLabels[key] || key,
+    color: COLUMN_COLORS[key],
+  }));
 
   // §6.2 Filter state
   const allTeams = [...new Set(project.checklist.filter(i => !i.isTask).map(i => i.ownerTeam))];

@@ -84,13 +84,7 @@ import {
 const shortDate = (value: string | Date) =>
   new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
-/** Stage-to-stage label mapping for "Project Stages" grouping */
-const STAGE_STAGE_LABELS: Record<string, string> = {
-  mint: "Pre Sales",
-  integration: "Implementation",
-  ms: "Go Live",
-  completed: "Closure",
-};
+/** Stage slugs in display order */
 
 const STAGE_ORDER = ["mint", "integration", "ms", "completed"];
 
@@ -246,7 +240,7 @@ export const ChecklistDialog = ({
   const { updateChecklist, toggleChecklistResponsibility } = useProjects();
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
-  const { teamLabels, responsibilityLabels } = useLabels();
+  const { teamLabels, responsibilityLabels, stageLabels } = useLabels();
   const { assignments } = useFormAssignments();
   const { templates: formTemplates } = useFormTemplates();
   const { sets: checklistSets } = useChecklistSets();
@@ -497,7 +491,7 @@ export const ChecklistDialog = ({
       });
       return STAGE_ORDER.filter((p) => map[p]?.length > 0).map((p) => ({
         key: p,
-        label: STAGE_STAGE_LABELS[p] || p,
+        label: stageLabels[p] || p,
         color: getTeamColor(p),
         items: map[p],
         completed: map[p].filter((i) => i.completed).length,
@@ -2016,9 +2010,9 @@ export const ChecklistDialog = ({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          {["mint", "integration", "ms", "completed"].map((s) => (
+                          {(["mint", "integration", "ms", "completed"] as const).map((s) => (
                             <DropdownMenuItem key={s} onSelect={() => bulkChangeStage(s)}>
-                              {s.charAt(0).toUpperCase() + s.slice(1)}
+                              {stageLabels[s] || s}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
@@ -2030,9 +2024,9 @@ export const ChecklistDialog = ({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          {["mint", "integration", "ms"].map((t) => (
+                          {(["mint", "integration", "ms"] as const).map((t) => (
                             <DropdownMenuItem key={t} onSelect={() => bulkChangeTeam(t)}>
-                              {t.charAt(0).toUpperCase() + t.slice(1)}
+                              {teamLabels[t] || t}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
