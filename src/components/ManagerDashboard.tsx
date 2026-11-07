@@ -217,7 +217,6 @@ const SubTabCardGrid = ({
         <span className="portal-heading truncate text-sm">{label}</span>
         <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
       </div>
-      <p className="mt-2 line-clamp-2 text-2xs leading-4 text-muted-foreground">{description}</p>
     </button>
   );
   if (groups) {
