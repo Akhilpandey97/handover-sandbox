@@ -41,7 +41,7 @@ import { toast } from "sonner";
 import { Sigma, Save, Trash2, FileText, Plus, X } from "lucide-react";
 import { useReportFilters } from "@/hooks/useReportFilters";
 import { ReportFilterBar } from "@/components/reports/ReportFilterBar";
-import { arrCroreValue } from "@/lib/arr";
+import { formatArrCr } from "@/lib/arr";
 
 const AVAILABLE_COLUMNS: { key: string; label: string; group: string }[] = [
   { key: "merchantName", label: "Merchant Name", group: "Basic" },
@@ -101,7 +101,7 @@ function getCellValue(project: Project, key: string, labels: any): string {
     case "category":
       return project.category;
     case "arr":
-      return arrCroreValue(project.arr);
+      return formatArrCr(project.arr);
     case "txnsPerDay":
       return String(project.txnsPerDay);
     case "aov":

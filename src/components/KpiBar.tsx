@@ -97,7 +97,7 @@ export const KpiBar = ({ items, storageKey }: { items: KpiBoxItem[]; storageKey:
                 </span>
                 {kpi.attentionArr !== undefined && kpi.attentionArr > 0 && (
                   <span className="block text-2xs text-destructive-strong/70">
-                    ARR {formatCr(kpi.attentionArr)} Cr · MRR {formatCr(kpi.attentionArr / 12)} Cr
+                    ARR {formatCr(kpi.attentionArr)} · MRR {formatCr(kpi.attentionArr / 12)}
                   </span>
                 )}
               </button>

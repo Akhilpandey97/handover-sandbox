@@ -22,6 +22,7 @@ import { RiskBadge } from "./RiskBadge";
 import { GoLiveDate } from "./GoLiveDate";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { openProjectInNewTab } from "@/lib/open-project";
+import { sumArrCrore, formatCr } from "@/lib/arr";
 
 interface Props {
   title: string;
@@ -36,7 +37,7 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
   const navigate = useNavigate();
   const { verdicts } = useProjectRiskVerdicts();
   const list = projects || [];
-  const totalArr = list.reduce((s, p) => s + (p.arr || 0), 0);
+  const totalArr = sumArrCrore(list.map((p) => p.arr));
 
   return (
     <>
@@ -46,7 +47,7 @@ export const ProjectListDialog = ({ title, description, projects, open, onOpenCh
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
               {description ? `${description} · ` : ""}
-              {list.length} project{list.length === 1 ? "" : "s"} · {totalArr.toFixed(2)} Cr ARR
+              {list.length} project{list.length === 1 ? "" : "s"} · {formatCr(totalArr)} ARR
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh]">

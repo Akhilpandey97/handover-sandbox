@@ -21,6 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, TrendingUp, BarChart3, Rocket, DollarSign } from "lucide-react";
+import { arrToCrore, formatCr, formatArrCr } from "@/lib/arr";
 
 interface Props {
   projects: Project[];
@@ -55,7 +56,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
         count: 0,
         projects: [],
       };
-      existing.totalArr += p.arr;
+      existing.totalArr += arrToCrore(p.arr);
       existing.count++;
       existing.projects.push({
         name: p.merchantName,
@@ -125,7 +126,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                 <CardTitle className="portal-heading flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-success-strong" />
                   Revenue Realization Forecast
-                  <Badge variant="secondary">{totalPipelineArr.toFixed(2)} Cr in pipeline</Badge>
+                  <Badge variant="secondary">{formatCr(totalPipelineArr)} in pipeline</Badge>
                 </CardTitle>
                 {expandedSection === "revenue" ? (
                   <ChevronDown className="h-4 w-4" />
@@ -152,7 +153,7 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                     <TableRow>
                       <TableHead>Month</TableHead>
                       <TableHead>Projects</TableHead>
-                      <TableHead>Pipeline {getLabel("field_arr")} (Cr)</TableHead>
+                      <TableHead>Pipeline {getLabel("field_arr")}</TableHead>
                       <TableHead>Details</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -162,13 +163,13 @@ export const ExecutiveDashboard = ({ projects }: Props) => {
                         <TableCell className="font-medium">{row.month}</TableCell>
                         <TableCell>{row.count}</TableCell>
                         <TableCell className="font-semibold text-success-strong">
-                          {row.totalArr.toFixed(2)}
+                          {formatCr(row.totalArr)}
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {row.projects.map((p, j) => (
                               <Badge key={j} variant="outline" className="text-xs">
-                                {p.name} ({p.arr} Cr)
+                                {p.name} ({formatArrCr(p.arr)})
                               </Badge>
                             ))}
                           </div>

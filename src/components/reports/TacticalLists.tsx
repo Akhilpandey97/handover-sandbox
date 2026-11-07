@@ -22,7 +22,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown, ChevronRight, AlertCircle, Trophy } from "lucide-react";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { describeVerdict } from "@/data/riskRules";
-import { arrCroreValue } from "@/lib/arr";
+import { formatArrCr } from "@/lib/arr";
 
 interface Props {
   projects: Project[];
@@ -144,7 +144,7 @@ export const TacticalLists = ({ projects }: Props) => {
                           {stateLabels[p.projectState] || projectStateLabels[p.projectState]}
                         </TableCell>
                         <TableCell>{p.assignedOwnerName || "Unassigned"}</TableCell>
-                        <TableCell>{arrCroreValue(p.arr)}</TableCell>
+                        <TableCell>{formatArrCr(p.arr)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -45,7 +45,7 @@ import { Sparkles } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useLabels } from "@/contexts/LabelsContext";
 import { GoLiveDate } from "./GoLiveDate";
-import { arrCroreValue } from "@/lib/arr";
+import { formatArrCr } from "@/lib/arr";
 import { fmtDate, cn } from "@/lib/utils";
 
 /** Empty array = no filter; the URL stays clean until something is chosen. */
@@ -631,7 +631,7 @@ export const RiskDashboard = () => {
                             {p.assignedOwnerName || "Unassigned"}
                           </TableCell>
                           <TableCell className="py-2 text-sm text-right whitespace-nowrap">
-                            {arrCroreValue(p.arr)}
+                            {formatArrCr(p.arr)}
                           </TableCell>
                           <TableCell className="py-2 text-right">
                             <Button

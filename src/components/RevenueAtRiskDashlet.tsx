@@ -31,9 +31,9 @@ const StatTile = ({ icon: Icon, label, arr, count, tone }: StatTileProps) => {
         <Icon className="h-3 w-3" />
         {label}
       </div>
-      <p className="text-lg font-semibold leading-tight tabular-nums">{formatCr(arr)} Cr</p>
+      <p className="text-lg font-semibold leading-tight tabular-nums">{formatCr(arr)}</p>
       <p className="text-2xs opacity-70">
-        MRR {formatCr(mrr)} Cr · {count} project{count !== 1 ? "s" : ""}
+        MRR {formatCr(mrr)} · {count} project{count !== 1 ? "s" : ""}
       </p>
     </div>
   );
@@ -155,7 +155,7 @@ export const RevenueAtRiskDashlet = ({ projects }: { projects?: Project[] } = {}
                       <GoLiveDate project={project} />
                     </TableCell>
                     <TableCell className="text-xs whitespace-nowrap tabular-nums text-muted-foreground">
-                      <span className="font-medium text-foreground">{formatCr(pArr)} Cr</span>
+                      <span className="font-medium text-foreground">{formatCr(pArr)}</span>
                       <span className="ml-1 text-2xs">/ {formatCr(pMrr)} MRR</span>
                     </TableCell>
                     <TableCell>
@@ -178,11 +178,11 @@ export const RevenueAtRiskDashlet = ({ projects }: { projects?: Project[] } = {}
           <span className="font-medium text-foreground">{unionProjects.length} projects</span>
           <span>·</span>
           <span>
-            Total ARR <span className="font-medium text-foreground">{formatCr(totalArr)} Cr</span>
+            Total ARR <span className="font-medium text-foreground">{formatCr(totalArr)}</span>
           </span>
           <span>·</span>
           <span>
-            MRR <span className="font-medium text-foreground">{formatCr(totalMrr)} Cr</span>
+            MRR <span className="font-medium text-foreground">{formatCr(totalMrr)}</span>
           </span>
         </div>
       )}

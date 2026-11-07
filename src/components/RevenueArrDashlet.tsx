@@ -92,10 +92,10 @@ export const RevenueArrDashlet = ({ projects, riskVerdicts, onDrillDown }: Props
               </div>
               <div>
                 <p className="text-xl font-semibold tabular-nums leading-tight text-foreground">
-                  {formatCr(tile.arr)} Cr
+                  {formatCr(tile.arr)}
                 </p>
                 <p className="mt-0.5 text-2xs text-muted-foreground">
-                  MRR {formatCr(mrr)} Cr · {tile.count} project{tile.count !== 1 ? "s" : ""}
+                  MRR {formatCr(mrr)} · {tile.count} project{tile.count !== 1 ? "s" : ""}
                 </p>
               </div>
             </button>

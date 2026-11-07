@@ -42,7 +42,7 @@ import {
 } from "@/data/projectsData";
 import { getActiveFunnelStages } from "@/data/funnelConfig";
 import { formatGoLiveDate } from "./GoLiveDate";
-import { arrToCrore } from "@/lib/arr";
+import { arrToCrore, formatArrCr, formatCr } from "@/lib/arr";
 import { cn, greeting } from "@/lib/utils";
 import { parseDashboardPath, projectViewPath } from "@/lib/dashboard-routes";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
@@ -308,7 +308,7 @@ export const TeamDashboard = () => {
       key: "all",
       label: "All projects",
       value: visibleProjects.length,
-      sub: `${visibleProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}`,
+      sub: `${formatCr(visibleProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0))} ${arrLabel}`,
       icon: FolderKanban,
       tone: "bg-muted text-foreground/70",
       onClick: () => setDrillDown({ title: "All projects", projects: visibleProjects }),
@@ -320,7 +320,7 @@ export const TeamDashboard = () => {
         key,
         label: state === "in_progress" ? "In Progress" : label,
         value: list.length,
-        sub: `${list.reduce((sum, p) => sum + arrToCrore(p.arr), 0).toFixed(2)} Cr ${arrLabel}`,
+        sub: `${formatCr(list.reduce((sum, p) => sum + arrToCrore(p.arr), 0))} ${arrLabel}`,
         icon,
         tone,
         onClick: () => setDrillDown({ title: label, description: "Project state", projects: list }),
@@ -397,7 +397,7 @@ export const TeamDashboard = () => {
                       </button>
                       <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-2xs text-muted-foreground">
                         <span>
-                          {arrLabel}: {arrToCrore(project.arr).toFixed(2)} Cr
+                          {arrLabel}: {formatArrCr(project.arr)}
                         </span>
                         <span>
                           · {getLabel("field_project_state")}:{" "}
@@ -1238,7 +1238,7 @@ export const TeamDashboard = () => {
                                               />
                                             </span>
                                           ) : colKey === "arr" ? (
-                                            `${arrToCrore(project.arr).toFixed(2)} Cr`
+                                            formatArrCr(project.arr)
                                           ) : ["mintNotes", "projectNotes"].includes(colKey) ? (
                                             <span
                                               className="truncate block max-w-[200px]"

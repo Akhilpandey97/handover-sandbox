@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { formatArrCr } from "@/lib/arr";
 import { createPortal } from "react-dom";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -447,12 +448,7 @@ export const KanbanBoard = ({
     return entries.sort((a, b) => a.label.localeCompare(b.label));
   }, [filteredProjects, groupField, labels, customValuesMap, liveThisYearOnly, columnOrder]);
 
-  const formatArr = (n: number) =>
-    n >= 10000000
-      ? `${(n / 10000000).toFixed(1)}Cr`
-      : n >= 100000
-        ? `${(n / 100000).toFixed(1)}L`
-        : n.toLocaleString();
+  const formatArr = (n: number) => formatArrCr(n);
 
   const standardOptions = allFieldOptions.filter((o) => !o.key.startsWith("custom_field_"));
   const customOptions = allFieldOptions.filter((o) => o.key.startsWith("custom_field_"));

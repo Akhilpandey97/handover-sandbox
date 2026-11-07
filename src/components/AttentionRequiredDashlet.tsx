@@ -112,7 +112,7 @@ export const AttentionRequiredDashlet = ({
                       <GoLiveDate project={project} />
                     </TableCell>
                     <TableCell className="text-xs whitespace-nowrap tabular-nums text-muted-foreground">
-                      <span className="font-medium text-foreground">{formatCr(projectArr)} Cr</span>
+                      <span className="font-medium text-foreground">{formatCr(projectArr)}</span>
                       <span className="ml-1 text-2xs">/ {formatCr(projectMrr)} MRR</span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground align-top">
@@ -140,11 +140,11 @@ export const AttentionRequiredDashlet = ({
           <span className="font-medium text-foreground">{rows.length} projects</span>
           <span>·</span>
           <span>
-            ARR <span className="font-medium text-foreground">{formatCr(totalArr)} Cr</span>
+            ARR <span className="font-medium text-foreground">{formatCr(totalArr)}</span>
           </span>
           <span>·</span>
           <span>
-            MRR <span className="font-medium text-foreground">{formatCr(totalMrr)} Cr</span>
+            MRR <span className="font-medium text-foreground">{formatCr(totalMrr)}</span>
           </span>
         </div>
       )}

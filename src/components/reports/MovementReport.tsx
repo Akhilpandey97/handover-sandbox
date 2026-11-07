@@ -10,6 +10,7 @@ import {
   projectStateLabels,
 } from "@/data/projectsData";
 import { useMovementReport, MovementEntry } from "@/hooks/useMovementReport";
+import { formatArrCr } from "@/lib/arr";
 import { useFunnelConfig } from "@/hooks/useFunnelConfig";
 import { FilteredEmptyState } from "@/components/filters/FilterPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,10 +58,8 @@ type Bucket = "wins" | "updates" | "lowlights";
 
 const formatArr = (arr: number | undefined | null): string => {
   if (arr == null || isNaN(Number(arr))) return "TBD";
-  const v = Number(arr);
-  if (v === 0) return "TBD";
-  // values are stored in Cr already? Most other UI shows raw — keep 2 decimals
-  return `${v.toFixed(2)} Cr`;
+  if (Number(arr) === 0) return "TBD";
+  return formatArrCr(arr);
 };
 
 const formatEgl = (d: string | undefined | null): string => {

@@ -4,16 +4,7 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { useFunnelConfig } from "@/hooks/useFunnelConfig";
 import type { FunnelStageRule } from "@/data/funnelConfig";
 
-import { arrToCrore } from "@/lib/arr";
-
-// ARR is stored in rupees for imported data but some rows are already in Cr.
-// Normalise to crores so the tile never renders a raw 8-digit number.
-const toCrore = arrToCrore;
-
-const formatCr = (value: number) => {
-  const cr = toCrore(value);
-  return cr >= 100 ? cr.toFixed(0) : cr.toFixed(2);
-};
+import { formatArrCr, formatCr } from "@/lib/arr";
 
 const diffDays = (from: number, to: number) =>
   Math.max(0, Math.round((to - from) / (1000 * 60 * 60 * 24)));
@@ -133,7 +124,6 @@ export const TATDashlet = ({ projects }: Props) => {
             <p className="mt-0.5 truncate text-xl font-semibold leading-tight tabular-nums text-foreground">
               {formatCr(overall.totalArr)}
             </p>
-            <p className="text-2xs text-muted-foreground">Cr</p>
           </div>
           <div className="rounded-md bg-success-soft p-2">
             <p className="text-2xs font-semibold tracking-normal text-success-strong">Avg TAT</p>
@@ -191,7 +181,7 @@ export const TATDashlet = ({ projects }: Props) => {
                     <td className="px-3 py-1.5">
                       <p className="truncate text-xs font-semibold text-foreground">{r.merchant}</p>
                       <p className="text-2xs text-muted-foreground">
-                        {arrLabel}: {formatCr(r.arr)} Cr
+                        {arrLabel}: {formatArrCr(r.arr)}
                       </p>
                     </td>
                     {r.stageDays.map((days, index) => (

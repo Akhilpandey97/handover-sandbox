@@ -76,10 +76,10 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
             Total slippage
           </div>
           <p className="text-lg font-semibold leading-tight tabular-nums">
-            {formatCr(totalArr)} Cr
+            {formatCr(totalArr)}
           </p>
           <p className="text-2xs opacity-70">
-            MRR {formatCr(totalMrr)} Cr · {slipped.length} project
+            MRR {formatCr(totalMrr)} · {slipped.length} project
             {slipped.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -89,10 +89,10 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
             This month
           </div>
           <p className="text-lg font-semibold leading-tight tabular-nums">
-            {formatCr(thisMonthArr)} Cr
+            {formatCr(thisMonthArr)}
           </p>
           <p className="text-2xs opacity-70">
-            MRR {formatCr(thisMonthMrr)} Cr · {thisMonthSlipped.length} project
+            MRR {formatCr(thisMonthMrr)} · {thisMonthSlipped.length} project
             {thisMonthSlipped.length !== 1 ? "s" : ""}
           </p>
         </div>

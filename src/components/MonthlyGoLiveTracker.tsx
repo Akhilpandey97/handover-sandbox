@@ -35,7 +35,7 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { getProjectFunnelStage, funnelStageLabels, projectStateLabels } from "@/data/projectsData";
 import { RiskBadge } from "./RiskBadge";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
-import { arrCroreValue } from "@/lib/arr";
+import { arrCroreValue, formatArrCr } from "@/lib/arr";
 import { useCustomFields, useAllCustomFieldValues } from "@/hooks/useCustomFields";
 import { ToolbarIconButton, TOOLBAR_POPOVER, TOOLBAR_PANEL_MAX_H } from "./ToolbarIconButton";
 import { openProjectInNewTab } from "@/lib/open-project";
@@ -201,7 +201,7 @@ export const MonthlyGoLiveTracker = ({
 
   const ALL_COLUMNS = useMemo(
     () => [
-      { key: "arr", label: `${arrLabel} Cr.` },
+      { key: "arr", label: arrLabel },
       { key: "stage", label: stageLabel },
       { key: "status", label: stateLabel },
       { key: "blocker", label: "Blocker" },
@@ -910,7 +910,7 @@ export const MonthlyGoLiveTracker = ({
                                 key="arr"
                                 className="text-right tabular-nums whitespace-nowrap"
                               >
-                                {p.arr != null ? arrCroreValue(p.arr) : "—"}
+                                {p.arr != null ? formatArrCr(p.arr) : "—"}
                               </TableCell>
                             );
                           case "stage":

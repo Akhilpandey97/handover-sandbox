@@ -183,7 +183,7 @@ import { ChecklistSetsManager } from "./settings/ChecklistSetsManager";
 import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
-import { arrToCrore, formatArrCr, sumArrCrore } from "@/lib/arr";
+import { arrToCrore, formatArrCr, formatCr, sumArrCrore } from "@/lib/arr";
 import { openProjectInNewTab } from "@/lib/open-project";
 
 // All nav items that can be toggled
@@ -1887,7 +1887,7 @@ export const ManagerDashboard = () => {
                           key: "all",
                           label: "All projects",
                           value: totalProjects,
-                          sub: `Pipeline ${arrLabel}: ${(totalArr / 12) % 1 === 0 ? (totalArr / 12).toFixed(0) : (totalArr / 12).toFixed(1)} Cr`,
+                          sub: `Pipeline ${arrLabel}: ${formatCr(totalArr / 12)}`,
                           icon: FolderKanban,
                           tone: "bg-muted text-foreground/70",
                           onClick: () =>
@@ -1901,7 +1901,7 @@ export const ManagerDashboard = () => {
                             key,
                             label: state === "in_progress" ? "In Progress" : label,
                             value: list.length,
-                            sub: `${arrLabel}: ${((v) => (v % 1 === 0 ? v.toFixed(0) : v.toFixed(1)))(list.reduce((s, p) => s + arrToCrore(p.arr), 0) / 12)} Cr`,
+                            sub: `${arrLabel}: ${formatCr(list.reduce((s, p) => s + arrToCrore(p.arr), 0) / 12)}`,
                             icon,
                             tone,
                             onClick: () =>

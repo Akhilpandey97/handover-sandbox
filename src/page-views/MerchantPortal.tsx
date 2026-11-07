@@ -39,6 +39,7 @@ import {
   Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatArrCr } from "@/lib/arr";
 import { GuidedTour, type TourStep } from "@/components/GuidedTour";
 
 const API_URL = `/api/public/merchant-portal-data`;
@@ -172,10 +173,7 @@ function buildStagesFromChecklist(
 
 function formatArr(arr: number | null): string {
   if (!arr) return "—";
-  const fmt = (n: number) => (n % 1 === 0 ? n.toFixed(0) : n.toFixed(1));
-  if (arr >= 10000000) return `${fmt(arr / 10000000)} Cr`;
-  if (arr >= 100000) return `${fmt(arr / 100000)} L`;
-  return arr.toLocaleString("en-IN");
+  return formatArrCr(arr);
 }
 
 function formatDate(d: string | null) {
