@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useLabels } from "@/contexts/LabelsContext";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -43,6 +44,7 @@ function parseCSV(text: string): CsvRow[] {
 export function ChecklistCsvImportDialog({ open, onOpenChange, projectId, tenantId }: Props) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { stageLabels, teamLabels } = useLabels();
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<CsvRow[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -145,8 +147,8 @@ export function ChecklistCsvImportDialog({ open, onOpenChange, projectId, tenant
                   <tr key={i} className="border-t hover:bg-muted/30">
                     <td className="p-2 text-muted-foreground">{i + 1}</td>
                     <td className="p-2 font-medium">{r.title}</td>
-                    <td className="p-2">{r.stage || "mint"}</td>
-                    <td className="p-2">{r.owner_team || "mint"}</td>
+                    <td className="p-2">{stageLabels[r.stage] || r.stage || stageLabels["mint"] || "mint"}</td>
+                    <td className="p-2">{teamLabels[r.owner_team] || r.owner_team || teamLabels["mint"] || "mint"}</td>
                     <td className="p-2">{r.start_date || "—"}</td>
                     <td className="p-2">{r.due_date || "—"}</td>
                   </tr>

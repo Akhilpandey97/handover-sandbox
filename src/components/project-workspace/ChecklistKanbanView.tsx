@@ -40,9 +40,11 @@ function formatDate(d?: string) {
 
 function KanbanCard({
   item,
+  teamLabel,
   onDragStart,
 }: {
   item: ProjectChecklist;
+  teamLabel: string;
   onDragStart: (id: string) => void;
 }) {
   return (
@@ -55,7 +57,7 @@ function KanbanCard({
 
       <div className="flex flex-wrap gap-1.5">
         <Badge variant="outline" className="text-2xs px-1.5 py-0">
-          {item.ownerTeam}
+          {teamLabel}
         </Badge>
         {item.status && (
           <span className={`rounded px-1.5 py-0 text-2xs font-medium ${STATUS_COLORS[item.status] || ""}`}>
@@ -89,7 +91,7 @@ function KanbanCard({
 
 export function ChecklistKanbanView({ project }: Props) {
   const updateItem = useUpdateChecklistItem(project.id);
-  const { stageLabels } = useLabels();
+  const { stageLabels, teamLabels } = useLabels();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<KanbanStage | null>(null);
 
@@ -169,7 +171,7 @@ export function ChecklistKanbanView({ project }: Props) {
                 : "border-border text-muted-foreground hover:border-primary/40"
             }`}
           >
-            {team}
+            {teamLabels[team] || team}
           </button>
         ))}
 
@@ -244,7 +246,7 @@ export function ChecklistKanbanView({ project }: Props) {
               </div>
               <div className="flex flex-col gap-2 flex-1 overflow-y-auto">
                 {colItems.map((item) => (
-                  <KanbanCard key={item.id} item={item} onDragStart={setDraggingId} />
+                  <KanbanCard key={item.id} item={item} teamLabel={teamLabels[item.ownerTeam] || item.ownerTeam} onDragStart={setDraggingId} />
                 ))}
                 {colItems.length === 0 && (
                   <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground/50 italic py-4">

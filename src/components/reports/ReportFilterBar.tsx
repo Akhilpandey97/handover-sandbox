@@ -67,9 +67,9 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
       values: teamFilter,
       setter: setTeamFilter,
       options: [
-        { value: "mint", label: teamLabels?.mint || "Mint" },
-        { value: "integration", label: teamLabels?.integration || "Integration" },
-        { value: "ms", label: teamLabels?.ms || "MS" },
+        { value: "mint", label: teamLabels?.mint || "mint" },
+        { value: "integration", label: teamLabels?.integration || "integration" },
+        { value: "ms", label: teamLabels?.ms || "ms" },
       ],
     },
     {

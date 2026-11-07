@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
 import { tenantScope } from "@/lib/tenant-scope";
 import { useFormTemplates, useFormFields, useFormAssignments } from "@/hooks/useChecklistForms";
@@ -68,6 +69,7 @@ const FIELD_TYPES = [
 
 export const ChecklistFormsManager = () => {
   const { currentUser } = useAuth();
+  const { stageLabels, teamLabels } = useLabels();
   const { templates, isLoading: templatesLoading, refetch: refetchTemplates } = useFormTemplates();
   const { assignments, refetch: refetchAssignments } = useFormAssignments();
 
@@ -719,10 +721,10 @@ export const ChecklistFormsManager = () => {
                       <span className="text-sm font-medium">{ct.title}</span>
                       <div className="flex gap-2 mt-0.5">
                         <Badge variant="outline" className="text-xs">
-                          {ct.stage}
+                          {stageLabels[ct.stage] || ct.stage}
                         </Badge>
                         <Badge variant="secondary" className="text-xs">
-                          {ct.owner_team}
+                          {teamLabels[ct.owner_team] || ct.owner_team}
                         </Badge>
                       </div>
                     </div>
