@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { Project, ProjectChecklist } from "@/data/projectsData";
 import { useUpdateChecklistItem } from "@/hooks/useUpdateChecklistItem";
 import { useLabels } from "@/contexts/LabelsContext";
@@ -16,6 +16,8 @@ import {
 } from "@/hooks/useChecklistMeetings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -50,17 +52,17 @@ interface Props {
 
 type KanbanStage = "mint" | "integration" | "ms" | "completed";
 
-const COLUMN_ACCENT: Record<KanbanStage, { header: string; ring: string; badge: string }> = {
-  mint:        { header: "border-t-emerald-500", ring: "ring-emerald-400/40",  badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" },
-  integration: { header: "border-t-blue-500",    ring: "ring-blue-400/40",     badge: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" },
-  ms:          { header: "border-t-amber-500",   ring: "ring-amber-400/40",    badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" },
-  completed:   { header: "border-t-slate-400",   ring: "ring-slate-400/40",    badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300" },
+const COLUMN_ACCENT: Record<KanbanStage, { topBorder: string; badge: string; badgeText: string }> = {
+  mint:        { topBorder: "border-t-emerald-500", badge: "bg-emerald-500", badgeText: "text-white" },
+  integration: { topBorder: "border-t-blue-500",    badge: "bg-blue-500",    badgeText: "text-white" },
+  ms:          { topBorder: "border-t-amber-500",   badge: "bg-amber-500",   badgeText: "text-white" },
+  completed:   { topBorder: "border-t-slate-400",   badge: "bg-slate-400",   badgeText: "text-white" },
 };
 
 const TASK_STATUS_ICON: Record<string, ReactNode> = {
   done:        <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />,
   in_progress: <Clock        className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />,
-  open:        <Circle       className="h-3.5 w-3.5 text-muted-foreground/50 flex-shrink-0" />,
+  open:        <Circle       className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />,
 };
 
 const RESPONSIBILITY_LABELS: Record<string, string> = {
@@ -71,64 +73,99 @@ const RESPONSIBILITY_LABELS: Record<string, string> = {
 
 function fmtDate(d?: string | null) {
   if (!d) return null;
-  try {
-    const p = parseISO(d);
-    return isValid(p) ? format(p, "MMM d") : null;
-  } catch { return null; }
+  try { const p = parseISO(d); return isValid(p) ? format(p, "MMM d") : null; } catch { return null; }
 }
 
 function fmtDateTime(d?: string | null) {
   if (!d) return null;
-  try {
-    const p = parseISO(d);
-    return isValid(p) ? format(p, "MMM d · h:mm a") : null;
-  } catch { return null; }
+  try { const p = parseISO(d); return isValid(p) ? format(p, "MMM d · h:mm a") : null; } catch { return null; }
 }
 
-// ─── Inline task add ──────────────────────────────────────────────────────────
+// ─── Add Task Dialog ──────────────────────────────────────────────────────────
 
-function TaskQuickAdd({
+function AddTaskDialog({
+  open,
+  onOpenChange,
   itemId,
+  itemTitle,
   projectId,
-  onDone,
 }: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
   itemId: string;
+  itemTitle: string;
   projectId: string;
-  onDone: () => void;
 }) {
   const addTask = useAddChecklistTask();
   const [title, setTitle] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  const reset = () => { setTitle(""); setDescription(""); setDueDate(""); };
 
   const submit = () => {
-    const t = title.trim();
-    if (!t) { onDone(); return; }
+    if (!title.trim()) { toast.error("Task title is required"); return; }
     addTask.mutate(
-      { checklist_item_id: itemId, project_id: projectId, title: t },
-      { onSuccess: onDone, onError: () => toast.error("Failed to add task") },
+      {
+        checklist_item_id: itemId,
+        project_id: projectId,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        due_date: dueDate || undefined,
+      },
+      {
+        onSuccess: () => { onOpenChange(false); reset(); },
+        onError: () => toast.error("Failed to add task"),
+      },
     );
-    setTitle("");
   };
 
   return (
-    <div className="flex items-center gap-1.5 mt-1">
-      <Circle className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />
-      <Input
-        ref={inputRef}
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter") submit(); if (e.key === "Escape") onDone(); }}
-        onBlur={submit}
-        placeholder="Task title…"
-        className="h-6 text-xs border-0 border-b rounded-none px-0 shadow-none focus-visible:ring-0 bg-transparent"
-      />
-    </div>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-base">Add task</DialogTitle>
+          <p className="text-xs text-muted-foreground truncate">{itemTitle}</p>
+        </DialogHeader>
+        <div className="space-y-3 pt-1">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Title <span className="text-destructive">*</span></Label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+              placeholder="Task title"
+              className="h-8 text-sm"
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Description</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Optional details…"
+              className="text-sm min-h-[72px] resize-none"
+              rows={3}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Due date</Label>
+            <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="h-8 text-sm" />
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <Button variant="outline" size="sm" onClick={() => { onOpenChange(false); reset(); }}>Cancel</Button>
+            <Button size="sm" onClick={submit} disabled={addTask.isPending}>
+              {addTask.isPending ? "Adding…" : "Add task"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-// ─── Schedule meeting mini dialog ─────────────────────────────────────────────
+// ─── Schedule Meeting Dialog ──────────────────────────────────────────────────
 
 function ScheduleMeetingDialog({
   open,
@@ -156,10 +193,9 @@ function ScheduleMeetingDialog({
 
   const reset = () => { setTitle(""); setJoinUrl(""); setDate(format(new Date(), "yyyy-MM-dd")); setTime("10:00"); setDuration("60"); };
 
-  const submit = async () => {
+  const submit = () => {
     if (!title.trim()) { toast.error("Meeting title required"); return; }
     if (!joinUrl.trim()) { toast.error("Join URL required"); return; }
-    const scheduledAt = new Date(`${date}T${time}:00`).toISOString();
     addMeeting.mutate(
       {
         checklist_item_id: itemId,
@@ -167,7 +203,7 @@ function ScheduleMeetingDialog({
         title: title.trim(),
         provider,
         join_url: joinUrl.trim(),
-        scheduled_at: scheduledAt,
+        scheduled_at: new Date(`${date}T${time}:00`).toISOString(),
         duration_minutes: parseInt(duration) || 60,
         attendees: currentUser?.email ? [currentUser.email] : [],
         send_invite: false,
@@ -182,33 +218,30 @@ function ScheduleMeetingDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-base">Schedule meeting</DialogTitle>
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">{itemTitle}</p>
+          <p className="text-xs text-muted-foreground truncate">{itemTitle}</p>
         </DialogHeader>
-
         <div className="space-y-3 pt-1">
-          <div className="space-y-1">
-            <label className="text-xs font-medium">Title</label>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Title <span className="text-destructive">*</span></Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Meeting title" className="h-8 text-sm" autoFocus />
           </div>
-
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Date</label>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Date</Label>
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-8 text-sm" />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Time</label>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Time</Label>
               <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-8 text-sm" />
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Platform</label>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Platform</Label>
               <Select value={provider} onValueChange={(v) => setProvider(v as typeof provider)}>
                 <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -218,19 +251,17 @@ function ScheduleMeetingDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Duration (min)</label>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Duration (min)</Label>
               <Input type="number" min={15} step={15} value={duration} onChange={(e) => setDuration(e.target.value)} className="h-8 text-sm" />
             </div>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium">Join URL</label>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Join URL <span className="text-destructive">*</span></Label>
             <Input value={joinUrl} onChange={(e) => setJoinUrl(e.target.value)} placeholder={MEETING_PROVIDERS.find(p => p.value === provider)?.hint} className="h-8 text-sm" />
           </div>
-
           <div className="flex justify-end gap-2 pt-1">
-            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="outline" size="sm" onClick={() => { onOpenChange(false); reset(); }}>Cancel</Button>
             <Button size="sm" onClick={submit} disabled={addMeeting.isPending}>
               {addMeeting.isPending ? "Scheduling…" : "Schedule"}
             </Button>
@@ -263,7 +294,7 @@ function KanbanCard({
   onToggleTask: (taskId: string, done: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
-  const [addingTask, setAddingTask] = useState(false);
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
 
   const doneTasks = tasks.filter((t) => t.status === "done").length;
@@ -273,120 +304,109 @@ function KanbanCard({
       <div
         draggable
         onDragStart={() => onDragStart(item.id)}
-        className="rounded-xl border border-border bg-card shadow-sm cursor-grab hover:shadow-md transition-shadow overflow-hidden"
+        className="rounded-xl border border-border bg-white dark:bg-card shadow-sm cursor-grab hover:shadow-md transition-shadow overflow-hidden"
       >
-        {/* Card header */}
-        <div className="p-3.5 pb-2.5">
+        {/* ── Item header ── */}
+        <div className="px-3.5 pt-3.5 pb-3">
           <div className="flex items-start gap-2.5">
-            {item.completed
-              ? <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-              : <Circle       className="h-4 w-4 text-muted-foreground/40 flex-shrink-0 mt-0.5" />
-            }
+            <button
+              type="button"
+              className="mt-0.5 flex-shrink-0"
+              onClick={(e) => { e.stopPropagation(); /* future: toggle completion */ }}
+            >
+              {item.completed
+                ? <CheckCircle2 className="h-4 w-4 text-green-500" />
+                : <Circle       className="h-4 w-4 text-muted-foreground/30" />
+              }
+            </button>
+
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-semibold leading-snug ${item.completed ? "line-through text-muted-foreground" : ""}`}>
+              <p className={`text-sm font-semibold leading-snug ${item.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
                 {item.title}
               </p>
-              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                <span className="text-2xs font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md font-medium">
                   {teamLabel}
                 </span>
                 {(item.startDate || item.dueDate) && (
-                  <span className="flex items-center gap-0.5 text-2xs text-muted-foreground">
-                    <CalendarDays className="h-3 w-3" />
-                    {fmtDate(item.startDate) && <span>{fmtDate(item.startDate)}</span>}
-                    {item.startDate && item.dueDate && <span>→</span>}
-                    {fmtDate(item.dueDate) && <span>{fmtDate(item.dueDate)}</span>}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <CalendarDays className="h-3 w-3 flex-shrink-0" />
+                    {fmtDate(item.startDate || item.dueDate)}
                   </span>
                 )}
                 {tasks.length > 0 && (
-                  <span className="text-2xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {doneTasks}/{tasks.length} tasks
                   </span>
                 )}
               </div>
             </div>
+
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="text-muted-foreground/50 hover:text-muted-foreground flex-shrink-0 mt-0.5"
+              className="mt-0.5 flex-shrink-0 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
             >
-              {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </button>
           </div>
         </div>
 
-        {/* Expanded sub-items */}
+        {/* ── Expanded body ── */}
         {expanded && (
-          <div className="border-t border-border/50 px-3.5 pb-3 pt-2.5 space-y-3">
-            {/* Tasks section */}
-            <div>
-              <p className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1.5">
-                Tasks {tasks.length > 0 ? `· ${doneTasks}/${tasks.length}` : ""}
+          <div className="border-t border-border/60">
+            {/* Tasks */}
+            <div className="px-3.5 pt-2.5 pb-2">
+              <p className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-2">
+                Tasks{tasks.length > 0 ? ` · ${doneTasks}/${tasks.length}` : ""}
               </p>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 {tasks.map((t) => (
-                  <div key={t.id} className="flex items-center gap-2 group">
-                    <button
-                      type="button"
-                      onClick={() => onToggleTask(t.id, t.status !== "done")}
-                      className="flex-shrink-0"
-                    >
+                  <div key={t.id} className="flex items-center gap-2">
+                    <button type="button" onClick={() => onToggleTask(t.id, t.status !== "done")} className="flex-shrink-0">
                       {TASK_STATUS_ICON[t.status] || TASK_STATUS_ICON.open}
                     </button>
-                    <span className={`text-xs flex-1 min-w-0 truncate ${t.status === "done" ? "line-through text-muted-foreground" : ""}`}>
+                    <span className={`text-xs flex-1 min-w-0 ${t.status === "done" ? "line-through text-muted-foreground" : ""}`}>
                       {t.title}
                     </span>
                     {t.due_date && (
-                      <span className="text-2xs text-muted-foreground/70 flex-shrink-0">{fmtDate(t.due_date)}</span>
-                    )}
-                  </div>
-                ))}
-                {addingTask ? (
-                  <TaskQuickAdd
-                    itemId={item.id}
-                    projectId={projectId}
-                    onDone={() => setAddingTask(false)}
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setAddingTask(true)}
-                    className="flex items-center gap-1 text-2xs text-muted-foreground/60 hover:text-primary transition-colors mt-0.5"
-                  >
-                    <Plus className="h-3 w-3" /> Add task
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Meetings section */}
-            <div>
-              <p className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1.5">
-                Meetings {meetings.length > 0 ? `· ${meetings.length}` : ""}
-              </p>
-              <div className="space-y-1">
-                {meetings.map((m) => (
-                  <div key={m.id} className="flex items-start gap-2">
-                    <Video className="h-3.5 w-3.5 text-muted-foreground/50 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-xs truncate ${m.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
-                        {m.title}
-                      </p>
-                      {m.scheduled_at && (
-                        <p className="text-2xs text-muted-foreground/70">{fmtDateTime(m.scheduled_at)}</p>
-                      )}
-                    </div>
-                    {m.status === "completed" && (
-                      <CheckCircle2 className="h-3 w-3 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-2xs text-muted-foreground/60 flex-shrink-0">{fmtDate(t.due_date)}</span>
                     )}
                   </div>
                 ))}
                 <button
                   type="button"
-                  onClick={() => setMeetingOpen(true)}
-                  className="flex items-center gap-1 text-2xs text-muted-foreground/60 hover:text-primary transition-colors"
+                  onClick={() => setAddTaskOpen(true)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground/50 hover:text-primary transition-colors pt-0.5"
                 >
-                  <Plus className="h-3 w-3" /> Schedule meeting
+                  <Plus className="h-3.5 w-3.5" /> Add task
+                </button>
+              </div>
+            </div>
+
+            {/* Meetings */}
+            <div className="border-t border-border/40 px-3.5 pt-2.5 pb-3">
+              <p className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-2">
+                Meetings{meetings.length > 0 ? ` · ${meetings.length}` : ""}
+              </p>
+              <div className="space-y-1.5">
+                {meetings.map((m) => (
+                  <div key={m.id} className="flex items-start gap-2">
+                    <Video className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs truncate ${m.status === "completed" ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                      {m.scheduled_at && (
+                        <p className="text-2xs text-muted-foreground/60">{fmtDateTime(m.scheduled_at)}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setMeetingOpen(true)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground/50 hover:text-primary transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Schedule meeting
                 </button>
               </div>
             </div>
@@ -394,6 +414,13 @@ function KanbanCard({
         )}
       </div>
 
+      <AddTaskDialog
+        open={addTaskOpen}
+        onOpenChange={setAddTaskOpen}
+        itemId={item.id}
+        itemTitle={item.title}
+        projectId={projectId}
+      />
       <ScheduleMeetingDialog
         open={meetingOpen}
         onOpenChange={setMeetingOpen}
@@ -444,18 +471,6 @@ export function ChecklistKanbanView({ project }: Props) {
 
   const hasFilters = filterTeams.length > 0 || filterResponsibility !== null || !showCompleted;
 
-  function clearFilters() {
-    setFilterTeams([]);
-    setFilterResponsibility(null);
-    setShowCompleted(true);
-  }
-
-  function toggleTeam(team: string) {
-    setFilterTeams(prev =>
-      prev.includes(team) ? prev.filter(t => t !== team) : [...prev, team]
-    );
-  }
-
   const baseItems = project.checklist.filter((i) => !i.isTask);
 
   const filteredItems = baseItems.filter(item => {
@@ -468,11 +483,7 @@ export function ChecklistKanbanView({ project }: Props) {
   function handleDrop(stage: KanbanStage) {
     if (!draggingId) return;
     const item = baseItems.find((i) => i.id === draggingId);
-    if (!item || item.stage === stage) {
-      setDraggingId(null);
-      setDragOverCol(null);
-      return;
-    }
+    if (!item || item.stage === stage) { setDraggingId(null); setDragOverCol(null); return; }
     updateItem.mutate({
       id: draggingId,
       patch: {
@@ -488,10 +499,6 @@ export function ChecklistKanbanView({ project }: Props) {
     setDragOverCol(null);
   }
 
-  function handleToggleTask(taskId: string, done: boolean) {
-    updateTask.mutate({ id: taskId, status: done ? "done" : "open" });
-  }
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Filter bar */}
@@ -502,7 +509,7 @@ export function ChecklistKanbanView({ project }: Props) {
           <button
             key={team}
             type="button"
-            onClick={() => toggleTeam(team)}
+            onClick={() => setFilterTeams(prev => prev.includes(team) ? prev.filter(t => t !== team) : [...prev, team])}
             className={`text-2xs px-2 py-0.5 rounded-full border transition-colors ${
               filterTeams.includes(team)
                 ? "bg-primary text-primary-foreground border-primary"
@@ -545,11 +552,14 @@ export function ChecklistKanbanView({ project }: Props) {
         </button>
 
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-6 px-1.5 text-2xs text-muted-foreground gap-0.5 ml-1" onClick={clearFilters}>
+          <Button
+            variant="ghost" size="sm"
+            className="h-6 px-1.5 text-2xs text-muted-foreground gap-0.5 ml-1"
+            onClick={() => { setFilterTeams([]); setFilterResponsibility(null); setShowCompleted(true); }}
+          >
             <X className="h-3 w-3" /> Clear
           </Button>
         )}
-
         {hasFilters && (
           <span className="ml-auto text-2xs text-muted-foreground">
             {filteredItems.length} of {baseItems.length} items
@@ -557,38 +567,41 @@ export function ChecklistKanbanView({ project }: Props) {
         )}
       </div>
 
-      {/* Kanban columns */}
-      <div className="flex gap-3 flex-1 overflow-x-auto p-3 pb-2 items-start">
+      {/* Board */}
+      <div className="flex gap-4 flex-1 overflow-x-auto p-4 items-start bg-muted/20">
         {COLUMNS.map((col) => {
           const colItems = filteredItems.filter((i) => (i.stage as string) === col.key);
           const isOver = dragOverCol === col.key;
-          const totalTasks = colItems.reduce((sum, i) => sum + (tasksByItem[i.id]?.length || 0), 0);
+          const colDoneTasks = allTasks.filter(
+            t => colItems.some(i => i.id === t.checklist_item_id) && t.status === "done"
+          ).length;
+          const colTotalTasks = allTasks.filter(
+            t => colItems.some(i => i.id === t.checklist_item_id)
+          ).length;
 
           return (
             <div
               key={col.key}
-              className={`flex flex-col rounded-xl border-t-2 border border-border bg-muted/30 min-w-[290px] max-w-[340px] flex-1 transition-colors ${col.accent.header} ${isOver ? `ring-2 ${col.accent.ring}` : ""}`}
+              className={`flex flex-col rounded-xl border-t-[3px] border border-border bg-background min-w-[300px] max-w-[340px] flex-1 transition-all ${col.accent.topBorder} ${isOver ? "ring-2 ring-primary/30 shadow-md" : "shadow-sm"}`}
               onDragOver={(e) => { e.preventDefault(); setDragOverCol(col.key); }}
               onDragLeave={() => setDragOverCol(null)}
               onDrop={() => handleDrop(col.key)}
             >
               {/* Column header */}
-              <div className="flex items-center justify-between px-3.5 py-3 border-b border-border/50 bg-background/60 rounded-t-xl">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold">{col.label}</span>
-                  <span className={`text-2xs font-medium px-1.5 py-0.5 rounded-full ${col.accent.badge}`}>
-                    {colItems.length}
-                  </span>
-                </div>
-                {totalTasks > 0 && (
-                  <span className="text-2xs text-muted-foreground/70">
-                    {allTasks.filter(t => colItems.some(i => i.id === t.checklist_item_id) && t.status === "done").length}/{totalTasks} tasks
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50">
+                <span className="text-sm font-bold text-foreground">{col.label}</span>
+                <span className={`flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full text-2xs font-bold ${col.accent.badge} ${col.accent.badgeText}`}>
+                  {colItems.length}
+                </span>
+                {colTotalTasks > 0 && (
+                  <span className="ml-auto text-2xs text-muted-foreground">
+                    {colDoneTasks}/{colTotalTasks} tasks
                   </span>
                 )}
               </div>
 
               {/* Cards */}
-              <div className="flex flex-col gap-2.5 p-2.5 flex-1 overflow-y-auto">
+              <div className="flex flex-col gap-3 p-3 flex-1 overflow-y-auto">
                 {colItems.map((item) => (
                   <KanbanCard
                     key={item.id}
@@ -599,11 +612,11 @@ export function ChecklistKanbanView({ project }: Props) {
                     projectId={project.id}
                     projectName={project.merchantName}
                     onDragStart={setDraggingId}
-                    onToggleTask={handleToggleTask}
+                    onToggleTask={(taskId, done) => updateTask.mutate({ id: taskId, status: done ? "done" : "open" })}
                   />
                 ))}
                 {colItems.length === 0 && (
-                  <div className="flex items-center justify-center text-xs text-muted-foreground/40 italic py-8">
+                  <div className="flex items-center justify-center py-10 text-xs text-muted-foreground/40 italic">
                     Drop items here
                   </div>
                 )}
