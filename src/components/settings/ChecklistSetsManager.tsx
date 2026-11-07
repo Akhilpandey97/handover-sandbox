@@ -1,14 +1,15 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import {
   useChecklistSets,
   RULE_FIELDS,
   RULE_OPERATORS,
-  STAGE_OPTIONS,
-  TEAM_OPTIONS,
+  getStageOptions,
+  getTeamOptions,
   type ChecklistSet,
   type ChecklistSetRule,
   type ChecklistTemplate,
 } from "@/hooks/useChecklistSets";
+import { useLabels } from "@/contexts/LabelsContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,10 +126,14 @@ const TemplateRow = ({
   template,
   onUpdate,
   onDelete,
+  stageOptions,
+  teamOptions,
 }: {
   template: ChecklistTemplate;
   onUpdate: (id: string, patch: Partial<ChecklistTemplate>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  stageOptions: { value: string; label: string }[];
+  teamOptions: { value: string; label: string }[];
 }) => {
   const [title, setTitle] = useState(template.title);
   const [stage, setStage] = useState(template.stage);
@@ -170,7 +175,7 @@ const TemplateRow = ({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {STAGE_OPTIONS.map((p) => (
+          {stageOptions.map((p) => (
             <SelectItem key={p.value} value={p.value} className="text-xs">
               {p.label}
             </SelectItem>
@@ -183,7 +188,7 @@ const TemplateRow = ({
           <SelectValue placeholder="Team" />
         </SelectTrigger>
         <SelectContent>
-          {TEAM_OPTIONS.map((t) => (
+          {teamOptions.map((t) => (
             <SelectItem key={t.value} value={t.value} className="text-xs">
               {t.label}
             </SelectItem>
@@ -239,6 +244,8 @@ const SetDetail = ({
   onAddTemplate,
   onUpdateTemplate,
   onDeleteTemplate,
+  stageOptions,
+  teamOptions,
 }: {
   set: ChecklistSet;
   rules: ChecklistSetRule[];
@@ -258,6 +265,8 @@ const SetDetail = ({
   ) => Promise<void>;
   onUpdateTemplate: (id: string, patch: Partial<ChecklistTemplate>) => Promise<void>;
   onDeleteTemplate: (id: string) => Promise<void>;
+  stageOptions: { value: string; label: string }[];
+  teamOptions: { value: string; label: string }[];
 }) => {
   const [name, setName] = useState(set.name);
   const [description, setDescription] = useState(set.description ?? "");
@@ -269,8 +278,8 @@ const SetDetail = ({
   const [addingRule, setAddingRule] = useState(false);
 
   const [newItemTitle, setNewItemTitle] = useState("");
-  const [newItemStage, setNewItemStage] = useState<string>(STAGE_OPTIONS[0].value);
-  const [newItemTeam, setNewItemTeam] = useState<string>(TEAM_OPTIONS[0].value);
+  const [newItemStage, setNewItemStage] = useState<string>(stageOptions[0]?.value ?? "mint");
+  const [newItemTeam, setNewItemTeam] = useState<string>(teamOptions[0]?.value ?? "mint");
   const [newItemDuration, setNewItemDuration] = useState("");
   const [addingItem, setAddingItem] = useState(false);
 
@@ -328,7 +337,7 @@ const SetDetail = ({
         Integration: "integration",
         MS: "ms",
       };
-      const validStages = STAGE_OPTIONS.map((p) => p.value);
+      const validStages = stageOptions.map((p) => p.value);
       const startIdx = lines[0]?.toLowerCase().includes("title") ? 1 : 0;
       const items: { title: string; stage: string; team: string; duration: number | null }[] = [];
       for (let i = startIdx; i < lines.length; i++) {
@@ -532,6 +541,8 @@ const SetDetail = ({
               template={t}
               onUpdate={onUpdateTemplate}
               onDelete={onDeleteTemplate}
+              stageOptions={stageOptions}
+              teamOptions={teamOptions}
             />
           ))}
         </div>
@@ -551,7 +562,7 @@ const SetDetail = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {STAGE_OPTIONS.map((p) => (
+              {stageOptions.map((p) => (
                 <SelectItem key={p.value} value={p.value} className="text-xs">
                   {p.label}
                 </SelectItem>
@@ -564,7 +575,7 @@ const SetDetail = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {TEAM_OPTIONS.map((t) => (
+              {teamOptions.map((t) => (
                 <SelectItem key={t.value} value={t.value} className="text-xs">
                   {t.label}
                 </SelectItem>
@@ -658,6 +669,10 @@ export const ChecklistSetsManager = () => {
     updateTemplate,
     deleteTemplate,
   } = useChecklistSets();
+
+  const { stageLabels, teamLabels } = useLabels();
+  const STAGE_OPTIONS = useMemo(() => getStageOptions(stageLabels), [stageLabels]);
+  const TEAM_OPTIONS = useMemo(() => getTeamOptions(teamLabels), [teamLabels]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -773,6 +788,8 @@ export const ChecklistSetsManager = () => {
                   onAddTemplate={addTemplate}
                   onUpdateTemplate={updateTemplate}
                   onDeleteTemplate={deleteTemplate}
+                  stageOptions={STAGE_OPTIONS}
+                  teamOptions={TEAM_OPTIONS}
                 />
               ) : (
                 <div className="flex h-full items-center justify-center p-8 text-sm text-muted-foreground">

@@ -49,18 +49,24 @@ export const RULE_OPERATORS = [
   { value: "in", label: "is one of" },
 ] as const;
 
-export const STAGE_OPTIONS = [
-  { value: "mint", label: "Mint" },
-  { value: "integration", label: "Integration" },
-  { value: "ms", label: "MS" },
-  { value: "completed", label: "Completed" },
-] as const;
+export const STAGE_SLUGS = ["mint", "integration", "ms", "completed"] as const;
+export const TEAM_SLUGS = ["mint", "integration", "ms"] as const;
 
-export const TEAM_OPTIONS = [
-  { value: "mint", label: "Mint" },
-  { value: "integration", label: "Integration" },
-  { value: "ms", label: "MS" },
-] as const;
+export type StageSlugs = typeof STAGE_SLUGS[number];
+export type TeamSlugs = typeof TEAM_SLUGS[number];
+
+export function getStageOptions(stageLabels: Record<string, string>) {
+  return STAGE_SLUGS.map((v) => ({ value: v, label: stageLabels[v] || v }));
+}
+
+export function getTeamOptions(teamLabels: Record<string, string>) {
+  return TEAM_SLUGS.map((v) => ({ value: v, label: teamLabels[v] || v }));
+}
+
+/** @deprecated use getStageOptions(stageLabels) for dynamic labels */
+export const STAGE_OPTIONS = STAGE_SLUGS.map((v) => ({ value: v, label: v }));
+/** @deprecated use getTeamOptions(teamLabels) for dynamic labels */
+export const TEAM_OPTIONS = TEAM_SLUGS.map((v) => ({ value: v, label: v }));
 
 export const useChecklistSets = () => {
   const { currentUser } = useAuth();
