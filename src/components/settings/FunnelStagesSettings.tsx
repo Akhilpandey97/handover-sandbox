@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useChecklistTemplateTitles } from "@/hooks/useLookups";
+import { useLabels } from "@/contexts/LabelsContext";
 
 import {
   Select,
@@ -98,6 +99,79 @@ const ChecklistTitlePicker = ({
   );
 };
 
+const CHECKLIST_STAGE_KEYS = [
+  { key: "stage_mint", defaultLabel: "Mint" },
+  { key: "stage_integration", defaultLabel: "Integration" },
+  { key: "stage_ms", defaultLabel: "MS" },
+  { key: "stage_completed", defaultLabel: "Completed" },
+] as const;
+
+const ChecklistStageLabelsCard = () => {
+  const { stageLabels, updateLabels } = useLabels();
+  const [draft, setDraft] = useState({
+    stage_mint: stageLabels.mint || "",
+    stage_integration: stageLabels.integration || "",
+    stage_ms: stageLabels.ms || "",
+    stage_completed: stageLabels.completed || "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setDraft({
+      stage_mint: stageLabels.mint || "",
+      stage_integration: stageLabels.integration || "",
+      stage_ms: stageLabels.ms || "",
+      stage_completed: stageLabels.completed || "",
+    });
+  }, [stageLabels.mint, stageLabels.integration, stageLabels.ms, stageLabels.completed]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await updateLabels(draft);
+    setSaving(false);
+    toast.success("Checklist stage labels updated");
+  };
+
+  const isDirty =
+    draft.stage_mint !== (stageLabels.mint || "") ||
+    draft.stage_integration !== (stageLabels.integration || "") ||
+    draft.stage_ms !== (stageLabels.ms || "") ||
+    draft.stage_completed !== (stageLabels.completed || "");
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="portal-heading">Checklist Stage Labels</CardTitle>
+        <CardDescription>
+          Rename the four checklist phases. These labels appear in kanban columns, Gantt view,
+          checklist dropdowns and reports.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {CHECKLIST_STAGE_KEYS.map(({ key, defaultLabel }) => (
+            <div key={key} className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{defaultLabel} phase</Label>
+              <Input
+                value={draft[key]}
+                onChange={(e) => setDraft((d) => ({ ...d, [key]: e.target.value }))}
+                placeholder={defaultLabel}
+                className="h-8 text-sm"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 flex justify-end">
+          <Button size="sm" onClick={handleSave} disabled={saving || !isDirty} className="gap-1.5">
+            <Save className="h-3.5 w-3.5" />
+            {saving ? "Saving…" : "Save labels"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export const FunnelStagesSettings = () => {
   const { stages, isLoading, saveStages } = useFunnelConfig();
   const [draft, setDraft] = useState<FunnelStageRule[]>(stages);
@@ -137,6 +211,8 @@ export const FunnelStagesSettings = () => {
 
   return (
     <div className="space-y-4">
+      <ChecklistStageLabelsCard />
+
       <Card>
         <CardHeader>
           <CardTitle className="portal-heading">Project Stages</CardTitle>
