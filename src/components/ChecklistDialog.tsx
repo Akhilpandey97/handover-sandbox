@@ -1705,6 +1705,41 @@ export const ChecklistDialog = ({
                               })()}
                             </div>
 
+                            {/* Quick actions */}
+                            <div className="flex items-center gap-1.5">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 gap-1 px-2.5 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setTaskDialogState({
+                                    open: true,
+                                    checklistItemId: item.id,
+                                    checklistItemTitle: item.title,
+                                  });
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                                Add task
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 gap-1 px-2.5 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMeetingDialogState({
+                                    open: true,
+                                    checklistItemId: item.id,
+                                    checklistItemTitle: item.title,
+                                  });
+                                }}
+                              >
+                                <CalendarPlus className="h-3 w-3" />
+                                Schedule meeting
+                              </Button>
+                            </div>
 
                             {/* Row 2: Comment thread */}
                             <ChecklistCommentThread
