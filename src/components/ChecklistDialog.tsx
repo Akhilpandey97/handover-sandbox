@@ -1942,30 +1942,24 @@ export const ChecklistDialog = ({
                 )}
               </div>
 
-              <dl className="space-y-2.5">
+              <dl className="space-y-2">
                 {/* Project state */}
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Project state</dt>
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground whitespace-nowrap">Project state</dt>
                   <dd>
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                        STATE_TONE[project.projectState] || "bg-muted text-muted-foreground",
-                      )}
-                    >
-                      {projectStateLabels[project.projectState as ProjectState] ||
-                        project.projectState}
+                    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", STATE_TONE[project.projectState] || "bg-muted text-muted-foreground")}>
+                      {projectStateLabels[project.projectState as ProjectState] || project.projectState}
                     </span>
                   </dd>
                 </div>
 
                 {/* Expected go-live */}
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Expected go-live</dt>
-                  <dd className="text-xs font-medium text-foreground">
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
+                  <dt className="text-xs text-muted-foreground whitespace-nowrap pt-0.5">Expected go-live</dt>
+                  <dd className="text-xs font-semibold text-foreground">
                     {friendlyDate(project.dates.expectedGoLiveDate)}
                     {project.dates.expectedGoLiveDate && (
-                      <span className="text-muted-foreground ml-1">
+                      <span className="text-muted-foreground font-normal ml-1">
                         ({daysRelative(project.dates.expectedGoLiveDate)})
                       </span>
                     )}
@@ -1973,19 +1967,12 @@ export const ChecklistDialog = ({
                 </div>
 
                 {/* Next action */}
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Next action</dt>
-                  <dd className="text-xs font-medium text-foreground">
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
+                  <dt className="text-xs text-muted-foreground whitespace-nowrap pt-0.5">Next action</dt>
+                  <dd className="text-xs font-semibold text-foreground">
                     {nextStep.label}
                     {nextStep.hint && (
-                      <span
-                        className={cn(
-                          "block text-2xs mt-0.5",
-                          nextStep.hint === "Overdue"
-                            ? "text-destructive font-medium"
-                            : "text-muted-foreground",
-                        )}
-                      >
+                      <span className={cn("block text-2xs mt-0.5 font-normal", nextStep.hint === "Overdue" ? "text-destructive font-medium" : "text-muted-foreground")}>
                         {nextStep.hint === "Overdue" ? "◆ Overdue" : nextStep.hint}
                       </span>
                     )}
@@ -1993,17 +1980,15 @@ export const ChecklistDialog = ({
                 </div>
 
                 {/* Revenue */}
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Revenue</dt>
-                  <dd className="text-xs font-medium text-foreground">
-                    ₹{formatArrCr(project.arr)}
-                  </dd>
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground whitespace-nowrap">Revenue</dt>
+                  <dd className="text-xs font-semibold text-foreground">₹{formatArrCr(project.arr)}</dd>
                 </div>
 
                 {/* Project owner */}
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Project owner</dt>
-                  <dd className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground whitespace-nowrap">Project owner</dt>
+                  <dd className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
                       {(project.assignedOwnerName || "U").charAt(0).toUpperCase()}
                     </span>
@@ -2012,18 +1997,16 @@ export const ChecklistDialog = ({
                 </div>
 
                 {/* Client */}
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Client</dt>
-                  <dd className="text-xs font-medium text-foreground">{project.merchantName}</dd>
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground whitespace-nowrap">Client</dt>
+                  <dd className="text-xs font-semibold text-foreground">{project.merchantName}</dd>
                 </div>
 
                 {/* Description */}
                 {project.notes.projectNotes && (
-                  <div>
-                    <dt className="text-2xs text-muted-foreground mb-0.5">Description</dt>
-                    <dd className="text-xs text-muted-foreground whitespace-pre-line">
-                      {project.notes.projectNotes}
-                    </dd>
+                  <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
+                    <dt className="text-xs text-muted-foreground whitespace-nowrap pt-0.5">Description</dt>
+                    <dd className="text-xs text-foreground whitespace-pre-line">{project.notes.projectNotes}</dd>
                   </div>
                 )}
               </dl>
