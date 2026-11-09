@@ -13,6 +13,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -423,10 +424,10 @@ export const ProjectWorkspaceView = ({
                   <DropdownMenuTrigger asChild>
                     <Button
                       size="sm"
-                      className="h-8 gap-1.5 bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90"
+                      className="h-8 w-8 p-0 bg-navy text-primary-foreground hover:bg-navy/90"
+                      title="Customer access"
                     >
                       <Share2 className="h-3.5 w-3.5" />
-                      Customer access
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -452,23 +453,7 @@ export const ProjectWorkspaceView = ({
                         </DropdownMenuItem>
                       )}
                     />
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button
-                  size="sm"
-                  className="h-8 gap-1.5 bg-navy px-3 text-sm font-semibold text-primary-foreground hover:bg-navy/90"
-                  onClick={() => setEditOpen(true)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  Edit project
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                    <DropdownMenuSeparator />
                     {canAssignOwner && (
                       <DropdownMenuItem onSelect={() => setAssignOpen(true)}>
                         <UserRound className="mr-2 h-3.5 w-3.5" />
@@ -491,6 +476,14 @@ export const ProjectWorkspaceView = ({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                <Button
+                  size="sm"
+                  className="h-8 w-8 p-0 bg-navy text-primary-foreground hover:bg-navy/90"
+                  title="Edit project"
+                  onClick={() => setEditOpen(true)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
               </div>
             </div>
 
