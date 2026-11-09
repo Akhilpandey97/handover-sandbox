@@ -1705,43 +1705,223 @@ export const ChecklistDialog = ({
                               })()}
                             </div>
 
-                            {/* Quick actions */}
-                            <div className="flex items-center gap-1.5">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-7 gap-1 px-2.5 text-xs"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setTaskDialogState({
-                                    open: true,
-                                    checklistItemId: item.id,
-                                    checklistItemTitle: item.title,
-                                  });
-                                }}
-                              >
-                                <Plus className="h-3 w-3" />
-                                Add task
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-7 gap-1 px-2.5 text-xs"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setMeetingDialogState({
-                                    open: true,
-                                    checklistItemId: item.id,
-                                    checklistItemTitle: item.title,
-                                  });
-                                }}
-                              >
-                                <CalendarPlus className="h-3 w-3" />
-                                Schedule meeting
-                              </Button>
-                            </div>
+                            {/* Tasks + Meetings side-by-side — always shown */}
+                            {(() => {
+                              const itemTasks = allTasks.filter(
+                                (t) => t.checklist_item_id === item.id,
+                              );
+                              const itemMeetings = allMeetings.filter(
+                                (m) => m.checklist_item_id === item.id,
+                              );
+                              const doneTasks = itemTasks.filter((t) => t.status === "done").length;
+                              const pct = itemTasks.length
+                                ? Math.round((doneTasks / itemTasks.length) * 100)
+                                : 0;
+                              return (
+                                <div className="grid grid-cols-2 gap-3">
+                                  {/* Tasks box */}
+                                  <div className="rounded-lg border border-border/50 bg-muted/20 p-3 flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
+                                      <span className="text-xs font-bold text-foreground">Tasks</span>
+                                      <span className="ml-auto text-2xs text-muted-foreground">
+                                        {doneTasks}/{itemTasks.length} done ({pct}%)
+                                      </span>
+                                    </div>
+                                    <div className="h-1 rounded-full bg-border overflow-hidden">
+                                      <div
+                                        className="h-full bg-primary rounded-full transition-all"
+                                        style={{ width: `${pct}%` }}
+                                      />
+                                    </div>
+                                    {itemTasks.length > 0 && (
+                                      <div className="text-2xs text-muted-foreground grid grid-cols-[1fr_auto_auto] gap-x-2 px-1 pb-0.5 border-b border-border/50">
+                                        <span>Task</span>
+                                        <span>Assignee</span>
+                                        <span>Due date</span>
+                                      </div>
+                                    )}
+                                    <div className="space-y-0.5">
+                                      {itemTasks.map((task) => {
+                                        const isAwaitingComment =
+                                          taskCommentPending?.taskId === task.id;
+                                        const assigneeName = task.assigned_to
+                                          ? (profiles[task.assigned_to]?.full_name ??
+                                            profiles[task.assigned_to]?.email ??
+                                            "—")
+                                          : "—";
+                                        return (
+                                          <div key={task.id} id={`task-${task.id}`}>
+                                            <div className="group grid grid-cols-[1fr_auto_auto] gap-x-2 items-center rounded px-1 py-1 hover:bg-muted/40">
+                                              <div className="flex items-center gap-1.5 min-w-0">
+                                                <Checkbox
+                                                  checked={task.status === "done"}
+                                                  onCheckedChange={(checked) => {
+                                                    updateTaskMutation.mutate({
+                                                      id: task.id,
+                                                      status: checked ? "done" : "open",
+                                                    });
+                                                    if (checked) {
+                                                      setTaskCommentPending({
+                                                        taskId: task.id,
+                                                        itemId: item.id,
+                                                        text: "",
+                                                      });
+                                                    } else if (isAwaitingComment) {
+                                                      setTaskCommentPending(null);
+                                                    }
+                                                  }}
+                                                  className="h-3 w-3 shrink-0"
+                                                />
+                                                <span
+                                                  className={cn(
+                                                    "text-xs truncate",
+                                                    task.status === "done" &&
+                                                      "line-through text-muted-foreground",
+                                                  )}
+                                                >
+                                                  {task.title}
+                                                </span>
+                                              </div>
+                                              <span className="text-2xs text-muted-foreground whitespace-nowrap">
+                                                {assigneeName}
+                                              </span>
+                                              <div className="flex items-center gap-1">
+                                                <span className="text-2xs text-muted-foreground whitespace-nowrap">
+                                                  {task.due_date ? shortDate(task.due_date) : "—"}
+                                                </span>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setTaskDialogState({
+                                                      open: true,
+                                                      checklistItemId: item.id,
+                                                      checklistItemTitle: item.title,
+                                                      task,
+                                                    });
+                                                  }}
+                                                >
+                                                  <Pencil className="h-2.5 w-2.5" />
+                                                </Button>
+                                              </div>
+                                            </div>
+                                            {isAwaitingComment && (
+                                              <div className="ml-5 mt-1 flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1">
+                                                <Input
+                                                  autoFocus
+                                                  placeholder="Add a completion note… (Enter to save, Esc to skip)"
+                                                  value={taskCommentPending.text}
+                                                  onChange={(e) =>
+                                                    setTaskCommentPending((prev) =>
+                                                      prev ? { ...prev, text: e.target.value } : prev,
+                                                    )
+                                                  }
+                                                  onKeyDown={(e) => {
+                                                    if (e.key === "Enter" && !e.shiftKey) {
+                                                      e.preventDefault();
+                                                      const text = taskCommentPending.text.trim();
+                                                      if (text)
+                                                        addCommentMutation.mutate({
+                                                          checklistItemId: taskCommentPending.itemId,
+                                                          checklistTaskId: taskCommentPending.taskId,
+                                                          comment: text,
+                                                        });
+                                                      setTaskCommentPending(null);
+                                                    } else if (e.key === "Escape") {
+                                                      setTaskCommentPending(null);
+                                                    }
+                                                  }}
+                                                  className="h-6 flex-1 border-0 bg-transparent text-xs shadow-none focus-visible:ring-0"
+                                                />
+                                                <Button
+                                                  size="sm"
+                                                  className="h-5 px-2 text-2xs"
+                                                  disabled={!taskCommentPending.text.trim() || addCommentMutation.isPending}
+                                                  onClick={() => {
+                                                    const text = taskCommentPending.text.trim();
+                                                    if (text)
+                                                      addCommentMutation.mutate({
+                                                        checklistItemId: taskCommentPending.itemId,
+                                                        checklistTaskId: taskCommentPending.taskId,
+                                                        comment: text,
+                                                      });
+                                                    setTaskCommentPending(null);
+                                                  }}
+                                                >Save</Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-5 px-2 text-2xs text-muted-foreground"
+                                                  onClick={() => setTaskCommentPending(null)}
+                                                >Skip</Button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })}
+                                      {itemTasks.length === 0 && (
+                                        <p className="px-1 py-2 text-2xs text-muted-foreground italic">No tasks yet.</p>
+                                      )}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      className="flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground transition-colors mt-auto pt-1"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setTaskDialogState({
+                                          open: true,
+                                          checklistItemId: item.id,
+                                          checklistItemTitle: item.title,
+                                        });
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                      Add task
+                                    </button>
+                                  </div>
 
-                            {/* Row 2: Comment thread */}
+                                  {/* Meetings box */}
+                                  <div className="rounded-lg border border-border/50 bg-muted/20 p-3 flex flex-col gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                                      <span className="text-xs font-bold text-foreground">Meetings</span>
+                                      <span className="ml-auto text-2xs text-muted-foreground">
+                                        {itemMeetings.length > 0
+                                          ? `${itemMeetings.length} scheduled`
+                                          : "None scheduled"}
+                                      </span>
+                                    </div>
+                                    <div className="flex-1">
+                                      {itemMeetings.length > 0 ? (
+                                        <ChecklistItemMeetings meetings={itemMeetings} />
+                                      ) : (
+                                        <p className="px-1 py-2 text-2xs text-muted-foreground italic">No meetings yet.</p>
+                                      )}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      className="flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground transition-colors mt-auto pt-1"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMeetingDialogState({
+                                          open: true,
+                                          checklistItemId: item.id,
+                                          checklistItemTitle: item.title,
+                                        });
+                                      }}
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                      Schedule meeting
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Discussion */}
                             <ChecklistCommentThread
                               checklistItemId={item.id}
                               checklistItemTitle={item.title}
@@ -1752,192 +1932,6 @@ export const ChecklistDialog = ({
                               }
                               taskTitleMap={taskTitleMap}
                             />
-
-                            {/* Sub-tasks (only if any exist) */}
-                            {(() => {
-                              const itemTasks = allTasks.filter(
-                                (t) => t.checklist_item_id === item.id,
-                              );
-                              if (itemTasks.length === 0) return null;
-                              return (
-                                <div className="rounded-lg border border-border/50 bg-white dark:bg-background p-2">
-                                  <div className="flex items-center gap-2 mb-1.5 px-1">
-                                    <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
-                                    <span className="text-xs font-semibold text-muted-foreground">
-                                      Tasks
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {itemTasks.filter((t) => t.status === "done").length}/
-                                      {itemTasks.length}
-                                    </span>
-                                  </div>
-                                  <div className="space-y-1">
-                                    {itemTasks.map((task) => {
-                                      const isAwaitingComment =
-                                        taskCommentPending?.taskId === task.id;
-                                      const assigneeName = task.assigned_to
-                                        ? (profiles[task.assigned_to]?.full_name ?? profiles[task.assigned_to]?.email ?? "Assigned")
-                                        : null;
-                                      return (
-                                        <div key={task.id} id={`task-${task.id}`}>
-                                          <div className="group flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-muted/30">
-                                            <Checkbox
-                                              checked={task.status === "done"}
-                                              onCheckedChange={(checked) => {
-                                                updateTaskMutation.mutate({
-                                                  id: task.id,
-                                                  status: checked ? "done" : "open",
-                                                });
-                                                if (checked) {
-                                                  setTaskCommentPending({
-                                                    taskId: task.id,
-                                                    itemId: item.id,
-                                                    text: "",
-                                                  });
-                                                } else if (isAwaitingComment) {
-                                                  setTaskCommentPending(null);
-                                                }
-                                              }}
-                                              className="h-3.5 w-3.5 shrink-0 mt-0.5"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                              <span
-                                                className={cn(
-                                                  "block text-xs",
-                                                  task.status === "done" &&
-                                                    "text-muted-foreground line-through",
-                                                )}
-                                              >
-                                                {task.title}
-                                              </span>
-                                              {task.description && (
-                                                <p className="mt-0.5 text-2xs text-muted-foreground line-clamp-2">
-                                                  {task.description}
-                                                </p>
-                                              )}
-                                              <div className="mt-0.5 flex items-center gap-2 flex-wrap">
-                                                {assigneeName && (
-                                                  <span className="text-2xs text-muted-foreground">
-                                                    👤 {assigneeName}
-                                                  </span>
-                                                )}
-                                                {task.due_date && (
-                                                  <span className="text-2xs text-muted-foreground">
-                                                    Due {shortDate(task.due_date)}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            </div>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-4 w-4 shrink-0 p-0 opacity-0 group-hover:opacity-100"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setTaskDialogState({
-                                                  open: true,
-                                                  checklistItemId: item.id,
-                                                  checklistItemTitle: item.title,
-                                                  task,
-                                                });
-                                              }}
-                                            >
-                                              <Pencil className="h-2.5 w-2.5" />
-                                            </Button>
-                                          </div>
-                                          {isAwaitingComment && (
-                                            <div className="ml-5 mt-1 flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1">
-                                              <Input
-                                                autoFocus
-                                                placeholder="Add a completion note… (Enter to save, Esc to skip)"
-                                                value={taskCommentPending.text}
-                                                onChange={(e) =>
-                                                  setTaskCommentPending((prev) =>
-                                                    prev
-                                                      ? { ...prev, text: e.target.value }
-                                                      : prev,
-                                                  )
-                                                }
-                                                onKeyDown={(e) => {
-                                                  if (e.key === "Enter" && !e.shiftKey) {
-                                                    e.preventDefault();
-                                                    const text = taskCommentPending.text.trim();
-                                                    if (text) {
-                                                      addCommentMutation.mutate({
-                                                        checklistItemId:
-                                                          taskCommentPending.itemId,
-                                                        checklistTaskId:
-                                                          taskCommentPending.taskId,
-                                                        comment: text,
-                                                      });
-                                                    }
-                                                    setTaskCommentPending(null);
-                                                  } else if (e.key === "Escape") {
-                                                    setTaskCommentPending(null);
-                                                  }
-                                                }}
-                                                className="h-6 flex-1 border-0 bg-transparent text-xs shadow-none focus-visible:ring-0"
-                                              />
-                                              <Button
-                                                size="sm"
-                                                className="h-5 px-2 text-2xs"
-                                                disabled={
-                                                  !taskCommentPending.text.trim() ||
-                                                  addCommentMutation.isPending
-                                                }
-                                                onClick={() => {
-                                                  const text = taskCommentPending.text.trim();
-                                                  if (text) {
-                                                    addCommentMutation.mutate({
-                                                      checklistItemId: taskCommentPending.itemId,
-                                                      checklistTaskId: taskCommentPending.taskId,
-                                                      comment: text,
-                                                    });
-                                                  }
-                                                  setTaskCommentPending(null);
-                                                }}
-                                              >
-                                                Save
-                                              </Button>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-5 px-2 text-2xs text-muted-foreground"
-                                                onClick={() => setTaskCommentPending(null)}
-                                              >
-                                                Skip
-                                              </Button>
-                                            </div>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              );
-                            })()}
-
-                            {/* Meetings (only if any exist) */}
-                            {(() => {
-                              const itemMeetings = allMeetings.filter(
-                                (m) => m.checklist_item_id === item.id,
-                              );
-                              if (itemMeetings.length === 0) return null;
-                              return (
-                                <div className="rounded-lg border border-border/50 bg-white dark:bg-background p-2">
-                                  <div className="flex items-center gap-2 mb-1.5 px-1">
-                                    <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                                    <span className="text-xs font-semibold text-muted-foreground">
-                                      Meetings
-                                    </span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {itemMeetings.length}
-                                    </span>
-                                  </div>
-                                  <ChecklistItemMeetings meetings={itemMeetings} />
-                                </div>
-                              );
-                            })()}
                           </div>
                         </td>
                       </tr>
