@@ -1589,7 +1589,7 @@ export const ChecklistDialog = ({
                                 ? Math.round((doneTasks / itemTasks.length) * 100)
                                 : 0;
                               return (
-                                <div className="grid grid-cols-2 gap-3 items-start">
+                                <div className="grid grid-cols-2 gap-3">
                                   {/* Tasks box */}
                                   <div className="rounded-lg border border-border/50 bg-background flex flex-col overflow-hidden">
                                     {/* Header */}
@@ -1626,7 +1626,7 @@ export const ChecklistDialog = ({
                                           : "—";
                                         return (
                                           <div key={task.id} id={`task-${task.id}`}>
-                                            <div className="group grid grid-cols-[1fr_6rem_6rem_1.5rem] gap-x-2 items-center px-3 py-1.5 hover:bg-muted/30">
+                                            <div className="group grid grid-cols-[1fr_6rem_6rem_1.5rem] gap-x-2 items-center px-3 py-2 hover:bg-muted/30">
                                               <div className="flex items-center gap-2 min-w-0">
                                                 <Checkbox
                                                   checked={task.status === "done"}
