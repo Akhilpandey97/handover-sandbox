@@ -1478,31 +1478,6 @@ export const ChecklistDialog = ({
                           className="flex items-center gap-0.5"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <button
-                            type="button"
-                            onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
-                            className={cn(
-                              "p-1 rounded hover:bg-muted transition-colors",
-                              isExpanded && "bg-muted",
-                            )}
-                            title="Toggle details"
-                          >
-                            <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setTaskDialogState({
-                                open: true,
-                                checklistItemId: item.id,
-                                checklistItemTitle: item.title,
-                              })
-                            }
-                            className="p-1 rounded hover:bg-muted"
-                            title="Manage tasks"
-                          >
-                            <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
-                          </button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <button type="button" className="p-1 rounded hover:bg-muted">
@@ -1726,14 +1701,15 @@ export const ChecklistDialog = ({
                                       <span>Due date</span>
                                       <span />
                                     </div>
-                                    <div className="flex-1 overflow-y-auto max-h-[220px] divide-y divide-border/20">
+                                    <div className="flex-1 overflow-y-auto max-h-[160px] divide-y divide-border/20">
                                       {itemTasks.map((task) => {
                                         const isAwaitingComment =
                                           taskCommentPending?.taskId === task.id;
-                                        const assigneeName = task.assigned_to
-                                          ? (profiles[task.assigned_to]?.full_name ??
-                                            profiles[task.assigned_to]?.email ??
-                                            "—")
+                                        const assigneeProfile = task.assigned_to
+                                          ? profiles.find((p) => p.id === task.assigned_to)
+                                          : null;
+                                        const assigneeName = assigneeProfile
+                                          ? (assigneeProfile.name ?? assigneeProfile.email ?? "—")
                                           : "—";
                                         return (
                                           <div key={task.id} id={`task-${task.id}`}>
@@ -1878,7 +1854,7 @@ export const ChecklistDialog = ({
                                           : "None scheduled"}
                                       </span>
                                     </div>
-                                    <div className="flex-1 overflow-y-auto max-h-[220px] divide-y divide-border/20">
+                                    <div className="flex-1 overflow-y-auto max-h-[160px] divide-y divide-border/20">
                                       {itemMeetings.length > 0 ? (
                                         <ChecklistItemMeetings meetings={itemMeetings} />
                                       ) : (
