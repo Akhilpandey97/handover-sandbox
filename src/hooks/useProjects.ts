@@ -697,9 +697,12 @@ export const useAcceptProject = () => {
         .update({ pending_acceptance: false })
         .eq("id", projectId);
 
-      if (projectError) throw projectError;
+      if (projectError) {
+        console.error("[accept] projects update failed:", projectError);
+        throw new Error(`projects: ${projectError.message}`);
+      }
 
-      // Update the latest transfer record
+      // Update the latest transfer record (audit trail — non-fatal if it fails)
       const { data: transfers, error: fetchError } = await supabase
         .from("transfer_history")
         .select("*")
@@ -708,9 +711,9 @@ export const useAcceptProject = () => {
         .order("transferred_at", { ascending: false })
         .limit(1);
 
-      if (fetchError) throw fetchError;
-
-      if (transfers && transfers.length > 0) {
+      if (fetchError) {
+        console.warn("[accept] transfer_history fetch failed (non-fatal):", fetchError);
+      } else if (transfers && transfers.length > 0) {
         const { error: updateError } = await supabase
           .from("transfer_history")
           .update({
@@ -719,7 +722,9 @@ export const useAcceptProject = () => {
           })
           .eq("id", transfers[0].id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.warn("[accept] transfer_history update failed (non-fatal):", updateError);
+        }
       }
 
       return projectId;
@@ -738,9 +743,10 @@ export const useAcceptProject = () => {
         entity_id: projectId,
       });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       console.error("Error accepting project:", error);
-      toast.error("Failed to accept project");
+      const msg = (error as { message?: string })?.message || String(error);
+      toast.error(`Failed to accept project: ${msg}`);
     },
   });
 };
