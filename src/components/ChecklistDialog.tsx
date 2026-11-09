@@ -1944,8 +1944,8 @@ export const ChecklistDialog = ({
 
               <dl className="space-y-2">
                 {/* Project state */}
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground whitespace-nowrap">Project state</dt>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground">Project state</dt>
                   <dd>
                     <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", STATE_TONE[project.projectState] || "bg-muted text-muted-foreground")}>
                       {projectStateLabels[project.projectState as ProjectState] || project.projectState}
@@ -1954,8 +1954,8 @@ export const ChecklistDialog = ({
                 </div>
 
                 {/* Expected go-live */}
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
-                  <dt className="text-xs text-muted-foreground whitespace-nowrap pt-0.5">Expected go-live</dt>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-start">
+                  <dt className="text-xs text-muted-foreground pt-0.5">Expected go-live</dt>
                   <dd className="text-xs font-semibold text-foreground">
                     {friendlyDate(project.dates.expectedGoLiveDate)}
                     {project.dates.expectedGoLiveDate && (
@@ -1967,8 +1967,8 @@ export const ChecklistDialog = ({
                 </div>
 
                 {/* Next action */}
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
-                  <dt className="text-xs text-muted-foreground whitespace-nowrap pt-0.5">Next action</dt>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-start">
+                  <dt className="text-xs text-muted-foreground pt-0.5">Next action</dt>
                   <dd className="text-xs font-semibold text-foreground">
                     {nextStep.label}
                     {nextStep.hint && (
@@ -1980,14 +1980,14 @@ export const ChecklistDialog = ({
                 </div>
 
                 {/* Revenue */}
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground whitespace-nowrap">Revenue</dt>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground">Revenue</dt>
                   <dd className="text-xs font-semibold text-foreground">₹{formatArrCr(project.arr)}</dd>
                 </div>
 
                 {/* Project owner */}
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground whitespace-nowrap">Project owner</dt>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground">Project owner</dt>
                   <dd className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
                       {(project.assignedOwnerName || "U").charAt(0).toUpperCase()}
@@ -1997,15 +1997,15 @@ export const ChecklistDialog = ({
                 </div>
 
                 {/* Client */}
-                <div className="grid grid-cols-[auto_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground whitespace-nowrap">Client</dt>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground">Client</dt>
                   <dd className="text-xs font-semibold text-foreground">{project.merchantName}</dd>
                 </div>
 
                 {/* Description */}
                 {project.notes.projectNotes && (
-                  <div className="grid grid-cols-[auto_1fr] gap-x-3 items-start">
-                    <dt className="text-xs text-muted-foreground whitespace-nowrap pt-0.5">Description</dt>
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-start">
+                    <dt className="text-xs text-muted-foreground pt-0.5">Description</dt>
                     <dd className="text-xs text-foreground whitespace-pre-line">{project.notes.projectNotes}</dd>
                   </div>
                 )}
@@ -2079,33 +2079,27 @@ export const ChecklistDialog = ({
                   </Button>
                 )}
               </div>
-              <dl className="space-y-3">
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Project owner</dt>
-                  <dd className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+              <dl className="space-y-2">
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground">Project owner</dt>
+                  <dd className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
                       {(project.assignedOwnerName || "U").charAt(0).toUpperCase()}
                     </span>
                     {project.assignedOwnerName || "Unassigned"}
                   </dd>
                 </div>
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Sales SPOC</dt>
-                  <dd className="text-xs font-medium text-foreground">
-                    {project.salesSpoc || "—"}
-                  </dd>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground">Sales SPOC</dt>
+                  <dd className="text-xs font-semibold text-foreground">{project.salesSpoc || "—"}</dd>
                 </div>
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Contact email</dt>
-                  <dd className="text-xs font-medium text-foreground">
-                    {project.contactEmail || "—"}
-                  </dd>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground">Contact email</dt>
+                  <dd className="text-xs font-semibold text-foreground">{project.contactEmail || "—"}</dd>
                 </div>
-                <div>
-                  <dt className="text-2xs text-muted-foreground mb-0.5">Current team</dt>
-                  <dd className="text-xs font-medium text-foreground">
-                    {getTeamLabel(project.currentOwnerTeam)}
-                  </dd>
+                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                  <dt className="text-xs text-muted-foreground">Current team</dt>
+                  <dd className="text-xs font-semibold text-foreground">{getTeamLabel(project.currentOwnerTeam)}</dd>
                 </div>
               </dl>
             </TabsContent>
