@@ -462,6 +462,36 @@ export const ProjectWorkspaceView = ({
                   <Pencil className="h-3.5 w-3.5" />
                   Edit project
                 </Button>
+                {canAssignOwner && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 px-3 text-sm"
+                    onClick={() => setAssignOpen(true)}
+                  >
+                    <UserRound className="h-3.5 w-3.5" />
+                    Assign owner
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 px-3 text-sm"
+                  disabled={!isTransferReady}
+                  title={transferBlockedReason || undefined}
+                  onClick={() => isTransferReady && setTransferOpen(true)}
+                >
+                  <ArrowRight className="h-3.5 w-3.5" />
+                  Transfer project
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 px-3 text-sm text-destructive border-destructive/40 hover:bg-destructive/10"
+                  onClick={() => setDeleteConfirmOpen(true)}
+                >
+                  Delete project
+                </Button>
               </div>
             </div>
 
