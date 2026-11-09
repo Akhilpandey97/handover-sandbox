@@ -769,7 +769,15 @@ export const useTransferProject = () => {
         return null;
       };
 
-      const nextTeam = getNextTeam(currentUser.team);
+      // Always use the project's actual current team, not the user's role
+      const { data: projectRow } = await supabase
+        .from("projects")
+        .select("current_owner_team")
+        .eq("id", projectId)
+        .single();
+      const projectCurrentTeam = (projectRow?.current_owner_team || currentUser.team) as TeamRole;
+
+      const nextTeam = getNextTeam(projectCurrentTeam);
       if (!nextTeam) throw new Error("Cannot transfer from this team");
 
       const nextStage =
@@ -791,7 +799,7 @@ export const useTransferProject = () => {
       // Create transfer record
       const { error: transferError } = await supabase.from("transfer_history").insert({
         project_id: projectId,
-        from_team: currentUser.team,
+        from_team: projectCurrentTeam,
         to_team: nextTeam,
         transferred_by: currentUser.name,
         notes,
@@ -821,7 +829,7 @@ export const useTransferProject = () => {
             recipientEmail: recipientProfile.email,
             recipientName: recipientProfile.name,
             projectName: proj?.merchant_name || "Unknown",
-            fromTeam: teamLabels[currentUser.team] || currentUser.team,
+            fromTeam: teamLabels[projectCurrentTeam] || projectCurrentTeam,
             toTeam: teamLabels[nextTeam] || nextTeam,
             notes: notes || undefined,
             projectId,
