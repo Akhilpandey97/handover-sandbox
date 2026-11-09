@@ -289,6 +289,14 @@ const MetadataDetails = ({ entry }: { entry: ActivityEntry }) => {
     "jira_key",
     "ticket_key",
     "jira_url",
+    // checklist event fields — shown in description, not repeated here
+    "itemTeam",
+    "completed",
+    "itemTitle",
+    "checklistItemId",
+    "taskId",
+    "taskTitle",
+    "commentId",
   ]);
   const extraKeys = Object.keys(meta).filter(
     (k) => !renderedKnownKeys.has(k) && meta[k] != null && meta[k] !== "",
