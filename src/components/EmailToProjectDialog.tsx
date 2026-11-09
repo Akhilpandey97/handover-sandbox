@@ -248,6 +248,7 @@ export const EmailToProjectDialog = ({
       mid: getFinalValue("mid") || `EMAIL-${email.gmail_message_id.substring(0, 8)}`,
       currentStage: "mint",
       currentOwnerTeam: "mint",
+      teamHistory: ["mint"],
       arr: Number(getFinalValue("arr")) || 0,
       txnsPerDay: Number(getFinalValue("txnsPerDay")) || 0,
       aov: Number(getFinalValue("aov")) || 0,

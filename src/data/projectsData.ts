@@ -133,6 +133,7 @@ export interface Project {
   category: string;
   currentStage: ProjectStage;
   currentOwnerTeam: TeamRole;
+  teamHistory: string[];
   pendingAcceptance: boolean;
   goLivePercent: number;
   links: ProjectLinks;
@@ -398,6 +399,7 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
   category: "",
   currentStage: "mint",
   currentOwnerTeam: "mint",
+  teamHistory: ["mint"],
   pendingAcceptance: false,
   goLivePercent: 0,
   links: {
@@ -487,6 +489,7 @@ export const initialProjects: Project[] = [
     category: "Gems & Jewellery",
     currentStage: "mint",
     currentOwnerTeam: "mint",
+  teamHistory: ["mint"],
     pendingAcceptance: false,
     goLivePercent: 45,
     links: {
@@ -540,6 +543,7 @@ export const initialProjects: Project[] = [
     category: "Home Decor",
     currentStage: "integration",
     currentOwnerTeam: "integration",
+  teamHistory: ["mint", "integration"],
     pendingAcceptance: true,
     goLivePercent: 60,
     links: {
@@ -615,6 +619,7 @@ export const initialProjects: Project[] = [
     category: "Services",
     currentStage: "ms",
     currentOwnerTeam: "ms",
+  teamHistory: ["mint", "integration", "ms"],
     pendingAcceptance: true,
     goLivePercent: 85,
     links: {

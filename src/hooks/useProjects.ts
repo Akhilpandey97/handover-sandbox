@@ -30,6 +30,7 @@ const transformDbProject = (row: any): Project => ({
   category: row.category || "",
   currentStage: row.current_stage as ProjectStage,
   currentOwnerTeam: row.current_owner_team as TeamRole,
+  teamHistory: (row.team_history as string[]) || [row.current_owner_team].filter(Boolean),
   pendingAcceptance: row.pending_acceptance || false,
   goLivePercent: row.go_live_percent || 0,
   links: {

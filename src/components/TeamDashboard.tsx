@@ -201,8 +201,13 @@ export const TeamDashboard = () => {
 
   const userProjects = useMemo(
     () =>
-      projects.filter((project) => project.assignedOwner === currentUser?.id && !project.archived),
-    [projects, currentUser?.id],
+      projects.filter(
+        (project) =>
+          !project.archived &&
+          (project.currentOwnerTeam === currentUser?.team ||
+            project.teamHistory?.includes(currentUser?.team ?? "")),
+      ),
+    [projects, currentUser?.team],
   );
   const matchesSearch = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
