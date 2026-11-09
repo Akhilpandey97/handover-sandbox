@@ -462,35 +462,6 @@ export const ProjectWorkspaceView = ({
                   <Pencil className="h-3.5 w-3.5" />
                   Edit project
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {canAssignOwner && (
-                      <DropdownMenuItem onSelect={() => setAssignOpen(true)}>
-                        <UserRound className="mr-2 h-3.5 w-3.5" />
-                        Assign owner
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                      onSelect={() => isTransferReady && setTransferOpen(true)}
-                      disabled={!isTransferReady}
-                      title={transferBlockedReason || undefined}
-                    >
-                      <ArrowRight className="mr-2 h-3.5 w-3.5" />
-                      Transfer project
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onSelect={() => setDeleteConfirmOpen(true)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      Delete project
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             </div>
 
