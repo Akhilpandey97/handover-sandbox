@@ -1474,7 +1474,7 @@ export const ChecklistDialog = ({
                     {/* Expanded detail row */}
                     {isExpanded && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-3 border-b border-border/30 bg-muted/5">
+                        <td colSpan={6} className="px-4 py-3 border-b border-border/30 bg-muted/5">
                           <div className="space-y-3">
                             {/* Metadata bar: Waiting on | Timeline | Time tracking */}
                             <div className="flex items-center gap-0 rounded-lg border border-border/40 bg-background divide-x divide-border/40 overflow-hidden">
@@ -1815,7 +1815,7 @@ export const ChecklistDialog = ({
               {/* §4.3 Bulk action bar */}
               {bulkSelectMode && selectedItemIds.size > 0 && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-2 border-t border-primary/20 bg-primary/5">
+                  <td colSpan={6} className="px-3 py-2 border-t border-primary/20 bg-primary/5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-medium text-primary">{selectedItemIds.size} selected</span>
                       <Button size="sm" variant="outline" className="h-6 px-2 text-xs gap-1" onClick={bulkComplete}>
@@ -1862,7 +1862,7 @@ export const ChecklistDialog = ({
 
               {/* Inline add row */}
               <tr>
-                <td colSpan={5} className="px-3 py-1.5">
+                <td colSpan={6} className="px-3 py-1.5">
                   {addItemState?.stage === "table" ? (
                     <div className="flex items-center gap-2">
                       <Input
