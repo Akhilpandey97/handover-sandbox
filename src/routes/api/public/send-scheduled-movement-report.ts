@@ -627,7 +627,6 @@ async function sendOne(supa: any, schedule: any): Promise<{ ok: boolean; error?:
         from: resendFrom(__creds, "MINT Updates"),
         ...resendReplyTo(__creds),
         to: schedule.recipients,
-        bcc: ["custom_mint_sales-aaaaumgxqqu5dozs2yxm5ul62e@gokwik.slack.com"],
         subject,
         html,
       }),
