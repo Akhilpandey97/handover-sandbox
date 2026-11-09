@@ -1775,9 +1775,12 @@ export const ChecklistDialog = ({
                                     {itemTasks.map((task) => {
                                       const isAwaitingComment =
                                         taskCommentPending?.taskId === task.id;
+                                      const assigneeName = task.assigned_to
+                                        ? (profiles[task.assigned_to]?.full_name ?? profiles[task.assigned_to]?.email ?? "Assigned")
+                                        : null;
                                       return (
                                         <div key={task.id} id={`task-${task.id}`}>
-                                          <div className="group flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/30">
+                                          <div className="group flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-muted/30">
                                             <Checkbox
                                               checked={task.status === "done"}
                                               onCheckedChange={(checked) => {
@@ -1795,22 +1798,36 @@ export const ChecklistDialog = ({
                                                   setTaskCommentPending(null);
                                                 }
                                               }}
-                                              className="h-3.5 w-3.5 shrink-0"
+                                              className="h-3.5 w-3.5 shrink-0 mt-0.5"
                                             />
-                                            <span
-                                              className={cn(
-                                                "flex-1 truncate text-xs",
-                                                task.status === "done" &&
-                                                  "text-muted-foreground line-through",
-                                              )}
-                                            >
-                                              {task.title}
-                                            </span>
-                                            {task.due_date && (
-                                              <span className="text-2xs text-muted-foreground">
-                                                {shortDate(task.due_date)}
+                                            <div className="flex-1 min-w-0">
+                                              <span
+                                                className={cn(
+                                                  "block text-xs",
+                                                  task.status === "done" &&
+                                                    "text-muted-foreground line-through",
+                                                )}
+                                              >
+                                                {task.title}
                                               </span>
-                                            )}
+                                              {task.description && (
+                                                <p className="mt-0.5 text-2xs text-muted-foreground line-clamp-2">
+                                                  {task.description}
+                                                </p>
+                                              )}
+                                              <div className="mt-0.5 flex items-center gap-2 flex-wrap">
+                                                {assigneeName && (
+                                                  <span className="text-2xs text-muted-foreground">
+                                                    👤 {assigneeName}
+                                                  </span>
+                                                )}
+                                                {task.due_date && (
+                                                  <span className="text-2xs text-muted-foreground">
+                                                    Due {shortDate(task.due_date)}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
                                             <Button
                                               variant="ghost"
                                               size="sm"
@@ -1896,6 +1913,28 @@ export const ChecklistDialog = ({
                                       );
                                     })}
                                   </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Meetings (only if any exist) */}
+                            {(() => {
+                              const itemMeetings = allMeetings.filter(
+                                (m) => m.checklist_item_id === item.id,
+                              );
+                              if (itemMeetings.length === 0) return null;
+                              return (
+                                <div className="rounded-lg border border-border/50 bg-white dark:bg-background p-2">
+                                  <div className="flex items-center gap-2 mb-1.5 px-1">
+                                    <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <span className="text-xs font-semibold text-muted-foreground">
+                                      Meetings
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {itemMeetings.length}
+                                    </span>
+                                  </div>
+                                  <ChecklistItemMeetings meetings={itemMeetings} />
                                 </div>
                               );
                             })()}
