@@ -1896,7 +1896,7 @@ export const ChecklistDialog = ({
       </div>
 
       {/* ── Column C: Project details panel ───────────────────────── */}
-      <div className="w-64 shrink-0 border-l border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
+      <div className="w-80 shrink-0 border-l border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
         <Tabs
           value={detailsTab}
           onValueChange={(v) => setDetailsTab(v as typeof detailsTab)}
