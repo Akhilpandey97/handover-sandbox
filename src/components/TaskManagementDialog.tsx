@@ -170,7 +170,7 @@ export const TaskManagementDialog = ({
             <div className="flex items-center gap-1.5 ml-auto">
               <Globe className="h-3.5 w-3.5 text-muted-foreground" />
               <Label htmlFor="client-visible" className="text-xs text-muted-foreground cursor-pointer">
-                Merchant visible
+                Customer visible
               </Label>
               <Switch
                 id="client-visible"

@@ -116,9 +116,10 @@ async function handler(req: Request): Promise<Response> {
       supabase
         .from("checklist_tasks")
         .select(
-          "id, title, description, status, due_date, assigned_to, checklist_item_id, created_at",
+          "id, title, description, status, due_date, assigned_to, checklist_item_id, is_client_visible, created_at",
         )
-        .eq("project_id", projectId),
+        .eq("project_id", projectId)
+        .eq("is_client_visible", true),
       supabase
         .from("project_responsibility_logs")
         .select("party, stage, started_at, ended_at")

@@ -156,6 +156,14 @@ interface PortalData {
   uploads: PortalUpload[];
   brd_configured?: boolean;
   brd_progress?: { answered: number; total: number; percent: number; status: string | null };
+  tasks: {
+    id: string;
+    title: string;
+    description: string | null;
+    status: string;
+    due_date: string | null;
+    checklist_item_id: string;
+  }[];
 }
 
 // STAGES are dynamically derived from the checklist items (MINT checklist)
@@ -752,7 +760,7 @@ export default function MerchantPortal() {
       .then((r) => r.json())
       .then((d) => {
         if (d.error) setError(d.error);
-        else setData(d);
+        else setData({ tasks: [], ...d });
       })
       .catch(() => setError("Failed to load data."))
       .finally(() => setLoading(false));
@@ -1743,6 +1751,52 @@ function IntegrationPage({
           )}
         </div>
       </Card>
+
+      {/* Customer-visible tasks */}
+      {data.tasks && data.tasks.length > 0 && (
+        <Card className="p-6">
+          <h2 className="heading-section text-foreground mb-4">Your Action Items</h2>
+          <div className="divide-y divide-border">
+            {data.tasks.map((task) => {
+              const overdue =
+                task.status !== "done" && task.due_date
+                  ? new Date(task.due_date) < new Date()
+                  : false;
+              return (
+                <div key={task.id} className="flex items-start gap-3 py-2.5">
+                  <CheckCircle2
+                    className="w-4 h-4 flex-shrink-0 mt-0.5"
+                    style={{ color: task.status === "done" ? BRAND.green : "#cbd5e1" }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={cn(
+                        "text-sm font-medium",
+                        task.status === "done" && "text-muted-foreground line-through",
+                      )}
+                    >
+                      {task.title}
+                    </p>
+                    {task.description && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
+                    )}
+                  </div>
+                  {task.due_date && (
+                    <span
+                      className={cn(
+                        "text-xs whitespace-nowrap font-semibold flex-shrink-0",
+                        overdue ? "text-destructive-strong" : "text-muted-foreground",
+                      )}
+                    >
+                      Due {formatDate(task.due_date)}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* Project Overview + Notes side-by-side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
