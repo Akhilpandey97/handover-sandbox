@@ -1591,7 +1591,7 @@ export const ChecklistDialog = ({
                               return (
                                 <div className="grid grid-cols-2 gap-3">
                                   {/* Tasks box */}
-                                  <div className="rounded-lg border border-border/50 bg-background overflow-hidden">
+                                  <div className="rounded-lg border border-border/50 bg-background flex flex-col overflow-hidden">
                                     {/* Header */}
                                     <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/40">
                                       <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1756,7 +1756,7 @@ export const ChecklistDialog = ({
                                   </div>
 
                                   {/* Meetings box */}
-                                  <div className="rounded-lg border border-border/50 bg-background overflow-hidden">
+                                  <div className="rounded-lg border border-border/50 bg-background flex flex-col overflow-hidden">
                                     {/* Header */}
                                     <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/40">
                                       <Video className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1767,7 +1767,7 @@ export const ChecklistDialog = ({
                                           : "None scheduled"}
                                       </span>
                                     </div>
-                                    <div className="overflow-y-auto max-h-[160px] divide-y divide-border/20">
+                                    <div className="flex-1 overflow-y-auto max-h-[160px] divide-y divide-border/20">
                                       {itemMeetings.length > 0 ? (
                                         <ChecklistItemMeetings meetings={itemMeetings} />
                                       ) : (
