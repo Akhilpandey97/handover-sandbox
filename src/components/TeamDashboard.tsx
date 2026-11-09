@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
+  History,
   ChevronRight,
   ChevronsUpDown,
   CircleDashed,
@@ -121,7 +122,7 @@ export const TeamDashboard = () => {
     onDragOver,
     onDragEnd,
   } = useDashletOrder(
-    ["kpi", "incoming", "tat", "attention", "egl", "stages", "health"],
+    ["kpi", "incoming", "history", "tat", "attention", "egl", "stages", "health"],
     "user_dashboard_dashlet_order",
   );
 
@@ -199,16 +200,32 @@ export const TeamDashboard = () => {
     setter((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
   };
 
-  const userProjects = useMemo(
+  const myTeam = currentUser?.team ?? "";
+
+  // Projects currently owned by this team (active)
+  const activeProjects = useMemo(
+    () => projects.filter((p) => !p.archived && p.currentOwnerTeam === myTeam),
+    [projects, myTeam],
+  );
+
+  // Projects previously owned by this team but now transferred out
+  const historicalProjects = useMemo(
     () =>
       projects.filter(
-        (project) =>
-          !project.archived &&
-          (project.currentOwnerTeam === currentUser?.team ||
-            project.teamHistory?.includes(currentUser?.team ?? "")),
+        (p) =>
+          !p.archived &&
+          p.currentOwnerTeam !== myTeam &&
+          p.teamHistory?.includes(myTeam),
       ),
-    [projects, currentUser?.team],
+    [projects, myTeam],
   );
+
+  // Combined for search / legacy references
+  const userProjects = useMemo(
+    () => [...activeProjects, ...historicalProjects],
+    [activeProjects, historicalProjects],
+  );
+
   const matchesSearch = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     return (project: Project) =>
@@ -223,12 +240,12 @@ export const TeamDashboard = () => {
    * incoming project appears is the dashlet that asks you to decide.
    */
   const visibleProjects = useMemo(
-    () => userProjects.filter((project) => !project.pendingAcceptance && matchesSearch(project)),
-    [userProjects, matchesSearch],
+    () => activeProjects.filter((project) => !project.pendingAcceptance && matchesSearch(project)),
+    [activeProjects, matchesSearch],
   );
   const incomingProjects = useMemo(
-    () => userProjects.filter((project) => project.pendingAcceptance && matchesSearch(project)),
-    [userProjects, matchesSearch],
+    () => activeProjects.filter((project) => project.pendingAcceptance && matchesSearch(project)),
+    [activeProjects, matchesSearch],
   );
 
   useEffect(() => {
@@ -450,6 +467,45 @@ export const TeamDashboard = () => {
         </div>
       </section>
     ),
+    history: historicalProjects.length > 0 ? (
+      <section className="flex h-full max-h-[24rem] flex-col rounded-lg border border-border bg-card shadow-sm">
+        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Previously worked on</p>
+            <p className="text-2xs text-muted-foreground mt-0.5">Projects transferred out from your team</p>
+          </div>
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <span className="text-sm font-semibold">{historicalProjects.length}</span>
+            <History className="h-4 w-4" />
+          </span>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-3">
+          <div className="divide-y divide-border">
+            {historicalProjects.filter(matchesSearch).map((project) => (
+              <div key={project.id} className="flex items-center justify-between gap-3 px-1 py-2 opacity-70 hover:opacity-100 transition-opacity">
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    className="block max-w-full truncate text-left text-sm font-medium text-foreground hover:text-primary hover:underline"
+                    onClick={() => navigate({ to: "/projects/$projectId", params: { projectId: project.id } })}
+                  >
+                    {project.merchantName}
+                  </button>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-2xs text-muted-foreground">
+                    <span>{arrLabel}: {formatArrCr(project.arr)}</span>
+                    <span>· Now with: <span className="font-medium">{teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam}</span></span>
+                    <span>· {getLabel("field_expected_go_live_date")}: {formatGoLiveDate(project)}</span>
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-2xs text-muted-foreground font-medium">
+                  Transferred
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    ) : null,
     tat: <TATDashlet projects={visibleProjects} />,
     attention: <AttentionRequiredDashlet projects={visibleProjects} />,
     egl: <EglRiskDashlet projects={visibleProjects} />,
@@ -573,6 +629,7 @@ export const TeamDashboard = () => {
   const dashletLabels: Record<string, string> = {
     kpi: "KPI bar",
     incoming: "Incoming projects",
+    history: "Previously worked on",
     tat: "TAT",
     attention: "Attention required",
     egl: "Projects at risk of missing Go-Live",
