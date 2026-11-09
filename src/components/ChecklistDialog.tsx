@@ -1323,7 +1323,7 @@ export const ChecklistDialog = ({
         {/* Task table */}
         <ScrollArea className="flex-1 min-h-0">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 bg-muted/40">
+            <thead className="sticky top-0 z-10 bg-muted border-b border-border/50">
               <tr className="border-b border-border/50">
                 <th className="w-10 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
                   #
