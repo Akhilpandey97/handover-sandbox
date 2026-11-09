@@ -75,9 +75,9 @@ import {
   CheckSquare,
   Square,
   X,
-  Link2,
   Activity,
   GitBranch,
+  CalendarPlus,
 } from "lucide-react";
 
 /** "9 Sep 2026" */
@@ -1796,36 +1796,40 @@ export const ChecklistDialog = ({
                                 )}
                               </div>
 
-                              {/* §8.3 Link Meeting */}
-                              <div className="flex items-center gap-2 ml-auto">
-                                <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">Link meeting:</span>
-                                {allMeetings.length === 0 ? (
-                                  <span className="text-2xs text-muted-foreground italic">None</span>
-                                ) : (
-                                  <select
-                                    className="text-xs border border-border/50 rounded px-2 py-0.5 bg-background text-foreground h-7"
-                                    defaultValue=""
-                                    onChange={async (e) => {
-                                      const meetingId = e.target.value;
-                                      if (!meetingId) return;
-                                      await supabase
-                                        .from("checklist_meetings")
-                                        .update({ checklist_item_id: item.id })
-                                        .eq("id", meetingId);
-                                      queryClient.invalidateQueries({ queryKey: ["checklist-meetings"] });
-                                      toast.success("Meeting linked to this item");
-                                      e.target.value = "";
-                                    }}
-                                  >
-                                    <option value="">Re-link a meeting…</option>
-                                    {allMeetings.map((m) => (
-                                      <option key={m.id} value={m.id}>
-                                        {m.title} {m.checklist_item_id === item.id ? "(linked here)" : ""}
-                                      </option>
-                                    ))}
-                                  </select>
-                                )}
+                              {/* §8.3 Quick actions */}
+                              <div className="flex items-center gap-1.5 ml-auto">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 gap-1 px-2.5 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTaskDialogState({
+                                      open: true,
+                                      checklistItemId: item.id,
+                                      checklistItemTitle: item.title,
+                                    });
+                                  }}
+                                >
+                                  <Plus className="h-3 w-3" />
+                                  Add task
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 gap-1 px-2.5 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMeetingDialogState({
+                                      open: true,
+                                      checklistItemId: item.id,
+                                      checklistItemTitle: item.title,
+                                    });
+                                  }}
+                                >
+                                  <CalendarPlus className="h-3 w-3" />
+                                  Schedule meeting
+                                </Button>
                               </div>
                             </div>
 
