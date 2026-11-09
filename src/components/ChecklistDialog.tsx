@@ -1343,9 +1343,6 @@ export const ChecklistDialog = ({
                 <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
                   Status
                 </th>
-                <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
-                  Actions
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -1472,96 +1469,12 @@ export const ChecklistDialog = ({
                         <StatusBadge status={status} />
                       </td>
 
-                      {/* Actions */}
-                      <td className="px-3 py-2.5 align-middle">
-                        <div
-                          className="flex items-center gap-0.5"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button type="button" className="p-1 rounded hover:bg-muted">
-                                <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-44">
-                              {formInfo && (
-                                <DropdownMenuItem
-                                  onSelect={() =>
-                                    setFormDialogState({
-                                      open: true,
-                                      checklistItemId: item.id,
-                                      checklistItemTitle: item.title,
-                                      formTemplateId: formInfo.formTemplateId,
-                                      formTemplateName: formInfo.formTemplateName,
-                                    })
-                                  }
-                                >
-                                  <FileText className="mr-2 h-3.5 w-3.5" />
-                                  {formInfo.formTemplateName}
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem
-                                onSelect={() =>
-                                  setMeetingDialogState({
-                                    open: true,
-                                    checklistItemId: item.id,
-                                    checklistItemTitle: item.title,
-                                  })
-                                }
-                              >
-                                <Video className="mr-2 h-3.5 w-3.5" />
-                                Schedule meeting
-                              </DropdownMenuItem>
-                              {!item.completed && canEdit && item.dueDate && (
-                                <DropdownMenuItem
-                                  onSelect={async () => {
-                                    await supabase
-                                      .from("checklist_items")
-                                      .update({ due_date: null })
-                                      .eq("id", item.id);
-                                    queryClient.invalidateQueries({ queryKey: ["projects"] });
-                                  }}
-                                >
-                                  <Calendar className="mr-2 h-3.5 w-3.5" />
-                                  Clear due date
-                                </DropdownMenuItem>
-                              )}
-                              {/* §4.4 Duplicate item */}
-                              {canEdit && (
-                                <DropdownMenuItem
-                                  onSelect={async () => {
-                                    if (!project) return;
-                                    await supabase.from("checklist_items").insert({
-                                      project_id: project.id,
-                                      tenant_id: currentUser?.tenantId ?? null,
-                                      title: `${item.title} (copy)`,
-                                      stage: item.stage as string,
-                                      owner_team: item.ownerTeam as string,
-                                      current_responsibility: item.currentResponsibility || "neutral",
-                                      completed: false,
-                                      is_task: false,
-                                      start_date: item.startDate || null,
-                                      due_date: item.dueDate || null,
-                                      sort_order: index + 1,
-                                    });
-                                    queryClient.invalidateQueries({ queryKey: ["projects"] });
-                                  }}
-                                >
-                                  <Copy className="mr-2 h-3.5 w-3.5" />
-                                  Duplicate
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
                     </tr>
 
                     {/* Expanded detail row */}
                     {isExpanded && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-3 border-b border-border/30 bg-muted/5">
+                        <td colSpan={5} className="px-4 py-3 border-b border-border/30 bg-muted/5">
                           <div className="space-y-3">
                             {/* Metadata bar: Waiting on | Timeline | Time tracking */}
                             <div className="flex items-center gap-0 rounded-lg border border-border/40 bg-background divide-x divide-border/40 overflow-hidden">
@@ -1902,7 +1815,7 @@ export const ChecklistDialog = ({
               {/* §4.3 Bulk action bar */}
               {bulkSelectMode && selectedItemIds.size > 0 && (
                 <tr>
-                  <td colSpan={7} className="px-3 py-2 border-t border-primary/20 bg-primary/5">
+                  <td colSpan={5} className="px-3 py-2 border-t border-primary/20 bg-primary/5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-medium text-primary">{selectedItemIds.size} selected</span>
                       <Button size="sm" variant="outline" className="h-6 px-2 text-xs gap-1" onClick={bulkComplete}>
@@ -1949,7 +1862,7 @@ export const ChecklistDialog = ({
 
               {/* Inline add row */}
               <tr>
-                <td colSpan={7} className="px-3 py-1.5">
+                <td colSpan={5} className="px-3 py-1.5">
                   {addItemState?.stage === "table" ? (
                     <div className="flex items-center gap-2">
                       <Input
