@@ -407,12 +407,11 @@ export const ChecklistDialog = ({
     currentTeamChecklist.length > 0 && currentTeamChecklist.every((c) => c.completed);
   const prevAllDoneRef = useRef(allCurrentTeamDone);
 
+  const [showCelebration, setShowCelebration] = useState(false);
+
   useEffect(() => {
     if (allCurrentTeamDone && !prevAllDoneRef.current && open) {
-      toast.success("🎉 All tasks complete! Transfer is now unlocked.", {
-        duration: 5000,
-        description: "You can now transfer this project to the next team.",
-      });
+      setShowCelebration(true);
     }
     prevAllDoneRef.current = allCurrentTeamDone;
   }, [allCurrentTeamDone, open]);
@@ -2149,6 +2148,104 @@ export const ChecklistDialog = ({
       </div>
 
       {subDialogs}
+
+      {/* ── Celebration overlay ─────────────────────────────────────── */}
+      {showCelebration && (
+        <TransferUnlockedCelebration onClose={() => setShowCelebration(false)} />
+      )}
     </div>
   );
 };
+
+function TransferUnlockedCelebration({ onClose }: { onClose: () => void }) {
+  const [phase, setPhase] = useState<"enter" | "visible" | "exit">("enter");
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setPhase("visible"), 50);
+    const t2 = setTimeout(() => setPhase("exit"), 4500);
+    const t3 = setTimeout(onClose, 5200);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [onClose]);
+
+  const confetti = Array.from({ length: 60 }, (_, i) => ({
+    id: i,
+    left: `${Math.random() * 100}%`,
+    delay: `${Math.random() * 1.2}s`,
+    duration: `${1.8 + Math.random() * 1.4}s`,
+    color: ["#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6", "#ec4899", "#f97316"][i % 7],
+    size: `${6 + Math.random() * 8}px`,
+    rotate: `${Math.random() * 720}deg`,
+  }));
+
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center"
+      style={{
+        background: phase === "exit"
+          ? "rgba(0,0,0,0)"
+          : phase === "visible"
+          ? "rgba(0,0,0,0.45)"
+          : "rgba(0,0,0,0)",
+        transition: "background 0.5s ease",
+        backdropFilter: phase === "visible" ? "blur(2px)" : "none",
+      }}
+      onClick={onClose}
+    >
+      {/* Confetti */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {confetti.map((c) => (
+          <div
+            key={c.id}
+            className="absolute top-0 rounded-sm"
+            style={{
+              left: c.left,
+              width: c.size,
+              height: c.size,
+              background: c.color,
+              opacity: phase === "visible" ? 1 : 0,
+              animation: phase === "visible"
+                ? `confettiFall ${c.duration} ${c.delay} ease-in forwards`
+                : undefined,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Card */}
+      <div
+        className="relative bg-white dark:bg-card rounded-2xl shadow-2xl px-10 py-10 flex flex-col items-center gap-4 text-center max-w-sm w-full mx-4"
+        style={{
+          transform: phase === "visible" ? "scale(1) translateY(0)" : phase === "exit" ? "scale(0.9) translateY(20px)" : "scale(0.8) translateY(40px)",
+          opacity: phase === "visible" ? 1 : 0,
+          transition: "transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ fontSize: 56, lineHeight: 1 }}>🎉</div>
+        <div>
+          <p className="text-xl font-bold text-foreground leading-tight">All tasks complete!</p>
+          <p className="text-base font-semibold text-primary mt-1">Transfer is now unlocked.</p>
+        </div>
+        <div className="flex items-center gap-2 bg-success/10 text-success-strong rounded-full px-4 py-2 text-sm font-medium">
+          <span>✅</span>
+          <span>You can now transfer this project to the next team.</span>
+        </div>
+        <p className="text-muted-foreground text-sm italic mt-1">Sit back and relax! 🛋️</p>
+        <button
+          onClick={onClose}
+          className="mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+        >
+          Dismiss
+        </button>
+      </div>
+
+      <style>{`
+        @keyframes confettiFall {
+          0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+          80%  { opacity: 0.8; }
+          100% { transform: translateY(100vh) rotate(540deg); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
