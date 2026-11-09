@@ -1589,7 +1589,7 @@ export const ChecklistDialog = ({
                         <td colSpan={6} className="px-4 py-3 border-b border-border/30 bg-muted/5">
                           <div className="space-y-3">
                             {/* Metadata bar: Waiting on | Timeline | Time tracking */}
-                            <div className="flex items-center gap-0 flex-wrap rounded-lg border border-border/40 bg-background divide-x divide-border/40 overflow-hidden">
+                            <div className="flex items-center gap-0 rounded-lg border border-border/40 bg-background divide-x divide-border/40 overflow-hidden">
                               {/* Waiting on */}
                               <div className="flex items-center gap-2 px-3 py-2 min-w-0">
                                 <TooltipProvider>
