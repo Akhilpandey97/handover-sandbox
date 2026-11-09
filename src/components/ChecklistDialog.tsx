@@ -1586,22 +1586,21 @@ export const ChecklistDialog = ({
                     {/* Expanded detail row */}
                     {isExpanded && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-3 border-b border-border/30">
+                        <td colSpan={6} className="px-4 py-3 border-b border-border/30 bg-muted/5">
                           <div className="space-y-3">
-                            {/* Row 1: Responsibility + Due date + Time stats — all inline */}
-                            <div className="flex items-center gap-4 flex-wrap">
-                              <div className="flex items-center gap-2">
+                            {/* Metadata bar: Waiting on | Timeline | Time tracking */}
+                            <div className="flex items-center gap-0 flex-wrap rounded-lg border border-border/40 bg-background divide-x divide-border/40 overflow-hidden">
+                              {/* Waiting on */}
+                              <div className="flex items-center gap-2 px-3 py-2 min-w-0">
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
-                                      <span className="text-xs text-muted-foreground flex items-center gap-1 cursor-default">
-                                        Waiting on{" "}
-                                        <span className="text-muted-foreground/60 text-2xs">ⓘ</span>
+                                      <span className="text-xs font-medium text-muted-foreground flex items-center gap-1 cursor-default whitespace-nowrap">
+                                        Waiting on
+                                        <span className="text-muted-foreground/50 text-2xs leading-none">ⓘ</span>
                                       </span>
                                     </TooltipTrigger>
-                                    <TooltipContent>
-                                      Who is currently responsible for this task
-                                    </TooltipContent>
+                                    <TooltipContent>Who is currently responsible for this task</TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
                                 <ToggleGroup
@@ -1609,24 +1608,24 @@ export const ChecklistDialog = ({
                                   value={item.currentResponsibility}
                                   onValueChange={(v) => handleResponsibilityChange(item.id, v)}
                                   disabled={item.completed || !canEdit}
-                                  className="gap-0 border rounded-lg overflow-hidden"
+                                  className="gap-0 rounded-md overflow-hidden border border-border/50"
                                 >
                                   <ToggleGroupItem
                                     value="gokwik"
-                                    className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white"
+                                    className="text-xs px-2.5 h-6 rounded-none data-[state=on]:bg-primary data-[state=on]:text-white data-[state=off]:text-muted-foreground"
                                   >
                                     <Building2 className="h-3 w-3 mr-1" />
                                     {responsibilityLabels.gokwik}
                                   </ToggleGroupItem>
                                   <ToggleGroupItem
                                     value="neutral"
-                                    className="text-xs px-2.5 py-1 h-7 rounded-none border-x data-[state=on]:bg-muted"
+                                    className="text-xs px-2 h-6 rounded-none border-x border-border/40 data-[state=on]:bg-muted data-[state=off]:text-muted-foreground"
                                   >
                                     <Minus className="h-3 w-3" />
                                   </ToggleGroupItem>
                                   <ToggleGroupItem
                                     value="merchant"
-                                    className="text-xs px-2.5 py-1 h-7 rounded-none data-[state=on]:bg-warning data-[state=on]:text-warning-foreground"
+                                    className="text-xs px-2.5 h-6 rounded-none data-[state=on]:bg-amber-100 data-[state=on]:text-amber-800 data-[state=off]:text-muted-foreground"
                                   >
                                     <Users className="h-3 w-3 mr-1" />
                                     {responsibilityLabels.merchant}
@@ -1634,71 +1633,55 @@ export const ChecklistDialog = ({
                                 </ToggleGroup>
                               </div>
 
-                              <span className="h-4 w-px bg-border/60 hidden sm:block" />
-
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span className="text-xs text-muted-foreground">Start</span>
+                              {/* Timeline */}
+                              <div className="flex items-center gap-2 px-3 py-2">
+                                <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">Start</span>
                                 {canEdit && !item.completed ? (
                                   <Input
                                     type="date"
                                     defaultValue={item.startDate || ""}
-                                    className="h-7 w-32 text-xs px-2 border-border/60"
+                                    className="h-6 w-30 text-xs px-1.5 border-border/50"
                                     onChange={async (e) => {
                                       const nd = e.target.value || null;
-                                      await supabase
-                                        .from("checklist_items")
-                                        .update({ start_date: nd })
-                                        .eq("id", item.id);
+                                      await supabase.from("checklist_items").update({ start_date: nd }).eq("id", item.id);
                                       queryClient.invalidateQueries({ queryKey: ["projects"] });
                                     }}
                                   />
                                 ) : (
-                                  <span className="text-xs font-medium text-foreground">
-                                    {item.startDate ? shortDate(item.startDate) : "—"}
-                                  </span>
+                                  <span className="text-xs font-medium">{item.startDate ? shortDate(item.startDate) : "—"}</span>
                                 )}
-                                <span className="text-xs text-muted-foreground">→ Due</span>
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">→ Due</span>
                                 {canEdit && !item.completed ? (
                                   <Input
                                     type="date"
                                     defaultValue={item.dueDate || ""}
-                                    className="h-7 w-32 text-xs px-2 border-border/60"
+                                    className="h-6 w-30 text-xs px-1.5 border-border/50"
                                     onChange={async (e) => {
                                       const nd = e.target.value || null;
-                                      await supabase
-                                        .from("checklist_items")
-                                        .update({ due_date: nd })
-                                        .eq("id", item.id);
+                                      await supabase.from("checklist_items").update({ due_date: nd }).eq("id", item.id);
                                       queryClient.invalidateQueries({ queryKey: ["projects"] });
                                     }}
                                   />
                                 ) : (
-                                  <span className="text-xs font-medium text-foreground">
-                                    {item.dueDate ? shortDate(item.dueDate) : "—"}
-                                  </span>
+                                  <span className="text-xs font-medium">{item.dueDate ? shortDate(item.dueDate) : "—"}</span>
                                 )}
                               </div>
 
-                              <span className="h-4 w-px bg-border/60 hidden sm:block" />
-
+                              {/* Time tracking */}
                               {(() => {
                                 const ts = calculateTimeByParty(item.responsibilityLog);
                                 return (
-                                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                    <span className="flex items-center gap-1">
+                                  <div className="flex items-center gap-4 px-3 py-2 text-xs">
+                                    <span className="flex items-center gap-1.5 whitespace-nowrap">
                                       <Building2 className="h-3.5 w-3.5 text-primary" />
-                                      {responsibilityLabels.gokwik}:{" "}
-                                      <span className="font-semibold text-foreground">
-                                        {formatDuration(ts.gokwik)}
-                                      </span>
+                                      <span className="text-muted-foreground">{responsibilityLabels.gokwik}:</span>
+                                      <span className="font-semibold text-primary">{formatDuration(ts.gokwik)}</span>
                                     </span>
-                                    <span className="flex items-center gap-1">
-                                      <Users className="h-3.5 w-3.5 text-warning-strong" />
-                                      {responsibilityLabels.merchant}:{" "}
-                                      <span className="font-semibold text-foreground">
-                                        {formatDuration(ts.merchant)}
-                                      </span>
+                                    <span className="flex items-center gap-1.5 whitespace-nowrap">
+                                      <Users className="h-3.5 w-3.5 text-amber-500" />
+                                      <span className="text-muted-foreground">{responsibilityLabels.merchant}:</span>
+                                      <span className="font-semibold text-amber-600">{formatDuration(ts.merchant)}</span>
                                     </span>
                                   </div>
                                 );
@@ -1720,28 +1703,30 @@ export const ChecklistDialog = ({
                               return (
                                 <div className="grid grid-cols-2 gap-3">
                                   {/* Tasks box */}
-                                  <div className="rounded-lg border border-border/50 bg-muted/20 p-3 flex flex-col gap-2">
-                                    <div className="flex items-center gap-2">
+                                  <div className="rounded-lg border border-border/50 bg-background flex flex-col overflow-hidden">
+                                    {/* Header */}
+                                    <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/40">
                                       <ListTodo className="h-3.5 w-3.5 text-muted-foreground" />
-                                      <span className="text-xs font-bold text-foreground">Tasks</span>
+                                      <span className="text-xs font-semibold text-foreground">Tasks</span>
                                       <span className="ml-auto text-2xs text-muted-foreground">
                                         {doneTasks}/{itemTasks.length} done ({pct}%)
                                       </span>
                                     </div>
-                                    <div className="h-1 rounded-full bg-border overflow-hidden">
+                                    {/* Progress bar */}
+                                    <div className="h-0.5 bg-border/30">
                                       <div
-                                        className="h-full bg-primary rounded-full transition-all"
+                                        className="h-full bg-primary transition-all"
                                         style={{ width: `${pct}%` }}
                                       />
                                     </div>
-                                    {itemTasks.length > 0 && (
-                                      <div className="text-2xs text-muted-foreground grid grid-cols-[1fr_auto_auto] gap-x-2 px-1 pb-0.5 border-b border-border/50">
-                                        <span>Task</span>
-                                        <span>Assignee</span>
-                                        <span>Due date</span>
-                                      </div>
-                                    )}
-                                    <div className="space-y-0.5">
+                                    {/* Column headers */}
+                                    <div className="grid grid-cols-[1fr_6rem_6rem_1.5rem] gap-x-2 px-3 py-1.5 text-2xs font-medium text-muted-foreground border-b border-border/30 bg-muted/20">
+                                      <span>Task</span>
+                                      <span>Assignee</span>
+                                      <span>Due date</span>
+                                      <span />
+                                    </div>
+                                    <div className="flex-1 divide-y divide-border/20">
                                       {itemTasks.map((task) => {
                                         const isAwaitingComment =
                                           taskCommentPending?.taskId === task.id;
@@ -1752,8 +1737,8 @@ export const ChecklistDialog = ({
                                           : "—";
                                         return (
                                           <div key={task.id} id={`task-${task.id}`}>
-                                            <div className="group grid grid-cols-[1fr_auto_auto] gap-x-2 items-center rounded px-1 py-1 hover:bg-muted/40">
-                                              <div className="flex items-center gap-1.5 min-w-0">
+                                            <div className="group grid grid-cols-[1fr_6rem_6rem_1.5rem] gap-x-2 items-center px-3 py-2 hover:bg-muted/30">
+                                              <div className="flex items-center gap-2 min-w-0">
                                                 <Checkbox
                                                   checked={task.status === "done"}
                                                   onCheckedChange={(checked) => {
@@ -1771,7 +1756,7 @@ export const ChecklistDialog = ({
                                                       setTaskCommentPending(null);
                                                     }
                                                   }}
-                                                  className="h-3 w-3 shrink-0"
+                                                  className="h-3.5 w-3.5 shrink-0 rounded-full"
                                                 />
                                                 <span
                                                   className={cn(
@@ -1783,30 +1768,28 @@ export const ChecklistDialog = ({
                                                   {task.title}
                                                 </span>
                                               </div>
-                                              <span className="text-2xs text-muted-foreground whitespace-nowrap">
+                                              <span className="text-2xs text-muted-foreground truncate">
                                                 {assigneeName}
                                               </span>
-                                              <div className="flex items-center gap-1">
-                                                <span className="text-2xs text-muted-foreground whitespace-nowrap">
-                                                  {task.due_date ? shortDate(task.due_date) : "—"}
-                                                </span>
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setTaskDialogState({
-                                                      open: true,
-                                                      checklistItemId: item.id,
-                                                      checklistItemTitle: item.title,
-                                                      task,
-                                                    });
-                                                  }}
-                                                >
-                                                  <Pencil className="h-2.5 w-2.5" />
-                                                </Button>
-                                              </div>
+                                              <span className="text-2xs text-muted-foreground whitespace-nowrap">
+                                                {task.due_date ? shortDate(task.due_date) : "—"}
+                                              </span>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setTaskDialogState({
+                                                    open: true,
+                                                    checklistItemId: item.id,
+                                                    checklistItemTitle: item.title,
+                                                    task,
+                                                  });
+                                                }}
+                                              >
+                                                <Pencil className="h-2.5 w-2.5" />
+                                              </Button>
                                             </div>
                                             {isAwaitingComment && (
                                               <div className="ml-5 mt-1 flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-2 py-1">
@@ -1863,12 +1846,12 @@ export const ChecklistDialog = ({
                                         );
                                       })}
                                       {itemTasks.length === 0 && (
-                                        <p className="px-1 py-2 text-2xs text-muted-foreground italic">No tasks yet.</p>
+                                        <p className="px-3 py-3 text-xs text-muted-foreground">No tasks yet.</p>
                                       )}
                                     </div>
                                     <button
                                       type="button"
-                                      className="flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground transition-colors mt-auto pt-1"
+                                      className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30 w-full"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setTaskDialogState({
@@ -1878,32 +1861,33 @@ export const ChecklistDialog = ({
                                         });
                                       }}
                                     >
-                                      <Plus className="h-3 w-3" />
+                                      <Plus className="h-3.5 w-3.5" />
                                       Add task
                                     </button>
                                   </div>
 
                                   {/* Meetings box */}
-                                  <div className="rounded-lg border border-border/50 bg-muted/20 p-3 flex flex-col gap-2">
-                                    <div className="flex items-center gap-2">
+                                  <div className="rounded-lg border border-border/50 bg-background flex flex-col overflow-hidden">
+                                    {/* Header */}
+                                    <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border/40">
                                       <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                                      <span className="text-xs font-bold text-foreground">Meetings</span>
+                                      <span className="text-xs font-semibold text-foreground">Meetings</span>
                                       <span className="ml-auto text-2xs text-muted-foreground">
                                         {itemMeetings.length > 0
                                           ? `${itemMeetings.length} scheduled`
                                           : "None scheduled"}
                                       </span>
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 divide-y divide-border/20">
                                       {itemMeetings.length > 0 ? (
                                         <ChecklistItemMeetings meetings={itemMeetings} />
                                       ) : (
-                                        <p className="px-1 py-2 text-2xs text-muted-foreground italic">No meetings yet.</p>
+                                        <p className="px-3 py-3 text-xs text-muted-foreground">No meetings yet.</p>
                                       )}
                                     </div>
                                     <button
                                       type="button"
-                                      className="flex items-center gap-1 text-2xs text-muted-foreground hover:text-foreground transition-colors mt-auto pt-1"
+                                      className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30 w-full"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setMeetingDialogState({
@@ -1913,7 +1897,7 @@ export const ChecklistDialog = ({
                                         });
                                       }}
                                     >
-                                      <Plus className="h-3 w-3" />
+                                      <Plus className="h-3.5 w-3.5" />
                                       Schedule meeting
                                     </button>
                                   </div>
