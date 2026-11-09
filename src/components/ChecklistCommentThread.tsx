@@ -78,7 +78,7 @@ export const ChecklistCommentThread = ({
   const { data: comments = [], isLoading } = useChecklistComments(checklistItemId);
   const { profiles } = useProfilesLookup();
   const addComment = useAddChecklistComment();
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // A ?comment= link targets a thread that is collapsed by default, so open it
   // before trying to scroll — the comment is not in the DOM until then.
@@ -196,29 +196,32 @@ export const ChecklistCommentThread = ({
   const knownNames = useMemo(() => profiles.map((p) => p.name), [profiles]);
 
   return (
-    <div className="mt-1.5">
-      {/* Comment count & toggle */}
-      {commentCount > 0 && (
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2"
-        >
-          <MessageSquare className="h-3 w-3" />
-          <span className="font-medium">
-            {commentCount} comment{commentCount !== 1 ? "s" : ""}
-          </span>
-          {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        </button>
-      )}
+    <div className="rounded-lg border border-border/40 bg-background overflow-hidden">
+      {/* Discussion header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-foreground" />
+          <span className="text-sm font-bold text-foreground">Discussion</span>
+        </div>
+        {commentCount > 0 && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span>{commentCount} comment{commentCount !== 1 ? "s" : ""}</span>
+            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </button>
+        )}
+      </div>
 
-      {/* Expanded comment list */}
+      {/* Comment list */}
       {isExpanded && commentCount > 0 && (
-        <ScrollArea className="mb-3 max-h-[240px] overflow-y-auto">
-          <div className="space-y-2 pr-2">
+        <ScrollArea className="max-h-[300px] overflow-y-auto">
+          <div className="space-y-0 divide-y divide-border/30">
             {comments.map((c) => (
-              <div key={c.id}>
+              <div key={c.id} className="px-4 py-3">
                 {c.checklist_task_id && taskTitleMap?.[c.checklist_task_id] && (
-                  <p className="mb-0.5 flex items-center gap-1 text-2xs text-muted-foreground">
+                  <p className="mb-1 flex items-center gap-1 text-2xs text-muted-foreground">
                     <span className="inline-block h-3 w-0.5 rounded-full bg-muted-foreground/40" />
                     Re: <span className="font-medium">{taskTitleMap[c.checklist_task_id]}</span>
                   </p>
@@ -235,7 +238,7 @@ export const ChecklistCommentThread = ({
       )}
 
       {/* Add comment form */}
-      <div className="mt-2 flex gap-2">
+      <div className="px-4 py-3 flex gap-2">
         <div className="relative flex-1 space-y-2">
           <Textarea
             ref={textareaRef}
@@ -335,46 +338,50 @@ const CommentBubble = ({
 }) => {
   const isOwn = currentUserId && comment.user_id === currentUserId;
 
+  const initials = comment.user_name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const dateStr = new Date(comment.created_at).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  const timeStr = new Date(comment.created_at).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
-    <div
-      id={`comment-${comment.id}`}
-      className={`text-xs p-2.5 rounded-lg ${
-        isOwn ? "bg-primary/10 border border-primary/20" : "bg-muted/50"
-      }`}
-    >
-      <div className="flex items-center gap-1 text-muted-foreground mb-1">
-        <span className="font-medium text-foreground">{comment.user_name}</span>
-        <span>•</span>
-        <span>
-          {new Date(comment.created_at).toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}
-        </span>
-        <span>
-          {new Date(comment.created_at).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
+    <div id={`comment-${comment.id}`} className="flex items-start gap-3">
+      {/* Avatar */}
+      <div className="h-8 w-8 shrink-0 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-primary-foreground">
+        {initials}
       </div>
-      <p className="text-foreground whitespace-pre-wrap">
-        {renderMentions(comment.comment, knownNames)}
-      </p>
-      {comment.attachment_url && (
-        <button
-          type="button"
-          onClick={async () => {
-            const ok = await openStorageFile("checklist-attachments", comment.attachment_url!);
-            if (!ok) toast.error("Could not open that attachment");
-          }}
-          className="inline-flex items-center gap-1 mt-1.5 text-primary hover:underline"
-        >
-          <FileText className="h-3 w-3" />
-          <span>{comment.attachment_name || "Attachment"}</span>
-        </button>
-      )}
+      {/* Body */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs font-semibold text-foreground">{comment.user_name}</span>
+          <span className="text-2xs text-muted-foreground">{dateStr}, {timeStr}</span>
+        </div>
+        <p className="mt-0.5 text-xs text-foreground whitespace-pre-wrap">
+          {renderMentions(comment.comment, knownNames)}
+        </p>
+        {comment.attachment_url && (
+          <button
+            type="button"
+            onClick={async () => {
+              const ok = await openStorageFile("checklist-attachments", comment.attachment_url!);
+              if (!ok) toast.error("Could not open that attachment");
+            }}
+            className="inline-flex items-center gap-1 mt-1.5 text-xs text-primary hover:underline"
+          >
+            <FileText className="h-3 w-3" />
+            <span>{comment.attachment_name || "Attachment"}</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 };

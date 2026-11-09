@@ -1726,7 +1726,7 @@ export const ChecklistDialog = ({
                                       <span>Due date</span>
                                       <span />
                                     </div>
-                                    <div className="flex-1 divide-y divide-border/20">
+                                    <div className="flex-1 overflow-y-auto max-h-[220px] divide-y divide-border/20">
                                       {itemTasks.map((task) => {
                                         const isAwaitingComment =
                                           taskCommentPending?.taskId === task.id;
@@ -1878,7 +1878,7 @@ export const ChecklistDialog = ({
                                           : "None scheduled"}
                                       </span>
                                     </div>
-                                    <div className="flex-1 divide-y divide-border/20">
+                                    <div className="flex-1 overflow-y-auto max-h-[220px] divide-y divide-border/20">
                                       {itemMeetings.length > 0 ? (
                                         <ChecklistItemMeetings meetings={itemMeetings} />
                                       ) : (
