@@ -1311,13 +1311,6 @@ export const ChecklistDialog = ({
             <div className="flex items-center gap-1.5">
             </div>
           </div>
-          {/* Progress bar */}
-          <div className="mt-2.5 h-1.5 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
         </div>
 
         {/* Task table */}
