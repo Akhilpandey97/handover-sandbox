@@ -1296,22 +1296,6 @@ export const ChecklistDialog = ({
 
       {/* ── Column B: Task table ─────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white dark:bg-background">
-        {/* Stage header */}
-        <div className="shrink-0 border-b border-border/50 px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold text-foreground">
-                {selectedGroupData?.label ?? "—"}
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {selectedGroupData?.completed ?? 0} of {selectedGroupData?.total ?? 0} tasks done
-              </p>
-            </div>
-            <div className="flex items-center gap-1.5">
-            </div>
-          </div>
-        </div>
-
         {/* Task table */}
         <ScrollArea className="flex-1 min-h-0">
           <table className="w-full text-sm">
