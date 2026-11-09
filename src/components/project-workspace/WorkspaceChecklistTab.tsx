@@ -43,6 +43,7 @@ interface Props {
   project: Project;
   onEditProject?: () => void;
   onAssignOwner?: () => void;
+  onTransferProject?: () => void;
 }
 
 function kpiStats(project: Project) {
@@ -359,7 +360,7 @@ function SaveAsTemplateDialog({
   );
 }
 
-export function WorkspaceChecklistTab({ project, onEditProject, onAssignOwner }: Props) {
+export function WorkspaceChecklistTab({ project, onEditProject, onAssignOwner, onTransferProject }: Props) {
   const { currentUser } = useAuth();
   const storageKey = `checklist_view_${project.id}`;
   const [view, setView] = useState<ViewMode>(() => {
@@ -486,6 +487,7 @@ export function WorkspaceChecklistTab({ project, onEditProject, onAssignOwner }:
             variant="inline"
             onEditProject={onEditProject}
             onAssignOwner={onAssignOwner}
+            onTransferProject={onTransferProject}
           />
         )}
         {view === "kanban" && <ChecklistKanbanView project={project} />}

@@ -585,6 +585,7 @@ export const ProjectWorkspaceView = ({
               project={project}
               onEditProject={() => setEditOpen(true)}
               onAssignOwner={canAssignOwner ? () => setAssignOpen(true) : undefined}
+              onTransferProject={isTransferReady ? () => setTransferOpen(true) : undefined}
             />
           </TabsContent>
 

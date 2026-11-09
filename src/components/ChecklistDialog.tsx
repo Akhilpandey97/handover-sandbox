@@ -227,6 +227,7 @@ interface ChecklistDialogProps {
   variant?: "dialog" | "inline";
   onEditProject?: () => void;
   onAssignOwner?: () => void;
+  onTransferProject?: () => void;
 }
 
 export const ChecklistDialog = ({
@@ -236,6 +237,7 @@ export const ChecklistDialog = ({
   variant = "dialog",
   onEditProject,
   onAssignOwner,
+  onTransferProject,
 }: ChecklistDialogProps) => {
   const { updateChecklist, toggleChecklistResponsibility } = useProjects();
   const { currentUser } = useAuth();
@@ -2135,13 +2137,16 @@ export const ChecklistDialog = ({
 
       {/* ── Celebration overlay ─────────────────────────────────────── */}
       {showCelebration && (
-        <TransferUnlockedCelebration onClose={() => setShowCelebration(false)} />
+        <TransferUnlockedCelebration
+          onClose={() => setShowCelebration(false)}
+          onTransfer={onTransferProject}
+        />
       )}
     </div>
   );
 };
 
-function TransferUnlockedCelebration({ onClose }: { onClose: () => void }) {
+function TransferUnlockedCelebration({ onClose, onTransfer }: { onClose: () => void; onTransfer?: () => void }) {
   const [phase, setPhase] = useState<"enter" | "visible" | "exit">("enter");
 
   useEffect(() => {
@@ -2215,12 +2220,14 @@ function TransferUnlockedCelebration({ onClose }: { onClose: () => void }) {
           <span>You can now transfer this project to the next team.</span>
         </div>
         <p className="text-muted-foreground text-sm italic mt-1">Sit back and relax! 🛋️</p>
-        <button
-          onClick={onClose}
-          className="mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-        >
-          Dismiss
-        </button>
+        {onTransfer && (
+          <button
+            onClick={() => { onClose(); onTransfer(); }}
+            className="mt-2 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow hover:bg-primary/90 transition-colors"
+          >
+            → Transfer project
+          </button>
+        )}
       </div>
 
       <style>{`
