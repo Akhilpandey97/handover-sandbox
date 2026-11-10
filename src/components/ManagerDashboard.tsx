@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
@@ -156,7 +156,9 @@ import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
 import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
 import { RevenueArrDashlet } from "./RevenueArrDashlet";
-import { DashboardCharts } from "./DashboardCharts";
+const DashboardCharts = lazy(() =>
+  import("./DashboardCharts").then((m) => ({ default: m.DashboardCharts })),
+);
 import { RevenueSlippageDashlet } from "./RevenueSlippageDashlet";
 import { RevenueAtRiskDashlet } from "./RevenueAtRiskDashlet";
 import { DashletSlot } from "./DashletSlot";
@@ -2241,7 +2243,9 @@ export const ManagerDashboard = () => {
                   });
                   dashlets["charts"] = (
                     <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                      <DashboardCharts projects={displayProjects} />
+                      <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-muted" />}>
+                        <DashboardCharts projects={displayProjects} />
+                      </Suspense>
                     </section>
                   );
                   const dashletLabels: Record<string, string> = {
