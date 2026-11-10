@@ -60,6 +60,7 @@ import {
   Clock,
   ExternalLink,
   Trash2,
+  Pencil,
   Users,
   Timer,
   Sparkles,
@@ -472,6 +473,7 @@ function ItemDetailDialog({
 
   const [commentText, setCommentText] = useState("");
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<ChecklistTask | null>(null);
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
 
   const submitComment = () => {
@@ -622,16 +624,19 @@ function ItemDetailDialog({
                 <div className="h-0.5 bg-border/30">
                   <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
                 </div>
-                <div className="grid grid-cols-[1fr_6rem_6rem] gap-x-2 px-3 py-1.5 text-2xs font-medium text-muted-foreground border-b border-border/30 bg-muted/20">
+                <div className="grid grid-cols-[1fr_5rem_5rem_4rem] gap-x-2 px-3 py-1.5 text-2xs font-medium text-muted-foreground border-b border-border/30 bg-muted/20">
                   <span>Task</span>
+                  <span>Owner</span>
                   <span>Due date</span>
                   <span />
                 </div>
                 <div className="flex-1 overflow-y-auto max-h-[160px] divide-y divide-border/20">
-                  {itemTasks.map((task) => (
+                  {itemTasks.map((task) => {
+                    const owner = profiles.find((p) => p.id === task.assigned_to);
+                    return (
                     <div
                       key={task.id}
-                      className="group grid grid-cols-[1fr_6rem_6rem] gap-x-2 items-center px-3 py-2 hover:bg-muted/30"
+                      className="group grid grid-cols-[1fr_5rem_5rem_4rem] gap-x-2 items-center px-3 py-2 hover:bg-muted/30"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <button
@@ -648,18 +653,40 @@ function ItemDetailDialog({
                           {task.title}
                         </span>
                       </div>
+                      <div className="flex items-center gap-1 min-w-0">
+                        {owner ? (
+                          <>
+                            <UserAvatar name={owner.name} avatarUrl={owner.avatar_url} size="xs" />
+                            <span className="text-2xs text-muted-foreground truncate">{owner.name.split(" ")[0]}</span>
+                          </>
+                        ) : (
+                          <span className="text-2xs text-muted-foreground/40">—</span>
+                        )}
+                      </div>
                       <span className="text-2xs text-muted-foreground whitespace-nowrap">
                         {task.due_date ? shortDate(task.due_date) : "—"}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => deleteTask.mutate(task.id, { onError: () => toast.error("Failed to delete") })}
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => { setEditingTask(task); setTaskDialogOpen(true); }}
+                          className="text-muted-foreground/40 hover:text-primary transition-colors"
+                          title="Edit task"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteTask.mutate(task.id, { onError: () => toast.error("Failed to delete") })}
+                          className="text-muted-foreground/40 hover:text-destructive transition-colors"
+                          title="Delete task"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
-                  ))}
+                    );
+                  })}
                   {itemTasks.length === 0 && (
                     <p className="px-3 py-3 text-xs text-muted-foreground">No tasks yet.</p>
                   )}
@@ -790,12 +817,13 @@ function ItemDetailDialog({
 
     <TaskManagementDialog
       open={taskDialogOpen}
-      onOpenChange={setTaskDialogOpen}
+      onOpenChange={(v) => { setTaskDialogOpen(v); if (!v) setEditingTask(null); }}
       checklistItemId={item.id}
       checklistItemTitle={item.title}
       projectId={project.id}
       projectName={project.merchantName}
       profiles={profiles}
+      task={editingTask ?? undefined}
     />
 
     <MeetingSchedulerDialog
