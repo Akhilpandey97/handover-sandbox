@@ -902,10 +902,14 @@ function KanbanTaskCard({
   task,
   itemId,
   onCycle,
+  onDelete,
+  onEdit,
 }: {
   task: ChecklistTask;
   itemId: string;
   onCycle: () => void;
+  onDelete: () => void;
+  onEdit: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -961,6 +965,22 @@ function KanbanTaskCard({
               <MessageSquare className="h-3 w-3" />{comments.length}
             </span>
           )}
+          <button
+            type="button"
+            title="Edit task"
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            className="text-muted-foreground/30 hover:text-primary transition-colors"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            title="Delete task"
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="text-muted-foreground/30 hover:text-destructive transition-colors"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
           {expanded ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/40" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />}
         </div>
       </div>
@@ -1022,6 +1042,9 @@ function ItemCard({
   onCycleTask: (taskId: string, next: ChecklistTask["status"]) => void;
 }) {
   const [detailOpen, setDetailOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<ChecklistTask | null>(null);
+  const deleteTask = useDeleteChecklistTask();
+  const { profiles } = useProfilesLookup();
   const doneTasks = tasks.filter((t) => t.status === "done").length;
 
   return (
@@ -1075,6 +1098,8 @@ function ItemCard({
             task={t}
             itemId={item.id}
             onCycle={() => onCycleTask(t.id, TASK_STATUS_CYCLE[t.status] || "open")}
+            onDelete={() => deleteTask.mutate(t.id)}
+            onEdit={() => setEditingTask(t)}
           />
         ))}
 
@@ -1135,6 +1160,19 @@ function ItemCard({
           teamLabel={teamLabel}
           open={detailOpen}
           onOpenChange={setDetailOpen}
+        />
+      )}
+
+      {editingTask && (
+        <TaskManagementDialog
+          open={true}
+          onOpenChange={(v) => { if (!v) setEditingTask(null); }}
+          checklistItemId={item.id}
+          checklistItemTitle={item.title}
+          projectId={project.id}
+          projectName={project.merchantName}
+          profiles={profiles}
+          task={editingTask}
         />
       )}
     </>
