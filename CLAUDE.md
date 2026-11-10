@@ -1,5 +1,7 @@
 # Handover Sandbox
 
+> **Always read this file first before doing anything in this repo.**
+
 ## Stack
 
 - TypeScript + React (TanStack Router, TanStack Query)
