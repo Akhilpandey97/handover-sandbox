@@ -5,6 +5,7 @@ import { useUpdateChecklistItem } from "@/hooks/useUpdateChecklistItem";
 import { useProjects } from "@/contexts/ProjectContext";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
+import { useProfilesLookup } from "@/hooks/useLookups";
 import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -449,6 +450,7 @@ function ItemDetailDialog({
   const { toggleChecklistResponsibility } = useProjects();
   const { responsibilityLabels } = useLabels();
   const { currentUser } = useAuth();
+  const { profiles } = useProfilesLookup();
 
   const updateTask = useUpdateChecklistTask();
   const deleteTask = useDeleteChecklistTask();
@@ -497,7 +499,7 @@ function ItemDetailDialog({
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[88vh] flex flex-col p-0 gap-0">
+      <DialogContent className="w-[92vw] max-w-6xl max-h-[90vh] flex flex-col p-0 gap-0">
         {/* Header */}
         <DialogHeader className="px-5 pt-5 pb-4 border-b flex-shrink-0">
           <div className="flex items-start gap-3">
@@ -795,6 +797,7 @@ function ItemDetailDialog({
       checklistItemTitle={item.title}
       projectId={project.id}
       projectName={project.merchantName}
+      profiles={profiles}
     />
 
     <MeetingSchedulerDialog
