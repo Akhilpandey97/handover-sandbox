@@ -3,7 +3,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface NotificationPayload {
-  type: "project_assignment" | "project_transfer" | "project_rejection";
+  type: "project_assignment" | "project_transfer" | "project_rejection" | "task_assigned" | "mention";
   recipientEmail: string;
   recipientName: string;
   projectName: string;

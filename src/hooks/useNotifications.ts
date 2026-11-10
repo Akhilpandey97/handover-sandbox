@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { sendNotification } from "@/utils/sendNotification";
 
 export interface AppNotification {
   id: string;
@@ -40,10 +41,41 @@ export const createNotifications = async (rows: CreateNotificationInput[]) => {
   if (rows.length === 0) return;
   const { error } = await supabase.from("notifications").insert(rows as never);
   if (error) {
-    // Callers fire this without awaiting a result, so a swallowed failure looks
-    // exactly like "notifications are broken" with nothing to go on.
     console.error("Failed to create notifications:", error);
     toast.error("Notification not sent", { description: error.message });
+    return;
+  }
+
+  // Also send an email for each in-app notification (fire-and-forget)
+  const uniqueUserIds = [...new Set(rows.map((r) => r.user_id))];
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, name, email")
+    .in("id", uniqueUserIds);
+
+  const profileMap = new Map<string, { name: string; email: string }>(
+    ((profiles || []) as { id: string; name: string; email: string }[])
+      .filter((p) => p.email)
+      .map((p) => [p.id, { name: p.name, email: p.email }]),
+  );
+
+  for (const row of rows) {
+    const recipient = profileMap.get(row.user_id);
+    if (!recipient) continue;
+    // Only email notification types that have an email template
+    if (!["task_assigned", "mention"].includes(row.type)) continue;
+    void sendNotification({
+      type: row.type as "task_assigned" | "mention",
+      recipientEmail: recipient.email,
+      recipientName: recipient.name,
+      projectName: row.project_name || "a project",
+      assignedBy: row.actor_name || undefined,
+      notes: row.type === "mention" ? (row.body || undefined) : (row.checklist_item_title || undefined),
+      projectId: row.project_id || undefined,
+      checklistItemId: row.checklist_item_id || undefined,
+      taskId: row.task_id || undefined,
+      commentId: row.comment_id || undefined,
+    });
   }
 };
 

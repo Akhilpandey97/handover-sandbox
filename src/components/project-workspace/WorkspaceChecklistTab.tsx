@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { Project } from "@/data/projectsData";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProjectDeepLink } from "@/hooks/useProjectDeepLink";
 import { supabase } from "@/integrations/supabase/client";
 import { ChecklistDialog } from "@/components/ChecklistDialog";
 import { ChecklistKanbanView } from "./ChecklistKanbanView";
@@ -362,6 +363,7 @@ function SaveAsTemplateDialog({
 
 export function WorkspaceChecklistTab({ project, onEditProject, onAssignOwner, onTransferProject }: Props) {
   const { currentUser } = useAuth();
+  const deepLink = useProjectDeepLink();
   const storageKey = `checklist_view_${project.id}`;
   const [view, setView] = useState<ViewMode>(() => {
     try { return (localStorage.getItem(storageKey) as ViewMode) || "list"; } catch { return "list"; }
@@ -488,6 +490,7 @@ export function WorkspaceChecklistTab({ project, onEditProject, onAssignOwner, o
             onEditProject={onEditProject}
             onAssignOwner={onAssignOwner}
             onTransferProject={onTransferProject}
+            initialExpandedItemId={deepLink.item ?? undefined}
           />
         )}
         {view === "kanban" && <ChecklistKanbanView project={project} />}

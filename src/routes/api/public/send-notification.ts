@@ -122,6 +122,39 @@ async function handler(req: Request): Promise<Response> {
           </div>
         </div>
       `;
+    } else if (type === "task_assigned") {
+      subject = `Task assigned to you: ${projectName}`;
+      htmlContent = `
+        <div style="color: #11263b; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: ${brandColor}; padding: 20px; border-radius: 12px 12px 0 0; color: white;">
+            <h1 style="margin: 0; font-size: 20px;">New task assigned</h1>
+          </div>
+          <div style="background: #f7fafc; padding: 24px; border: 1px solid #d5e0e6; border-top: none; border-radius: 0 0 12px 12px;">
+            <p style="margin: 0 0 16px;">Hi <strong>${recipientName}</strong>,</p>
+            <p style="margin: 0 0 16px;">${assignedBy ? `<strong>${assignedBy}</strong> assigned you a task` : "A task has been assigned to you"}:</p>
+            <div style="background: white; border: 1px solid #d5e0e6; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <h2 style="margin: 0 0 4px; color: #11263b; font-size: 16px;">${notes || projectName}</h2>
+              ${projectName ? `<p style="margin: 4px 0 0; color: #546978; font-size: 13px;">Project: ${projectName}</p>` : ""}
+            </div>
+            ${viewProjectBtn || ""}
+          </div>
+        </div>
+      `;
+    } else if (type === "mention") {
+      subject = `${assignedBy || "Someone"} mentioned you — ${projectName}`;
+      htmlContent = `
+        <div style="color: #11263b; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: ${brandColor}; padding: 20px; border-radius: 12px 12px 0 0; color: white;">
+            <h1 style="margin: 0; font-size: 20px;">You were mentioned</h1>
+          </div>
+          <div style="background: #f7fafc; padding: 24px; border: 1px solid #d5e0e6; border-top: none; border-radius: 0 0 12px 12px;">
+            <p style="margin: 0 0 16px;">Hi <strong>${recipientName}</strong>,</p>
+            <p style="margin: 0 0 16px;"><strong>${assignedBy || "Someone"}</strong> mentioned you in a comment on <strong>${projectName}</strong>:</p>
+            ${notes ? `<div style="background: white; border-left: 3px solid ${brandColor}; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 16px; color: #546978; font-size: 14px;">${notes}</div>` : ""}
+            ${viewProjectBtn || ""}
+          </div>
+        </div>
+      `;
     } else {
       throw new Error(`Unknown notification type: ${type}`);
     }
