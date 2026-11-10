@@ -19,9 +19,11 @@ import { toast } from "sonner";
 import {
   MEETING_PROVIDERS,
   MeetingProvider,
+  ChecklistMeeting,
   useAddChecklistMeeting,
+  useUpdateChecklistMeeting,
 } from "@/hooks/useChecklistMeetings";
-import { Video, Plus, Loader2, X, Mail, Wand2 } from "lucide-react";
+import { Video, Plus, Pencil, Loader2, X, Mail, Wand2 } from "lucide-react";
 
 interface MeetingSchedulerDialogProps {
   open: boolean;
@@ -30,6 +32,8 @@ interface MeetingSchedulerDialogProps {
   checklistItemTitle: string;
   projectId: string;
   projectName?: string;
+  /** Pass an existing meeting to open in edit mode. */
+  meeting?: ChecklistMeeting;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -59,8 +63,11 @@ export const MeetingSchedulerDialog = ({
   checklistItemTitle,
   projectId,
   projectName,
+  meeting,
 }: MeetingSchedulerDialogProps) => {
   const addMeeting = useAddChecklistMeeting();
+  const updateMeeting = useUpdateChecklistMeeting();
+  const isEditMode = Boolean(meeting);
 
   const [title, setTitle] = useState("");
   const [agenda, setAgenda] = useState("");
@@ -73,10 +80,24 @@ export const MeetingSchedulerDialog = ({
   const [sendInvite, setSendInvite] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  // A reopened dialog starts on a fresh form, not on the last thing typed.
   useEffect(() => {
-    if (open) resetForm();
-  }, [open]);
+    if (open) {
+      if (meeting) {
+        setTitle(meeting.title);
+        setAgenda(meeting.agenda ?? "");
+        setProvider((meeting.provider as MeetingProvider) ?? "google_meet");
+        setJoinUrl(meeting.join_url ?? "");
+        setScheduledAt(toLocalInput(new Date(meeting.scheduled_at)));
+        setDuration(String(meeting.duration_minutes ?? 30));
+        setAttendees(meeting.attendees ?? []);
+        setAttendeeInput("");
+        setSendInvite(false);
+        setGenerating(false);
+      } else {
+        resetForm();
+      }
+    }
+  }, [open, meeting]);
 
   const providerMeta = useMemo(
     () => MEETING_PROVIDERS.find((p) => p.value === provider)!,
@@ -156,20 +177,33 @@ export const MeetingSchedulerDialog = ({
       }
     }
 
-    await addMeeting.mutateAsync({
-      checklist_item_id: checklistItemId,
-      project_id: projectId,
-      title: title.trim(),
-      agenda: agenda.trim() || undefined,
-      provider,
-      join_url: link,
-      scheduled_at: new Date(scheduledAt).toISOString(),
-      duration_minutes: Number(duration) || 30,
-      attendees: finalAttendees,
-      send_invite: sendInvite,
-      project_name: projectName,
-      checklist_item_title: checklistItemTitle,
-    });
+    if (isEditMode && meeting) {
+      await updateMeeting.mutateAsync({
+        id: meeting.id,
+        title: title.trim(),
+        agenda: agenda.trim() || undefined,
+        provider,
+        join_url: link,
+        scheduled_at: new Date(scheduledAt).toISOString(),
+        duration_minutes: Number(duration) || 30,
+        attendees: finalAttendees,
+      });
+    } else {
+      await addMeeting.mutateAsync({
+        checklist_item_id: checklistItemId,
+        project_id: projectId,
+        title: title.trim(),
+        agenda: agenda.trim() || undefined,
+        provider,
+        join_url: link,
+        scheduled_at: new Date(scheduledAt).toISOString(),
+        duration_minutes: Number(duration) || 30,
+        attendees: finalAttendees,
+        send_invite: sendInvite,
+        project_name: projectName,
+        checklist_item_title: checklistItemTitle,
+      });
+    }
     resetForm();
     onOpenChange(false);
   };
@@ -179,8 +213,8 @@ export const MeetingSchedulerDialog = ({
       <DialogContent className="flex max-h-[80vh] max-w-2xl flex-col">
         <DialogHeader className="space-y-1">
           <DialogTitle className="flex items-center gap-2 text-base">
-            <Video className="h-4 w-4 text-muted-foreground" />
-            Schedule a meeting
+            {isEditMode ? <Pencil className="h-4 w-4 text-muted-foreground" /> : <Video className="h-4 w-4 text-muted-foreground" />}
+            {isEditMode ? "Edit meeting" : "Schedule a meeting"}
           </DialogTitle>
           <p className="truncate text-xs text-muted-foreground">{checklistItemTitle}</p>
         </DialogHeader>
@@ -327,15 +361,17 @@ export const MeetingSchedulerDialog = ({
                 <Button
                   size="sm"
                   className="gap-1"
-                  disabled={!canSave || addMeeting.isPending || generating}
+                  disabled={!canSave || addMeeting.isPending || updateMeeting.isPending || generating}
                   onClick={handleSave}
                 >
-                  {addMeeting.isPending || generating ? (
+                  {addMeeting.isPending || updateMeeting.isPending || generating ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : isEditMode ? (
+                    <Pencil className="h-3 w-3" />
                   ) : (
                     <Plus className="h-3 w-3" />
                   )}
-                  Schedule
+                  {isEditMode ? "Save changes" : "Schedule"}
                 </Button>
               </div>
             </div>

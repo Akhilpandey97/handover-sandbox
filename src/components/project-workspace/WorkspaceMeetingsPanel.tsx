@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { Project } from "@/data/projectsData";
-import { useChecklistMeetings } from "@/hooks/useChecklistMeetings";
+import { useChecklistMeetings, useDeleteChecklistMeeting, ChecklistMeeting } from "@/hooks/useChecklistMeetings";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CalendarDays, ExternalLink, FileText, Search, Users, Video } from "lucide-react";
+import { CalendarDays, ExternalLink, FileText, Pencil, Search, Trash2, Users, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const shortDateTime = (value: string) =>
@@ -31,10 +31,12 @@ const STATUS_TONE: Record<string, string> = {
 
 export const WorkspaceMeetingsPanel = ({ project }: { project: Project }) => {
   const { data: meetings = [], isLoading } = useChecklistMeetings(project.id);
+  const deleteMeeting = useDeleteChecklistMeeting();
   const [dialog, setDialog] = useState<{
     checklistItemId: string;
     checklistItemTitle: string;
   } | null>(null);
+  const [editingMeeting, setEditingMeeting] = useState<ChecklistMeeting | null>(null);
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
   const [search, setSearch] = useState("");
 
@@ -184,6 +186,7 @@ export const WorkspaceMeetingsPanel = ({ project }: { project: Project }) => {
                 <th className="w-20 px-3 py-2 text-left text-xs font-medium text-muted-foreground">
                   Link
                 </th>
+                <th className="w-16 px-3 py-2" />
               </tr>
             </thead>
             <tbody>
@@ -193,7 +196,7 @@ export const WorkspaceMeetingsPanel = ({ project }: { project: Project }) => {
                 return (
                   <tr
                     key={meeting.id}
-                    className="border-b border-border/20 transition-colors hover:bg-muted/10"
+                    className="group border-b border-border/20 transition-colors hover:bg-muted/10"
                   >
                     <td className="px-5 py-2.5 align-middle">
                       <div className="flex items-center gap-2">
@@ -259,6 +262,26 @@ export const WorkspaceMeetingsPanel = ({ project }: { project: Project }) => {
                         <span className="text-xs text-muted-foreground/50">—</span>
                       )}
                     </td>
+                    <td className="px-3 py-2.5 align-middle">
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          title="Edit meeting"
+                          onClick={() => setEditingMeeting(meeting)}
+                          className="text-muted-foreground/40 hover:text-primary transition-colors"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          title="Delete meeting"
+                          onClick={() => deleteMeeting.mutate(meeting.id)}
+                          className="text-muted-foreground/40 hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
@@ -275,6 +298,18 @@ export const WorkspaceMeetingsPanel = ({ project }: { project: Project }) => {
           checklistItemTitle={dialog.checklistItemTitle}
           projectId={project.id}
           projectName={project.merchantName}
+        />
+      )}
+
+      {editingMeeting && (
+        <MeetingSchedulerDialog
+          open={true}
+          onOpenChange={(open) => !open && setEditingMeeting(null)}
+          checklistItemId={editingMeeting.checklist_item_id}
+          checklistItemTitle={itemTitle.get(editingMeeting.checklist_item_id) || ""}
+          projectId={project.id}
+          projectName={project.merchantName}
+          meeting={editingMeeting}
         />
       )}
     </div>

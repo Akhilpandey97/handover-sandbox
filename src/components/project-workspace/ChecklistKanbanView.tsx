@@ -20,6 +20,7 @@ import {
   useChecklistMeetings,
   useAddChecklistMeeting,
   useAnalyseMeeting,
+  useDeleteChecklistMeeting,
   ChecklistMeeting,
   MEETING_PROVIDERS,
 } from "@/hooks/useChecklistMeetings";
@@ -456,6 +457,7 @@ function ItemDetailDialog({
   const updateTask = useUpdateChecklistTask();
   const deleteTask = useDeleteChecklistTask();
   const analyseMeeting = useAnalyseMeeting();
+  const deleteMeeting = useDeleteChecklistMeeting();
   const addComment = useAddChecklistComment();
   const deleteComment = useDeleteChecklistComment();
 
@@ -475,6 +477,7 @@ function ItemDetailDialog({
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ChecklistTask | null>(null);
   const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
+  const [editingMeeting, setEditingMeeting] = useState<ChecklistMeeting | null>(null);
 
   const submitComment = () => {
     if (!commentText.trim()) return;
@@ -715,7 +718,7 @@ function ItemDetailDialog({
                     <p className="px-3 py-3 text-xs text-muted-foreground">No meetings yet.</p>
                   ) : (
                     itemMeetings.map((m) => (
-                      <div key={m.id} className="px-3 py-2.5 flex items-start gap-2 hover:bg-muted/30">
+                      <div key={m.id} className="group px-3 py-2.5 flex items-start gap-2 hover:bg-muted/30">
                         <span className="text-sm flex-shrink-0 mt-0.5">{PROVIDER_ICONS[m.provider] || "📹"}</span>
                         <div className="flex-1 min-w-0">
                           <p className={`text-xs font-medium leading-snug ${m.status === "completed" ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
@@ -737,6 +740,14 @@ function ItemDetailDialog({
                             <Sparkles className="h-3 w-3" />
                             {m.analysis_status === "done" ? "Re-analyse" : "Analyse"}
                           </button>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button type="button" title="Edit" onClick={() => setEditingMeeting(m)} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button type="button" title="Delete" onClick={() => deleteMeeting.mutate(m.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -834,6 +845,18 @@ function ItemDetailDialog({
       projectId={project.id}
       projectName={project.merchantName}
     />
+
+    {editingMeeting && (
+      <MeetingSchedulerDialog
+        open={true}
+        onOpenChange={(open) => !open && setEditingMeeting(null)}
+        checklistItemId={editingMeeting.checklist_item_id}
+        checklistItemTitle={item.title}
+        projectId={project.id}
+        projectName={project.merchantName}
+        meeting={editingMeeting}
+      />
+    )}
     </>
   );
 }
@@ -1052,7 +1075,9 @@ function ItemCard({
 }) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ChecklistTask | null>(null);
+  const [editingMeetingCard, setEditingMeetingCard] = useState<ChecklistMeeting | null>(null);
   const deleteTask = useDeleteChecklistTask();
+  const deleteMeetingCard = useDeleteChecklistMeeting();
   const { profiles } = useProfilesLookup();
   const doneTasks = tasks.filter((t) => t.status === "done").length;
 
@@ -1128,7 +1153,7 @@ function ItemCard({
 
         {/* ── One card per meeting with join button ── */}
         {meetings.map((m) => (
-          <div key={m.id} className="rounded-xl border border-border bg-white dark:bg-card shadow-sm px-3.5 py-2.5 min-h-[64px] flex items-start">
+          <div key={m.id} className="group rounded-xl border border-border bg-white dark:bg-card shadow-sm px-3.5 py-2.5 min-h-[64px] flex items-start">
             <div className="flex items-start gap-2 w-full">
               <span className="flex-shrink-0 text-sm mt-0.5">{PROVIDER_ICONS[m.provider] || "📹"}</span>
               <div className="flex-1 min-w-0">
@@ -1137,17 +1162,27 @@ function ItemCard({
                   <p className="text-2xs text-muted-foreground/60 mt-0.5">{fmtDateTime(m.scheduled_at)}</p>
                 )}
               </div>
-              {m.join_url && (
-                <a
-                  href={m.join_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-shrink-0 text-2xs text-primary hover:underline flex items-center gap-0.5 mt-0.5"
-                >
-                  Join <ExternalLink className="h-3 w-3" />
-                </a>
-              )}
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                {m.join_url && (
+                  <a
+                    href={m.join_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-2xs text-primary hover:underline flex items-center gap-0.5 mt-0.5"
+                  >
+                    Join <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button type="button" onClick={(e) => { e.stopPropagation(); setEditingMeetingCard(m); }} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); deleteMeetingCard.mutate(m.id); }} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ))}
@@ -1182,6 +1217,18 @@ function ItemCard({
           projectName={project.merchantName}
           profiles={profiles}
           task={editingTask}
+        />
+      )}
+
+      {editingMeetingCard && (
+        <MeetingSchedulerDialog
+          open={true}
+          onOpenChange={(open) => !open && setEditingMeetingCard(null)}
+          checklistItemId={item.id}
+          checklistItemTitle={item.title}
+          projectId={project.id}
+          projectName={project.merchantName}
+          meeting={editingMeetingCard}
         />
       )}
     </>
