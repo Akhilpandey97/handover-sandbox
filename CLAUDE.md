@@ -17,6 +17,7 @@
 3. **Disclose gaps.** When completing a task, note anything skipped, not checked, or left as a known shortcut.
 4. **Mark conscious shortcuts.** When taking a deliberate shortcut, add a `// DEBT: <reason>` comment so it's greppable later.
 5. **Read full props before wiring.** When reusing an existing component in a new call site, read its complete props interface before calling it done. Optional props that feed dropdowns, assignees, or lookups (e.g. `profiles`) fail silently with empty UI — always check and pass them.
+6. **"All places X appears" means enumerate first.** For any task that says "add Y to every place X is rendered": run two greps — (a) every file that renders the data type, (b) every file that already has the action — then diff the lists and name every location out loud before writing code. Never search only for files that already have the action; that misses components with no prior actions.
 
 ## Deploy
 
