@@ -185,7 +185,7 @@ export const MeetingSchedulerDialog = ({
           <p className="truncate text-xs text-muted-foreground">{checklistItemTitle}</p>
         </DialogHeader>
 
-        <ScrollArea className="min-h-0 flex-1 pr-3">
+        <div className="min-h-0 flex-1 overflow-y-auto pr-3">
           <div className="space-y-3">
             <div className="space-y-3 rounded-lg border border-border p-3">
               <div className="space-y-1.5">
@@ -340,7 +340,7 @@ export const MeetingSchedulerDialog = ({
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
