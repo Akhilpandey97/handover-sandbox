@@ -499,13 +499,29 @@ export const ProjectWorkspaceView = ({
 
             {/* Row 2: metadata strip + progress */}
             <div className="flex items-center gap-x-4 gap-y-0.5 py-1.5 text-sm flex-wrap">
-              {/* State */}
-              <span className="flex items-center gap-1.5">
-                <span className={cn("h-2 w-2 rounded-full", stateDotClass[project.projectState])} />
-                <span className="text-foreground font-medium">
-                  {stateLabels?.[project.projectState] || projectStateLabels[project.projectState]}
-                </span>
-              </span>
+              {/* State — click to change */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1.5 rounded px-1 -mx-1 hover:bg-accent transition-colors">
+                    <span className={cn("h-2 w-2 rounded-full", stateDotClass[project.projectState])} />
+                    <span className="text-foreground font-medium text-sm">
+                      {stateLabels?.[project.projectState] || projectStateLabels[project.projectState]}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-40">
+                  {PROJECT_STATES.map((s) => (
+                    <DropdownMenuItem
+                      key={s}
+                      onSelect={() => handleStateChange(s)}
+                      className={cn("text-xs gap-2", project.projectState === s && "font-semibold")}
+                    >
+                      <span className={cn("h-2 w-2 rounded-full shrink-0", stateDotClass[s])} />
+                      {stateLabels?.[s] || projectStateLabels[s]}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               {/* Go-live */}
               {project.dates.expectedGoLiveDate && (
                 <span className="flex items-center gap-1 text-muted-foreground">

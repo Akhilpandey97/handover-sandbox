@@ -342,7 +342,7 @@ export const ChecklistDialog = ({
   onTransferProject,
   initialExpandedItemId,
 }: ChecklistDialogProps) => {
-  const { updateChecklist, toggleChecklistResponsibility } = useProjects();
+  const { updateChecklist, toggleChecklistResponsibility, updateProject } = useProjects();
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
   const { teamLabels, responsibilityLabels, stageLabels } = useLabels();
@@ -2054,9 +2054,31 @@ export const ChecklistDialog = ({
                   <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
                     <dt className="text-xs text-muted-foreground">Project state</dt>
                     <dd>
-                      <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", STATE_TONE[project.projectState] || "bg-muted text-muted-foreground")}>
-                        {projectStateLabels[project.projectState as ProjectState] || project.projectState}
-                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium cursor-pointer hover:opacity-80 transition-opacity", STATE_TONE[project.projectState] || "bg-muted text-muted-foreground")}>
+                            {projectStateLabels[project.projectState as ProjectState] || project.projectState}
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-40">
+                          {(["not_started", "in_progress", "on_hold", "blocked", "live"] as ProjectState[]).map((s) => (
+                            <DropdownMenuItem
+                              key={s}
+                              onSelect={() => updateProject({ ...project, projectState: s }, { onSuccess: () => toast.success(`State updated to ${projectStateLabels[s]}`) })}
+                              className={cn("text-xs gap-2", project.projectState === s && "font-semibold")}
+                            >
+                              <span className={cn("h-2 w-2 rounded-full shrink-0", {
+                                "bg-muted-foreground": s === "not_started",
+                                "bg-blue-500": s === "in_progress",
+                                "bg-yellow-500": s === "on_hold",
+                                "bg-red-500": s === "blocked",
+                                "bg-green-500": s === "live",
+                              })} />
+                              {projectStateLabels[s]}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </dd>
                   </div>
                 )}
