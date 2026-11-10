@@ -1487,11 +1487,16 @@ export const ChecklistDialog = ({
                           </span>
                           {/* §8.1 Health & Risk Flags */}
                           {getHealthFlags(item).map((flag) => (
-                            <span
-                              key={flag.key}
-                              title={flag.title}
-                              className={`h-2 w-2 rounded-full shrink-0 ${flag.color}`}
-                            />
+                            <TooltipProvider key={flag.key} delayDuration={100}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className={`h-2 w-2 rounded-full shrink-0 cursor-default ${flag.color}`} />
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  {flag.title}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           ))}
                           <span
                             className={cn(
