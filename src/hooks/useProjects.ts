@@ -467,6 +467,7 @@ const diffProject = (
   check("Stage Comment", oldP.notes.currentStageComment, newP.notes.currentStageComment);
   check("Stage 2 Comment", oldP.notes.stage2Comment, newP.notes.stage2Comment);
   check("Archived", oldP.archived, newP.archived);
+  check("Owner", oldP.assignedOwnerName, newP.assignedOwnerName);
   return changes;
 };
 
@@ -477,10 +478,18 @@ export const useUpdateProject = () => {
 
   return useMutation({
     mutationFn: async (project: Project) => {
-      // Grab the old version for diffing
-      const oldProjects = queryClient.getQueriesData<Project[]>({
-        queryKey: ["projects"],
-      })[0]?.[1] as Project[] | undefined;
+      // Grab the old version for diffing — use the exact cache key so we don't
+      // accidentally pick an unrelated query whose data is still undefined.
+      const oldProjects =
+        queryClient.getQueryData<Project[]>([
+          "projects",
+          currentUser?.tenantId,
+          currentUser?.id,
+        ]) ??
+        // Fall back to prefix search in case the key shape ever changes.
+        (queryClient.getQueriesData<Project[]>({ queryKey: ["projects"] })[0]?.[1] as
+          | Project[]
+          | undefined);
       const oldProject = oldProjects?.find((p) => p.id === project.id);
 
       // Auto-set Actual Go-Live date the moment a project transitions to "live"
