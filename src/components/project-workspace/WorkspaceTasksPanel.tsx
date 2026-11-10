@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Project } from "@/data/projectsData";
-import { useChecklistTasks, useUpdateChecklistTask } from "@/hooks/useChecklistTasks";
+import { useChecklistTasks, useUpdateChecklistTask, useDeleteChecklistTask, ChecklistTask } from "@/hooks/useChecklistTasks";
 import { useProfilesLookup } from "@/hooks/useLookups";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, ChevronDown, ListTodo, Plus, Search } from "lucide-react";
+import { Calendar, ChevronDown, ListTodo, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const shortDate = (value: string | Date) =>
@@ -38,11 +38,13 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
   const { data: tasks = [], isLoading } = useChecklistTasks(project.id);
   const { profiles } = useProfilesLookup();
   const updateTask = useUpdateChecklistTask();
+  const deleteTask = useDeleteChecklistTask();
   const [showDone, setShowDone] = useState(true);
   const [search, setSearch] = useState("");
   const [dialog, setDialog] = useState<{
     checklistItemId: string;
     checklistItemTitle: string;
+    task?: ChecklistTask;
   } | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
@@ -161,6 +163,7 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                 <th className="w-24 px-3 py-2 text-left text-xs font-medium text-muted-foreground">
                   Status
                 </th>
+                <th className="w-16 px-3 py-2" />
               </tr>
             </thead>
             {grouped.map(([checklistItemId, list]) => {
@@ -172,7 +175,7 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                     className="border-b border-border/30 cursor-pointer hover:bg-muted/20"
                     onClick={() => toggleGroup(checklistItemId)}
                   >
-                    <td colSpan={5} className="px-4 py-2">
+                    <td colSpan={6} className="px-4 py-2">
                       <div className="flex items-center gap-2">
                         <ChevronDown
                           className={cn(
@@ -215,7 +218,7 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                         <tr
                           key={task.id}
                           id={`task-${task.id}`}
-                          className="border-b border-border/20 transition-colors hover:bg-muted/10"
+                          className="group border-b border-border/20 transition-colors hover:bg-muted/10"
                         >
                           <td className="px-4 py-2.5 align-middle">
                             <Checkbox
@@ -286,6 +289,26 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                               {STATUS_LABEL[task.status] || task.status}
                             </span>
                           </td>
+                          <td className="px-3 py-2.5 align-middle">
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                type="button"
+                                title="Edit task"
+                                onClick={() => setDialog({ checklistItemId: task.checklist_item_id, checklistItemTitle: itemTitle.get(task.checklist_item_id) || "Task", task })}
+                                className="text-muted-foreground/40 hover:text-primary transition-colors"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                title="Delete task"
+                                onClick={() => deleteTask.mutate(task.id)}
+                                className="text-muted-foreground/40 hover:text-destructive transition-colors"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       );
                     })}
@@ -303,6 +326,8 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
           checklistItemId={dialog.checklistItemId}
           checklistItemTitle={dialog.checklistItemTitle}
           projectId={project.id}
+          profiles={profiles}
+          task={dialog.task}
         />
       )}
     </div>
