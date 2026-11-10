@@ -88,6 +88,7 @@ import { EglRiskDashlet } from "./EglRiskDashlet";
 import { DashletSlot } from "./DashletSlot";
 import { KpiBar, type KpiBoxItem } from "./KpiBar";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { UserProfileDialog } from "./UserProfileDialog";
 
 type UserTab = "dashboard" | "projects" | "hi-there";
 
@@ -100,6 +101,7 @@ export const TeamDashboard = () => {
   const { labels, getLabel, teamLabels, stateLabels } = useLabels();
   const { verdicts } = useProjectRiskVerdicts();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [projectToolbarHost, setProjectToolbarHost] = useState<HTMLDivElement | null>(null);
@@ -769,12 +771,18 @@ export const TeamDashboard = () => {
               sidebarCollapsed && "flex-col gap-1.5",
             )}
           >
-            <span
+            <button
+              type="button"
               title={`${currentUser.name} — ${teamLabels[currentUser.team] || currentUser.team}`}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+              onClick={() => setProfileOpen(true)}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground overflow-hidden hover:ring-2 hover:ring-primary/40 transition-shadow"
             >
-              {currentUser.name.charAt(0)}
-            </span>
+              {currentUser.avatarUrl ? (
+                <img src={currentUser.avatarUrl} alt={currentUser.name} className="h-full w-full object-cover" />
+              ) : (
+                currentUser.name.charAt(0)
+              )}
+            </button>
             {!sidebarCollapsed && (
               <span className="min-w-0 flex-1 text-left">
                 <span className="block truncate text-xs font-medium text-sidebar-foreground">
@@ -1377,6 +1385,8 @@ export const TeamDashboard = () => {
           </div>
         </div>
       </main>
+
+      <UserProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
     </div>
   );
 };

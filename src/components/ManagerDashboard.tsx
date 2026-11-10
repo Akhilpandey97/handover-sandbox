@@ -23,6 +23,7 @@ import { BulkEditDialog, BulkFieldUpdates } from "./BulkEditDialog";
 import { MonthlyGoLiveTracker } from "./MonthlyGoLiveTracker";
 import { KanbanBoard } from "./KanbanBoard";
 import { CSVUploadDialog } from "./CSVUploadDialog";
+import { UserProfileDialog } from "./UserProfileDialog";
 import { AddProjectDialog } from "./AddProjectDialog";
 import { AssignOwnerDialog } from "./AssignOwnerDialog";
 import { EditProjectDialog } from "./EditProjectDialog";
@@ -319,6 +320,7 @@ export const ManagerDashboard = () => {
   );
   const projectIds = useMemo(() => projects.map((p) => p.id), [projects]);
   const { valuesMap: customValuesMap } = useAllCustomFieldValues(projectIds);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [archivedSearch, setArchivedSearch] = useState("");
   // Search is an icon in the sidebar that reveals its input, rather than a
@@ -1665,41 +1667,57 @@ export const ManagerDashboard = () => {
                     type="button"
                     title={`${currentUser?.name} — ${teamLabels[currentUser?.team ?? ""] || "Manager"} · Support access`}
                     aria-label="Support access"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm ring-offset-2 ring-offset-sidebar-background transition-shadow hover:ring-2 hover:ring-primary/40"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm ring-offset-2 ring-offset-sidebar-background transition-shadow hover:ring-2 hover:ring-primary/40 overflow-hidden"
                   >
-                    {currentUser?.name.charAt(0)}
+                    {currentUser?.avatarUrl
+                      ? <img src={currentUser.avatarUrl} alt="" className="h-full w-full object-cover" />
+                      : currentUser?.name.charAt(0)}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent side="top" align="start" className="w-52 p-1.5">
-                  <p className="px-2 pb-1 text-2xs font-medium text-muted-foreground">
-                    Support access
-                  </p>
-                  {myAccess.map((g) => (
-                    <button
-                      key={g.id}
-                      type="button"
-                      onClick={() => enterTenant.mutate(g.tenant_id)}
-                      disabled={g.tenant_id === currentUser?.supportTenantId}
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground hover:bg-muted disabled:opacity-50"
-                    >
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-warning-strong" />
-                      <span className="min-w-0 flex-1 truncate">
-                        {g.tenants?.name || "Workspace"}
-                      </span>
-                      {g.tenant_id === currentUser?.supportTenantId && (
-                        <span className="shrink-0 text-2xs text-muted-foreground">in</span>
-                      )}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setProfileOpen(true)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground hover:bg-muted mb-1"
+                  >
+                    <span className="text-xs font-medium truncate">{currentUser?.name}</span>
+                    <span className="ml-auto text-2xs text-muted-foreground">Edit profile</span>
+                  </button>
+                  <div className="border-t border-border/50 pt-1">
+                    <p className="px-2 pb-1 text-2xs font-medium text-muted-foreground">
+                      Support access
+                    </p>
+                    {myAccess.map((g) => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => enterTenant.mutate(g.tenant_id)}
+                        disabled={g.tenant_id === currentUser?.supportTenantId}
+                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground hover:bg-muted disabled:opacity-50"
+                      >
+                        <ShieldCheck className="h-4 w-4 shrink-0 text-warning-strong" />
+                        <span className="min-w-0 flex-1 truncate">
+                          {g.tenants?.name || "Workspace"}
+                        </span>
+                        {g.tenant_id === currentUser?.supportTenantId && (
+                          <span className="shrink-0 text-2xs text-muted-foreground">in</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </PopoverContent>
               </Popover>
             ) : (
-              <span
-                title={`${currentUser?.name} — ${teamLabels[currentUser?.team ?? ""] || "Manager"}`}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm"
+              <button
+                type="button"
+                title="Edit profile"
+                onClick={() => setProfileOpen(true)}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm hover:ring-2 hover:ring-primary/40 ring-offset-1 ring-offset-sidebar-background transition-shadow overflow-hidden"
               >
-                {currentUser?.name.charAt(0)}
-              </span>
+                {currentUser?.avatarUrl
+                  ? <img src={currentUser.avatarUrl} alt="" className="h-full w-full object-cover" />
+                  : currentUser?.name.charAt(0)}
+              </button>
             )}
 
             {!sidebarCollapsed && (
@@ -3875,6 +3893,7 @@ export const ManagerDashboard = () => {
         </div>
       </main>
 
+      <UserProfileDialog open={profileOpen} onOpenChange={setProfileOpen} />
       <CSVUploadDialog open={csvDialogOpen} onOpenChange={setCsvDialogOpen} />
       <AddProjectDialog
         open={addDialogOpen}

@@ -11,6 +11,7 @@ export interface AuthUser {
   name: string;
   email: string;
   team: TeamRole;
+  avatarUrl?: string | null;
   /**
    * The tenant the app should read and write. While a support session is open
    * this is the customer's tenant, so everything downstream lands in the right
@@ -134,6 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           name: (profile as any).name,
           email: (profile as any).email,
           team: team,
+          avatarUrl: (profile as any).avatar_url ?? null,
           tenantId: supportTenant ?? homeTenantId,
           homeTenantId,
           supportTenantId: supportTenant,
