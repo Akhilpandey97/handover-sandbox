@@ -3,6 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Project, ProjectChecklist, calculateTimeByParty, formatDuration, ResponsibilityParty } from "@/data/projectsData";
 import { useUpdateChecklistItem } from "@/hooks/useUpdateChecklistItem";
 import { useProjects } from "@/contexts/ProjectContext";
+import { TaskManagementDialog } from "@/components/TaskManagementDialog";
+import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -450,7 +452,6 @@ function ItemDetailDialog({
 
   const updateTask = useUpdateChecklistTask();
   const deleteTask = useDeleteChecklistTask();
-  const addTask = useAddChecklistTask();
   const analyseMeeting = useAnalyseMeeting();
   const addComment = useAddChecklistComment();
   const deleteComment = useDeleteChecklistComment();
@@ -468,23 +469,14 @@ function ItemDetailDialog({
   const ts = calculateTimeByParty(item.responsibilityLog ?? []);
 
   const [commentText, setCommentText] = useState("");
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDue, setNewTaskDue] = useState("");
-  const [addingTask, setAddingTask] = useState(false);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [meetingDialogOpen, setMeetingDialogOpen] = useState(false);
 
   const submitComment = () => {
     if (!commentText.trim()) return;
     addComment.mutate(
       { checklistItemId: item.id, comment: commentText.trim() },
       { onSuccess: () => setCommentText("") },
-    );
-  };
-
-  const handleAddTask = () => {
-    if (!newTaskTitle.trim()) return;
-    addTask.mutate(
-      { checklist_item_id: item.id, project_id: project.id, title: newTaskTitle.trim(), due_date: newTaskDue || undefined },
-      { onSuccess: () => { setNewTaskTitle(""); setNewTaskDue(""); setAddingTask(false); }, onError: () => toast.error("Failed to add task") },
     );
   };
 
@@ -503,8 +495,9 @@ function ItemDetailDialog({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[88vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-4xl max-h-[88vh] flex flex-col p-0 gap-0">
         {/* Header */}
         <DialogHeader className="px-5 pt-5 pb-4 border-b flex-shrink-0">
           <div className="flex items-start gap-3">
@@ -670,32 +663,13 @@ function ItemDetailDialog({
                   )}
                 </div>
 
-                {/* Inline add task */}
-                {addingTask ? (
-                  <div className="border-t border-border/30 px-3 py-2 space-y-1.5">
-                    <Input
-                      autoFocus
-                      placeholder="Task title"
-                      value={newTaskTitle}
-                      onChange={(e) => setNewTaskTitle(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleAddTask(); if (e.key === "Escape") setAddingTask(false); }}
-                      className="h-7 text-xs"
-                    />
-                    <div className="flex items-center gap-1.5">
-                      <Input type="date" value={newTaskDue} onChange={(e) => setNewTaskDue(e.target.value)} className="h-6 text-xs flex-1" />
-                      <Button size="sm" className="h-6 px-2 text-2xs" onClick={handleAddTask} disabled={!newTaskTitle.trim() || addTask.isPending}>Add</Button>
-                      <Button size="sm" variant="ghost" className="h-6 px-2 text-2xs text-muted-foreground" onClick={() => setAddingTask(false)}>Cancel</Button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30 w-full"
-                    onClick={() => setAddingTask(true)}
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Add task
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30 w-full"
+                  onClick={() => setTaskDialogOpen(true)}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add task
+                </button>
               </div>
 
               {/* Meetings box */}
@@ -739,13 +713,13 @@ function ItemDetailDialog({
                     ))
                   )}
                 </div>
-                <AddMeetingInline
-                  itemId={item.id}
-                  itemTitle={item.title}
-                  projectId={project.id}
-                  projectName={project.merchantName}
-                  currentUserEmail={currentUser?.email}
-                />
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30 w-full"
+                  onClick={() => setMeetingDialogOpen(true)}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Schedule meeting
+                </button>
               </div>
             </div>
 
@@ -813,6 +787,25 @@ function ItemDetailDialog({
         </ScrollArea>
       </DialogContent>
     </Dialog>
+
+    <TaskManagementDialog
+      open={taskDialogOpen}
+      onOpenChange={setTaskDialogOpen}
+      checklistItemId={item.id}
+      checklistItemTitle={item.title}
+      projectId={project.id}
+      projectName={project.merchantName}
+    />
+
+    <MeetingSchedulerDialog
+      open={meetingDialogOpen}
+      onOpenChange={setMeetingDialogOpen}
+      checklistItemId={item.id}
+      checklistItemTitle={item.title}
+      projectId={project.id}
+      projectName={project.merchantName}
+    />
+    </>
   );
 }
 
