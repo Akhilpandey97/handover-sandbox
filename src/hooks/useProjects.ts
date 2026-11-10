@@ -1117,20 +1117,6 @@ export const useUpdateChecklist = () => {
           },
         });
 
-        // Fire a local toast when marking an item done — no DB row needed
-        if (variables.completed) {
-          window.dispatchEvent(
-            new CustomEvent("app:notification", {
-              detail: {
-                id: `local-${variables.checklistId}`,
-                type: "checklist_completed",
-                title: `✓ ${itemTitle}`,
-                body: "Checklist item marked complete",
-                actor_name: currentUser?.name ?? null,
-              },
-            }),
-          );
-        }
       }
     },
   });
