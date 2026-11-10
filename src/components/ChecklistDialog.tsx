@@ -228,6 +228,7 @@ interface ChecklistDialogProps {
   onEditProject?: () => void;
   onAssignOwner?: () => void;
   onTransferProject?: () => void;
+  initialExpandedItemId?: string;
 }
 
 export const ChecklistDialog = ({
@@ -238,6 +239,7 @@ export const ChecklistDialog = ({
   onEditProject,
   onAssignOwner,
   onTransferProject,
+  initialExpandedItemId,
 }: ChecklistDialogProps) => {
   const { updateChecklist, toggleChecklistResponsibility } = useProjects();
   const { currentUser } = useAuth();
@@ -316,7 +318,7 @@ export const ChecklistDialog = ({
   const [groupBy, setGroupBy] = useState<"teams" | "stages">("teams");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [detailsTab, setDetailsTab] = useState<"details" | "people" | "activity">("details");
-  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(initialExpandedItemId ?? null);
 
   // §4.3 Bulk edit mode
   const [bulkSelectMode, setBulkSelectMode] = useState(false);

@@ -201,14 +201,15 @@ export const TeamDashboard = () => {
   };
 
   const myTeam = currentUser?.team ?? "";
+  const myUserId = currentUser?.id ?? "";
 
-  // Projects currently owned by this team (active)
+  // Projects personally assigned to me (active pipeline)
   const activeProjects = useMemo(
-    () => projects.filter((p) => !p.archived && p.currentOwnerTeam === myTeam),
-    [projects, myTeam],
+    () => projects.filter((p) => !p.archived && p.assignedOwner === myUserId),
+    [projects, myUserId],
   );
 
-  // Projects previously owned by this team but now transferred out
+  // Projects my team previously owned but have since been transferred out
   const historicalProjects = useMemo(
     () =>
       projects.filter(
