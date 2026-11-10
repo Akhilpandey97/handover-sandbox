@@ -156,6 +156,7 @@ import { RiskBadge } from "./RiskBadge";
 import { EglRiskDashlet } from "./EglRiskDashlet";
 import { AttentionRequiredDashlet } from "./AttentionRequiredDashlet";
 import { RevenueArrDashlet } from "./RevenueArrDashlet";
+import { DashboardCharts } from "./DashboardCharts";
 import { RevenueSlippageDashlet } from "./RevenueSlippageDashlet";
 import { RevenueAtRiskDashlet } from "./RevenueAtRiskDashlet";
 import { DashletSlot } from "./DashletSlot";
@@ -306,6 +307,7 @@ export const ManagerDashboard = () => {
   } = useDashletOrder(
     [
       "kpi",
+      "charts",
       "revenue-arr",
       "workload",
       "revenue-slippage",
@@ -2237,8 +2239,14 @@ export const ManagerDashboard = () => {
                       />
                     );
                   });
+                  dashlets["charts"] = (
+                    <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
+                      <DashboardCharts projects={displayProjects} />
+                    </section>
+                  );
                   const dashletLabels: Record<string, string> = {
                     kpi: "KPI bar",
+                    charts: "Charts & Analytics",
                     "revenue-arr": "Revenue Overview",
                     workload: "Team workload",
                     "revenue-slippage": "Revenue Slippage",
@@ -2278,7 +2286,7 @@ export const ManagerDashboard = () => {
                             <DashletSlot
                               key={id}
                               className={
-                                id === "kpi" || id === "workload" || id === "revenue-arr"
+                                id === "kpi" || id === "charts" || id === "workload" || id === "revenue-arr"
                                   ? "lg:col-span-2"
                                   : "lg:col-span-1"
                               }
