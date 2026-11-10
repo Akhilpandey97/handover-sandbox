@@ -1074,6 +1074,8 @@ function ItemCard({
   onCycleTask: (taskId: string, next: ChecklistTask["status"]) => void;
 }) {
   const [detailOpen, setDetailOpen] = useState(false);
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
+  const [addMeetingOpen, setAddMeetingOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ChecklistTask | null>(null);
   const [editingMeetingCard, setEditingMeetingCard] = useState<ChecklistMeeting | null>(null);
   const deleteTask = useDeleteChecklistTask();
@@ -1137,10 +1139,9 @@ function ItemCard({
           />
         ))}
 
-        {/* ── Add task triggers detail dialog ── */}
         <button
           type="button"
-          onClick={() => setDetailOpen(true)}
+          onClick={() => setAddTaskOpen(true)}
           className="flex items-center gap-1 text-xs text-muted-foreground/50 hover:text-primary transition-colors px-1"
         >
           <Plus className="h-3.5 w-3.5" /> Add task
@@ -1189,7 +1190,7 @@ function ItemCard({
 
         <button
           type="button"
-          onClick={() => setDetailOpen(true)}
+          onClick={() => setAddMeetingOpen(true)}
           className="flex items-center gap-1 text-xs text-muted-foreground/50 hover:text-primary transition-colors px-1"
         >
           <Plus className="h-3.5 w-3.5" /> Schedule meeting
@@ -1206,6 +1207,25 @@ function ItemCard({
           onOpenChange={setDetailOpen}
         />
       )}
+
+      <TaskManagementDialog
+        open={addTaskOpen}
+        onOpenChange={setAddTaskOpen}
+        checklistItemId={item.id}
+        checklistItemTitle={item.title}
+        projectId={project.id}
+        projectName={project.merchantName}
+        profiles={profiles}
+      />
+
+      <MeetingSchedulerDialog
+        open={addMeetingOpen}
+        onOpenChange={setAddMeetingOpen}
+        checklistItemId={item.id}
+        checklistItemTitle={item.title}
+        projectId={project.id}
+        projectName={project.merchantName}
+      />
 
       {editingTask && (
         <TaskManagementDialog
