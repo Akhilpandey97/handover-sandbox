@@ -433,7 +433,7 @@ const diffProject = (
     const n = newVal == null ? "" : String(newVal);
     if (o !== n) changes.push({ field: label, from: o, to: n });
   };
-  check("Merchant Name", oldP.merchantName, newP.merchantName);
+  check("Customer Name", oldP.merchantName, newP.merchantName);
   check("MID", oldP.mid, newP.mid);
   check("Platform", oldP.platform, newP.platform);
   check("ARR", oldP.arr, newP.arr);
