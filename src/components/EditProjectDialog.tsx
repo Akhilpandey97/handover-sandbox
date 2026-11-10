@@ -368,7 +368,7 @@ export const EditProjectDialog = ({
               </TabsTrigger>
               <TabsTrigger value="links" className="gap-1 text-xs">
                 <Link2 className="h-3 w-3" />
-                Links
+                Documents
               </TabsTrigger>
               {canManageCredentials && (
                 <TabsTrigger value="credentials" className="gap-1 text-xs">

@@ -163,6 +163,7 @@ interface PortalData {
     status: string;
     due_date: string | null;
     checklist_item_id: string;
+    assigned_to_ext: string | null;
   }[];
 }
 
@@ -1253,7 +1254,7 @@ export default function MerchantPortal() {
             <CredentialsPage project={project} credentials={data.credentials} />
           )}
           {activePage === "documents" && (
-            <DocumentsPage data={data} setActivePage={setActivePage} />
+            <DocumentsPage data={data} setActivePage={setActivePage} token={token!} onUploaded={refreshData} />
           )}
           {activePage === "brd" && <BrdPage token={token!} onProgress={refreshData} />}
           {activePage === "kwikpass" && project.enable_kp && (
@@ -2123,10 +2124,38 @@ function CredentialField({
 function DocumentsPage({
   data,
   setActivePage,
+  token,
+  onUploaded,
 }: {
   data: PortalData;
   setActivePage: (p: NavPage) => void;
+  token: string;
+  onUploaded: () => void;
 }) {
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const customerUploads = (data.uploads || []).filter(
+    (u) => u.upload_type === "customer_document" || u.uploaded_by === "merchant",
+  );
+
+  const handleFileUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("token", token);
+      form.append("upload_type", "customer_document");
+      const res = await fetch(`${API_URL}/upload`, { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || "Upload failed");
+      onUploaded();
+    } catch (err: any) {
+      alert(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
   const docs: {
     icon: React.ReactNode;
     title: string;
@@ -2266,6 +2295,62 @@ function DocumentsPage({
           <p className="text-sm text-muted-foreground">No documents shared yet</p>
         </Card>
       )}
+
+      {/* ── Customer document uploads ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Your Documents</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Upload documents you'd like to share with the team.</p>
+          </div>
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-60"
+            style={{ background: BRAND.primary }}
+          >
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {uploading ? "Uploading…" : "Upload document"}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) { handleFileUpload(f); e.target.value = ""; }
+            }}
+          />
+        </div>
+
+        {customerUploads.length > 0 ? (
+          <div className="space-y-3">
+            {customerUploads.map((u) => (
+              <Card key={u.id} className="p-4 flex items-center gap-4">
+                <div className="w-9 h-9 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{u.file_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(u.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                </div>
+                <a href={u.file_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs font-medium text-primary hover:underline flex-shrink-0">
+                  View <ExternalLink className="w-3 h-3" />
+                </a>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="p-6 text-center">
+            <Upload className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

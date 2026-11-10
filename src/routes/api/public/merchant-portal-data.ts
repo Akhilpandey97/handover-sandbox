@@ -742,7 +742,7 @@ async function handler(req: Request): Promise<Response> {
       .maybeSingle();
     if (projectError || !project) return json({ error: "Project not found" }, 404);
 
-    const [checklistRes, ownerRes, customFieldsRes, customValsRes, uploadsRes, credentialsRes] =
+    const [checklistRes, ownerRes, customFieldsRes, customValsRes, uploadsRes, credentialsRes, tasksRes] =
       await Promise.all([
         supabase
           .from("checklist_items")
@@ -773,6 +773,13 @@ async function handler(req: Request): Promise<Response> {
           .eq("project_id", projectId)
           .order("created_at", { ascending: false }),
         supabase.from("project_credentials").select("*").eq("project_id", projectId).maybeSingle(),
+        // Customer-visible tasks assigned to the merchant
+        supabase
+          .from("checklist_tasks")
+          .select("id, title, description, status, due_date, checklist_item_id, assigned_to_ext")
+          .eq("project_id", projectId)
+          .eq("is_client_visible", true)
+          .order("created_at", { ascending: true }),
       ]);
     const projectCredentials = (credentialsRes as any).data ?? {};
 
@@ -986,6 +993,15 @@ async function handler(req: Request): Promise<Response> {
       uploads,
       brd_progress: brdProgress,
       brd_configured: brdConfigured,
+      tasks: ((tasksRes as any).data ?? []).map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        status: t.status,
+        due_date: t.due_date,
+        checklist_item_id: t.checklist_item_id,
+        assigned_to_ext: t.assigned_to_ext,
+      })),
     });
   } catch (err) {
     console.error("merchant-portal-data error:", err);

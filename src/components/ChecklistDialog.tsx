@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useFormAssignments, useFormTemplates } from "@/hooks/useChecklistForms";
+import { useMerchantPortalUploads } from "@/hooks/useMerchantPortalUploads";
 import { useChecklistSets } from "@/hooks/useChecklistSets";
 import { useTeams } from "@/hooks/useTeams";
 import { useProfilesLookup, useChecklistTemplateTitles } from "@/hooks/useLookups";
@@ -406,6 +407,8 @@ export const ChecklistDialog = ({
 
   const [commentPrompt, setCommentPrompt] = useState<{ itemId: string; at: number } | null>(null);
   const { profiles } = useProfilesLookup();
+  const { data: portalUploads = [] } = useMerchantPortalUploads(project?.id);
+  const customerUploads = portalUploads.filter((u) => u.upload_type === "customer_document" || u.uploaded_by === "merchant");
 
   const [formDialogState, setFormDialogState] = useState<{
     open: boolean;
@@ -2185,31 +2188,52 @@ export const ChecklistDialog = ({
               </dl>
 
               {/* Attachments section */}
-              <div className="mt-4 border-t border-border/50 pt-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-foreground">
-                    Attachments ({(project.links.brdLink ? 1 : 0) + (project.links.sowLink ? 1 : 0)})
-                  </span>
+              <div className="mt-4 border-t border-border/50 pt-3 space-y-3">
+                {/* Internal documents */}
+                <div>
+                  <span className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground/60">Internal</span>
+                  <div className="mt-1 space-y-0.5">
+                    {project.links.brdLink && (
+                      <a href={project.links.brdLink} target="_blank" rel="noreferrer"
+                        className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
+                        <FileStack className="h-4 w-4 text-destructive shrink-0" />
+                        <div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">BRD Document</p></div>
+                        <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                      </a>
+                    )}
+                    {project.links.sowLink && (
+                      <a href={project.links.sowLink} target="_blank" rel="noreferrer"
+                        className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
+                        <FileText className="h-4 w-4 text-info shrink-0" />
+                        <div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">SOW Document</p></div>
+                        <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                      </a>
+                    )}
+                    {!project.links.brdLink && !project.links.sowLink && (
+                      <p className="text-xs text-muted-foreground/60 px-1.5">None yet.</p>
+                    )}
+                  </div>
                 </div>
-                {project.links.brdLink && (
-                  <a href={project.links.brdLink} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
-                    <FileStack className="h-4 w-4 text-destructive shrink-0" />
-                    <div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">BRD Document</p></div>
-                    <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
-                  </a>
-                )}
-                {project.links.sowLink && (
-                  <a href={project.links.sowLink} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
-                    <FileText className="h-4 w-4 text-info shrink-0" />
-                    <div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">SOW Document</p></div>
-                    <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
-                  </a>
-                )}
-                {!project.links.brdLink && !project.links.sowLink && (
-                  <p className="text-xs text-muted-foreground">No attachments yet.</p>
-                )}
+
+                {/* Customer-uploaded documents */}
+                <div>
+                  <span className="text-2xs font-semibold uppercase tracking-widest text-muted-foreground/60">Customer uploads</span>
+                  <div className="mt-1 space-y-0.5">
+                    {customerUploads.length > 0 ? customerUploads.map((u) => (
+                      <a key={u.id} href={u.file_url} target="_blank" rel="noreferrer"
+                        className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
+                        <FileText className="h-4 w-4 text-primary/70 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate">{u.file_name}</p>
+                          <p className="text-2xs text-muted-foreground/60">{new Date(u.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>
+                        </div>
+                        <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
+                      </a>
+                    )) : (
+                      <p className="text-xs text-muted-foreground/60 px-1.5">No customer uploads yet.</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
