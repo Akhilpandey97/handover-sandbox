@@ -168,7 +168,7 @@ export const TaskManagementDialog = ({
             {profiles.length > 0 && (
               <Select value={newAssignedTo} onValueChange={setNewAssignedTo}>
                 <SelectTrigger className="h-8 w-36 text-xs">
-                  <SelectValue placeholder="Internal assignee..." />
+                  <SelectValue placeholder="Task owner..." />
                 </SelectTrigger>
                 <SelectContent>
                   {profiles.map((p) => (
