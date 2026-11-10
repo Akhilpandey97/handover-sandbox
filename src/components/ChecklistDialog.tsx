@@ -402,6 +402,7 @@ export const ChecklistDialog = ({
 
   const deepLink = useProjectDeepLink();
   useScrollToAnchor(deepLink.task ? `task-${deepLink.task}` : null, !!project);
+  useScrollToAnchor(deepLink.item ? `checklist-item-${deepLink.item}` : null, !!project);
 
   const [commentPrompt, setCommentPrompt] = useState<{ itemId: string; at: number } | null>(null);
   const { profiles } = useProfilesLookup();
@@ -620,6 +621,16 @@ export const ChecklistDialog = ({
       total: (groupedByTeam[team] || []).filter((i) => !i.isTask).length,
     }));
   }, [groupBy, checklist, orderedTeams, groupedByTeam]);
+
+  // When a deep-link item id arrives (or changes), switch to the group that contains it
+  // and open the item panel. This handles both first load and navigating to a second
+  // notification while already on the project page.
+  useEffect(() => {
+    if (!initialExpandedItemId || activeGroups.length === 0) return;
+    const group = activeGroups.find((g) => g.items.some((i) => i.id === initialExpandedItemId));
+    if (group) setSelectedGroup(group.key);
+    setExpandedItemId(initialExpandedItemId);
+  }, [initialExpandedItemId, activeGroups]);
 
   const effectiveSelectedGroup =
     selectedGroup && activeGroups.some((g) => g.key === selectedGroup)

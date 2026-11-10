@@ -53,6 +53,7 @@ async function handler(req: Request): Promise<Response> {
     const RESEND_API_KEY = requireCred(creds, "resend_api_key", "Resend email");
 
     const link = projectUrl(creds, projectId, {
+      tab: "checklists",
       item: checklistItemId,
       task: taskId,
       comment: commentId,
