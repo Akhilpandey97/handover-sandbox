@@ -3,6 +3,7 @@ import { Project } from "@/data/projectsData";
 import { useChecklistTasks, useUpdateChecklistTask } from "@/hooks/useChecklistTasks";
 import { useProfilesLookup } from "@/hooks/useLookups";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -244,15 +245,15 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                           <td className="px-3 py-2.5 align-middle">
                             {task.assigned_to ? (
                               <div className="flex items-center gap-1.5">
-                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
-                                  {initials(
-                                    profiles.find((p) => p.id === task.assigned_to)?.name || "?",
-                                  )}
-                                </span>
-                                <span className="truncate text-xs">
-                                  {profiles.find((p) => p.id === task.assigned_to)?.name ||
-                                    "Assigned"}
-                                </span>
+                                {(() => {
+                                  const p = profiles.find((p) => p.id === task.assigned_to);
+                                  return (
+                                    <>
+                                      <UserAvatar name={p?.name || "?"} avatarUrl={p?.avatar_url} size="xs" />
+                                      <span className="truncate text-xs">{p?.name || "Assigned"}</span>
+                                    </>
+                                  );
+                                })()}
                               </div>
                             ) : (
                               <span className="text-xs text-muted-foreground/50">—</span>

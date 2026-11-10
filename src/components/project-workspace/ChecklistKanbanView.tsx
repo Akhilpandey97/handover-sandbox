@@ -6,6 +6,7 @@ import { useProjects } from "@/contexts/ProjectContext";
 import { TaskManagementDialog } from "@/components/TaskManagementDialog";
 import { MeetingSchedulerDialog } from "@/components/MeetingSchedulerDialog";
 import { useProfilesLookup } from "@/hooks/useLookups";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useLabels } from "@/contexts/LabelsContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -337,6 +338,7 @@ function TaskRow({
   const [expanded, setExpanded] = useState(false);
   const [commentText, setCommentText] = useState("");
   const { currentUser } = useAuth();
+  const { profiles } = useProfilesLookup();
   const addComment = useAddChecklistComment();
   const deleteComment = useDeleteChecklistComment();
   const { data: taskComments = [] } = useChecklistComments(expanded ? itemId : null);
@@ -393,9 +395,7 @@ function TaskRow({
         <div className="border-t border-border/60 px-3.5 py-3 bg-background/60 space-y-2">
           {comments.map((c) => (
             <div key={c.id} className="flex items-start gap-2">
-              <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center text-2xs font-bold text-primary flex-shrink-0">
-                {c.user_name?.[0]?.toUpperCase() || "?"}
-              </div>
+              <UserAvatar name={c.user_name || "?"} avatarUrl={profiles.find((p) => p.id === c.user_id)?.avatar_url} size="xs" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-2xs font-semibold">{c.user_name}</span>
@@ -737,9 +737,7 @@ function ItemDetailDialog({
               <div className="px-3 py-3 space-y-3">
                 {itemComments.map((c) => (
                   <div key={c.id} className="flex items-start gap-2.5">
-                    <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-2xs font-bold text-primary flex-shrink-0 mt-0.5">
-                      {c.user_name?.[0]?.toUpperCase() || "?"}
-                    </div>
+                    <UserAvatar name={c.user_name || "?"} avatarUrl={profiles.find((p) => p.id === c.user_id)?.avatar_url} size="sm" className="mt-0.5" />
                     <div className="flex-1 min-w-0 rounded-lg bg-muted/30 px-3 py-2">
                       <div className="flex items-baseline gap-2">
                         <span className="text-xs font-semibold">{c.user_name}</span>
@@ -884,6 +882,7 @@ function KanbanTaskCard({
   const [expanded, setExpanded] = useState(false);
   const [commentText, setCommentText] = useState("");
   const { currentUser } = useAuth();
+  const { profiles } = useProfilesLookup();
   const addComment = useAddChecklistComment();
   const deleteComment = useDeleteChecklistComment();
   const { data: allItemComments = [] } = useChecklistComments(expanded ? itemId : null);
@@ -943,9 +942,7 @@ function KanbanTaskCard({
         <div className="border-t border-border/50 px-3.5 py-2.5 bg-muted/20 space-y-2">
           {comments.map((c) => (
             <div key={c.id} className="flex items-start gap-2">
-              <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center text-2xs font-bold text-primary flex-shrink-0">
-                {c.user_name?.[0]?.toUpperCase() || "?"}
-              </div>
+              <UserAvatar name={c.user_name || "?"} avatarUrl={profiles.find((p) => p.id === c.user_id)?.avatar_url} size="xs" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-2xs font-semibold">{c.user_name}</span>

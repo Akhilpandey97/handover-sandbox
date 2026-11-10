@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { tenantScope } from "@/lib/tenant-scope";
 
-const EMPTY_PROFILES: { id: string; name: string }[] = [];
+export type ProfileEntry = { id: string; name: string; avatar_url?: string | null };
+const EMPTY_PROFILES: ProfileEntry[] = [];
 
-/** Cached id -> name profile lookup for the current workspace (shared across all components). */
+/** Cached id -> name/avatar profile lookup for the current workspace (shared across all components). */
 export const useProfilesLookup = () => {
   const { currentUser } = useAuth();
   const tenantId = tenantScope(currentUser?.tenantId);
@@ -17,10 +18,10 @@ export const useProfilesLookup = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, name")
+        .select("id, name, avatar_url")
         .eq("tenant_id", tenantId);
       if (error) throw error;
-      return (data || []) as { id: string; name: string }[];
+      return (data || []) as unknown as ProfileEntry[];
     },
   });
   return { profiles: data ?? EMPTY_PROFILES, isLoading };

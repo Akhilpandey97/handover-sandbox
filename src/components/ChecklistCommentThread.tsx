@@ -4,6 +4,7 @@ import { openStorageFile } from "@/lib/storage-url";
 import { useChecklistComments, useAddChecklistComment } from "@/hooks/useChecklistComments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfilesLookup } from "@/hooks/useLookups";
+import { UserAvatar } from "@/components/UserAvatar";
 import { createNotifications } from "@/hooks/useNotifications";
 import { useProjectDeepLink, useScrollToAnchor } from "@/hooks/useProjectDeepLink";
 import { Button } from "@/components/ui/button";
@@ -230,6 +231,7 @@ export const ChecklistCommentThread = ({
                   comment={c}
                   currentUserId={currentUser?.id}
                   knownNames={knownNames}
+                  avatarUrl={profiles.find((p) => p.id === c.user_id)?.avatar_url}
                 />
               </div>
             ))}
@@ -323,6 +325,7 @@ const CommentBubble = ({
   comment,
   currentUserId,
   knownNames,
+  avatarUrl,
 }: {
   comment: {
     id: string;
@@ -335,15 +338,9 @@ const CommentBubble = ({
   };
   currentUserId?: string;
   knownNames: string[];
+  avatarUrl?: string | null;
 }) => {
   const isOwn = currentUserId && comment.user_id === currentUserId;
-
-  const initials = comment.user_name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
   const dateStr = new Date(comment.created_at).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -356,9 +353,7 @@ const CommentBubble = ({
   return (
     <div id={`comment-${comment.id}`} className="flex items-start gap-3">
       {/* Avatar */}
-      <div className="h-8 w-8 shrink-0 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-primary-foreground">
-        {initials}
-      </div>
+      <UserAvatar name={comment.user_name} avatarUrl={avatarUrl} size="md" />
       {/* Body */}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">

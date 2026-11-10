@@ -17,6 +17,7 @@ import { useFormAssignments, useFormTemplates } from "@/hooks/useChecklistForms"
 import { useChecklistSets } from "@/hooks/useChecklistSets";
 import { useTeams } from "@/hooks/useTeams";
 import { useProfilesLookup, useChecklistTemplateTitles } from "@/hooks/useLookups";
+import { UserAvatar } from "@/components/UserAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1544,10 +1545,11 @@ export const ChecklistDialog = ({
                       {/* Assignee */}
                       <td className="px-3 py-2.5 align-middle">
                         <div className="flex items-center gap-1.5">
-                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
-                            {assignee.charAt(0).toUpperCase()}
-                            {assignee.split(" ")[1]?.[0]?.toUpperCase() || ""}
-                          </span>
+                          <UserAvatar
+                            name={assignee}
+                            avatarUrl={profiles.find((p) => p.id === project?.assignedOwner)?.avatar_url}
+                            size="xs"
+                          />
                           <span className="text-xs truncate max-w-24">{assignee}</span>
                         </div>
                       </td>
@@ -1710,7 +1712,7 @@ export const ChecklistDialog = ({
                                           ? profiles.find((p) => p.id === task.assigned_to)
                                           : null;
                                         const assigneeName = assigneeProfile
-                                          ? (assigneeProfile.name ?? assigneeProfile.email ?? "—")
+                                          ? (assigneeProfile.name ?? "—")
                                           : "—";
                                         return (
                                           <div key={task.id} id={`task-${task.id}`}>
