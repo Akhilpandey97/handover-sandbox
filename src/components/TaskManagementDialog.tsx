@@ -28,11 +28,14 @@ interface ExistingTask {
 interface TaskManagementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  checklistItemId: string;
-  checklistItemTitle: string;
+  /** Pre-selected checklist item. Leave empty when showing the item picker. */
+  checklistItemId?: string;
+  checklistItemTitle?: string;
   projectId: string;
   projectName?: string;
   profiles?: { id: string; name: string }[];
+  /** When provided and checklistItemId is not set, shows an item picker. */
+  checklistItems?: { id: string; title: string }[];
   /** Pass an existing task to open in edit mode instead of add mode. */
   task?: ExistingTask;
 }
@@ -40,17 +43,26 @@ interface TaskManagementDialogProps {
 export const TaskManagementDialog = ({
   open,
   onOpenChange,
-  checklistItemId,
-  checklistItemTitle,
+  checklistItemId: checklistItemIdProp = "",
+  checklistItemTitle: checklistItemTitleProp = "",
   projectId,
   projectName,
   profiles = [],
+  checklistItems,
   task,
 }: TaskManagementDialogProps) => {
   const addTask = useAddChecklistTask();
   const updateTask = useUpdateChecklistTask();
 
   const isEditMode = Boolean(task);
+  const showItemPicker = !checklistItemIdProp && !isEditMode && !!checklistItems?.length;
+
+  const [selectedItemId, setSelectedItemId] = useState("");
+  const checklistItemId = checklistItemIdProp || selectedItemId;
+  const checklistItemTitle =
+    checklistItemTitleProp ||
+    checklistItems?.find((i) => i.id === selectedItemId)?.title ||
+    "";
 
   const [newTitle, setNewTitle] = useState(task?.title ?? "");
   const [newDescription, setNewDescription] = useState(task?.description ?? "");
@@ -67,11 +79,13 @@ export const TaskManagementDialog = ({
       setNewAssignedToExt(task?.assigned_to_ext ?? "");
       setNewDueDate(task?.due_date ?? "");
       setIsClientVisible(task?.is_client_visible ?? false);
+      setSelectedItemId("");
     }
   }, [open, task]);
 
   const handleSave = () => {
     if (!newTitle.trim()) return;
+    if (!checklistItemId) return;
     if (isEditMode && task) {
       updateTask.mutate(
         {
@@ -112,10 +126,26 @@ export const TaskManagementDialog = ({
             <ListTodo className="h-4 w-4 text-muted-foreground" />
             {isEditMode ? "Edit task" : "Add task"}
           </DialogTitle>
-          <p className="truncate text-xs text-muted-foreground">{checklistItemTitle}</p>
+          {checklistItemTitle && (
+            <p className="truncate text-xs text-muted-foreground">{checklistItemTitle}</p>
+          )}
         </DialogHeader>
 
         <div className="space-y-3">
+          {showItemPicker && (
+            <Select value={selectedItemId} onValueChange={setSelectedItemId}>
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Select checklist item…" />
+              </SelectTrigger>
+              <SelectContent>
+                {checklistItems!.map((item) => (
+                  <SelectItem key={item.id} value={item.id} className="text-xs">
+                    {item.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Input
             placeholder="Task title..."
             value={newTitle}
@@ -189,7 +219,7 @@ export const TaskManagementDialog = ({
               size="sm"
               className="h-8"
               onClick={handleSave}
-              disabled={!newTitle.trim() || addTask.isPending || updateTask.isPending}
+              disabled={!newTitle.trim() || !checklistItemId || addTask.isPending || updateTask.isPending}
             >
               {isEditMode
                 ? (updateTask.isPending ? "Saving..." : "Save")

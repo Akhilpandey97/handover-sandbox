@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Calendar, ChevronDown, ListTodo, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Calendar, ChevronDown, ListTodo, Pencil, Plus, Search, Trash2, SquarePen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const shortDate = (value: string | Date) =>
@@ -47,6 +47,7 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
     task?: ChecklistTask;
   } | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [addTaskOpen, setAddTaskOpen] = useState(false);
 
   const itemTitle = useMemo(() => {
     const map = new Map<string, string>();
@@ -116,6 +117,14 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
                 className="h-8 w-48 pl-8 text-xs"
               />
             </div>
+            <Button
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={() => setAddTaskOpen(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add task
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -330,6 +339,17 @@ export const WorkspaceTasksPanel = ({ project }: { project: Project }) => {
           task={dialog.task}
         />
       )}
+
+      <TaskManagementDialog
+        open={addTaskOpen}
+        onOpenChange={setAddTaskOpen}
+        projectId={project.id}
+        projectName={project.merchantName}
+        profiles={profiles}
+        checklistItems={project.checklist
+          .filter((i) => !i.isTask)
+          .map((i) => ({ id: i.id, title: i.title }))}
+      />
     </div>
   );
 };
