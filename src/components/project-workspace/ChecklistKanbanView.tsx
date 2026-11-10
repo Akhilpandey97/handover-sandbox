@@ -928,13 +928,15 @@ function KanbanTaskCard({
     );
   };
 
+  const owner = profiles.find((p) => p.id === task.assigned_to);
+
   return (
-    <div className="rounded-xl border border-border bg-white dark:bg-card shadow-sm overflow-hidden">
+    <div className="rounded-xl border border-border bg-white dark:bg-card shadow-sm overflow-hidden min-h-[72px]">
       {/* Card header row */}
       <div
         role="button"
         tabIndex={0}
-        className="px-3.5 py-2.5 flex items-start gap-2 cursor-pointer hover:bg-muted/30 transition-colors"
+        className="px-3.5 py-2.5 flex items-start gap-2 cursor-pointer hover:bg-muted/30 transition-colors h-full"
         onClick={() => setExpanded((v) => !v)}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpanded((v) => !v); }}
       >
@@ -953,11 +955,18 @@ function KanbanTaskCard({
           }
         </button>
         <div className="flex-1 min-w-0">
-          <p className={`text-xs font-medium leading-snug ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
+          <p className={`text-xs font-medium leading-snug line-clamp-1 ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
             {task.title}
           </p>
-          {task.description && <p className="text-2xs text-muted-foreground mt-0.5 line-clamp-1">{task.description}</p>}
-          {task.due_date && <span className="text-2xs text-muted-foreground/60 mt-0.5 block">{fmtDate(task.due_date)}</span>}
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            {owner && (
+              <div className="flex items-center gap-1">
+                <UserAvatar name={owner.name} avatarUrl={owner.avatar_url} size="xs" />
+                <span className="text-2xs text-muted-foreground truncate max-w-[80px]">{owner.name.split(" ")[0]}</span>
+              </div>
+            )}
+            {task.due_date && <span className="text-2xs text-muted-foreground/60">{fmtDate(task.due_date)}</span>}
+          </div>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
           {comments.length > 0 && !expanded && (
@@ -1119,11 +1128,11 @@ function ItemCard({
 
         {/* ── One card per meeting with join button ── */}
         {meetings.map((m) => (
-          <div key={m.id} className="rounded-xl border border-border bg-white dark:bg-card shadow-sm px-3.5 py-2.5">
-            <div className="flex items-start gap-2">
+          <div key={m.id} className="rounded-xl border border-border bg-white dark:bg-card shadow-sm px-3.5 py-2.5 min-h-[64px] flex items-start">
+            <div className="flex items-start gap-2 w-full">
               <span className="flex-shrink-0 text-sm mt-0.5">{PROVIDER_ICONS[m.provider] || "📹"}</span>
               <div className="flex-1 min-w-0">
-                <p className={`text-xs font-medium leading-snug ${m.status === "completed" ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                <p className={`text-xs font-medium leading-snug line-clamp-1 ${m.status === "completed" ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
                 {m.scheduled_at && (
                   <p className="text-2xs text-muted-foreground/60 mt-0.5">{fmtDateTime(m.scheduled_at)}</p>
                 )}
