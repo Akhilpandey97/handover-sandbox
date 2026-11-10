@@ -51,6 +51,7 @@ import { ProjectActivityHistoryPanel } from "@/components/ProjectActivityHistory
 import { JiraTicketsSection } from "@/components/JiraTicketsSection";
 import { WorkspaceTasksPanel } from "@/components/project-workspace/WorkspaceTasksPanel";
 import { WorkspaceMeetingsPanel } from "@/components/project-workspace/WorkspaceMeetingsPanel";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import {
   ArrowLeft,
   ArrowRight,
@@ -414,6 +415,7 @@ export const ProjectWorkspaceView = ({
 
               {/* Right actions */}
               <div className="flex items-center gap-1.5 shrink-0 pt-4">
+                <NotificationCenter />
                 {inModal && (
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
                     <X className="h-4 w-4" />
