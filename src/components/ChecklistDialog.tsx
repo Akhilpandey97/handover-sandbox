@@ -218,6 +218,105 @@ const Shell = ({
     </Dialog>
   );
 
+/* ── Right-panel field picker ─────────────────────────────────────── */
+
+type FieldDef = { key: string; label: string; group?: string };
+
+const DETAILS_FIELDS: FieldDef[] = [
+  { key: "project_state",    label: "Project state" },
+  { key: "expected_golive",  label: "Expected go-live" },
+  { key: "next_action",      label: "Next action" },
+  { key: "revenue",          label: "Revenue" },
+  { key: "project_owner",    label: "Project owner" },
+  { key: "client",           label: "Client" },
+  { key: "description",      label: "Description" },
+  { key: "mid",              label: "MID" },
+  { key: "platform",         label: "Platform" },
+  { key: "integration_type", label: "Integration type" },
+  { key: "pg_onboarding",    label: "PG Onboarding" },
+  { key: "txns_per_day",     label: "Txns/Day" },
+  { key: "aov",              label: "AOV" },
+  { key: "category",         label: "Category" },
+  { key: "sales_spoc",       label: "Sales SPOC" },
+  { key: "brand_url",        label: "Brand URL" },
+  { key: "kick_off_date",    label: "Kick-off date" },
+  { key: "go_live_date",     label: "Go-live date" },
+];
+
+const PEOPLE_FIELDS: FieldDef[] = [
+  { key: "project_owner",  label: "Project owner" },
+  { key: "sales_spoc",     label: "Sales SPOC" },
+  { key: "contact_email",  label: "Contact email" },
+  { key: "current_team",   label: "Current team" },
+  { key: "current_stage",  label: "Current stage" },
+];
+
+const DETAILS_DEFAULTS = ["project_state", "expected_golive", "next_action", "revenue", "project_owner", "client", "description"];
+const PEOPLE_DEFAULTS  = ["project_owner", "sales_spoc", "contact_email", "current_team"];
+
+function loadFields(key: string, defaults: string[]): string[] {
+  try {
+    const v = localStorage.getItem(key);
+    if (v) return JSON.parse(v) as string[];
+  } catch { /* ignore */ }
+  return defaults;
+}
+
+function saveFields(key: string, value: string[]) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ }
+}
+
+function FieldPickerDialog({
+  open,
+  onOpenChange,
+  title,
+  allFields,
+  selected,
+  onApply,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  title: string;
+  allFields: FieldDef[];
+  selected: string[];
+  onApply: (keys: string[]) => void;
+}) {
+  const [draft, setDraft] = useState<string[]>(selected);
+  useEffect(() => { if (open) setDraft(selected); }, [open, selected]);
+
+  const toggle = (key: string) =>
+    setDraft((prev) => prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-xs p-0 gap-0">
+        <DialogHeader className="px-4 pt-4 pb-3 border-b">
+          <DialogTitle className="text-sm font-semibold">{title}</DialogTitle>
+          <p className="text-xs text-muted-foreground mt-0.5">Select which fields to show</p>
+        </DialogHeader>
+        <div className="px-4 py-3 space-y-2 max-h-72 overflow-y-auto">
+          {allFields.map((f) => (
+            <label key={f.key} className="flex items-center gap-2.5 cursor-pointer group">
+              <Checkbox
+                checked={draft.includes(f.key)}
+                onCheckedChange={() => toggle(f.key)}
+                className="h-3.5 w-3.5"
+              />
+              <span className="text-xs group-hover:text-foreground text-muted-foreground transition-colors">
+                {f.label}
+              </span>
+            </label>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2 px-4 py-3 border-t">
+          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button size="sm" className="h-7 text-xs" onClick={() => { onApply(draft); onOpenChange(false); }}>Apply</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ── Component ────────────────────────────────────────────────────── */
 
 interface ChecklistDialogProps {
@@ -319,6 +418,15 @@ export const ChecklistDialog = ({
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [detailsTab, setDetailsTab] = useState<"details" | "people" | "activity">("details");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(initialExpandedItemId ?? null);
+
+  // Right-panel field visibility (persisted in localStorage)
+  const [visibleDetailsFields, setVisibleDetailsFields] = useState<string[]>(() => loadFields("checklist_details_fields", DETAILS_DEFAULTS));
+  const [visiblePeopleFields,  setVisiblePeopleFields]  = useState<string[]>(() => loadFields("checklist_people_fields",  PEOPLE_DEFAULTS));
+  const [detailsPickerOpen, setDetailsPickerOpen] = useState(false);
+  const [peoplePickerOpen,  setPeoplePickerOpen]  = useState(false);
+
+  const applyDetailsFields = (keys: string[]) => { setVisibleDetailsFields(keys); saveFields("checklist_details_fields", keys); };
+  const applyPeopleFields  = (keys: string[]) => { setVisiblePeopleFields(keys);  saveFields("checklist_people_fields",  keys); };
 
   // §4.3 Bulk edit mode
   const [bulkSelectMode, setBulkSelectMode] = useState(false);
@@ -1909,84 +2017,151 @@ export const ChecklistDialog = ({
             <TabsContent value="details" className="m-0 p-3">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-foreground">Project details</span>
-                {onEditProject && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-6 text-xs gap-1 px-2"
-                    onClick={onEditProject}
-                  >
-                    <Pencil className="h-3 w-3" />
-                    Edit
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => setDetailsPickerOpen(true)}
+                  title="Customize visible fields"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
               </div>
 
               <dl className="space-y-2">
-                {/* Project state */}
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground">Project state</dt>
-                  <dd>
-                    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", STATE_TONE[project.projectState] || "bg-muted text-muted-foreground")}>
-                      {projectStateLabels[project.projectState as ProjectState] || project.projectState}
-                    </span>
-                  </dd>
-                </div>
-
-                {/* Expected go-live */}
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-start">
-                  <dt className="text-xs text-muted-foreground pt-0.5">Expected go-live</dt>
-                  <dd className="text-xs font-semibold text-foreground">
-                    {friendlyDate(project.dates.expectedGoLiveDate)}
-                    {project.dates.expectedGoLiveDate && (
-                      <span className="text-muted-foreground font-normal ml-1">
-                        ({daysRelative(project.dates.expectedGoLiveDate)})
+                {visibleDetailsFields.includes("project_state") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Project state</dt>
+                    <dd>
+                      <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", STATE_TONE[project.projectState] || "bg-muted text-muted-foreground")}>
+                        {projectStateLabels[project.projectState as ProjectState] || project.projectState}
                       </span>
-                    )}
-                  </dd>
-                </div>
-
-                {/* Next action */}
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-start">
-                  <dt className="text-xs text-muted-foreground pt-0.5">Next action</dt>
-                  <dd className="text-xs font-semibold text-foreground">
-                    {nextStep.label}
-                    {nextStep.hint && (
-                      <span className={cn("block text-2xs mt-0.5 font-normal", nextStep.hint === "Overdue" ? "text-destructive font-medium" : "text-muted-foreground")}>
-                        {nextStep.hint === "Overdue" ? "◆ Overdue" : nextStep.hint}
+                    </dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("expected_golive") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-start">
+                    <dt className="text-xs text-muted-foreground pt-0.5">Expected go-live</dt>
+                    <dd className="text-xs font-semibold text-foreground">
+                      {friendlyDate(project.dates.expectedGoLiveDate)}
+                      {project.dates.expectedGoLiveDate && (
+                        <span className="text-muted-foreground font-normal ml-1">
+                          ({daysRelative(project.dates.expectedGoLiveDate)})
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("next_action") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-start">
+                    <dt className="text-xs text-muted-foreground pt-0.5">Next action</dt>
+                    <dd className="text-xs font-semibold text-foreground">
+                      {nextStep.label}
+                      {nextStep.hint && (
+                        <span className={cn("block text-2xs mt-0.5 font-normal", nextStep.hint === "Overdue" ? "text-destructive font-medium" : "text-muted-foreground")}>
+                          {nextStep.hint === "Overdue" ? "◆ Overdue" : nextStep.hint}
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("revenue") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Revenue</dt>
+                    <dd className="text-xs font-semibold text-foreground">₹{formatArrCr(project.arr)}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("project_owner") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Project owner</dt>
+                    <dd className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
+                        {(project.assignedOwnerName || "U").charAt(0).toUpperCase()}
                       </span>
-                    )}
-                  </dd>
-                </div>
-
-                {/* Revenue */}
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground">Revenue</dt>
-                  <dd className="text-xs font-semibold text-foreground">₹{formatArrCr(project.arr)}</dd>
-                </div>
-
-                {/* Project owner */}
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground">Project owner</dt>
-                  <dd className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
-                      {(project.assignedOwnerName || "U").charAt(0).toUpperCase()}
-                    </span>
-                    {project.assignedOwnerName || "Unassigned"}
-                  </dd>
-                </div>
-
-                {/* Client */}
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground">Client</dt>
-                  <dd className="text-xs font-semibold text-foreground">{project.merchantName}</dd>
-                </div>
-
-                {/* Description */}
-                {project.notes.projectNotes && (
+                      {project.assignedOwnerName || "Unassigned"}
+                    </dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("client") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Client</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.merchantName}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("description") && project.notes.projectNotes && (
                   <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-start">
                     <dt className="text-xs text-muted-foreground pt-0.5">Description</dt>
                     <dd className="text-xs text-foreground whitespace-pre-line">{project.notes.projectNotes}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("mid") && project.mid && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">MID</dt>
+                    <dd className="text-xs font-semibold text-foreground font-mono">{project.mid}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("platform") && project.platform && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Platform</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.platform}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("integration_type") && project.integrationType && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Integration type</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.integrationType}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("pg_onboarding") && project.pgOnboarding && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">PG Onboarding</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.pgOnboarding}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("txns_per_day") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Txns/Day</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.txnsPerDay ?? "—"}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("aov") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">AOV</dt>
+                    <dd className="text-xs font-semibold text-foreground">₹{project.aov ?? "—"}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("category") && project.category && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Category</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.category}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("sales_spoc") && project.salesSpoc && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Sales SPOC</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.salesSpoc}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("brand_url") && project.links.brandUrl && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Brand URL</dt>
+                    <dd className="text-xs font-semibold text-foreground truncate">
+                      <a href={project.links.brandUrl} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate block">
+                        {project.links.brandUrl}
+                      </a>
+                    </dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("kick_off_date") && project.dates.kickOffDate && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Kick-off date</dt>
+                    <dd className="text-xs font-semibold text-foreground">{friendlyDate(project.dates.kickOffDate)}</dd>
+                  </div>
+                )}
+                {visibleDetailsFields.includes("go_live_date") && project.dates.goLiveDate && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Go-live date</dt>
+                    <dd className="text-xs font-semibold text-foreground">{friendlyDate(project.dates.goLiveDate)}</dd>
                   </div>
                 )}
               </dl>
@@ -1995,45 +2170,22 @@ export const ChecklistDialog = ({
               <div className="mt-4 border-t border-border/50 pt-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold text-foreground">
-                    Attachments ({(project.links.brdLink ? 1 : 0) + (project.links.sowLink ? 1 : 0)}
-                    )
+                    Attachments ({(project.links.brdLink ? 1 : 0) + (project.links.sowLink ? 1 : 0)})
                   </span>
-                  {onEditProject && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-5 text-xs px-1 text-primary"
-                      onClick={onEditProject}
-                    >
-                      + Add
-                    </Button>
-                  )}
                 </div>
                 {project.links.brdLink && (
-                  <a
-                    href={project.links.brdLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors"
-                  >
+                  <a href={project.links.brdLink} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
                     <FileStack className="h-4 w-4 text-destructive shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">BRD Document</p>
-                    </div>
+                    <div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">BRD Document</p></div>
                     <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
                   </a>
                 )}
                 {project.links.sowLink && (
-                  <a
-                    href={project.links.sowLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors"
-                  >
+                  <a href={project.links.sowLink} target="_blank" rel="noreferrer"
+                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-muted/40 transition-colors">
                     <FileText className="h-4 w-4 text-info shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">SOW Document</p>
-                    </div>
+                    <div className="flex-1 min-w-0"><p className="text-xs font-medium truncate">SOW Document</p></div>
                     <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0" />
                   </a>
                 )}
@@ -2047,40 +2199,52 @@ export const ChecklistDialog = ({
             <TabsContent value="people" className="m-0 p-3">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-foreground">People</span>
-                {onAssignOwner && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-6 text-xs gap-1 px-2"
-                    onClick={onAssignOwner}
-                  >
-                    <UserRound className="h-3 w-3" />
-                    Assign
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => setPeoplePickerOpen(true)}
+                  title="Customize visible fields"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
               </div>
               <dl className="space-y-2">
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground">Project owner</dt>
-                  <dd className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
-                      {(project.assignedOwnerName || "U").charAt(0).toUpperCase()}
-                    </span>
-                    {project.assignedOwnerName || "Unassigned"}
-                  </dd>
-                </div>
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground">Sales SPOC</dt>
-                  <dd className="text-xs font-semibold text-foreground">{project.salesSpoc || "—"}</dd>
-                </div>
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground">Contact email</dt>
-                  <dd className="text-xs font-semibold text-foreground">{project.contactEmail || "—"}</dd>
-                </div>
-                <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
-                  <dt className="text-xs text-muted-foreground">Current team</dt>
-                  <dd className="text-xs font-semibold text-foreground">{getTeamLabel(project.currentOwnerTeam)}</dd>
-                </div>
+                {visiblePeopleFields.includes("project_owner") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Project owner</dt>
+                    <dd className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground shrink-0">
+                        {(project.assignedOwnerName || "U").charAt(0).toUpperCase()}
+                      </span>
+                      {project.assignedOwnerName || "Unassigned"}
+                    </dd>
+                  </div>
+                )}
+                {visiblePeopleFields.includes("sales_spoc") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Sales SPOC</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.salesSpoc || "—"}</dd>
+                  </div>
+                )}
+                {visiblePeopleFields.includes("contact_email") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Contact email</dt>
+                    <dd className="text-xs font-semibold text-foreground">{project.contactEmail || "—"}</dd>
+                  </div>
+                )}
+                {visiblePeopleFields.includes("current_team") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Current team</dt>
+                    <dd className="text-xs font-semibold text-foreground">{getTeamLabel(project.currentOwnerTeam)}</dd>
+                  </div>
+                )}
+                {visiblePeopleFields.includes("current_stage") && (
+                  <div className="grid grid-cols-[7rem_1fr] gap-x-3 items-center">
+                    <dt className="text-xs text-muted-foreground">Current stage</dt>
+                    <dd className="text-xs font-semibold text-foreground">{stageLabels[project.currentStage] || project.currentStage}</dd>
+                  </div>
+                )}
               </dl>
             </TabsContent>
 
@@ -2136,6 +2300,23 @@ export const ChecklistDialog = ({
       </div>
 
       {subDialogs}
+
+      <FieldPickerDialog
+        open={detailsPickerOpen}
+        onOpenChange={setDetailsPickerOpen}
+        title="Customize Details fields"
+        allFields={DETAILS_FIELDS}
+        selected={visibleDetailsFields}
+        onApply={applyDetailsFields}
+      />
+      <FieldPickerDialog
+        open={peoplePickerOpen}
+        onOpenChange={setPeoplePickerOpen}
+        title="Customize People fields"
+        allFields={PEOPLE_FIELDS}
+        selected={visiblePeopleFields}
+        onApply={applyPeopleFields}
+      />
 
       {/* ── Celebration overlay ─────────────────────────────────────── */}
       {showCelebration && (
