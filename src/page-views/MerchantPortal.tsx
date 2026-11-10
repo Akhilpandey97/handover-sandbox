@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import { useSearchParams, useParams } from "@/lib/router-compat";
 import {
   CheckCircle2,
@@ -771,6 +772,63 @@ export default function MerchantPortal() {
     refreshData();
   }, [refreshData]);
 
+  // Poll every 60s and show a toast when new tasks arrive
+  const prevTaskIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!token || !isAuthenticated) return;
+    const poll = setInterval(() => {
+      fetch(`${API_URL}?token=${encodeURIComponent(token)}`, {
+        headers: { apikey: API_KEY, "Content-Type": "application/json" },
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.error) return;
+          const freshTasks: { id: string; title: string }[] = d.tasks || [];
+          if (prevTaskIdsRef.current === null) {
+            prevTaskIdsRef.current = new Set(freshTasks.map((t) => t.id));
+            return;
+          }
+          const newTasks = freshTasks.filter((t) => !prevTaskIdsRef.current!.has(t.id));
+          if (newTasks.length > 0) {
+            prevTaskIdsRef.current = new Set(freshTasks.map((t) => t.id));
+            setData({ tasks: [], ...d });
+            toast.custom(
+              (id) => (
+                <div
+                  className="pointer-events-auto flex w-full max-w-md gap-4 rounded-2xl bg-white p-5 shadow-2xl ring-1 ring-black/10 dark:bg-zinc-900 dark:ring-white/10"
+                  style={{ minWidth: 340 }}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                    <Bell className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-foreground">New task assigned to you</p>
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                      {newTasks.map((t) => t.title).join(", ")}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toast.dismiss(id)}
+                    className="shrink-0 text-muted-foreground/60 hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ),
+              { duration: 8000, position: "top-center" },
+            );
+          }
+        })
+        .catch(() => {});
+    }, 60_000);
+    // Seed the ref after first data load
+    if (data && prevTaskIdsRef.current === null) {
+      prevTaskIdsRef.current = new Set((data.tasks || []).map((t) => t.id));
+    }
+    return () => clearInterval(poll);
+  }, [token, isAuthenticated, data]);
+
   const currentStage = useMemo(() => (data ? deriveCurrentStage(data) : 1), [data]);
   const orgName = data?.branding?.org_name || "Handover";
   const orgLogoUrl = data?.branding?.org_logo_url || data?.branding?.logo_url || "";
@@ -943,7 +1001,8 @@ export default function MerchantPortal() {
 
   const { project, owner, checklist_progress } = data;
 
-  const pendingItems = data.checklist.filter((item) => !item.completed);
+  // Only customer-assigned tasks count as "pending actions" for the customer
+  const pendingItems = (data.tasks || []).filter((t) => t.status !== "done");
 
   const navItems: { key: NavPage; label: string; icon: any; tour: string }[] = [
     {
@@ -1129,11 +1188,11 @@ export default function MerchantPortal() {
                   You are all caught up.
                 </p>
               )}
-              {pendingItems.map((item, i) => {
-                const overdue = item.due_date ? new Date(item.due_date) < new Date() : false;
+              {pendingItems.map((task) => {
+                const overdue = task.due_date && task.status !== "done" ? new Date(task.due_date) < new Date() : false;
                 return (
                   <button
-                    key={`${item.title}-${i}`}
+                    key={task.id}
                     onClick={() => {
                       setActivePage("integration");
                       setNotifOpen(false);
@@ -1141,9 +1200,12 @@ export default function MerchantPortal() {
                     className="w-full rounded-md px-2 py-1.5 text-left hover:bg-sidebar-accent"
                   >
                     <span className="block truncate text-xs font-medium text-sidebar-foreground">
-                      {item.title}
+                      {task.title}
                     </span>
-                    {item.due_date && (
+                    {task.description && (
+                      <span className="block truncate text-2xs text-sidebar-foreground/60">{task.description}</span>
+                    )}
+                    {task.due_date && (
                       <span
                         className={cn(
                           "block text-2xs",
@@ -1151,7 +1213,7 @@ export default function MerchantPortal() {
                         )}
                       >
                         Due{" "}
-                        {new Date(item.due_date).toLocaleDateString("en-GB", {
+                        {new Date(task.due_date).toLocaleDateString("en-GB", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",

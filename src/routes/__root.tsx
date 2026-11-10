@@ -18,6 +18,7 @@ import { LabelsProvider } from "@/contexts/LabelsContext";
 import { BrandColor } from "@/components/BrandColor";
 import { BuddyDrawer } from "@/components/buddy/BuddyDrawer";
 import { ProjectProvider } from "@/contexts/ProjectContext";
+import { NotificationToastListener } from "@/components/NotificationToastListener";
 import NotFound from "@/page-views/NotFound";
 
 function NotFoundComponent() {
@@ -121,6 +122,7 @@ function RootComponent() {
                 <BrandColor />
                 <Toaster />
                 <Sonner />
+                <NotificationToastListener />
                 {/* Required: nested routes render here. */}
                 <Outlet />
                 {/* Buddy travels with the app rather than being added per page,

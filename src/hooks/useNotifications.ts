@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -83,6 +83,8 @@ export const useNotifications = () => {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
   const userId = currentUser?.id;
+  // Track IDs we've already seen so we don't toast on initial load
+  const seenIdsRef = useRef<Set<string> | null>(null);
 
   const query = useQuery({
     queryKey: ["notifications", userId],
@@ -96,7 +98,12 @@ export const useNotifications = () => {
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      return (data || []) as AppNotification[];
+      const rows = (data || []) as AppNotification[];
+      // Seed seen-IDs on first fetch so only future inserts trigger toasts
+      if (seenIdsRef.current === null) {
+        seenIdsRef.current = new Set(rows.map((r) => r.id));
+      }
+      return rows;
     },
   });
 
@@ -106,7 +113,21 @@ export const useNotifications = () => {
       .channel(`notifications-${userId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const n = payload.new as AppNotification;
+          queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+          // Only show toast if this is genuinely new (not from initial load)
+          if (seenIdsRef.current && !seenIdsRef.current.has(n.id)) {
+            seenIdsRef.current.add(n.id);
+            // Fire a DOM event — the NotificationToastListener component renders the JSX
+            window.dispatchEvent(new CustomEvent("app:notification", { detail: n }));
+          }
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
         () => {
           queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
         },
