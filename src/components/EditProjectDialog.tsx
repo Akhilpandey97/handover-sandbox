@@ -402,7 +402,7 @@ export const EditProjectDialog = ({
                   <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-[13px] font-semibold text-foreground">Customer Details</span>
                 </div>
-                <div className="bg-[#F8FAFC] divide-y divide-[#E2E8F0]">
+                <div className="bg-white divide-y divide-[#E2E8F0]">
                   <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
                     <label htmlFor="edit-merchantName" className="text-xs font-medium text-muted-foreground">
                       {getLabel("field_merchant_name")} *
@@ -452,7 +452,7 @@ export const EditProjectDialog = ({
                   <Layers className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-[13px] font-semibold text-foreground">Project Configuration</span>
                 </div>
-                <div className="bg-[#F8FAFC] divide-y divide-[#E2E8F0]">
+                <div className="bg-white divide-y divide-[#E2E8F0]">
                   <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
                     <label className="text-xs font-medium text-muted-foreground">
                       {getLabel("field_platform")}
@@ -530,7 +530,7 @@ export const EditProjectDialog = ({
                   <User className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-[13px] font-semibold text-foreground">Ownership & Onboarding</span>
                 </div>
-                <div className="bg-[#F8FAFC] divide-y divide-[#E2E8F0]">
+                <div className="bg-white divide-y divide-[#E2E8F0]">
                   <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
                     <label htmlFor="edit-salesSpoc" className="text-xs font-medium text-muted-foreground">
                       {getLabel("field_sales_spoc")}
@@ -597,7 +597,7 @@ export const EditProjectDialog = ({
                     <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="text-[13px] font-semibold text-foreground">Checklist Set</span>
                   </div>
-                  <div className="bg-[#F8FAFC] px-4 py-3 space-y-2">
+                  <div className="bg-white px-4 py-3 space-y-2">
                     <Select
                       value={editedProject.checklistSetId ?? "__none__"}
                       onValueChange={(v) =>
