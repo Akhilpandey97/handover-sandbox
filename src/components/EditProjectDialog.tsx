@@ -398,9 +398,9 @@ export const EditProjectDialog = ({
             <TabsContent value="info" className="space-y-3">
               {/* Customer Details */}
               <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-[#E2E8F0]">
-                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-[13px] font-semibold text-foreground">Customer Details</span>
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                  <Building2 className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-[13px] font-semibold text-primary">Customer Details</span>
                 </div>
                 <div className="bg-white divide-y divide-[#E2E8F0]">
                   <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
@@ -448,9 +448,9 @@ export const EditProjectDialog = ({
 
               {/* Project Configuration */}
               <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-[#E2E8F0]">
-                  <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-[13px] font-semibold text-foreground">Project Configuration</span>
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                  <Layers className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-[13px] font-semibold text-primary">Project Configuration</span>
                 </div>
                 <div className="bg-white divide-y divide-[#E2E8F0]">
                   <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
@@ -526,9 +526,9 @@ export const EditProjectDialog = ({
 
               {/* Ownership & Onboarding */}
               <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-[#E2E8F0]">
-                  <User className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-[13px] font-semibold text-foreground">Ownership & Onboarding</span>
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                  <User className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-[13px] font-semibold text-primary">Ownership & Onboarding</span>
                 </div>
                 <div className="bg-white divide-y divide-[#E2E8F0]">
                   <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
@@ -593,9 +593,9 @@ export const EditProjectDialog = ({
               {/* Checklist Set */}
               {checklistSets.length > 0 && (
                 <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-[#E2E8F0]">
-                    <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-[13px] font-semibold text-foreground">Checklist Set</span>
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                    <ListChecks className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[13px] font-semibold text-primary">Checklist Set</span>
                   </div>
                   <div className="bg-white px-4 py-3 space-y-2">
                     <Select
@@ -632,421 +632,473 @@ export const EditProjectDialog = ({
             </TabsContent>
 
             <TabsContent value="links" className="space-y-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  {getLabel("field_brand_url")}
-                </Label>
-                <Input
-                  type="url"
-                  value={editedProject.links.brandUrl}
-                  onChange={(e) => updateLinks("brandUrl", e.target.value)}
-                />
+              <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                  <Link2 className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-[13px] font-semibold text-primary">Documents</span>
+                </div>
+                <div className="bg-white px-4 py-4 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_brand_url")}
+                    </Label>
+                    <Input
+                      type="url"
+                      value={editedProject.links.brandUrl}
+                      onChange={(e) => updateLinks("brandUrl", e.target.value)}
+                    />
+                  </div>
+                  <LinkFieldWithUpload
+                    label={getLabel("field_jira_link")}
+                    linkField="jiraLink"
+                    dbField="jira_link"
+                    value={editedProject.links.jiraLink || ""}
+                  />
+                  <LinkFieldWithUpload
+                    label={getLabel("field_brd_link")}
+                    linkField="brdLink"
+                    dbField="brd_link"
+                    value={editedProject.links.brdLink || ""}
+                  />
+                  <LinkFieldWithUpload
+                    label={getLabel("field_mint_checklist_link")}
+                    linkField="mintChecklistLink"
+                    dbField="mint_checklist_link"
+                    value={editedProject.links.mintChecklistLink || ""}
+                  />
+                  <LinkFieldWithUpload
+                    label={getLabel("field_integration_checklist_link")}
+                    linkField="integrationChecklistLink"
+                    dbField="integration_checklist_link"
+                    value={editedProject.links.integrationChecklistLink || ""}
+                  />
+                  <LinkFieldWithUpload
+                    label={getLabel("field_sow_link")}
+                    linkField="sowLink"
+                    dbField="sow_link"
+                    value={editedProject.links.sowLink || ""}
+                  />
+                </div>
               </div>
-              <LinkFieldWithUpload
-                label={getLabel("field_jira_link")}
-                linkField="jiraLink"
-                dbField="jira_link"
-                value={editedProject.links.jiraLink || ""}
-              />
-              <LinkFieldWithUpload
-                label={getLabel("field_brd_link")}
-                linkField="brdLink"
-                dbField="brd_link"
-                value={editedProject.links.brdLink || ""}
-              />
-              <LinkFieldWithUpload
-                label={getLabel("field_mint_checklist_link")}
-                linkField="mintChecklistLink"
-                dbField="mint_checklist_link"
-                value={editedProject.links.mintChecklistLink || ""}
-              />
-              <LinkFieldWithUpload
-                label={getLabel("field_integration_checklist_link")}
-                linkField="integrationChecklistLink"
-                dbField="integration_checklist_link"
-                value={editedProject.links.integrationChecklistLink || ""}
-              />
-              <LinkFieldWithUpload
-                label={getLabel("field_sow_link")}
-                linkField="sowLink"
-                dbField="sow_link"
-                value={editedProject.links.sowLink || ""}
-              />
             </TabsContent>
 
             <TabsContent value="dates" className="space-y-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  {getLabel("field_kick_off_date")}
-                </Label>
-                <DatePickerField
-                  value={editedProject.dates.kickOffDate}
-                  onChange={(v) => updateDates("kickOffDate", v)}
-                  placeholder="Select kick-off date"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  {getLabel("field_expected_go_live_date")}
-                </Label>
-                <DatePickerField
-                  value={editedProject.dates.expectedGoLiveDate || ""}
-                  onChange={(v) => updateDates("expectedGoLiveDate", v)}
-                  placeholder="Select expected go-live date"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-muted-foreground">
-                  {getLabel("field_actual_go_live_date")}
-                </Label>
-                <DatePickerField
-                  value={editedProject.dates.goLiveDate || ""}
-                  onChange={(v) => updateDates("goLiveDate", v)}
-                  placeholder="Select go-live date"
-                />
+              <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                  <Calendar className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-[13px] font-semibold text-primary">Project Dates</span>
+                </div>
+                <div className="bg-white divide-y divide-[#E2E8F0]">
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_kick_off_date")}
+                    </label>
+                    <DatePickerField
+                      value={editedProject.dates.kickOffDate}
+                      onChange={(v) => updateDates("kickOffDate", v)}
+                      placeholder="Select kick-off date"
+                    />
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_expected_go_live_date")}
+                    </label>
+                    <DatePickerField
+                      value={editedProject.dates.expectedGoLiveDate || ""}
+                      onChange={(v) => updateDates("expectedGoLiveDate", v)}
+                      placeholder="Select expected go-live date"
+                    />
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_actual_go_live_date")}
+                    </label>
+                    <DatePickerField
+                      value={editedProject.dates.goLiveDate || ""}
+                      onChange={(v) => updateDates("goLiveDate", v)}
+                      placeholder="Select go-live date"
+                    />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
             <TabsContent value="notes" className="space-y-3">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="edit-mintNotes"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  {getLabel("field_mint_notes")}
-                </Label>
-                <Textarea
-                  id="edit-mintNotes"
-                  value={editedProject.notes.mintNotes || ""}
-                  onChange={(e) => updateNotes("mintNotes", e.target.value)}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="edit-projectNotes"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  {getLabel("field_project_notes")}
-                </Label>
-                <Textarea
-                  id="edit-projectNotes"
-                  value={editedProject.notes.projectNotes || ""}
-                  onChange={(e) => updateNotes("projectNotes", e.target.value)}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="edit-currentStageComment"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  {getLabel("field_current_stage_comment")}
-                </Label>
-                <Textarea
-                  id="edit-currentStageComment"
-                  value={editedProject.notes.currentStageComment || ""}
-                  onChange={(e) => updateNotes("currentStageComment", e.target.value)}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="edit-stage2Comment"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  {getLabel("field_stage2_comment")}
-                </Label>
-                <Textarea
-                  id="edit-stage2Comment"
-                  value={editedProject.notes.stage2Comment || ""}
-                  onChange={(e) => updateNotes("stage2Comment", e.target.value)}
-                  rows={2}
-                />
+              <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                  <FileText className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-[13px] font-semibold text-primary">Notes</span>
+                </div>
+                <div className="bg-white divide-y divide-[#E2E8F0]">
+                  <div className="px-4 py-3 space-y-1.5">
+                    <label htmlFor="edit-mintNotes" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_mint_notes")}
+                    </label>
+                    <Textarea
+                      id="edit-mintNotes"
+                      value={editedProject.notes.mintNotes || ""}
+                      onChange={(e) => updateNotes("mintNotes", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="px-4 py-3 space-y-1.5">
+                    <label htmlFor="edit-projectNotes" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_project_notes")}
+                    </label>
+                    <Textarea
+                      id="edit-projectNotes"
+                      value={editedProject.notes.projectNotes || ""}
+                      onChange={(e) => updateNotes("projectNotes", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="px-4 py-3 space-y-1.5">
+                    <label htmlFor="edit-currentStageComment" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_current_stage_comment")}
+                    </label>
+                    <Textarea
+                      id="edit-currentStageComment"
+                      value={editedProject.notes.currentStageComment || ""}
+                      onChange={(e) => updateNotes("currentStageComment", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="px-4 py-3 space-y-1.5">
+                    <label htmlFor="edit-stage2Comment" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_stage2_comment")}
+                    </label>
+                    <Textarea
+                      id="edit-stage2Comment"
+                      value={editedProject.notes.stage2Comment || ""}
+                      onChange={(e) => updateNotes("stage2Comment", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
             <TabsContent value="faq" className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="heading-card">FAQ & Help</h3>
-                  <p className="text-xs text-muted-foreground">
+              <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[13px] font-semibold text-primary">FAQ & Help</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={faqFileRef}
+                      type="file"
+                      accept=".csv,.json,text/csv,application/json"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void handleFaqUpload(file);
+                        e.target.value = "";
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => faqFileRef.current?.click()}
+                      className="gap-1 h-7 text-xs"
+                    >
+                      <Upload className="h-3 w-3" /> Upload
+                    </Button>
+                    <Button type="button" size="sm" onClick={addFaq} className="gap-1 h-7 text-xs">
+                      <Plus className="h-3 w-3" /> Add FAQ
+                    </Button>
+                  </div>
+                </div>
+                <div className="bg-white px-4 py-4">
+                  <p className="text-xs text-muted-foreground mb-3">
                     These FAQs appear in the customer portal and Help Assistant. Upload accepts a
                     CSV with question and answer columns, or a JSON array.
                   </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <input
-                    ref={faqFileRef}
-                    type="file"
-                    accept=".csv,.json,text/csv,application/json"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) void handleFaqUpload(file);
-                      e.target.value = "";
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => faqFileRef.current?.click()}
-                    className="gap-1"
-                  >
-                    <Upload className="h-3 w-3" /> Upload
-                  </Button>
-                  <Button type="button" size="sm" onClick={addFaq} className="gap-1">
-                    <Plus className="h-3 w-3" /> Add FAQ
-                  </Button>
+                  {(editedProject.faqHelp ?? []).length === 0 ? (
+                    <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                      No FAQs added yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {(editedProject.faqHelp ?? []).map((faq, idx) => (
+                        <div
+                          key={faq.id || idx}
+                          className="rounded-md border bg-muted/20 p-3 space-y-3"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-semibold text-muted-foreground">
+                              FAQ {idx + 1}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                updateFaqHelp((editedProject.faqHelp ?? []).filter((_, i) => i !== idx))
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium text-muted-foreground">
+                              Question
+                            </Label>
+                            <Input
+                              value={faq.question}
+                              onChange={(e) =>
+                                updateFaqHelp(
+                                  (editedProject.faqHelp ?? []).map((item, i) =>
+                                    i === idx ? { ...item, question: e.target.value } : item,
+                                  ),
+                                )
+                              }
+                              placeholder="Enter customer question"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium text-muted-foreground">Answer</Label>
+                            <Textarea
+                              value={faq.answer}
+                              onChange={(e) =>
+                                updateFaqHelp(
+                                  (editedProject.faqHelp ?? []).map((item, i) =>
+                                    i === idx ? { ...item, answer: e.target.value } : item,
+                                  ),
+                                )
+                              }
+                              placeholder="Enter the answer customers should see"
+                              rows={3}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-              {(editedProject.faqHelp ?? []).length === 0 ? (
-                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                  No FAQs added yet.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {(editedProject.faqHelp ?? []).map((faq, idx) => (
-                    <div
-                      key={faq.id || idx}
-                      className="rounded-md border bg-muted/20 p-3 space-y-3"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-semibold text-muted-foreground">
-                          FAQ {idx + 1}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            updateFaqHelp((editedProject.faqHelp ?? []).filter((_, i) => i !== idx))
-                          }
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-medium text-muted-foreground">
-                          Question
-                        </Label>
-                        <Input
-                          value={faq.question}
-                          onChange={(e) =>
-                            updateFaqHelp(
-                              (editedProject.faqHelp ?? []).map((item, i) =>
-                                i === idx ? { ...item, question: e.target.value } : item,
-                              ),
-                            )
-                          }
-                          placeholder="Enter customer question"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-medium text-muted-foreground">Answer</Label>
-                        <Textarea
-                          value={faq.answer}
-                          onChange={(e) =>
-                            updateFaqHelp(
-                              (editedProject.faqHelp ?? []).map((item, i) =>
-                                i === idx ? { ...item, answer: e.target.value } : item,
-                              ),
-                            )
-                          }
-                          placeholder="Enter the answer customers should see"
-                          rows={3}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </TabsContent>
 
             {canManageCredentials && (
-              <TabsContent value="credentials" className="space-y-6">
-                <div>
-                  <h3 className="heading-card mb-3">Sandbox Credentials</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_sandbox_mid")}</Label>
-                      <Input
-                        value={editedProject.sandboxMid || ""}
-                        onChange={(e) => updateField("sandboxMid", e.target.value)}
-                        placeholder="e.g. 10008"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_sandbox_app_id")}</Label>
-                      <Input
-                        value={editedProject.sandboxAppId || ""}
-                        onChange={(e) => updateField("sandboxAppId", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_sandbox_app_secret")}</Label>
-                      <Input
-                        value={editedProject.sandboxAppSecret || ""}
-                        onChange={(e) => updateField("sandboxAppSecret", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_sandbox_base_url")}</Label>
-                      <Input
-                        value={editedProject.sandboxBaseUrl || ""}
-                        onChange={(e) => updateField("sandboxBaseUrl", e.target.value)}
-                        placeholder="https://sandbox.api.gokwik.co"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_sandbox_config_id")}</Label>
-                      <Input
-                        value={editedProject.sandboxConfigId || ""}
-                        onChange={(e) => updateField("sandboxConfigId", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_sandbox_kwikpass_jwe_key")}</Label>
-                      <Input
-                        value={editedProject.sandboxKwikpassJweKey || ""}
-                        onChange={(e) => updateField("sandboxKwikpassJweKey", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2 col-span-2">
-                      <Label className="text-xs font-medium text-muted-foreground">
-                        {getLabel("field_payment_simulator_link")}
-                      </Label>
-                      <Input
-                        type="url"
-                        value={editedProject.paymentSimulatorLink || ""}
-                        onChange={(e) => updateField("paymentSimulatorLink", e.target.value)}
-                        placeholder="https://payment-simulator.example.com/..."
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        When set, a "Payment Simulator" section appears in the customer's KwikAssist
-                        portal.
-                      </p>
-                    </div>
+              <TabsContent value="credentials" className="space-y-3">
+                {/* Sandbox Credentials */}
+                <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                    <KeyRound className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[13px] font-semibold text-primary">Sandbox Credentials</span>
                   </div>
-                </div>
-
-                <div>
-                  <h3 className="heading-card mb-3">Production Credentials</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_prod_mid")}</Label>
-                      <Input
-                        value={editedProject.prodMid || ""}
-                        onChange={(e) => updateField("prodMid", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_prod_app_id")}</Label>
-                      <Input
-                        value={editedProject.prodAppId || ""}
-                        onChange={(e) => updateField("prodAppId", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_prod_app_secret")}</Label>
-                      <Input
-                        value={editedProject.prodAppSecret || ""}
-                        onChange={(e) => updateField("prodAppSecret", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_prod_base_url")}</Label>
-                      <Input
-                        value={editedProject.prodBaseUrl || ""}
-                        onChange={(e) => updateField("prodBaseUrl", e.target.value)}
-                        placeholder="https://api.gokwik.co"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_prod_config_id")}</Label>
-                      <Input
-                        value={editedProject.prodConfigId || ""}
-                        onChange={(e) => updateField("prodConfigId", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_prod_kwikpass_jwe_key")}</Label>
-                      <Input
-                        value={editedProject.prodKwikpassJweKey || ""}
-                        onChange={(e) => updateField("prodKwikpassJweKey", e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="heading-card mb-3">MCP Configuration</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_mcp_config_id")}</Label>
-                      <Input
-                        value={editedProject.mcpConfigId || ""}
-                        onChange={(e) => updateField("mcpConfigId", e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2 flex items-end gap-3">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={editedProject.enableMcpDocument || false}
-                          onCheckedChange={(checked) => updateField("enableMcpDocument", checked)}
+                  <div className="bg-white px-4 py-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_sandbox_mid")}</Label>
+                        <Input
+                          value={editedProject.sandboxMid || ""}
+                          onChange={(e) => updateField("sandboxMid", e.target.value)}
+                          placeholder="e.g. 10008"
                         />
-                        <Label>{getLabel("field_mcp_enabled")}</Label>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_sandbox_app_id")}</Label>
+                        <Input
+                          value={editedProject.sandboxAppId || ""}
+                          onChange={(e) => updateField("sandboxAppId", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_sandbox_app_secret")}</Label>
+                        <Input
+                          value={editedProject.sandboxAppSecret || ""}
+                          onChange={(e) => updateField("sandboxAppSecret", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_sandbox_base_url")}</Label>
+                        <Input
+                          value={editedProject.sandboxBaseUrl || ""}
+                          onChange={(e) => updateField("sandboxBaseUrl", e.target.value)}
+                          placeholder="https://sandbox.api.gokwik.co"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_sandbox_config_id")}</Label>
+                        <Input
+                          value={editedProject.sandboxConfigId || ""}
+                          onChange={(e) => updateField("sandboxConfigId", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_sandbox_kwikpass_jwe_key")}</Label>
+                        <Input
+                          value={editedProject.sandboxKwikpassJweKey || ""}
+                          onChange={(e) => updateField("sandboxKwikpassJweKey", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2 col-span-2">
+                        <Label className="text-xs font-medium text-muted-foreground">
+                          {getLabel("field_payment_simulator_link")}
+                        </Label>
+                        <Input
+                          type="url"
+                          value={editedProject.paymentSimulatorLink || ""}
+                          onChange={(e) => updateField("paymentSimulatorLink", e.target.value)}
+                          placeholder="https://payment-simulator.example.com/..."
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          When set, a "Payment Simulator" section appears in the customer's KwikAssist portal.
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="heading-card mb-3">KwikPass (KP) Configuration</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2 flex items-end gap-3">
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={editedProject.enableKp || false}
-                          onCheckedChange={(checked) => updateField("enableKp", checked)}
+                {/* Production Credentials */}
+                <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                    <KeyRound className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[13px] font-semibold text-primary">Production Credentials</span>
+                  </div>
+                  <div className="bg-white px-4 py-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_prod_mid")}</Label>
+                        <Input
+                          value={editedProject.prodMid || ""}
+                          onChange={(e) => updateField("prodMid", e.target.value)}
                         />
-                        <Label>{getLabel("field_kp_enabled")}</Label>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_prod_app_id")}</Label>
+                        <Input
+                          value={editedProject.prodAppId || ""}
+                          onChange={(e) => updateField("prodAppId", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_prod_app_secret")}</Label>
+                        <Input
+                          value={editedProject.prodAppSecret || ""}
+                          onChange={(e) => updateField("prodAppSecret", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_prod_base_url")}</Label>
+                        <Input
+                          value={editedProject.prodBaseUrl || ""}
+                          onChange={(e) => updateField("prodBaseUrl", e.target.value)}
+                          placeholder="https://api.gokwik.co"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_prod_config_id")}</Label>
+                        <Input
+                          value={editedProject.prodConfigId || ""}
+                          onChange={(e) => updateField("prodConfigId", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_prod_kwikpass_jwe_key")}</Label>
+                        <Input
+                          value={editedProject.prodKwikpassJweKey || ""}
+                          onChange={(e) => updateField("prodKwikpassJweKey", e.target.value)}
+                        />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>{getLabel("field_kp_prod_jwe_key")}</Label>
-                      <Input
-                        value={editedProject.kpProdJweKey || ""}
-                        onChange={(e) => updateField("kpProdJweKey", e.target.value)}
-                        placeholder="Production JWE key"
-                      />
+                  </div>
+                </div>
+
+                {/* MCP Configuration */}
+                <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                    <Layers className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[13px] font-semibold text-primary">MCP Configuration</span>
+                  </div>
+                  <div className="bg-white px-4 py-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_mcp_config_id")}</Label>
+                        <Input
+                          value={editedProject.mcpConfigId || ""}
+                          onChange={(e) => updateField("mcpConfigId", e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2 flex items-end gap-3">
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={editedProject.enableMcpDocument || false}
+                            onCheckedChange={(checked) => updateField("enableMcpDocument", checked)}
+                          />
+                          <Label>{getLabel("field_mcp_enabled")}</Label>
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2 col-span-2">
-                      <Label>{getLabel("field_kp_sandbox_jwe_key")}</Label>
-                      <Input
-                        value={
-                          editedProject.kpSandboxJweKey ||
-                          "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI"
-                        }
-                        onChange={(e) => updateField("kpSandboxJweKey", e.target.value)}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Default sandbox key is pre-filled for all customers
-                      </p>
+                  </div>
+                </div>
+
+                {/* KwikPass Configuration */}
+                <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                    <KeyRound className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[13px] font-semibold text-primary">KwikPass (KP) Configuration</span>
+                  </div>
+                  <div className="bg-white px-4 py-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2 flex items-end gap-3">
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={editedProject.enableKp || false}
+                            onCheckedChange={(checked) => updateField("enableKp", checked)}
+                          />
+                          <Label>{getLabel("field_kp_enabled")}</Label>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>{getLabel("field_kp_prod_jwe_key")}</Label>
+                        <Input
+                          value={editedProject.kpProdJweKey || ""}
+                          onChange={(e) => updateField("kpProdJweKey", e.target.value)}
+                          placeholder="Production JWE key"
+                        />
+                      </div>
+                      <div className="space-y-2 col-span-2">
+                        <Label>{getLabel("field_kp_sandbox_jwe_key")}</Label>
+                        <Input
+                          value={
+                            editedProject.kpSandboxJweKey ||
+                            "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI"
+                          }
+                          onChange={(e) => updateField("kpSandboxJweKey", e.target.value)}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Default sandbox key is pre-filled for all customers
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </TabsContent>
             )}
 
-            <TabsContent value="custom" className="space-y-6">
-              {customFields.length > 0 && (
-                <CustomFieldsForm
-                  fields={customFields}
-                  values={{ ...customValues, ...customDraft }}
-                  onChange={handleCustomFieldChange}
-                />
+            <TabsContent value="custom" className="space-y-3">
+              {customFields.length > 0 ? (
+                <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
+                    <Layers className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-[13px] font-semibold text-primary">Custom Fields</span>
+                  </div>
+                  <div className="bg-white px-4 py-4">
+                    <CustomFieldsForm
+                      fields={customFields}
+                      values={{ ...customValues, ...customDraft }}
+                      onChange={handleCustomFieldChange}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-dashed border-[#E2E8F0] p-6 text-sm text-muted-foreground text-center">
+                  No custom fields configured.
+                </div>
               )}
             </TabsContent>
           </Tabs>
