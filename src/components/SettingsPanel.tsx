@@ -85,7 +85,7 @@ const WORKFLOW_GROUPS: LabelGroup[] = [
 
 const FIELD_GROUPS: LabelGroup[] = [
   {
-    title: "Field Labels",
+    title: "System Fields",
     description: "Labels for project data fields shown across the app",
     keys: [
       { key: "field_merchant_name", label: "Client/Merchant Name" },
@@ -380,7 +380,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
             </TabsTrigger>
             <TabsTrigger value="fields" className="gap-1.5">
               <Tags className="h-3.5 w-3.5" />
-              Field Labels
+              System Fields
             </TabsTrigger>
             <TabsTrigger value="custom-fields" className="gap-1.5">
               <Layers className="h-3.5 w-3.5" />
@@ -468,7 +468,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
             <CardHeader>
               <CardTitle className="portal-heading flex items-center gap-2">
                 <Tags className="h-4 w-4 text-primary" />
-                Field Labels
+                System Fields
               </CardTitle>
               <CardDescription>
                 Customise labels for built-in project fields, links, dates, and notes
