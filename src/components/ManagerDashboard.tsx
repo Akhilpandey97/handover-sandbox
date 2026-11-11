@@ -1905,7 +1905,7 @@ export const ManagerDashboard = () => {
                           key: "all",
                           label: "All projects",
                           value: totalProjects,
-                          sub: `Pipeline ${arrLabel}: ${formatCr(totalArr / 12)}`,
+                          sub: `Pipeline ${arrLabel}: ${formatCr(totalArr)}`,
                           icon: FolderKanban,
                           tone: "bg-muted text-foreground/70",
                           onClick: () =>
@@ -1919,7 +1919,7 @@ export const ManagerDashboard = () => {
                             key,
                             label: state === "in_progress" ? "In Progress" : label,
                             value: list.length,
-                            sub: `${arrLabel}: ${formatCr(list.reduce((s, p) => s + arrToCrore(p.arr), 0) / 12)}`,
+                            sub: `${arrLabel}: ${formatCr(list.reduce((s, p) => s + arrToCrore(p.arr), 0))}`,
                             icon,
                             tone,
                             onClick: () =>
