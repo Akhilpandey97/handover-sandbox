@@ -105,6 +105,90 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+async function notifyTeamOfPortalAction(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  project: {
+    id: string;
+    tenant_id: string | null;
+    merchant_name: string;
+    assigned_owner: string | null;
+    created_by: string | null;
+  },
+  opts: {
+    type: string;
+    title: string;
+    body: string;
+    actorName: string;
+  },
+) {
+  const recipients = new Set<string>();
+  for (const id of [project.assigned_owner, project.created_by])
+    if (id) recipients.add(id as string);
+  if (recipients.size === 0 && project.tenant_id) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("tenant_id", project.tenant_id)
+      .limit(50);
+    for (const p of (profiles ?? [])) recipients.add((p as any).id);
+  }
+  if (recipients.size === 0) return;
+
+  await supabase.from("notifications").insert(
+    Array.from(recipients).map((userId) => ({
+      tenant_id: project.tenant_id,
+      user_id: userId,
+      type: opts.type,
+      title: opts.title,
+      body: opts.body.slice(0, 240),
+      actor_name: opts.actorName,
+      project_id: project.id,
+      project_name: project.merchant_name,
+    })) as never[],
+  );
+
+  // Also send an email (fire-and-forget) so the team is notified even when off the product
+  try {
+    const tenantCreds = await getTenantIntegrations(project.tenant_id);
+    if (!tenantCreds.resend_api_key) return;
+    const { brandColor } = await getTenantBranding(project.tenant_id);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .in("id", Array.from(recipients));
+
+    for (const p of ((profiles ?? []) as { id: string; name: string; email: string }[])) {
+      if (!p.email) continue;
+      const html = `
+        <div style="color:#11263b;font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+          <div style="background:${brandColor};padding:20px;border-radius:12px 12px 0 0;color:white;">
+            <h1 style="margin:0;font-size:20px;">Customer portal update</h1>
+          </div>
+          <div style="background:#f7fafc;padding:24px;border:1px solid #d5e0e6;border-top:none;border-radius:0 0 12px 12px;">
+            <p style="margin:0 0 16px;">Hi <strong>${p.name || "there"}</strong>,</p>
+            <p style="margin:0 0 16px;"><strong>${opts.actorName}</strong> ${opts.title.toLowerCase().replace(`merchant `, "").replace(project.merchant_name, "").trim()} on <strong>${project.merchant_name}</strong>:</p>
+            <div style="background:white;border-left:3px solid ${brandColor};padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:16px;color:#546978;font-size:14px;">${opts.body}</div>
+          </div>
+        </div>`;
+      fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tenantCreds.resend_api_key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: resendFrom(tenantCreds, "MINT Updates"),
+          ...resendReplyTo(tenantCreds),
+          to: [p.email],
+          subject: opts.title,
+          html,
+        }),
+      }).catch(() => {});
+    }
+  } catch {}
+}
+
 async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -358,32 +442,13 @@ async function handler(req: Request): Promise<Response> {
         content: text,
       });
 
-      // Notify relevant internal users
-      const recipients = new Set<string>();
-      for (const id of [project.assigned_owner, project.created_by])
-        if (id) recipients.add(id as string);
-      if (recipients.size === 0 && project.tenant_id) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("tenant_id", project.tenant_id)
-          .limit(50);
-        for (const p of profiles ?? []) recipients.add(p.id);
-      }
-      if (recipients.size > 0) {
-        await supabase.from("notifications").insert(
-          Array.from(recipients).map((userId) => ({
-            tenant_id: project.tenant_id,
-            user_id: userId,
-            type: "merchant_note",
-            title: `Merchant messaged on ${project.merchant_name}`,
-            body: text.slice(0, 240),
-            actor_name: authorName,
-            project_id: project.id,
-            project_name: project.merchant_name,
-          })),
-        );
-      }
+      // Notify team (in-app + email)
+      await notifyTeamOfPortalAction(supabase, project, {
+        type: "merchant_note",
+        title: `Merchant messaged on ${project.merchant_name}`,
+        body: text,
+        actorName: authorName,
+      });
 
       return json({ success: true });
     } catch (err) {
@@ -699,16 +764,24 @@ async function handler(req: Request): Promise<Response> {
       const tenantId = tokenRow.tenant_id;
 
       // Verify task belongs to this project and is customer-visible
-      const { data: task } = await supabase
-        .from("checklist_tasks")
-        .select("id, checklist_item_id, status")
-        .eq("id", task_id)
-        .eq("project_id", projectId)
-        .eq("is_client_visible", true)
-        .maybeSingle();
+      const [{ data: task }, { data: project }] = await Promise.all([
+        supabase
+          .from("checklist_tasks")
+          .select("id, checklist_item_id, status, title")
+          .eq("id", task_id)
+          .eq("project_id", projectId)
+          .eq("is_client_visible", true)
+          .maybeSingle(),
+        supabase
+          .from("projects")
+          .select("id, tenant_id, merchant_name, assigned_owner, created_by")
+          .eq("id", projectId)
+          .maybeSingle(),
+      ]);
       if (!task) return json({ error: "Task not found" }, 404);
 
       const actorName = customer_name || "Customer";
+      const notifProject = project as { id: string; tenant_id: string | null; merchant_name: string; assigned_owner: string | null; created_by: string | null } | null;
 
       if (action === "complete" || action === "uncomplete") {
         const newStatus = action === "complete" ? "done" : "todo";
@@ -741,6 +814,16 @@ async function handler(req: Request): Promise<Response> {
           tenant_id: tenantId,
         });
 
+        // Notify team
+        if (notifProject) {
+          void notifyTeamOfPortalAction(supabase, notifProject, {
+            type: "merchant_task_action",
+            title: `${actorName} ${action === "complete" ? "completed" : "reopened"} a task on ${notifProject.merchant_name}`,
+            body: `Task: "${(task as any).title}" — ${autoComment}`,
+            actorName,
+          });
+        }
+
         return json({ success: true, status: newStatus });
       }
 
@@ -759,6 +842,17 @@ async function handler(req: Request): Promise<Response> {
           .select()
           .single();
         if (insertErr) return json({ error: insertErr.message }, 500);
+
+        // Notify team
+        if (notifProject) {
+          void notifyTeamOfPortalAction(supabase, notifProject, {
+            type: "merchant_task_comment",
+            title: `${actorName} commented on a task on ${notifProject.merchant_name}`,
+            body: `Task: "${(task as any).title}"\n${comment.trim()}`,
+            actorName,
+          });
+        }
+
         return json({ success: true, comment: inserted });
       }
 
