@@ -103,6 +103,37 @@ export const useAddChecklistComment = () => {
   });
 };
 
+export const useUpdateChecklistComment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      commentId,
+      checklistItemId,
+      comment,
+    }: {
+      commentId: string;
+      checklistItemId: string;
+      comment: string;
+    }) => {
+      const { error } = await supabase
+        .from("checklist_comments")
+        .update({ comment })
+        .eq("id", commentId);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["checklist-comments", variables.checklistItemId],
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating comment:", error);
+      toast.error("Failed to update comment");
+    },
+  });
+};
+
 export const useDeleteChecklistComment = () => {
   const queryClient = useQueryClient();
 

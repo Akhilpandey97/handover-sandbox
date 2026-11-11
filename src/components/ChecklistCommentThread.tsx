@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { openStorageFile } from "@/lib/storage-url";
-import { useChecklistComments, useAddChecklistComment } from "@/hooks/useChecklistComments";
+import {
+  useChecklistComments,
+  useAddChecklistComment,
+  useUpdateChecklistComment,
+} from "@/hooks/useChecklistComments";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfilesLookup } from "@/hooks/useLookups";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -20,6 +24,8 @@ import {
   ChevronUp,
   Loader2,
   AtSign,
+  Pencil,
+  Check,
 } from "lucide-react";
 
 /**
@@ -229,6 +235,7 @@ export const ChecklistCommentThread = ({
                 )}
                 <CommentBubble
                   comment={c}
+                  checklistItemId={checklistItemId}
                   currentUserId={currentUser?.id}
                   knownNames={knownNames}
                   avatarUrl={profiles.find((p) => p.id === c.user_id)?.avatar_url}
@@ -323,6 +330,7 @@ export const ChecklistCommentThread = ({
 
 const CommentBubble = ({
   comment,
+  checklistItemId,
   currentUserId,
   knownNames,
   avatarUrl,
@@ -336,11 +344,17 @@ const CommentBubble = ({
     attachment_name: string | null;
     created_at: string;
   };
+  checklistItemId: string;
   currentUserId?: string;
   knownNames: string[];
   avatarUrl?: string | null;
 }) => {
-  const isOwn = currentUserId && comment.user_id === currentUserId;
+  const isOwn = !!(currentUserId && comment.user_id === currentUserId);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(comment.comment);
+  const editRef = useRef<HTMLTextAreaElement>(null);
+  const updateComment = useUpdateChecklistComment();
+
   const dateStr = new Date(comment.created_at).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -350,8 +364,31 @@ const CommentBubble = ({
     minute: "2-digit",
   });
 
+  const startEdit = () => {
+    setDraft(comment.comment);
+    setEditing(true);
+    setTimeout(() => {
+      editRef.current?.focus();
+      editRef.current?.setSelectionRange(draft.length, draft.length);
+    }, 0);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+    setDraft(comment.comment);
+  };
+
+  const saveEdit = () => {
+    const trimmed = draft.trim();
+    if (!trimmed || trimmed === comment.comment) { cancelEdit(); return; }
+    updateComment.mutate(
+      { commentId: comment.id, checklistItemId, comment: trimmed },
+      { onSuccess: () => setEditing(false) },
+    );
+  };
+
   return (
-    <div id={`comment-${comment.id}`} className="flex items-start gap-3">
+    <div id={`comment-${comment.id}`} className="group flex items-start gap-3">
       {/* Avatar */}
       <UserAvatar name={comment.user_name} avatarUrl={avatarUrl} size="md" />
       {/* Body */}
@@ -359,11 +396,63 @@ const CommentBubble = ({
         <div className="flex items-baseline gap-2">
           <span className="text-xs font-semibold text-foreground">{comment.user_name}</span>
           <span className="text-2xs text-muted-foreground">{dateStr}, {timeStr}</span>
+          {isOwn && !editing && (
+            <button
+              type="button"
+              onClick={startEdit}
+              className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground/50 hover:text-foreground"
+              title="Edit comment"
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+          )}
         </div>
-        <p className="mt-0.5 text-xs text-foreground whitespace-pre-wrap">
-          {renderMentions(comment.comment, knownNames)}
-        </p>
-        {comment.attachment_url && (
+
+        {editing ? (
+          <div className="mt-1 space-y-1.5">
+            <Textarea
+              ref={editRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") cancelEdit();
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) saveEdit();
+              }}
+              className="min-h-[60px] resize-none text-xs"
+              rows={2}
+            />
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={saveEdit}
+                disabled={updateComment.isPending}
+                className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {updateComment.isPending ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Check className="h-3 w-3" />
+                )}
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+                Cancel
+              </button>
+              <span className="text-2xs text-muted-foreground/60 ml-auto">⌘↵ to save · Esc to cancel</span>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-0.5 text-xs text-foreground whitespace-pre-wrap">
+            {renderMentions(comment.comment, knownNames)}
+          </p>
+        )}
+
+        {comment.attachment_url && !editing && (
           <button
             type="button"
             onClick={async () => {
