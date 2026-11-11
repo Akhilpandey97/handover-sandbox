@@ -40,7 +40,6 @@ const PAGE_LABEL: Record<string, string> = {
   integration: "My Integration",
   credentials: "Credentials",
   documents: "Documents",
-  kwikpass: "KwikPass",
   faq: "FAQ & Help",
   validator: "Validator",
 };

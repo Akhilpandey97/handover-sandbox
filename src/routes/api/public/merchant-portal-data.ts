@@ -27,10 +27,6 @@ function extractCredentials(text: string): Record<string, string> {
     ["app_secret", [/(?:App\s*Secret|AppSecret|Application\s*Secret)[:\s]*([^\n\r,]+)/i]],
     ["base_url", [/(?:Base\s*URL|BaseURL|API\s*URL)[:\s]*(https?:\/\/[^\s\n\r,]+)/i]],
     ["config_id", [/(?:Config\s*ID|ConfigID|Configuration\s*ID)[:\s]*([^\n\r,]+)/i]],
-    [
-      "kwikpass_jwe_key",
-      [/(?:KwikPass\s*JWE\s*(?:Key|Secret)|JWE\s*Key|JWE\s*Secret)[:\s]*([^\n\r,]+)/i],
-    ],
   ];
   for (const [key, regexes] of patterns) {
     for (const re of regexes) {
@@ -908,15 +904,11 @@ async function handler(req: Request): Promise<Response> {
       dbSandbox.app_secret = projectCredentials.sandbox_app_secret;
     if (project.sandbox_base_url) dbSandbox.base_url = project.sandbox_base_url;
     if (project.sandbox_config_id) dbSandbox.config_id = project.sandbox_config_id;
-    if (projectCredentials.sandbox_kwikpass_jwe_key)
-      dbSandbox.kwikpass_jwe_key = projectCredentials.sandbox_kwikpass_jwe_key;
     if (project.prod_mid) dbProd.mid = project.prod_mid;
     if (project.prod_app_id) dbProd.app_id = project.prod_app_id;
     if (projectCredentials.prod_app_secret) dbProd.app_secret = projectCredentials.prod_app_secret;
     if (project.prod_base_url) dbProd.base_url = project.prod_base_url;
     if (project.prod_config_id) dbProd.config_id = project.prod_config_id;
-    if (projectCredentials.prod_kwikpass_jwe_key)
-      dbProd.kwikpass_jwe_key = projectCredentials.prod_kwikpass_jwe_key;
 
     const mergedCredentials = jiraCredentials
       ? {
@@ -951,12 +943,6 @@ async function handler(req: Request): Promise<Response> {
         contact_email: project.contact_email,
         arr: project.arr,
         config_id: project.config_id || null,
-        enable_mcp_document: project.enable_mcp_document || false,
-        mcp_config_id: project.mcp_config_id || null,
-        enable_kp: project.enable_kp || false,
-        kp_prod_jwe_key: projectCredentials.kp_prod_jwe_key || null,
-        kp_sandbox_jwe_key:
-          projectCredentials.kp_sandbox_jwe_key || "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI",
         faq_help: Array.isArray(project.faq_help) ? project.faq_help : [],
         payment_simulator_link: project.payment_simulator_link || null,
       },

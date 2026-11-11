@@ -160,18 +160,11 @@ export interface Project {
   sandboxAppSecret?: string;
   sandboxBaseUrl?: string;
   sandboxConfigId?: string;
-  sandboxKwikpassJweKey?: string;
   prodMid?: string;
   prodAppId?: string;
   prodAppSecret?: string;
   prodBaseUrl?: string;
   prodConfigId?: string;
-  prodKwikpassJweKey?: string;
-  mcpConfigId?: string;
-  enableMcpDocument?: boolean;
-  enableKp?: boolean;
-  kpProdJweKey?: string;
-  kpSandboxJweKey?: string;
   faqHelp?: ProjectFaqHelp[];
   paymentSimulatorLink?: string;
   checklistSetId?: string | null;

@@ -262,19 +262,12 @@ const CREDENTIAL_LABELS: [string, string][] = [
   ["field_sandbox_app_secret", "Sandbox app secret"],
   ["field_sandbox_base_url", "Sandbox base URL"],
   ["field_sandbox_config_id", "Sandbox config ID"],
-  ["field_sandbox_kwikpass_jwe_key", "Sandbox KwikPass JWE key"],
   ["field_payment_simulator_link", "Payment simulator link"],
   ["field_prod_mid", "Production MID"],
   ["field_prod_app_id", "Production app ID"],
   ["field_prod_app_secret", "Production app secret"],
   ["field_prod_base_url", "Production base URL"],
   ["field_prod_config_id", "Production config ID"],
-  ["field_prod_kwikpass_jwe_key", "Production KwikPass JWE key"],
-  ["field_mcp_config_id", "MCP config ID"],
-  ["field_mcp_enabled", "Enable MCP toggle"],
-  ["field_kp_enabled", "Enable KP toggle"],
-  ["field_kp_prod_jwe_key", "KP production JWE key"],
-  ["field_kp_sandbox_jwe_key", "KP sandbox JWE key"],
 ];
 
 const COLOR_LABELS: [string, string][] = [

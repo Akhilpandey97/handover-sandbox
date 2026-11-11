@@ -46,7 +46,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 
 import { DatePickerField } from "@/components/ui/date-picker-field";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -928,13 +927,6 @@ export const EditProjectDialog = ({
                           onChange={(e) => updateField("sandboxConfigId", e.target.value)}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label>{getLabel("field_sandbox_kwikpass_jwe_key")}</Label>
-                        <Input
-                          value={editedProject.sandboxKwikpassJweKey || ""}
-                          onChange={(e) => updateField("sandboxKwikpassJweKey", e.target.value)}
-                        />
-                      </div>
                       <div className="space-y-2 col-span-2">
                         <Label className="text-xs font-medium text-muted-foreground">
                           {getLabel("field_payment_simulator_link")}
@@ -997,86 +989,10 @@ export const EditProjectDialog = ({
                           onChange={(e) => updateField("prodConfigId", e.target.value)}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label>{getLabel("field_prod_kwikpass_jwe_key")}</Label>
-                        <Input
-                          value={editedProject.prodKwikpassJweKey || ""}
-                          onChange={(e) => updateField("prodKwikpassJweKey", e.target.value)}
-                        />
-                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* MCP Configuration */}
-                <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
-                    <Layers className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-[13px] font-semibold text-primary">MCP Configuration</span>
-                  </div>
-                  <div className="bg-white px-4 py-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label>{getLabel("field_mcp_config_id")}</Label>
-                        <Input
-                          value={editedProject.mcpConfigId || ""}
-                          onChange={(e) => updateField("mcpConfigId", e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2 flex items-end gap-3">
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={editedProject.enableMcpDocument || false}
-                            onCheckedChange={(checked) => updateField("enableMcpDocument", checked)}
-                          />
-                          <Label>{getLabel("field_mcp_enabled")}</Label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* KwikPass Configuration */}
-                <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-primary/[0.06] border-b border-[#E2E8F0]">
-                    <KeyRound className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-[13px] font-semibold text-primary">KwikPass (KP) Configuration</span>
-                  </div>
-                  <div className="bg-white px-4 py-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2 flex items-end gap-3">
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={editedProject.enableKp || false}
-                            onCheckedChange={(checked) => updateField("enableKp", checked)}
-                          />
-                          <Label>{getLabel("field_kp_enabled")}</Label>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>{getLabel("field_kp_prod_jwe_key")}</Label>
-                        <Input
-                          value={editedProject.kpProdJweKey || ""}
-                          onChange={(e) => updateField("kpProdJweKey", e.target.value)}
-                          placeholder="Production JWE key"
-                        />
-                      </div>
-                      <div className="space-y-2 col-span-2">
-                        <Label>{getLabel("field_kp_sandbox_jwe_key")}</Label>
-                        <Input
-                          value={
-                            editedProject.kpSandboxJweKey ||
-                            "zH4NRP1HMALxxCFnRZABFA7GOJtzU_gIj02alfL1lvI"
-                          }
-                          onChange={(e) => updateField("kpSandboxJweKey", e.target.value)}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Default sandbox key is pre-filled for all customers
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </TabsContent>
             )}
 
