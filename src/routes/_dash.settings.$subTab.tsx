@@ -3,7 +3,7 @@ import { SETTINGS_SUB_TABS, DEFAULT_SETTINGS_SUB_TAB } from "@/lib/dashboard-rou
 
 const LABELS: Record<string, string> = {
   general: "General Settings",
-  fields: "Field Labels",
+  fields: "System Fields",
   "custom-fields": "Custom Fields",
   "checklist-forms": "Checklist Forms",
   "checklist-sets": "Checklist Sets",

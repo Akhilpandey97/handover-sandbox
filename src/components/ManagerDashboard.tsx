@@ -1203,7 +1203,7 @@ export const ManagerDashboard = () => {
       description: "Workspace name, logo and the basics everything else inherits.",
     },
     fields: {
-      label: "Field Labels",
+      label: "System Fields",
       icon: Tag,
       description: "Rename the fields so the app speaks your team's words.",
     },

@@ -462,7 +462,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
           )}
         </TabsContent>
 
-        {/* Field Labels Tab */}
+        {/* System Fields Tab */}
         <TabsContent value="fields">
           <Card className="shadow-sm">
             <CardHeader>
