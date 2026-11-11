@@ -678,6 +678,96 @@ async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // ---- Merchant task actions: mark done / add comment (PATCH) ----
+  if (req.method === "PATCH") {
+    try {
+      const body = await req.json();
+      const { token, task_id, action, comment, customer_name } = body;
+      if (!token || !task_id || !action) return json({ error: "token, task_id, action required" }, 400);
+
+      const { data: tokenRow } = await supabase
+        .from("merchant_portal_tokens")
+        .select("*")
+        .eq("token", token)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (!tokenRow) return json({ error: "Invalid token" }, 403);
+      if (tokenRow.expires_at && new Date(tokenRow.expires_at) < new Date())
+        return json({ error: "Expired" }, 403);
+
+      const projectId = tokenRow.project_id;
+      const tenantId = tokenRow.tenant_id;
+
+      // Verify task belongs to this project and is customer-visible
+      const { data: task } = await supabase
+        .from("checklist_tasks")
+        .select("id, checklist_item_id, status")
+        .eq("id", task_id)
+        .eq("project_id", projectId)
+        .eq("is_client_visible", true)
+        .maybeSingle();
+      if (!task) return json({ error: "Task not found" }, 404);
+
+      const actorName = customer_name || "Customer";
+
+      if (action === "complete" || action === "uncomplete") {
+        const newStatus = action === "complete" ? "done" : "todo";
+        await supabase.from("checklist_tasks").update({ status: newStatus }).eq("id", task_id);
+
+        // Mirror completion to the parent checklist item
+        if (action === "complete") {
+          await supabase
+            .from("checklist_items")
+            .update({ completed: true, completed_at: new Date().toISOString() })
+            .eq("id", task.checklist_item_id);
+        } else {
+          await supabase
+            .from("checklist_items")
+            .update({ completed: false, completed_at: null })
+            .eq("id", task.checklist_item_id);
+        }
+
+        // Auto-comment so the team sees it in Discussion
+        const autoComment =
+          action === "complete"
+            ? `✅ Marked as done by ${actorName}`
+            : `↩️ Reopened by ${actorName}`;
+        await supabase.from("checklist_comments").insert({
+          checklist_item_id: task.checklist_item_id,
+          checklist_task_id: task_id,
+          user_name: actorName,
+          user_id: null,
+          comment: autoComment,
+          tenant_id: tenantId,
+        });
+
+        return json({ success: true, status: newStatus });
+      }
+
+      if (action === "comment") {
+        if (!comment?.trim()) return json({ error: "comment required" }, 400);
+        const { data: inserted, error: insertErr } = await supabase
+          .from("checklist_comments")
+          .insert({
+            checklist_item_id: task.checklist_item_id,
+            checklist_task_id: task_id,
+            user_name: actorName,
+            user_id: null,
+            comment: comment.trim(),
+            tenant_id: tenantId,
+          })
+          .select()
+          .single();
+        if (insertErr) return json({ error: insertErr.message }, 500);
+        return json({ success: true, comment: inserted });
+      }
+
+      return json({ error: "Unknown action" }, 400);
+    } catch (err) {
+      return json({ error: (err as Error).message }, 500);
+    }
+  }
+
   // ---- Handle config_id update (PUT) ----
   if (req.method === "PUT") {
     try {
@@ -777,6 +867,16 @@ async function handler(req: Request): Promise<Response> {
           .eq("is_client_visible", true)
           .order("created_at", { ascending: true }),
       ]);
+
+    // Fetch comments for all client-visible tasks
+    const taskIds: string[] = ((tasksRes as any).data ?? []).map((t: any) => t.id);
+    const { data: taskCommentsData } = taskIds.length
+      ? await supabase
+          .from("checklist_comments")
+          .select("id, checklist_task_id, user_name, user_id, comment, created_at")
+          .in("checklist_task_id", taskIds)
+          .order("created_at", { ascending: true })
+      : { data: [] };
     const projectCredentials = (credentialsRes as any).data ?? {};
 
     const valMap = new Map<string, string | null>();
@@ -987,6 +1087,14 @@ async function handler(req: Request): Promise<Response> {
         due_date: t.due_date,
         checklist_item_id: t.checklist_item_id,
         assigned_to_ext: t.assigned_to_ext,
+      })),
+      task_comments: (taskCommentsData ?? []).map((c: any) => ({
+        id: c.id,
+        checklist_task_id: c.checklist_task_id,
+        user_name: c.user_name,
+        user_id: c.user_id,
+        comment: c.comment,
+        created_at: c.created_at,
       })),
     });
   } catch (err) {

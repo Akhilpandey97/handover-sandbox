@@ -159,6 +159,14 @@ interface PortalData {
     checklist_item_id: string;
     assigned_to_ext: string | null;
   }[];
+  task_comments: {
+    id: string;
+    checklist_task_id: string;
+    user_name: string;
+    user_id: string | null;
+    comment: string;
+    created_at: string;
+  }[];
 }
 
 // STAGES are dynamically derived from the checklist items (MINT checklist)
@@ -483,8 +491,10 @@ export default function MerchantPortal() {
   const [noteText, setNoteText] = useState("");
   const [savedNotes, setSavedNotes] = useState<MerchantNote[]>([]);
 
-  // Task completion state
-  const [taskCompletions, setTaskCompletions] = useState<Record<number, boolean>>({});
+  // Task completion state (task id → status string, synced to DB via PATCH)
+  const [taskStatuses, setTaskStatuses] = useState<Record<string, string>>({});
+  // Task comments per task id (augmented optimistically)
+  const [taskComments, setTaskComments] = useState<PortalData["task_comments"]>([]);
 
   // Shell state — mirrors the signed-in dashboard shell
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -533,14 +543,7 @@ export default function MerchantPortal() {
           setSavedNotes(JSON.parse(storedNotes));
         } catch {}
       }
-      // Load task completions
-      const tasksKey = `portal_tasks_${token}`;
-      const storedTasks = localStorage.getItem(tasksKey);
-      if (storedTasks) {
-        try {
-          setTaskCompletions(JSON.parse(storedTasks));
-        } catch {}
-      }
+      // Task status is now server-driven; nothing to load from localStorage
     }
   }, [token]);
 
@@ -701,11 +704,59 @@ export default function MerchantPortal() {
     setEmailInput(storedEmail || "");
   };
 
-  const toggleTask = (idx: number) => {
+  const toggleTask = async (taskId: string) => {
     if (!token) return;
-    const updated = { ...taskCompletions, [idx]: !taskCompletions[idx] };
-    setTaskCompletions(updated);
-    localStorage.setItem(`portal_tasks_${token}`, JSON.stringify(updated));
+    const current = taskStatuses[taskId] ?? "todo";
+    const action = current === "done" ? "uncomplete" : "complete";
+    // Optimistic update
+    setTaskStatuses((prev) => ({ ...prev, [taskId]: action === "complete" ? "done" : "todo" }));
+    const customerName =
+      (typeof window !== "undefined" && localStorage.getItem(`portal_email_${token}`)) ||
+      "Customer";
+    try {
+      const res = await fetch(API_URL, {
+        method: "PATCH",
+        headers: { apikey: API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ token, task_id: taskId, action, customer_name: customerName }),
+      });
+      const json = await res.json();
+      if (json.error) {
+        // Revert on failure
+        setTaskStatuses((prev) => ({ ...prev, [taskId]: current }));
+      } else {
+        // Add the auto-comment to local state
+        if (json.comment) {
+          setTaskComments((prev) => [...prev, json.comment]);
+        }
+        // Refresh to get the auto-comment that was added server-side
+        refreshData();
+      }
+    } catch {
+      setTaskStatuses((prev) => ({ ...prev, [taskId]: current }));
+    }
+  };
+
+  const submitTaskComment = async (taskId: string, comment: string) => {
+    if (!token || !comment.trim()) return;
+    const customerName =
+      (typeof window !== "undefined" && localStorage.getItem(`portal_email_${token}`)) ||
+      "Customer";
+    const res = await fetch(API_URL, {
+      method: "PATCH",
+      headers: { apikey: API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        token,
+        task_id: taskId,
+        action: "comment",
+        comment,
+        customer_name: customerName,
+      }),
+    });
+    const json = await res.json();
+    if (!json.error && json.comment) {
+      setTaskComments((prev) => [...prev, json.comment]);
+    }
+    return json;
   };
 
   const handleMidLogin = async () => {
@@ -755,7 +806,13 @@ export default function MerchantPortal() {
       .then((r) => r.json())
       .then((d) => {
         if (d.error) setError(d.error);
-        else setData({ tasks: [], ...d });
+        else {
+          setData({ tasks: [], task_comments: [], ...d });
+          const statuses: Record<string, string> = {};
+          (d.tasks || []).forEach((t: any) => { statuses[t.id] = t.status; });
+          setTaskStatuses(statuses);
+          setTaskComments(d.task_comments || []);
+        }
       })
       .catch(() => setError("Failed to load data."))
       .finally(() => setLoading(false));
@@ -784,7 +841,11 @@ export default function MerchantPortal() {
           const newTasks = freshTasks.filter((t) => !prevTaskIdsRef.current!.has(t.id));
           if (newTasks.length > 0) {
             prevTaskIdsRef.current = new Set(freshTasks.map((t) => t.id));
-            setData({ tasks: [], ...d });
+            setData({ tasks: [], task_comments: [], ...d });
+            const statuses: Record<string, string> = {};
+            (d.tasks || []).forEach((t: any) => { statuses[t.id] = t.status; });
+            setTaskStatuses(statuses);
+            setTaskComments(d.task_comments || []);
             toast.custom(
               (id) => (
                 <div
@@ -1298,8 +1359,10 @@ export default function MerchantPortal() {
               onSaveNote={saveNote}
               onEditNote={editNote}
               onDeleteNote={deleteNote}
-              taskCompletions={taskCompletions}
+              taskStatuses={taskStatuses}
+              taskComments={taskComments}
               onToggleTask={toggleTask}
+              onSubmitTaskComment={submitTaskComment}
               brdProgress={data.brd_progress}
               searchQuery={searchQuery}
               onOpenBrd={() => setActivePage("brd")}
@@ -1554,6 +1617,115 @@ function BrdPage({ token, onProgress }: { token: string; onProgress?: () => void
   );
 }
 
+function TaskActionItem({
+  task,
+  status,
+  comments,
+  onToggle,
+  onComment,
+}: {
+  task: PortalData["tasks"][0];
+  status: string;
+  comments: PortalData["task_comments"];
+  onToggle: () => void;
+  onComment: (text: string) => Promise<any>;
+}) {
+  const [commentText, setCommentText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [showComment, setShowComment] = useState(false);
+  const isDone = status === "done";
+  const overdue = !isDone && task.due_date ? new Date(task.due_date) < new Date() : false;
+
+  const handleSubmit = async () => {
+    if (!commentText.trim()) return;
+    setSubmitting(true);
+    await onComment(commentText.trim());
+    setCommentText("");
+    setSubmitting(false);
+    setShowComment(false);
+  };
+
+  return (
+    <div className="py-3">
+      <div className="flex items-start gap-3">
+        <button
+          onClick={onToggle}
+          className="flex-shrink-0 mt-0.5 transition-opacity hover:opacity-70 focus:outline-none"
+          aria-label={isDone ? "Mark as not done" : "Mark as done"}
+        >
+          <CheckCircle2
+            className="w-4 h-4"
+            style={{ color: isDone ? BRAND.green : "#cbd5e1" }}
+          />
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className={cn("text-sm font-medium", isDone && "text-muted-foreground line-through")}>
+            {task.title}
+          </p>
+          {task.description && (
+            <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
+          )}
+          {/* Existing comments */}
+          {comments.length > 0 && (
+            <div className="mt-2 space-y-1.5">
+              {comments.map((c) => {
+                const isCustomer = !c.user_id;
+                return (
+                  <div key={c.id} className={cn("flex gap-2 text-xs rounded-lg px-2.5 py-1.5", isCustomer ? "bg-primary/[0.06]" : "bg-muted/50")}>
+                    <span className={cn("font-semibold shrink-0", isCustomer ? "text-primary" : "text-foreground")}>
+                      {isCustomer ? `${c.user_name} (you)` : c.user_name}:
+                    </span>
+                    <span className="text-muted-foreground leading-relaxed">{c.comment}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {/* Comment input */}
+          {showComment ? (
+            <div className="mt-2 flex gap-2 items-center">
+              <input
+                type="text"
+                className="flex-1 text-xs border border-border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="Add a comment…"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
+                autoFocus
+              />
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || !commentText.trim()}
+                className="text-xs px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+              >
+                {submitting ? "…" : "Send"}
+              </button>
+              <button
+                onClick={() => setShowComment(false)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowComment(true)}
+              className="mt-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              + Add comment
+            </button>
+          )}
+        </div>
+        {task.due_date && (
+          <span className={cn("text-xs whitespace-nowrap font-semibold flex-shrink-0", overdue ? "text-destructive-strong" : "text-muted-foreground")}>
+            Due {formatDate(task.due_date)}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function IntegrationPage({
   data,
   project,
@@ -1567,8 +1739,10 @@ function IntegrationPage({
   onSaveNote,
   onEditNote,
   onDeleteNote,
-  taskCompletions,
+  taskStatuses,
+  taskComments,
   onToggleTask,
+  onSubmitTaskComment,
   brdProgress,
   onOpenBrd,
   searchQuery = "",
@@ -1586,8 +1760,10 @@ function IntegrationPage({
   onSaveNote: () => void;
   onEditNote: (idx: number, text: string) => void;
   onDeleteNote: (idx: number) => void;
-  taskCompletions: Record<number, boolean>;
-  onToggleTask: (idx: number) => void;
+  taskStatuses: Record<string, string>;
+  taskComments: PortalData["task_comments"];
+  onToggleTask: (taskId: string) => void;
+  onSubmitTaskComment: (taskId: string, comment: string) => Promise<any>;
   brdProgress?: PortalData["brd_progress"];
   onOpenBrd?: () => void;
 }) {
@@ -1800,43 +1976,16 @@ function IntegrationPage({
         <Card className="p-6">
           <h2 className="heading-section text-foreground mb-4">Your Action Items</h2>
           <div className="divide-y divide-border">
-            {data.tasks.map((task) => {
-              const overdue =
-                task.status !== "done" && task.due_date
-                  ? new Date(task.due_date) < new Date()
-                  : false;
-              return (
-                <div key={task.id} className="flex items-start gap-3 py-2.5">
-                  <CheckCircle2
-                    className="w-4 h-4 flex-shrink-0 mt-0.5"
-                    style={{ color: task.status === "done" ? BRAND.green : "#cbd5e1" }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className={cn(
-                        "text-sm font-medium",
-                        task.status === "done" && "text-muted-foreground line-through",
-                      )}
-                    >
-                      {task.title}
-                    </p>
-                    {task.description && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
-                    )}
-                  </div>
-                  {task.due_date && (
-                    <span
-                      className={cn(
-                        "text-xs whitespace-nowrap font-semibold flex-shrink-0",
-                        overdue ? "text-destructive-strong" : "text-muted-foreground",
-                      )}
-                    >
-                      Due {formatDate(task.due_date)}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+            {data.tasks.map((task) => (
+              <TaskActionItem
+                key={task.id}
+                task={task}
+                status={taskStatuses[task.id] ?? task.status}
+                comments={taskComments.filter((c) => c.checklist_task_id === task.id)}
+                onToggle={() => onToggleTask(task.id)}
+                onComment={(text) => onSubmitTaskComment(task.id, text)}
+              />
+            ))}
           </div>
         </Card>
       )}
