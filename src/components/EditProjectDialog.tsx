@@ -40,6 +40,7 @@ import {
   Plus,
   Trash2,
   ListChecks,
+  User,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -395,238 +396,237 @@ export const EditProjectDialog = ({
             </TabsList>
 
             <TabsContent value="info" className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="edit-merchantName"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    {getLabel("field_merchant_name")} *
-                  </Label>
-                  <Input
-                    id="edit-merchantName"
-                    value={editedProject.merchantName}
-                    onChange={(e) => updateField("merchantName", e.target.value)}
-                  />
+              {/* Customer Details */}
+              <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-[#E2E8F0]">
+                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-[13px] font-semibold text-foreground">Customer Details</span>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-mid" className="text-xs font-medium text-muted-foreground">
-                    {getLabel("field_mid")} *
-                  </Label>
-                  <Input
-                    id="edit-mid"
-                    value={editedProject.mid}
-                    onChange={(e) => updateField("mid", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="edit-contactEmail"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  {getLabel("field_contact_email")} *
-                </Label>
-                <Input
-                  id="edit-contactEmail"
-                  type="text"
-                  value={editedProject.contactEmail || ""}
-                  onChange={(e) => updateField("contactEmail", e.target.value)}
-                  placeholder="customer@example.com, ops@example.com"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Required. Add multiple emails separated by commas — magic links, notifications,
-                  and Gmail lookups will go to all of them.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="edit-platform"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    {getLabel("field_platform")}
-                  </Label>
-                  <Select
-                    value={editedProject.platform}
-                    onValueChange={(v) => updateField("platform", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {PLATFORM_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="edit-category"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    {getLabel("field_category")}
-                  </Label>
-                  <Input
-                    id="edit-category"
-                    value={editedProject.category}
-                    onChange={(e) => updateField("category", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-arr" className="text-xs font-medium text-muted-foreground">
-                    {getLabel("field_arr")}
-                  </Label>
-                  <Input
-                    id="edit-arr"
-                    type="number"
-                    step="0.01"
-                    value={editedProject.arr}
-                    onChange={(e) => updateField("arr", parseFloat(e.target.value) || 0)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="edit-txnsPerDay"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    {getLabel("field_txns_per_day")}
-                  </Label>
-                  <Input
-                    id="edit-txnsPerDay"
-                    type="number"
-                    value={editedProject.txnsPerDay}
-                    onChange={(e) => updateField("txnsPerDay", parseInt(e.target.value) || 0)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="edit-aov" className="text-xs font-medium text-muted-foreground">
-                    {getLabel("field_aov")}
-                  </Label>
-                  <Input
-                    id="edit-aov"
-                    type="number"
-                    value={editedProject.aov}
-                    onChange={(e) => updateField("aov", parseInt(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="edit-salesSpoc"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    {getLabel("field_sales_spoc")}
-                  </Label>
-                  <Input
-                    id="edit-salesSpoc"
-                    value={editedProject.salesSpoc}
-                    onChange={(e) => updateField("salesSpoc", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="edit-integrationType"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    {getLabel("field_integration_type")}
-                  </Label>
-                  <Select
-                    value={editedProject.integrationType}
-                    onValueChange={(v) => updateField("integrationType", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {INTEGRATION_TYPE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt} value={opt}>
-                          {opt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="edit-pgOnboarding"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    {getLabel("field_pg_onboarding")}
-                  </Label>
-                  <Input
-                    id="edit-pgOnboarding"
-                    value={editedProject.pgOnboarding}
-                    onChange={(e) => updateField("pgOnboarding", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="edit-goLivePercent"
-                    className="text-xs font-medium text-muted-foreground"
-                  >
-                    {getLabel("field_go_live_percent")}
-                  </Label>
-                  <Input
-                    id="edit-goLivePercent"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={editedProject.goLivePercent}
-                    onChange={(e) => updateField("goLivePercent", parseInt(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
-
-              {checklistSets.length > 0 && (
-                <div className="space-y-1.5 rounded-md border border-dashed border-border bg-muted/30 p-3">
-                  <div className="flex items-center gap-1.5">
-                    <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
-                    <Label className="text-xs font-medium text-muted-foreground">
-                      Checklist Set
-                    </Label>
+                <div className="bg-[#F8FAFC] divide-y divide-[#E2E8F0]">
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-merchantName" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_merchant_name")} *
+                    </label>
+                    <Input
+                      id="edit-merchantName"
+                      value={editedProject.merchantName}
+                      onChange={(e) => updateField("merchantName", e.target.value)}
+                      className="h-9"
+                    />
                   </div>
-                  <Select
-                    value={editedProject.checklistSetId ?? "__none__"}
-                    onValueChange={(v) =>
-                      updateField("checklistSetId", v === "__none__" ? null : v)
-                    }
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__" className="text-xs">
-                        None
-                      </SelectItem>
-                      {checklistSets.map((s) => (
-                        <SelectItem key={s.id} value={s.id} className="text-xs">
-                          {s.name}
-                          {s.is_default && (
-                            <Badge variant="secondary" className="ml-1.5 text-2xs">
-                              default
-                            </Badge>
-                          )}
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-mid" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_mid")} *
+                    </label>
+                    <Input
+                      id="edit-mid"
+                      value={editedProject.mid}
+                      onChange={(e) => updateField("mid", e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-start px-4 py-2">
+                    <label htmlFor="edit-contactEmail" className="text-xs font-medium text-muted-foreground pt-2.5">
+                      {getLabel("field_contact_email")} *
+                    </label>
+                    <div className="space-y-1">
+                      <Input
+                        id="edit-contactEmail"
+                        type="text"
+                        value={editedProject.contactEmail || ""}
+                        onChange={(e) => updateField("contactEmail", e.target.value)}
+                        placeholder="customer@example.com, ops@example.com"
+                        className="h-9"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Multiple emails, comma-separated — magic links and notifications go to all.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Project Configuration */}
+              <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-[#E2E8F0]">
+                  <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-[13px] font-semibold text-foreground">Project Configuration</span>
+                </div>
+                <div className="bg-[#F8FAFC] divide-y divide-[#E2E8F0]">
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_platform")}
+                    </label>
+                    <Select
+                      value={editedProject.platform}
+                      onValueChange={(v) => updateField("platform", v)}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {PLATFORM_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-category" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_category")}
+                    </label>
+                    <Input
+                      id="edit-category"
+                      value={editedProject.category}
+                      onChange={(e) => updateField("category", e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-arr" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_arr")}
+                    </label>
+                    <Input
+                      id="edit-arr"
+                      type="number"
+                      step="0.01"
+                      value={editedProject.arr}
+                      onChange={(e) => updateField("arr", parseFloat(e.target.value) || 0)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-txnsPerDay" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_txns_per_day")}
+                    </label>
+                    <Input
+                      id="edit-txnsPerDay"
+                      type="number"
+                      value={editedProject.txnsPerDay}
+                      onChange={(e) => updateField("txnsPerDay", parseInt(e.target.value) || 0)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-aov" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_aov")}
+                    </label>
+                    <Input
+                      id="edit-aov"
+                      type="number"
+                      value={editedProject.aov}
+                      onChange={(e) => updateField("aov", parseInt(e.target.value) || 0)}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Ownership & Onboarding */}
+              <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-[#E2E8F0]">
+                  <User className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-[13px] font-semibold text-foreground">Ownership & Onboarding</span>
+                </div>
+                <div className="bg-[#F8FAFC] divide-y divide-[#E2E8F0]">
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-salesSpoc" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_sales_spoc")}
+                    </label>
+                    <Input
+                      id="edit-salesSpoc"
+                      value={editedProject.salesSpoc}
+                      onChange={(e) => updateField("salesSpoc", e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_integration_type")}
+                    </label>
+                    <Select
+                      value={editedProject.integrationType}
+                      onValueChange={(v) => updateField("integrationType", v)}
+                    >
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {INTEGRATION_TYPE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt} value={opt}>
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-pgOnboarding" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_pg_onboarding")}
+                    </label>
+                    <Input
+                      id="edit-pgOnboarding"
+                      value={editedProject.pgOnboarding}
+                      onChange={(e) => updateField("pgOnboarding", e.target.value)}
+                      className="h-9"
+                    />
+                  </div>
+                  <div className="grid grid-cols-[35%_65%] items-center px-4 py-2">
+                    <label htmlFor="edit-goLivePercent" className="text-xs font-medium text-muted-foreground">
+                      {getLabel("field_go_live_percent")}
+                    </label>
+                    <Input
+                      id="edit-goLivePercent"
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={editedProject.goLivePercent}
+                      onChange={(e) => updateField("goLivePercent", parseInt(e.target.value) || 0)}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Checklist Set */}
+              {checklistSets.length > 0 && (
+                <div className="rounded-lg border border-[#E2E8F0] overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-white border-b border-[#E2E8F0]">
+                    <ListChecks className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-[13px] font-semibold text-foreground">Checklist Set</span>
+                  </div>
+                  <div className="bg-[#F8FAFC] px-4 py-3 space-y-2">
+                    <Select
+                      value={editedProject.checklistSetId ?? "__none__"}
+                      onValueChange={(v) =>
+                        updateField("checklistSetId", v === "__none__" ? null : v)
+                      }
+                    >
+                      <SelectTrigger className="h-9 text-xs">
+                        <SelectValue placeholder="None" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__" className="text-xs">
+                          None
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-2xs text-muted-foreground">
-                    Changing this only updates the label; existing checklist items are not replaced.
-                  </p>
+                        {checklistSets.map((s) => (
+                          <SelectItem key={s.id} value={s.id} className="text-xs">
+                            {s.name}
+                            {s.is_default && (
+                              <Badge variant="secondary" className="ml-1.5 text-2xs">
+                                default
+                              </Badge>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-2xs text-muted-foreground">
+                      Changing this only updates the label; existing checklist items are not replaced.
+                    </p>
+                  </div>
                 </div>
               )}
             </TabsContent>
