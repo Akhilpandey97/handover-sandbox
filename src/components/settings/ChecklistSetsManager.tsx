@@ -674,13 +674,15 @@ export const ChecklistSetsManager = () => {
   const STAGE_OPTIONS = useMemo(() => getStageOptions(stageLabels), [stageLabels]);
   const TEAM_OPTIONS = useMemo(() => getTeamOptions(teamLabels), [teamLabels]);
 
+  const defaultSet = sets.find((s) => s.is_default) ?? sets[0] ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<ChecklistSet | null>(null);
 
-  const selected = sets.find((s) => s.id === selectedId) ?? sets[0] ?? null;
+  // Auto-select the default set when sets first load
+  const selected = sets.find((s) => s.id === selectedId) ?? defaultSet ?? null;
   const selectedRules = rules.filter((r) => r.checklist_set_id === (selected?.id ?? ""));
   const selectedTemplates = templates.filter((t) => t.checklist_set_id === (selected?.id ?? ""));
 
@@ -719,9 +721,7 @@ export const ChecklistSetsManager = () => {
         <CardHeader>
           <CardTitle className="text-base">Checklist Sets</CardTitle>
           <CardDescription>
-            Create named checklist sets and assign them to projects automatically using field-based
-            rules. The set with the most matching rules is assigned; the Default set is the
-            fallback.
+            Define the checklist templates every project type runs through. The <strong>Default</strong> set is the global checklist applied to all projects; additional sets are matched automatically by field rules (platform, category, etc.) and override the default for matched projects.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">

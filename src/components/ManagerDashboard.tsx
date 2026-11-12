@@ -18,7 +18,6 @@ import { teamColorClass, teamLabels as defaultTeamLabels, TeamRole } from "@/dat
 import { UserManagement } from "./UserManagement";
 import { TenantManagement } from "./TenantManagement";
 import { SettingsPanel } from "./SettingsPanel";
-import { ChecklistManagement } from "./ChecklistManagement";
 import { BulkEditDialog, BulkFieldUpdates } from "./BulkEditDialog";
 import { MonthlyGoLiveTracker } from "./MonthlyGoLiveTracker";
 import { KanbanBoard } from "./KanbanBoard";
@@ -1220,12 +1219,7 @@ export const ManagerDashboard = () => {
     "checklist-sets": {
       label: "Checklist Sets",
       icon: ListChecks,
-      description: "Multiple checklists assigned to projects by field rules.",
-    },
-    checklist: {
-      label: "Checklist",
-      icon: ListChecks,
-      description: "The steps every project runs through, and who owns them.",
+      description: "Define checklist templates for each project type. The Default set is the global checklist applied to every new project.",
     },
     users: {
       label: "Users",
@@ -3615,7 +3609,6 @@ export const ManagerDashboard = () => {
                           "fields",
                           "custom-fields",
                           "funnel",
-                          "checklist",
                           "checklist-forms",
                           "checklist-sets",
                         ],
@@ -3636,8 +3629,6 @@ export const ManagerDashboard = () => {
                   <div className="p-6">
                     <ChecklistSetsManager />
                   </div>
-                ) : settingsSubTab === "checklist" ? (
-                  <ChecklistManagement />
                 ) : settingsSubTab === "users" ? (
                   <UserManagement />
                 ) : settingsSubTab === "navigation" ? (
