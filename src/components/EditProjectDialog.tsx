@@ -41,7 +41,9 @@ import {
   Trash2,
   ListChecks,
   User,
+  RefreshCw,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 
@@ -66,6 +68,9 @@ export const EditProjectDialog = ({
   const { currentUser } = useAuth();
   const canManageCredentials =
     !!currentUser && ["admin", "super_admin", "superadmin"].includes(currentUser.team);
+  const canManageChecklist =
+    !!currentUser && ["admin", "super_admin", "superadmin", "manager"].includes(currentUser.team);
+  const [seedingChecklist, setSeedingChecklist] = useState(false);
   const { fields: customFields } = useCustomFields();
   const {
     values: customValues,
@@ -209,6 +214,33 @@ export const EditProjectDialog = ({
     const list = parseEmails(raw);
     if (list.length === 0) return false;
     return list.every((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+  };
+
+  const handleApplyChecklistSet = async (setId: string) => {
+    if (!editedProject) return;
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    setSeedingChecklist(true);
+    try {
+      const res = await fetch("/api/public/seed-checklist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ project_id: editedProject.id, checklist_set_id: setId }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast({ title: "Failed to apply checklist", description: json.error, variant: "destructive" });
+      } else {
+        toast({ title: "Checklist applied", description: `${json.seeded} items seeded from selected set.` });
+        // Persist the set id on the project object so the outer save picks it up
+        updateField("checklistSetId", setId);
+      }
+    } finally {
+      setSeedingChecklist(false);
+    }
   };
 
   const handleSave = async () => {
@@ -597,34 +629,62 @@ export const EditProjectDialog = ({
                     <span className="text-[13px] font-semibold text-primary">Checklist Set</span>
                   </div>
                   <div className="bg-white px-4 py-3 space-y-2">
-                    <Select
-                      value={editedProject.checklistSetId ?? "__none__"}
-                      onValueChange={(v) =>
-                        updateField("checklistSetId", v === "__none__" ? null : v)
-                      }
-                    >
-                      <SelectTrigger className="h-9 text-xs">
-                        <SelectValue placeholder="None" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__" className="text-xs">
-                          None
-                        </SelectItem>
-                        {checklistSets.map((s) => (
-                          <SelectItem key={s.id} value={s.id} className="text-xs">
-                            {s.name}
-                            {s.is_default && (
-                              <Badge variant="secondary" className="ml-1.5 text-2xs">
-                                default
-                              </Badge>
-                            )}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-2xs text-muted-foreground">
-                      Changing this only updates the label; existing checklist items are not replaced.
-                    </p>
+                    {canManageChecklist ? (
+                      <>
+                        <Select
+                          value={editedProject.checklistSetId ?? "__none__"}
+                          onValueChange={(v) =>
+                            updateField("checklistSetId", v === "__none__" ? null : v)
+                          }
+                        >
+                          <SelectTrigger className="h-9 text-xs">
+                            <SelectValue placeholder="None" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="__none__" className="text-xs">
+                              None
+                            </SelectItem>
+                            {checklistSets.map((s) => (
+                              <SelectItem key={s.id} value={s.id} className="text-xs">
+                                {s.name}
+                                {s.is_default && (
+                                  <Badge variant="secondary" className="ml-1.5 text-2xs">
+                                    default
+                                  </Badge>
+                                )}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={!editedProject.checklistSetId || seedingChecklist}
+                          onClick={() =>
+                            editedProject.checklistSetId &&
+                            handleApplyChecklistSet(editedProject.checklistSetId)
+                          }
+                          className="h-8 gap-1.5 text-xs w-full"
+                        >
+                          {seedingChecklist ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          )}
+                          Apply & Re-seed Checklist
+                        </Button>
+                        <p className="text-2xs text-muted-foreground">
+                          Replaces all existing checklist items with templates from the selected set.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-foreground">
+                        {editedProject.checklistSetId
+                          ? (checklistSets.find((s) => s.id === editedProject.checklistSetId)?.name ?? "—")
+                          : "None"}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
