@@ -2015,7 +2015,7 @@ function IntegrationPage({
       {data.tasks && data.tasks.length > 0 && (
         <Card className="p-6">
           <h2 className="heading-section text-foreground mb-4">Your Action Items</h2>
-          <div className="divide-y divide-border">
+          <div className="max-h-[400px] overflow-y-auto divide-y divide-border">
             {data.tasks.map((task) => (
               <TaskActionItem
                 key={task.id}
@@ -2051,7 +2051,7 @@ function IntegrationPage({
             className="w-full bg-muted/40 border border-border rounded-lg p-3 text-sm text-foreground placeholder:text-muted-foreground resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-ring/30"
           />
           {savedNotes.length > 0 && (
-            <div className="mt-4 space-y-2 max-h-[260px] overflow-y-auto">
+            <div className="mt-4 space-y-2 max-h-[320px] overflow-y-auto">
               {savedNotes.map((note, i) => (
                 <NoteRow
                   key={i}
