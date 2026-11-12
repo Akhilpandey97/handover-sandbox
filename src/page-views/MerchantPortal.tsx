@@ -121,6 +121,7 @@ interface PortalData {
     stage: string;
     owner_team: string;
     due_date: string | null;
+    start_date: string | null;
   }[];
   custom_fields: { key: string; label: string; type: string; value: string | null }[];
   recent_activity: {
@@ -1223,61 +1224,49 @@ export default function MerchantPortal() {
         )}
 
         {!sidebarCollapsed && notifOpen && (
-          <div className="mx-3 mb-3 rounded-lg border border-sidebar-border bg-sidebar-accent/40 p-2">
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-2xs font-semibold uppercase tracking-wide text-sidebar-foreground/70">
-                Pending actions
-              </span>
+          <div className="mx-3 mb-3 rounded-xl border border-sidebar-border bg-popover text-popover-foreground shadow-lg overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
+              <span className="text-xs font-semibold text-foreground">Your Action Items</span>
               <button
                 onClick={() => setNotifOpen(false)}
                 title="Close"
-                className="flex h-5 w-5 items-center justify-center rounded text-sidebar-foreground/60 hover:text-sidebar-foreground"
+                className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground/60 hover:text-foreground"
               >
                 <X className="h-3 w-3" />
               </button>
             </div>
-            <div className="max-h-48 space-y-1 overflow-y-auto">
-              {pendingItems.length === 0 && (
-                <p className="px-1 py-2 text-xs text-sidebar-foreground/60">
-                  You are all caught up.
+            <div className="max-h-56 overflow-y-auto">
+              {pendingItems.length === 0 ? (
+                <p className="px-3 py-4 text-xs text-muted-foreground text-center">
+                  You are all caught up 🎉
                 </p>
-              )}
-              {pendingItems.map((task) => {
-                const overdue = task.due_date && task.status !== "done" ? new Date(task.due_date) < new Date() : false;
-                return (
-                  <button
-                    key={task.id}
-                    onClick={() => {
-                      setActivePage("integration");
-                      setNotifOpen(false);
-                    }}
-                    className="w-full rounded-md px-2 py-1.5 text-left hover:bg-sidebar-accent"
-                  >
-                    <span className="block truncate text-xs font-medium text-sidebar-foreground">
-                      {task.title}
-                    </span>
-                    {task.description && (
-                      <span className="block truncate text-2xs text-sidebar-foreground/60">{task.description}</span>
-                    )}
-                    {task.due_date && (
-                      <span
-                        className={cn(
-                          "block text-2xs",
-                          overdue ? "text-destructive" : "text-sidebar-foreground/60",
-                        )}
+              ) : (
+                <div className="divide-y divide-border/40">
+                  {pendingItems.map((task) => {
+                    const overdue = task.due_date && task.status !== "done" ? new Date(task.due_date) < new Date() : false;
+                    return (
+                      <button
+                        key={task.id}
+                        onClick={() => { setActivePage("integration"); setNotifOpen(false); }}
+                        className="w-full px-3 py-2.5 text-left hover:bg-muted/50 transition-colors"
                       >
-                        Due{" "}
-                        {new Date(task.due_date).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                        {overdue ? " · overdue" : ""}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+                        <span className="block truncate text-xs font-medium text-foreground">
+                          {task.title}
+                        </span>
+                        {task.description && (
+                          <span className="block truncate text-2xs text-muted-foreground mt-0.5">{task.description}</span>
+                        )}
+                        {task.due_date && (
+                          <span className={cn("block text-2xs mt-0.5 font-medium", overdue ? "text-destructive" : "text-muted-foreground")}>
+                            Due {new Date(task.due_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                            {overdue ? " · overdue" : ""}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1298,47 +1287,57 @@ export default function MerchantPortal() {
           </div>
         </nav>
 
-        <div className="relative p-2">
-          {accountOpen && (
-            <div className="absolute bottom-14 left-2 z-30 w-56 rounded-lg border border-border bg-popover p-1.5 text-popover-foreground shadow-lg">
-              <div className="px-2 py-1.5">
-                <p className="truncate text-sm font-medium">{project.merchant_name}</p>
-                <p className="truncate text-xs text-muted-foreground">Customer portal</p>
-              </div>
-              <div className="my-1 h-px bg-border" />
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted"
-              >
-                <span>Theme</span>
-                {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </button>
-              <button
-                onClick={handleLogout}
-                className="mt-0.5 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </button>
+        <div className="p-2">
+          {/* CE + Go-Live info strip (shown above avatar row when expanded) */}
+          {!sidebarCollapsed && (owner || project.expected_go_live_date || project.go_live_date) && (
+            <div className="mb-1.5 px-1 space-y-0.5">
+              {owner && (
+                <p className="text-2xs text-sidebar-foreground/60 truncate">
+                  <span className="font-medium text-sidebar-foreground/80">POC:</span> {owner.name}
+                </p>
+              )}
+              {(project.expected_go_live_date || project.go_live_date) && (
+                <p className="text-2xs text-sidebar-foreground/60 truncate">
+                  <span className="font-medium text-sidebar-foreground/80">Go-Live:</span>{" "}
+                  {formatDate(project.expected_go_live_date || project.go_live_date)}
+                </p>
+              )}
             </div>
           )}
-          <button
-            onClick={() => setAccountOpen((open) => !open)}
+          <div
             className={cn(
-              "flex w-full items-center gap-2 rounded-lg p-1 text-sidebar-foreground hover:bg-sidebar-accent/60",
-              sidebarCollapsed && "justify-center",
+              "flex items-center gap-1 rounded-lg p-1",
+              sidebarCollapsed && "flex-col gap-1.5",
             )}
           >
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground shadow-sm">
               {project.merchant_name?.charAt(0).toUpperCase()}
             </span>
             {!sidebarCollapsed && (
               <span className="min-w-0 flex-1 text-left">
-                <span className="block truncate text-xs font-medium">{project.merchant_name}</span>
-                <span className="block text-2xs text-sidebar-foreground/60">Customer portal</span>
+                <span className="block truncate text-xs font-medium leading-tight text-sidebar-foreground">
+                  {project.merchant_name}
+                </span>
+                <span className="block truncate text-2xs leading-tight text-sidebar-foreground/60">
+                  Customer portal
+                </span>
               </span>
             )}
-          </button>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+            >
+              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+            <button
+              onClick={handleLogout}
+              title="Logout"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -1861,12 +1860,11 @@ function IntegrationPage({
             const isDone = data.checklist[i]?.completed;
             const isCurrent = stage.num === currentStage;
             const isFuture = !isDone && !isCurrent;
-            const showLabel = isCurrent;
             return (
               <div
                 key={stage.num}
                 className="flex min-w-0 flex-1 items-start"
-                style={{ minWidth: showLabel ? 120 : 40 }}
+                style={{ minWidth: 72 }}
               >
                 <div className="flex flex-col items-center flex-1">
                   <div className="flex items-center w-full">
@@ -1906,14 +1904,15 @@ function IntegrationPage({
                       />
                     )}
                   </div>
-                  {showLabel && (
-                    <span
-                      className="mt-1.5 w-[110px] text-center text-2xs leading-tight font-semibold"
-                      style={{ color: BRAND.accent }}
-                    >
-                      {stage.label.replace(/^\s*\d+\.\s*/, "")}
-                    </span>
-                  )}
+                  <span
+                    className={cn(
+                      "mt-1.5 w-full text-center text-2xs leading-tight",
+                      isCurrent ? "font-semibold" : "font-medium opacity-60",
+                    )}
+                    style={{ color: isCurrent ? BRAND.accent : undefined }}
+                  >
+                    {stage.label.replace(/^\s*\d+\.\s*/, "")}
+                  </span>
                 </div>
               </div>
             );
@@ -1921,7 +1920,7 @@ function IntegrationPage({
         </div>
       </Card>
 
-      {/* Full checklist with due dates */}
+      {/* Full checklist with start + due dates */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="heading-section text-foreground">Checklist</h2>
@@ -1938,9 +1937,9 @@ function IntegrationPage({
               return (
                 <div
                   key={`${item.title}-${i}`}
-                  className="flex items-center justify-between gap-4 py-2.5"
+                  className="flex items-center gap-4 py-2.5"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <CheckCircle2
                       className="w-4 h-4 flex-shrink-0"
                       style={{ color: item.completed ? BRAND.green : "#cbd5e1" }}
@@ -1954,14 +1953,21 @@ function IntegrationPage({
                       {item.title}
                     </span>
                   </div>
-                  <span
-                    className={cn(
-                      "text-xs whitespace-nowrap font-semibold",
-                      overdue ? "text-destructive-strong" : "text-muted-foreground",
+                  <div className="flex items-center gap-3 shrink-0">
+                    {item.start_date && (
+                      <span className="text-xs whitespace-nowrap text-muted-foreground">
+                        Start {formatDate(item.start_date)}
+                      </span>
                     )}
-                  >
-                    {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
-                  </span>
+                    <span
+                      className={cn(
+                        "text-xs whitespace-nowrap font-semibold",
+                        overdue ? "text-destructive-strong" : "text-muted-foreground",
+                      )}
+                    >
+                      {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
+                    </span>
+                  </div>
                 </div>
               );
             })}
@@ -1990,41 +1996,8 @@ function IntegrationPage({
         </Card>
       )}
 
-      {/* Project Overview + Notes side-by-side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        <Card className="p-5">
-          <h3 className="heading-card text-foreground mb-4">Project Overview</h3>
-          <div className="divide-y divide-border">
-            <OverviewRow
-              label={portalLabel("field_platform", "Platform")}
-              value={project.platform || "—"}
-            />
-            {data.custom_fields
-              .filter((f) => f.key === "arr" || f.label.toLowerCase() === "arr")
-              .map((f) => (
-                <OverviewRow
-                  key={f.key}
-                  label={portalLabel("field_arr", "ARR")}
-                  value={f.value || "—"}
-                />
-              ))}
-            <OverviewRow label="Customer Engineer (POC)" value={owner?.name || "—"} />
-            <OverviewRow
-              label={portalLabel("field_expected_go_live_date", "Expected Go-Live Date")}
-              value={formatDate(project.expected_go_live_date || project.go_live_date)}
-            />
-            {data.custom_fields
-              .filter((f) => {
-                const lbl = f.label.toLowerCase();
-                return lbl !== "om name" && lbl !== "om" && lbl !== "arr" && f.value;
-              })
-              .map((f) => (
-                <OverviewRow key={f.key} label={f.label} value={f.value || "—"} />
-              ))}
-          </div>
-        </Card>
-
-        {/* Notes & Updates with timestamps */}
+      {/* Notes & Updates (full width — Project Overview removed) */}
+      <div>
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="heading-card text-foreground">Notes & Updates</h3>
