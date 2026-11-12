@@ -2318,10 +2318,17 @@ function DocumentsPage({
 }) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [localUploads, setLocalUploads] = useState<PortalUpload[]>([]);
 
-  const customerUploads = (data.uploads || []).filter(
+  const serverUploads = (data.uploads || []).filter(
     (u) => u.upload_type === "customer_document" || u.uploaded_by === "merchant",
   );
+  // Merge optimistic local uploads — drop any that the server has already returned
+  const serverIds = new Set(serverUploads.map((u) => u.id));
+  const customerUploads = [
+    ...serverUploads,
+    ...localUploads.filter((u) => !serverIds.has(u.id)),
+  ];
 
   const handleFileUpload = async (file: File) => {
     setUploading(true);
@@ -2333,6 +2340,18 @@ function DocumentsPage({
       const res = await fetch(`${API_URL}/upload`, { method: "POST", body: form });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || "Upload failed");
+      // Optimistically show the file immediately
+      setLocalUploads((prev) => [
+        {
+          id: `local-${Date.now()}`,
+          upload_type: "customer_document",
+          file_name: file.name,
+          file_url: json.file_url,
+          uploaded_by: "merchant",
+          created_at: new Date().toISOString(),
+        } as PortalUpload,
+        ...prev,
+      ]);
       onUploaded();
     } catch (err: any) {
       alert(err.message || "Upload failed");
