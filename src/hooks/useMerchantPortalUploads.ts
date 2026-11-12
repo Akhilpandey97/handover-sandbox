@@ -23,7 +23,18 @@ export const useMerchantPortalUploads = (projectId?: string) => {
         .eq("project_id", projectId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as MerchantPortalUpload[];
+      const rows = (data || []) as MerchantPortalUpload[];
+      // Generate short-lived signed URLs so the internal view can open private files
+      return Promise.all(
+        rows.map(async (row) => {
+          // Skip if already a full URL (e.g. legacy public bucket rows)
+          if (row.file_url.startsWith("http")) return row;
+          const { data: signed } = await supabase.storage
+            .from("merchant-portal-files")
+            .createSignedUrl(row.file_url, 3600);
+          return { ...row, file_url: signed?.signedUrl ?? row.file_url };
+        }),
+      );
     },
   });
 };
