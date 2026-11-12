@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useCallback } from "react";
+import { useRef, useState, useMemo, useCallback, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -304,16 +304,31 @@ const SetDetail = ({
   const [newItemDuration, setNewItemDuration] = useState("");
   const [addingItem, setAddingItem] = useState(false);
 
+  const [localTemplates, setLocalTemplates] = useState(templates);
+  // Sync from parent when templates change (e.g. after add/delete/DB refresh)
+  // but skip if we just reordered locally to avoid snap-back
+  const prevTemplateIds = useRef(templates.map((t) => t.id).join(","));
+  useEffect(() => {
+    const ids = templates.map((t) => t.id).join(",");
+    if (ids !== prevTemplateIds.current) {
+      prevTemplateIds.current = ids;
+      setLocalTemplates(templates);
+    }
+  }, [templates]);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleTemplateDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
-      const oldIndex = templates.findIndex((t) => t.id === active.id);
-      const newIndex = templates.findIndex((t) => t.id === over.id);
+      const oldIndex = localTemplates.findIndex((t) => t.id === active.id);
+      const newIndex = localTemplates.findIndex((t) => t.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return;
-      const reordered = arrayMove(templates, oldIndex, newIndex);
+      const reordered = arrayMove(localTemplates, oldIndex, newIndex);
+      // Update UI immediately
+      setLocalTemplates(reordered);
+      prevTemplateIds.current = reordered.map((t) => t.id).join(",");
       // Persist new sort_orders
       await Promise.all(
         reordered.map((t, i) =>
@@ -321,7 +336,7 @@ const SetDetail = ({
         ),
       );
     },
-    [templates, onUpdateTemplate],
+    [localTemplates, onUpdateTemplate],
   );
 
   const [csvPreview, setCsvPreview] = useState<
@@ -570,14 +585,14 @@ const SetDetail = ({
         </div>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTemplateDragEnd}>
-          <SortableContext items={templates.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={localTemplates.map((t) => t.id)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-1.5">
-              {templates.length === 0 && (
+              {localTemplates.length === 0 && (
                 <p className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
                   No items yet — add below or upload a CSV.
                 </p>
               )}
-              {templates.map((t) => (
+              {localTemplates.map((t) => (
                 <TemplateRow
                   key={t.id}
                   template={t}

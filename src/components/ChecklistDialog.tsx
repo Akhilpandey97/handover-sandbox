@@ -771,16 +771,32 @@ export const ChecklistDialog = ({
     return project?.assignedOwnerName || getTeamLabel(item.ownerTeam || "");
   };
 
-  const filteredItems = useMemo(() => selectedGroupData?.items || [], [selectedGroupData]);
+  // Local item order per group key — overrides server order optimistically
+  const [localItemOrder, setLocalItemOrder] = useState<Record<string, string[]>>({});
+
+  const filteredItems = useMemo(() => {
+    const serverItems = selectedGroupData?.items || [];
+    const order = effectiveSelectedGroup ? localItemOrder[effectiveSelectedGroup] : undefined;
+    if (!order) return serverItems;
+    const byId = Object.fromEntries(serverItems.map((i) => [i.id, i]));
+    const ordered = order.filter((id) => byId[id]).map((id) => byId[id]);
+    const rest = serverItems.filter((i) => !order.includes(i.id));
+    return [...ordered, ...rest];
+  }, [selectedGroupData, effectiveSelectedGroup, localItemOrder]);
 
   const handleItemDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
-      if (!over || active.id === over.id || !project) return;
+      if (!over || active.id === over.id || !project || !effectiveSelectedGroup) return;
       const oldIndex = filteredItems.findIndex((i) => i.id === active.id);
       const newIndex = filteredItems.findIndex((i) => i.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return;
       const reordered = arrayMove(filteredItems, oldIndex, newIndex);
+      // Update UI immediately
+      setLocalItemOrder((prev) => ({
+        ...prev,
+        [effectiveSelectedGroup]: reordered.map((i) => i.id),
+      }));
       // Persist sort_order for changed rows only
       await Promise.all(
         reordered.map((item, i) =>
@@ -791,7 +807,7 @@ export const ChecklistDialog = ({
       );
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
-    [filteredItems, project, queryClient],
+    [filteredItems, project, effectiveSelectedGroup, queryClient],
   );
 
   // Next action for the right panel
