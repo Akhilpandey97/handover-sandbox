@@ -38,7 +38,13 @@ import {
   Pencil,
   ClipboardList,
   Bell,
+  CheckCheck,
+  Folder,
+  ListTodo,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatArrCr } from "@/lib/arr";
 import { GuidedTour, type TourStep } from "@/components/GuidedTour";
@@ -191,6 +197,16 @@ function formatArr(arr: number | null): string {
 function formatDate(d: string | null) {
   if (!d) return "—";
   return d;
+}
+
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
 }
 
 function deriveCurrentStage(data: PortalData): number {
@@ -1140,18 +1156,85 @@ export default function MerchantPortal() {
                   >
                     <Search className="h-4 w-4" />
                   </button>
-                  <button
-                    onClick={() => setNotifOpen((open) => !open)}
-                    title="Pending actions"
-                    className="relative flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                  >
-                    <Bell className="h-4 w-4" />
-                    {pendingItems.length > 0 && (
-                      <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-2xs font-bold text-destructive-foreground">
-                        {pendingItems.length > 9 ? "9+" : pendingItems.length}
-                      </span>
-                    )}
-                  </button>
+                  <Popover open={notifOpen} onOpenChange={setNotifOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        title="Pending actions"
+                        className="relative flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                      >
+                        <Bell className="h-4 w-4" />
+                        {pendingItems.length > 0 && (
+                          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-2xs font-bold text-destructive-foreground">
+                            {pendingItems.length > 9 ? "9+" : pendingItems.length}
+                          </span>
+                        )}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent side="right" align="start" sideOffset={12} collisionPadding={12} className="w-[440px] p-0">
+                      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                        <div>
+                          <p className="text-base font-semibold">Your Action Items</p>
+                          <p className="text-xs text-muted-foreground">{pendingItems.length} pending</p>
+                        </div>
+                        {pendingItems.length > 0 && (
+                          <button
+                            onClick={() => { pendingItems.forEach((t) => toggleTask(t.id)); setNotifOpen(false); }}
+                            className="flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+                          >
+                            <CheckCheck className="h-3.5 w-3.5" />
+                            Mark all done
+                          </button>
+                        )}
+                      </div>
+                      <ScrollArea className="max-h-[520px] overflow-y-auto">
+                        {pendingItems.length === 0 ? (
+                          <p className="px-5 py-12 text-center text-sm text-muted-foreground">
+                            You're all caught up.
+                          </p>
+                        ) : (
+                          <div className="divide-y divide-border/60">
+                            <div className="py-3">
+                              <div className="flex items-center gap-2 px-5 pb-2 pt-1">
+                                <Folder className="h-4 w-4 text-primary" />
+                                <p className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-bold tracking-normal text-primary">
+                                  {data.project.merchant_name}
+                                </p>
+                              </div>
+                              <div className="px-3">
+                                {pendingItems.map((task) => {
+                                  const overdue = task.due_date && task.status !== "done" ? new Date(task.due_date) < new Date() : false;
+                                  return (
+                                    <button
+                                      key={task.id}
+                                      type="button"
+                                      onClick={() => { setActivePage("integration"); setNotifOpen(false); }}
+                                      className="flex w-full gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/60 bg-primary/5"
+                                    >
+                                      <span className="mt-0.5 shrink-0 text-primary"><ListTodo className="h-3.5 w-3.5" /></span>
+                                      <span className="min-w-0 flex-1">
+                                        <span className="flex items-center gap-2">
+                                          <span className="truncate text-sm font-semibold text-foreground">{task.title}</span>
+                                          <Badge className="h-4 px-1.5 text-2xs">Pending</Badge>
+                                        </span>
+                                        {task.description && (
+                                          <span className="mt-0.5 block line-clamp-1 text-xs text-muted-foreground">{task.description}</span>
+                                        )}
+                                        {task.due_date && (
+                                          <span className={cn("mt-0.5 block text-2xs", overdue ? "text-destructive font-medium" : "text-muted-foreground")}>
+                                            Due {formatDate(task.due_date)}{overdue ? " · overdue" : ""}
+                                          </span>
+                                        )}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </PopoverContent>
+                  </Popover>
                   <button
                     onClick={() => setSidebarCollapsed(true)}
                     title="Collapse sidebar"
@@ -1176,10 +1259,7 @@ export default function MerchantPortal() {
                 <Search className="h-4 w-4" />
               </button>
               <button
-                onClick={() => {
-                  setSidebarCollapsed(false);
-                  setNotifOpen(true);
-                }}
+                onClick={() => { setSidebarCollapsed(false); setNotifOpen(true); }}
                 title="Pending actions"
                 className="relative flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
               >
@@ -1223,54 +1303,6 @@ export default function MerchantPortal() {
           </div>
         )}
 
-        {!sidebarCollapsed && notifOpen && (
-          <div className="mx-3 mb-3 rounded-xl border border-sidebar-border bg-popover text-popover-foreground shadow-lg overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
-              <span className="text-xs font-semibold text-foreground">Your Action Items</span>
-              <button
-                onClick={() => setNotifOpen(false)}
-                title="Close"
-                className="flex h-5 w-5 items-center justify-center rounded text-muted-foreground/60 hover:text-foreground"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-            <div className="max-h-56 overflow-y-auto">
-              {pendingItems.length === 0 ? (
-                <p className="px-3 py-4 text-xs text-muted-foreground text-center">
-                  You are all caught up 🎉
-                </p>
-              ) : (
-                <div className="divide-y divide-border/40">
-                  {pendingItems.map((task) => {
-                    const overdue = task.due_date && task.status !== "done" ? new Date(task.due_date) < new Date() : false;
-                    return (
-                      <button
-                        key={task.id}
-                        onClick={() => { setActivePage("integration"); setNotifOpen(false); }}
-                        className="w-full px-3 py-2.5 text-left hover:bg-muted/50 transition-colors"
-                      >
-                        <span className="block truncate text-xs font-medium text-foreground">
-                          {task.title}
-                        </span>
-                        {task.description && (
-                          <span className="block truncate text-2xs text-muted-foreground mt-0.5">{task.description}</span>
-                        )}
-                        {task.due_date && (
-                          <span className={cn("block text-2xs mt-0.5 font-medium", overdue ? "text-destructive" : "text-muted-foreground")}>
-                            Due {new Date(task.due_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                            {overdue ? " · overdue" : ""}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         <nav className="flex-1 overflow-y-auto px-2 pb-2 pt-8">
           <div className="space-y-0.5">
             {navItems.map((item) => (
@@ -1288,22 +1320,6 @@ export default function MerchantPortal() {
         </nav>
 
         <div className="p-2">
-          {/* CE + Go-Live info strip (shown above avatar row when expanded) */}
-          {!sidebarCollapsed && (owner || project.expected_go_live_date || project.go_live_date) && (
-            <div className="mb-1.5 px-1 space-y-0.5">
-              {owner && (
-                <p className="text-2xs text-sidebar-foreground/60 truncate">
-                  <span className="font-medium text-sidebar-foreground/80">POC:</span> {owner.name}
-                </p>
-              )}
-              {(project.expected_go_live_date || project.go_live_date) && (
-                <p className="text-2xs text-sidebar-foreground/60 truncate">
-                  <span className="font-medium text-sidebar-foreground/80">Go-Live:</span>{" "}
-                  {formatDate(project.expected_go_live_date || project.go_live_date)}
-                </p>
-              )}
-            </div>
-          )}
           <div
             className={cn(
               "flex items-center gap-1 rounded-lg p-1",
@@ -1783,6 +1799,22 @@ function IntegrationPage({
             </p>
           </div>
         </div>
+        {(owner || project.expected_go_live_date || project.go_live_date) && (
+          <div className="mt-3 flex items-center gap-3 flex-wrap">
+            {owner && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground">
+                <span className="text-muted-foreground">POC</span>
+                {owner.name}
+              </span>
+            )}
+            {(project.expected_go_live_date || project.go_live_date) && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground">
+                <span className="text-muted-foreground">Go-Live</span>
+                {formatDate(project.expected_go_live_date || project.go_live_date)}
+              </span>
+            )}
+          </div>
+        )}
         {brdProgress && brdProgress.total > 0 && brdProgress.status !== "completed" && (
           <button
             onClick={onOpenBrd}
@@ -1928,53 +1960,55 @@ function IntegrationPage({
             {checklist_progress.completed} of {checklist_progress.total} complete
           </span>
         </div>
-        <div className="divide-y divide-border">
-          {data.checklist
-            .filter((item) => item.title.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-            .map((item, i) => {
-              const overdue =
-                !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
-              return (
-                <div
-                  key={`${item.title}-${i}`}
-                  className="flex items-center gap-4 py-2.5"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <CheckCircle2
-                      className="w-4 h-4 flex-shrink-0"
-                      style={{ color: item.completed ? BRAND.green : "#cbd5e1" }}
-                    />
-                    <span
-                      className={cn(
-                        "text-sm truncate",
-                        item.completed ? "text-muted-foreground" : "text-foreground font-medium",
-                      )}
-                    >
-                      {item.title}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    {item.start_date && (
-                      <span className="text-xs whitespace-nowrap text-muted-foreground">
-                        Start {formatDate(item.start_date)}
-                      </span>
-                    )}
-                    <span
-                      className={cn(
-                        "text-xs whitespace-nowrap font-semibold",
-                        overdue ? "text-destructive-strong" : "text-muted-foreground",
-                      )}
-                    >
-                      {item.due_date ? `Due ${formatDate(item.due_date)}` : "No due date"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          {data.checklist.length === 0 && (
-            <p className="text-sm text-muted-foreground py-3">No checklist items yet.</p>
-          )}
-        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border">
+              <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5 w-full">Task</th>
+              <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap pl-6">Start Date</th>
+              <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap pl-6">Due Date</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {data.checklist
+              .filter((item) => item.title.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+              .map((item, i) => {
+                const overdue =
+                  !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
+                return (
+                  <tr key={`${item.title}-${i}`}>
+                    <td className="py-2.5 pr-4">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <CheckCircle2
+                          className="w-4 h-4 flex-shrink-0"
+                          style={{ color: item.completed ? BRAND.green : "#cbd5e1" }}
+                        />
+                        <span
+                          className={cn(
+                            "truncate",
+                            item.completed ? "text-muted-foreground" : "text-foreground font-medium",
+                          )}
+                        >
+                          {item.title}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-2.5 pl-6 text-right whitespace-nowrap text-xs text-muted-foreground">
+                      {item.start_date ? formatDate(item.start_date) : "—"}
+                    </td>
+                    <td className={cn("py-2.5 pl-6 text-right whitespace-nowrap text-xs font-semibold", overdue ? "text-destructive" : "text-muted-foreground")}>
+                      {item.due_date ? formatDate(item.due_date) : "—"}
+                      {overdue && <span className="ml-1 font-normal text-2xs">(overdue)</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+            {data.checklist.length === 0 && (
+              <tr>
+                <td colSpan={3} className="py-4 text-sm text-muted-foreground">No checklist items yet.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </Card>
 
       {/* Customer-visible tasks */}
