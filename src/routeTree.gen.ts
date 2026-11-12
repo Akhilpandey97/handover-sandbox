@@ -65,6 +65,7 @@ import { Route as ApiPublicPollPlatformGoliveEmailsRouteImport } from './routes/
 import { Route as ApiPublicPollShopifySmeEmailsRouteImport } from './routes/api/public/poll-shopify-sme-emails'
 import { Route as ApiPublicRunWorkflowsRouteImport } from './routes/api/public/run-workflows'
 import { Route as ApiPublicSandboxTestRouteImport } from './routes/api/public/sandbox-test'
+import { Route as ApiPublicSeedChecklistRouteImport } from './routes/api/public/seed-checklist'
 import { Route as ApiPublicSendMeetingInviteRouteImport } from './routes/api/public/send-meeting-invite'
 import { Route as ApiPublicSendMovementReportRouteImport } from './routes/api/public/send-movement-report'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
@@ -384,6 +385,11 @@ const ApiPublicSandboxTestRoute = ApiPublicSandboxTestRouteImport.update({
   path: '/api/public/sandbox-test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSeedChecklistRoute = ApiPublicSeedChecklistRouteImport.update({
+  id: '/api/public/seed-checklist',
+  path: '/api/public/seed-checklist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicSendMeetingInviteRoute =
   ApiPublicSendMeetingInviteRouteImport.update({
     id: '/api/public/send-meeting-invite',
@@ -563,6 +569,7 @@ export interface FileRoutesByFullPath {
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
   '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/seed-checklist': typeof ApiPublicSeedChecklistRoute
   '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -642,6 +649,7 @@ export interface FileRoutesByTo {
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
   '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/seed-checklist': typeof ApiPublicSeedChecklistRoute
   '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -723,6 +731,7 @@ export interface FileRoutesById {
   '/api/public/poll-shopify-sme-emails': typeof ApiPublicPollShopifySmeEmailsRoute
   '/api/public/run-workflows': typeof ApiPublicRunWorkflowsRoute
   '/api/public/sandbox-test': typeof ApiPublicSandboxTestRoute
+  '/api/public/seed-checklist': typeof ApiPublicSeedChecklistRoute
   '/api/public/send-meeting-invite': typeof ApiPublicSendMeetingInviteRoute
   '/api/public/send-movement-report': typeof ApiPublicSendMovementReportRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -804,6 +813,7 @@ export interface FileRouteTypes {
     | '/api/public/poll-shopify-sme-emails'
     | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
+    | '/api/public/seed-checklist'
     | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
@@ -883,6 +893,7 @@ export interface FileRouteTypes {
     | '/api/public/poll-shopify-sme-emails'
     | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
+    | '/api/public/seed-checklist'
     | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
@@ -963,6 +974,7 @@ export interface FileRouteTypes {
     | '/api/public/poll-shopify-sme-emails'
     | '/api/public/run-workflows'
     | '/api/public/sandbox-test'
+    | '/api/public/seed-checklist'
     | '/api/public/send-meeting-invite'
     | '/api/public/send-movement-report'
     | '/api/public/send-notification'
@@ -1027,6 +1039,7 @@ export interface RootRouteChildren {
   ApiPublicPollShopifySmeEmailsRoute: typeof ApiPublicPollShopifySmeEmailsRoute
   ApiPublicRunWorkflowsRoute: typeof ApiPublicRunWorkflowsRoute
   ApiPublicSandboxTestRoute: typeof ApiPublicSandboxTestRoute
+  ApiPublicSeedChecklistRoute: typeof ApiPublicSeedChecklistRoute
   ApiPublicSendMeetingInviteRoute: typeof ApiPublicSendMeetingInviteRoute
   ApiPublicSendMovementReportRoute: typeof ApiPublicSendMovementReportRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
@@ -1442,6 +1455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSandboxTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/seed-checklist': {
+      id: '/api/public/seed-checklist'
+      path: '/api/public/seed-checklist'
+      fullPath: '/api/public/seed-checklist'
+      preLoaderRoute: typeof ApiPublicSeedChecklistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/send-meeting-invite': {
       id: '/api/public/send-meeting-invite'
       path: '/api/public/send-meeting-invite'
@@ -1723,6 +1743,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPollShopifySmeEmailsRoute: ApiPublicPollShopifySmeEmailsRoute,
   ApiPublicRunWorkflowsRoute: ApiPublicRunWorkflowsRoute,
   ApiPublicSandboxTestRoute: ApiPublicSandboxTestRoute,
+  ApiPublicSeedChecklistRoute: ApiPublicSeedChecklistRoute,
   ApiPublicSendMeetingInviteRoute: ApiPublicSendMeetingInviteRoute,
   ApiPublicSendMovementReportRoute: ApiPublicSendMovementReportRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,

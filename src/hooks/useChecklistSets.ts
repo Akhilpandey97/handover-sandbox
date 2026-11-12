@@ -28,7 +28,6 @@ export interface ChecklistTemplate {
   checklist_set_id: string | null;
   tenant_id: string | null;
   title: string;
-  stage: string;
   owner_team: string;
   standard_duration: number | null;
   sort_order: number;
@@ -186,7 +185,6 @@ export const useChecklistSets = () => {
     async (
       setId: string,
       title: string,
-      stage: string,
       ownerTeam: string,
       standardDuration?: number | null,
     ) => {
@@ -198,7 +196,7 @@ export const useChecklistSets = () => {
           tenant_id: tenantId,
           checklist_set_id: setId,
           title,
-          stage,
+          stage: ownerTeam,
           owner_team: ownerTeam,
           standard_duration: standardDuration ?? null,
           sort_order: maxOrder + 1,
@@ -214,7 +212,7 @@ export const useChecklistSets = () => {
     async (
       id: string,
       patch: Partial<
-        Pick<ChecklistTemplate, "title" | "stage" | "owner_team" | "standard_duration">
+        Pick<ChecklistTemplate, "title" | "owner_team" | "standard_duration">
       >,
     ) => {
       const updates = { ...patch, updated_at: new Date().toISOString() };

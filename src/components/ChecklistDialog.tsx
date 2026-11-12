@@ -375,16 +375,16 @@ export const ChecklistDialog = ({
     checklistItemTitle: string;
     task?: { id: string; title: string; description?: string | null; assigned_to?: string | null; due_date?: string | null };
   } | null>(null);
-  const [addItemState, setAddItemState] = useState<{ stage: string; team: string } | null>(null);
+  const [addItemState, setAddItemState] = useState<{ team: string } | null>(null);
   const [addItemTitle, setAddItemTitle] = useState("");
 
-  const handleAddItem = async (stage: string, team: string, title: string) => {
+  const handleAddItem = async (team: string, title: string) => {
     if (!title.trim() || !project) return;
     await supabase.from("checklist_items").insert({
       project_id: project.id,
       tenant_id: currentUser?.tenantId ?? null,
       title: title.trim(),
-      stage,
+      stage: team,
       owner_team: team,
       completed: false,
       is_task: false,
@@ -419,7 +419,7 @@ export const ChecklistDialog = ({
   } | null>(null);
 
   // ── Inline-specific state ──
-  const [groupBy, setGroupBy] = useState<"teams" | "stages">("teams");
+  const groupBy = "teams" as const;
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [detailsTab, setDetailsTab] = useState<"details" | "people" | "activity">("details");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(initialExpandedItemId ?? null);
@@ -465,17 +465,6 @@ export const ChecklistDialog = ({
     const ids = [...selectedItemIds];
     await Promise.all(ids.map((id) =>
       supabase.from("checklist_items").delete().eq("id", id)
-    ));
-    queryClient.invalidateQueries({ queryKey: ["projects"] });
-    setSelectedItemIds(new Set());
-    setBulkSelectMode(false);
-  }
-
-  async function bulkChangeStage(stage: string) {
-    if (!project) return;
-    const ids = [...selectedItemIds];
-    await Promise.all(ids.map((id) =>
-      supabase.from("checklist_items").update({ stage }).eq("id", id)
     ));
     queryClient.invalidateQueries({ queryKey: ["projects"] });
     setSelectedItemIds(new Set());
@@ -594,27 +583,6 @@ export const ChecklistDialog = ({
 
   // ── Groups for inline sidebar ──
   const activeGroups: GroupData[] = useMemo(() => {
-    const items = checklist.filter((i) => !i.isTask);
-
-    if (groupBy === "stages") {
-      const map: Record<string, ProjectChecklist[]> = {};
-      items.forEach((item) => {
-        const stage = STAGE_ORDER.includes(item.stage as string)
-          ? (item.stage as string)
-          : "integration";
-        if (!map[stage]) map[stage] = [];
-        map[stage].push(item);
-      });
-      return STAGE_ORDER.filter((p) => map[p]?.length > 0).map((p) => ({
-        key: p,
-        label: stageLabels[p] || p,
-        color: getTeamColor(p),
-        items: map[p],
-        completed: map[p].filter((i) => i.completed).length,
-        total: map[p].length,
-      }));
-    }
-
     return orderedTeams.map((team) => ({
       key: team,
       label: getTeamLabel(team),
@@ -623,7 +591,7 @@ export const ChecklistDialog = ({
       completed: (groupedByTeam[team] || []).filter((i) => !i.isTask && i.completed).length,
       total: (groupedByTeam[team] || []).filter((i) => !i.isTask).length,
     }));
-  }, [groupBy, checklist, orderedTeams, groupedByTeam]);
+  }, [checklist, orderedTeams, groupedByTeam]);
 
   // When a deep-link item id arrives (or changes), switch to the group that contains it
   // and open the item panel. This handles both first load and navigating to a second
@@ -1261,7 +1229,7 @@ export const ChecklistDialog = ({
                     })}
                     {/* Inline add item row */}
                     {canEditSection && (
-                      addItemState?.stage === team ? (
+                      addItemState?.team === team ? (
                         <div className="flex items-center gap-2 mt-2 px-1">
                           <Input
                             autoFocus
@@ -1270,18 +1238,18 @@ export const ChecklistDialog = ({
                             onChange={(e) => setAddItemTitle(e.target.value)}
                             className="h-7 text-xs flex-1"
                             onKeyDown={(e) => {
-                              if (e.key === "Enter") handleAddItem(team, team, addItemTitle);
+                              if (e.key === "Enter") handleAddItem(team, addItemTitle);
                               if (e.key === "Escape") { setAddItemState(null); setAddItemTitle(""); }
                             }}
                           />
-                          <Button size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddItem(team, team, addItemTitle)} disabled={!addItemTitle.trim()}>Save</Button>
+                          <Button size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddItem(team, addItemTitle)} disabled={!addItemTitle.trim()}>Save</Button>
                           <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => { setAddItemState(null); setAddItemTitle(""); }}>Cancel</Button>
                         </div>
                       ) : (
                         <button
                           type="button"
                           className="mt-2 flex items-center gap-1.5 px-1 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                          onClick={() => { setAddItemState({ stage: team, team }); setAddItemTitle(""); }}
+                          onClick={() => { setAddItemState({ team }); setAddItemTitle(""); }}
                         >
                           <Plus className="h-3 w-3" /> Add item
                         </button>
@@ -1312,30 +1280,7 @@ export const ChecklistDialog = ({
       <div className="w-52 shrink-0 border-r border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
         {/* Sidebar header */}
         <div className="shrink-0 border-b border-border/50 px-3 py-3">
-          <ToggleGroup
-            type="single"
-            value={groupBy}
-            onValueChange={(v) => {
-              if (v) {
-                setGroupBy(v as "teams" | "stages");
-                setSelectedGroup(null);
-              }
-            }}
-            className="w-full"
-          >
-            <ToggleGroupItem
-              value="stages"
-              className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            >
-              Stages
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="teams"
-              className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            >
-              Teams
-            </ToggleGroupItem>
-          </ToggleGroup>
+          <p className="text-xs font-semibold text-muted-foreground">Teams</p>
         </div>
 
         {/* Group list */}
@@ -1933,20 +1878,6 @@ export const ChecklistDialog = ({
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="sm" variant="outline" className="h-6 px-2 text-xs gap-1">
-                            Stage <ChevronDown className="h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          {(["mint", "integration", "ms", "completed"] as const).map((s) => (
-                            <DropdownMenuItem key={s} onSelect={() => bulkChangeStage(s)}>
-                              {stageLabels[s] || s}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="outline" className="h-6 px-2 text-xs gap-1">
                             Team <ChevronDown className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -1972,7 +1903,7 @@ export const ChecklistDialog = ({
               {/* Inline add row */}
               <tr>
                 <td colSpan={6} className="px-3 py-1.5">
-                  {addItemState?.stage === "table" ? (
+                  {addItemState?.team === "table" ? (
                     <div className="flex items-center gap-2">
                       <Input
                         autoFocus
@@ -1981,18 +1912,18 @@ export const ChecklistDialog = ({
                         onChange={(e) => setAddItemTitle(e.target.value)}
                         className="h-7 text-xs flex-1"
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") handleAddItem(effectiveSelectedGroup || "mint", effectiveSelectedGroup || "mint", addItemTitle);
+                          if (e.key === "Enter") handleAddItem(effectiveSelectedGroup || "mint", addItemTitle);
                           if (e.key === "Escape") { setAddItemState(null); setAddItemTitle(""); }
                         }}
                       />
-                      <Button size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddItem(effectiveSelectedGroup || "mint", effectiveSelectedGroup || "mint", addItemTitle)} disabled={!addItemTitle.trim()}>Save</Button>
+                      <Button size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddItem(effectiveSelectedGroup || "mint", addItemTitle)} disabled={!addItemTitle.trim()}>Save</Button>
                       <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => { setAddItemState(null); setAddItemTitle(""); }}>Cancel</Button>
                     </div>
                   ) : (
                     <button
                       type="button"
                       className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors py-0.5"
-                      onClick={() => { setAddItemState({ stage: "table", team: effectiveSelectedGroup || "mint" }); setAddItemTitle(""); }}
+                      onClick={() => { setAddItemState({ team: "table" }); setAddItemTitle(""); }}
                     >
                       <Plus className="h-3 w-3" /> Add item
                     </button>
