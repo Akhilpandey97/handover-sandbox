@@ -60,6 +60,7 @@ export interface ProjectChecklist {
   completed: boolean;
   completedBy?: string;
   completedAt?: string;
+  stage?: string | null;
   ownerTeam: TeamRole; // Which team can complete this item
   currentResponsibility: ResponsibilityParty;
   responsibilityLog: ChecklistResponsibilityLog[];

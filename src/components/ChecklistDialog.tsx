@@ -80,6 +80,7 @@ import {
   Activity,
   GitBranch,
   CalendarPlus,
+  Tag,
 } from "lucide-react";
 
 /** "9 Sep 2026" */
@@ -418,7 +419,7 @@ export const ChecklistDialog = ({
   } | null>(null);
 
   // ── Inline-specific state ──
-  const groupBy = "teams" as const;
+  const [groupBy, setGroupBy] = useState<"teams" | "stages">("teams");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [detailsTab, setDetailsTab] = useState<"details" | "people" | "activity">("details");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(initialExpandedItemId ?? null);
@@ -582,6 +583,31 @@ export const ChecklistDialog = ({
 
   // ── Groups for inline sidebar ──
   const activeGroups: GroupData[] = useMemo(() => {
+    const items = checklist.filter((i) => !i.isTask);
+
+    if (groupBy === "stages") {
+      const map: Record<string, typeof items> = {};
+      items.forEach((item) => {
+        const key = item.stage?.trim() || "Ungrouped";
+        if (!map[key]) map[key] = [];
+        map[key].push(item);
+      });
+      // Sort: named stages alphabetically, Ungrouped last
+      const keys = Object.keys(map).sort((a, b) => {
+        if (a === "Ungrouped") return 1;
+        if (b === "Ungrouped") return -1;
+        return a.localeCompare(b);
+      });
+      return keys.map((key) => ({
+        key,
+        label: key,
+        color: "#6b7280",
+        items: map[key],
+        completed: map[key].filter((i) => i.completed).length,
+        total: map[key].length,
+      }));
+    }
+
     return orderedTeams.map((team) => ({
       key: team,
       label: getTeamLabel(team),
@@ -590,7 +616,7 @@ export const ChecklistDialog = ({
       completed: (groupedByTeam[team] || []).filter((i) => !i.isTask && i.completed).length,
       total: (groupedByTeam[team] || []).filter((i) => !i.isTask).length,
     }));
-  }, [checklist, orderedTeams, groupedByTeam]);
+  }, [groupBy, checklist, orderedTeams, groupedByTeam]);
 
   // When a deep-link item id arrives (or changes), switch to the group that contains it
   // and open the item panel. This handles both first load and navigating to a second
@@ -1279,7 +1305,30 @@ export const ChecklistDialog = ({
       <div className="w-52 shrink-0 border-r border-border/60 flex flex-col overflow-hidden bg-white dark:bg-background">
         {/* Sidebar header */}
         <div className="shrink-0 border-b border-border/50 px-3 py-3">
-          <p className="text-xs font-semibold text-muted-foreground">Teams</p>
+          <ToggleGroup
+            type="single"
+            value={groupBy}
+            onValueChange={(v) => {
+              if (v) {
+                setGroupBy(v as "teams" | "stages");
+                setSelectedGroup(null);
+              }
+            }}
+            className="w-full"
+          >
+            <ToggleGroupItem
+              value="stages"
+              className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              Stages
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="teams"
+              className="flex-1 text-xs h-7 px-2 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              Teams
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
         {/* Group list */}
@@ -1572,6 +1621,27 @@ export const ChecklistDialog = ({
                                     {responsibilityLabels.merchant}
                                   </ToggleGroupItem>
                                 </ToggleGroup>
+                              </div>
+
+                              {/* Stage */}
+                              <div className="flex items-center gap-2 px-3 py-2">
+                                <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">Stage</span>
+                                {canEdit && !item.completed ? (
+                                  <Input
+                                    type="text"
+                                    defaultValue={item.stage ?? ""}
+                                    placeholder="e.g. Pre Sales"
+                                    className="h-6 text-xs px-1.5 border-border/50"
+                                    onBlur={async (e) => {
+                                      const val = e.target.value.trim() || null;
+                                      await supabase.from("checklist_items").update({ stage: val }).eq("id", item.id);
+                                      queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="text-xs font-medium">{item.stage || "—"}</span>
+                                )}
                               </div>
 
                               {/* Timeline */}

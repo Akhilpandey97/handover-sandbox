@@ -134,6 +134,7 @@ const TemplateRow = ({
 }) => {
   const [title, setTitle] = useState(template.title);
   const [ownerTeam, setOwnerTeam] = useState(template.owner_team);
+  const [stage, setStage] = useState(template.stage ?? "");
   const [duration, setDuration] = useState(
     template.standard_duration != null ? String(template.standard_duration) : "",
   );
@@ -142,6 +143,7 @@ const TemplateRow = ({
   const isDirty =
     title !== template.title ||
     ownerTeam !== template.owner_team ||
+    (stage || null) !== (template.stage || null) ||
     (duration === "" ? null : Number(duration)) !== template.standard_duration;
 
   const handleSave = async () => {
@@ -150,6 +152,7 @@ const TemplateRow = ({
     await onUpdate(template.id, {
       title: title.trim(),
       owner_team: ownerTeam,
+      stage: stage.trim() || null,
       standard_duration: duration === "" ? null : Number(duration),
     });
     setSaving(false);
@@ -162,6 +165,13 @@ const TemplateRow = ({
         placeholder="Item title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+      />
+
+      <Input
+        className="h-7 w-24 shrink-0 text-xs"
+        placeholder="Stage"
+        value={stage}
+        onChange={(e) => setStage(e.target.value)}
       />
 
       <Select value={ownerTeam} onValueChange={setOwnerTeam}>
@@ -241,6 +251,7 @@ const SetDetail = ({
     title: string,
     ownerTeam: string,
     standardDuration?: number | null,
+    stage?: string | null,
   ) => Promise<void>;
   onUpdateTemplate: (id: string, patch: Partial<ChecklistTemplate>) => Promise<void>;
   onDeleteTemplate: (id: string) => Promise<void>;
@@ -256,6 +267,7 @@ const SetDetail = ({
   const [addingRule, setAddingRule] = useState(false);
 
   const [newItemTitle, setNewItemTitle] = useState("");
+  const [newItemStage, setNewItemStage] = useState("");
   const [newItemTeam, setNewItemTeam] = useState<string>(teamOptions[0]?.value ?? "mint");
   const [newItemDuration, setNewItemDuration] = useState("");
   const [addingItem, setAddingItem] = useState(false);
@@ -291,8 +303,10 @@ const SetDetail = ({
       newItemTitle.trim(),
       newItemTeam,
       newItemDuration === "" ? null : Number(newItemDuration),
+      newItemStage.trim() || null,
     );
     setNewItemTitle("");
+    setNewItemStage("");
     setNewItemDuration("");
     setAddingItem(false);
     toast.success("Item added");
@@ -528,6 +542,13 @@ const SetDetail = ({
             value={newItemTitle}
             onChange={(e) => setNewItemTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddItem()}
+          />
+
+          <Input
+            className="h-7 w-24 shrink-0 text-xs"
+            placeholder="Stage"
+            value={newItemStage}
+            onChange={(e) => setNewItemStage(e.target.value)}
           />
 
           <Select value={newItemTeam} onValueChange={setNewItemTeam}>

@@ -75,7 +75,7 @@ async function handler(req: Request): Promise<Response> {
     // Fetch templates for this set
     const { data: templates, error: templErr } = await supabase
       .from("checklist_templates")
-      .select("title, owner_team, sort_order, standard_duration")
+      .select("title, owner_team, stage, sort_order, standard_duration")
       .eq("checklist_set_id", checklist_set_id)
       .order("sort_order");
 
@@ -104,6 +104,7 @@ async function handler(req: Request): Promise<Response> {
       title: t.title,
       completed: false,
       owner_team: t.owner_team,
+      stage: t.stage ?? null,
       current_responsibility: "neutral",
       sort_order: t.sort_order ?? 0,
       due_date:

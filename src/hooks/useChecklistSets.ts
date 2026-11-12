@@ -29,6 +29,7 @@ export interface ChecklistTemplate {
   tenant_id: string | null;
   title: string;
   owner_team: string;
+  stage: string | null;
   standard_duration: number | null;
   sort_order: number;
   created_at: string;
@@ -187,6 +188,7 @@ export const useChecklistSets = () => {
       title: string,
       ownerTeam: string,
       standardDuration?: number | null,
+      stage?: string | null,
     ) => {
       const existing = templates.filter((t) => t.checklist_set_id === setId);
       const maxOrder = existing.reduce((m, t) => Math.max(m, t.sort_order), -1);
@@ -197,6 +199,7 @@ export const useChecklistSets = () => {
           checklist_set_id: setId,
           title,
           owner_team: ownerTeam,
+          stage: stage ?? null,
           standard_duration: standardDuration ?? null,
           sort_order: maxOrder + 1,
         })
@@ -211,7 +214,7 @@ export const useChecklistSets = () => {
     async (
       id: string,
       patch: Partial<
-        Pick<ChecklistTemplate, "title" | "owner_team" | "standard_duration">
+        Pick<ChecklistTemplate, "title" | "owner_team" | "standard_duration" | "stage">
       >,
     ) => {
       const updates = { ...patch, updated_at: new Date().toISOString() };

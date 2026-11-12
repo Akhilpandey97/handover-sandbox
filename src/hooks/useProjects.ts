@@ -92,6 +92,7 @@ const transformDbChecklistItem = (row: any): ProjectChecklist => ({
   completed: row.completed || false,
   completedBy: row.completed_by || undefined,
   completedAt: row.completed_at || undefined,
+  stage: row.stage ?? null,
   ownerTeam: (row.owner_team || "mint").toLowerCase() as TeamRole,
   currentResponsibility: (row.current_responsibility as ResponsibilityParty) || "neutral",
   responsibilityLog: row.responsibility_logs || [],
