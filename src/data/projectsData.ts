@@ -3,18 +3,7 @@ import { TeamRole } from "./teams";
 
 export type ProjectStage = "mint" | "integration" | "ms" | "completed";
 
-/**
- * A checklist template's stage, from the team that owns it.
- *
- * `stage` is a Postgres enum with four values, while a team can be anything a
- * tenant creates. Writing the slug straight through worked only for the three
- * system teams whose slugs happen to match; a custom team put an invalid value
- * in the column, and seed_project_checklist casts it on every project insert —
- * so one template for a custom team blocked creating any project at all.
- *
- * Custom teams have no true stage. `owner_team` carries the real grouping, so
- * this maps them to a valid value rather than inventing one.
- */
+/** @deprecated stage column removed from checklist tables — kept only for ResponsibilityLog */
 export const teamToProjectStage = (team: string): ProjectStage => {
   if (team === "mint" || team === "integration" || team === "ms") return team;
   if (team === "completed") return "completed";
@@ -71,7 +60,6 @@ export interface ProjectChecklist {
   completed: boolean;
   completedBy?: string;
   completedAt?: string;
-  stage: ProjectStage | string;
   ownerTeam: TeamRole; // Which team can complete this item
   currentResponsibility: ResponsibilityParty;
   responsibilityLog: ChecklistResponsibilityLog[];
@@ -359,7 +347,6 @@ export const createDefaultChecklist = (): ProjectChecklist[] => {
       id: `c-mint-${Date.now()}-${idx}`,
       title,
       completed: false,
-      stage: "mint",
       ownerTeam: "mint",
       currentResponsibility: "neutral",
       responsibilityLog: [],
@@ -371,7 +358,6 @@ export const createDefaultChecklist = (): ProjectChecklist[] => {
       id: `c-int-${Date.now()}-${idx}`,
       title,
       completed: false,
-      stage: "integration",
       ownerTeam: "integration",
       currentResponsibility: "neutral",
       responsibilityLog: [],
@@ -434,7 +420,7 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
 // Helper to create checklist for existing projects
 const createChecklistForProject = (
   projectId: string,
-  completedItems: { title: string; stage: ProjectStage }[],
+  completedItems: { title: string }[],
 ): ProjectChecklist[] => {
   const now = new Date().toISOString();
   const checklist: ProjectChecklist[] = [];
@@ -446,7 +432,6 @@ const createChecklistForProject = (
       title,
       completed: isCompleted,
       completedAt: isCompleted ? now : undefined,
-      stage: "mint",
       ownerTeam: "mint",
       currentResponsibility: "neutral",
       responsibilityLog: [],
@@ -460,7 +445,6 @@ const createChecklistForProject = (
       title,
       completed: isCompleted,
       completedAt: isCompleted ? now : undefined,
-      stage: "integration",
       ownerTeam: "integration",
       currentResponsibility: "neutral",
       responsibilityLog: [],
@@ -509,8 +493,8 @@ export const initialProjects: Project[] = [
     pgOnboarding: "Easebuzz",
     transferHistory: [],
     checklist: createChecklistForProject("proj-1", [
-      { title: "Requirement gathering", stage: "mint" },
-      { title: "Feasibility Analysis", stage: "mint" },
+      { title: "Requirement gathering" },
+      { title: "Feasibility Analysis" },
     ]),
     currentResponsibility: "merchant",
     projectState: "in_progress",
@@ -522,7 +506,7 @@ export const initialProjects: Project[] = [
         endedAt: "2025-01-15T14:00:00Z",
         stage: "mint",
       },
-      { id: "r2", party: "merchant", startedAt: "2025-01-15T14:00:00Z", stage: "mint" },
+      { id: "r2", party: "merchant", startedAt: "2025-01-15T14:00:00Z", stage: "mint" as const },
     ],
   },
   {
@@ -571,15 +555,15 @@ export const initialProjects: Project[] = [
       },
     ],
     checklist: createChecklistForProject("proj-2", [
-      { title: "Requirement gathering", stage: "mint" },
-      { title: "Feasibility Analysis", stage: "mint" },
-      { title: "BRD Details", stage: "mint" },
-      { title: "Technical Scoping", stage: "mint" },
-      { title: "Technical Walkthrough", stage: "mint" },
-      { title: "API Validation", stage: "mint" },
-      { title: "LCNC Config", stage: "mint" },
-      { title: "Create JIRA", stage: "mint" },
-      { title: "Transfer to Integration", stage: "mint" },
+      { title: "Requirement gathering" },
+      { title: "Feasibility Analysis" },
+      { title: "BRD Details" },
+      { title: "Technical Scoping" },
+      { title: "Technical Walkthrough" },
+      { title: "API Validation" },
+      { title: "LCNC Config" },
+      { title: "Create JIRA" },
+      { title: "Transfer to Integration" },
     ]),
     currentResponsibility: "gokwik",
     projectState: "in_progress",
@@ -598,7 +582,7 @@ export const initialProjects: Project[] = [
         endedAt: "2025-01-16T10:30:00Z",
         stage: "mint",
       },
-      { id: "r3", party: "gokwik", startedAt: "2025-01-16T10:30:00Z", stage: "integration" },
+      { id: "r3", party: "gokwik", startedAt: "2025-01-16T10:30:00Z", stage: "integration" as const },
     ],
   },
   {
@@ -657,21 +641,21 @@ export const initialProjects: Project[] = [
       },
     ],
     checklist: createChecklistForProject("proj-3", [
-      { title: "Requirement gathering", stage: "mint" },
-      { title: "Feasibility Analysis", stage: "mint" },
-      { title: "BRD Details", stage: "mint" },
-      { title: "Technical Scoping", stage: "mint" },
-      { title: "Technical Walkthrough", stage: "mint" },
-      { title: "API Validation", stage: "mint" },
-      { title: "LCNC Config", stage: "mint" },
-      { title: "Create JIRA", stage: "mint" },
-      { title: "Transfer to Integration", stage: "mint" },
-      { title: "BRD Validation", stage: "integration" },
-      { title: "Integration Checklist", stage: "integration" },
-      { title: "Sandbox Testing", stage: "integration" },
-      { title: "Production Testing", stage: "integration" },
-      { title: "Dashboard Walkthrough with MS", stage: "integration" },
-      { title: "Go-Live", stage: "integration" },
+      { title: "Requirement gathering" },
+      { title: "Feasibility Analysis" },
+      { title: "BRD Details" },
+      { title: "Technical Scoping" },
+      { title: "Technical Walkthrough" },
+      { title: "API Validation" },
+      { title: "LCNC Config" },
+      { title: "Create JIRA" },
+      { title: "Transfer to Integration" },
+      { title: "BRD Validation" },
+      { title: "Integration Checklist" },
+      { title: "Sandbox Testing" },
+      { title: "Production Testing" },
+      { title: "Dashboard Walkthrough with MS" },
+      { title: "Go-Live" },
     ]),
     currentResponsibility: "gokwik",
     projectState: "live",
@@ -704,7 +688,7 @@ export const initialProjects: Project[] = [
         endedAt: "2025-01-15T14:00:00Z",
         stage: "integration",
       },
-      { id: "r5", party: "gokwik", startedAt: "2025-01-15T14:00:00Z", stage: "ms" },
+      { id: "r5", party: "gokwik", startedAt: "2025-01-15T14:00:00Z", stage: "ms" as const },
     ],
   },
 ];

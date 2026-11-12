@@ -50,7 +50,6 @@ interface ChecklistTemplate {
   id: string;
   title: string;
   ownerTeam: TeamRole;
-  stage: string;
   sortOrder: number;
   standardDuration: number | null;
   checklistSetId: string | null;
@@ -65,7 +64,7 @@ const useChecklistTemplates = (tenantId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("checklist_templates")
-        .select("id, title, owner_team, stage, sort_order, standard_duration, checklist_set_id")
+        .select("id, title, owner_team, sort_order, standard_duration, checklist_set_id")
         .eq("tenant_id", tenantId)
         .order("sort_order", { ascending: true });
 
@@ -75,7 +74,6 @@ const useChecklistTemplates = (tenantId: string) => {
         id: item.id,
         title: item.title,
         ownerTeam: item.owner_team as TeamRole,
-        stage: item.stage,
         sortOrder: item.sort_order ?? 0,
         standardDuration: item.standard_duration ?? null,
         checklistSetId: item.checklist_set_id ?? null,
@@ -134,14 +132,12 @@ export const ChecklistManagement = () => {
       setId: string | null;
     }) => {
       const maxOrder = teamTemplates.reduce((max, t) => Math.max(max, t.sortOrder), -1) + 1;
-      const stage = teamToProjectStage(team === "manager" ? "ms" : team);
       const tenantIds = await resolveTargetTenantIds();
 
       const { error: templateError } = await supabase.from("checklist_templates").insert(
         tenantIds.map((tenantId) => ({
           title,
           owner_team: team,
-          stage,
           sort_order: maxOrder,
           tenant_id: tenantId,
           standard_duration: standardDuration,
@@ -164,7 +160,6 @@ export const ChecklistManagement = () => {
         project_id: p.id,
         title,
         owner_team: team,
-        stage,
         sort_order: maxOrder,
         completed: false,
         current_responsibility: "neutral" as const,
@@ -420,12 +415,10 @@ export const ChecklistManagement = () => {
       });
 
       const templateInserts = newItems.map((item) => {
-        const stage = teamToProjectStage(item.team === "manager" ? "ms" : item.team);
         teamMaxOrders[item.team] = (teamMaxOrders[item.team] ?? -1) + 1;
         return {
           title: item.title,
           owner_team: item.team,
-          stage,
           sort_order: teamMaxOrders[item.team],
           checklist_set_id: setId,
         };
@@ -454,7 +447,6 @@ export const ChecklistManagement = () => {
             project_id: p.id,
             title: t.title,
             owner_team: t.owner_team,
-            stage: t.stage,
             sort_order: t.sort_order,
             completed: false,
             current_responsibility: "neutral" as const,

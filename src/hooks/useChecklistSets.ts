@@ -196,7 +196,6 @@ export const useChecklistSets = () => {
           tenant_id: tenantId,
           checklist_set_id: setId,
           title,
-          stage: ownerTeam,
           owner_team: ownerTeam,
           standard_duration: standardDuration ?? null,
           sort_order: maxOrder + 1,

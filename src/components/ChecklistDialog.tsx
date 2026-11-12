@@ -384,7 +384,6 @@ export const ChecklistDialog = ({
       project_id: project.id,
       tenant_id: currentUser?.tenantId ?? null,
       title: title.trim(),
-      stage: team,
       owner_team: team,
       completed: false,
       is_task: false,

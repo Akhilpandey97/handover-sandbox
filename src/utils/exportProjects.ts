@@ -67,7 +67,7 @@ export const exportProjectsToCSV = (
   const titleSet = new Set<string>();
   projects.forEach((p) => {
     p.checklist.forEach((item) => {
-      const key = `${item.stage}|${item.title}`;
+      const key = `${item.ownerTeam}|${item.title}`;
       if (!titleSet.has(key)) {
         titleSet.add(key);
         allChecklistTitles.push(key);
@@ -161,7 +161,7 @@ export const exportProjectsToCSV = (
 
     const checklistMap = new Map<string, (typeof p.checklist)[0]>();
     p.checklist.forEach((item) => {
-      checklistMap.set(`${item.stage}|${item.title}`, item);
+      checklistMap.set(`${item.ownerTeam}|${item.title}`, item);
     });
 
     const checklistColumns = allChecklistTitles.flatMap((key) => {

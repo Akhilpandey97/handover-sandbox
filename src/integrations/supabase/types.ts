@@ -745,7 +745,6 @@ export type Database = {
           id: string;
           is_task: boolean;
           owner_team: string;
-          stage: string;
           start_date: string | null;
           status: Database["public"]["Enums"]["checklist_status"] | null;
           project_id: string;
@@ -769,7 +768,6 @@ export type Database = {
           id?: string;
           is_task?: boolean;
           owner_team: string;
-          stage: string;
           sla_days?: number | null;
           start_date?: string | null;
           status?: Database["public"]["Enums"]["checklist_status"] | null;
@@ -792,7 +790,6 @@ export type Database = {
           id?: string;
           is_task?: boolean;
           owner_team?: string;
-          stage?: string;
           sla_days?: number | null;
           start_date?: string | null;
           status?: Database["public"]["Enums"]["checklist_status"] | null;
@@ -1067,7 +1064,6 @@ export type Database = {
           created_at: string;
           id: string;
           owner_team: string;
-          stage: string;
           sort_order: number;
           standard_duration: number | null;
           tenant_id: string | null;
@@ -1079,7 +1075,6 @@ export type Database = {
           created_at?: string;
           id?: string;
           owner_team: string;
-          stage: string;
           sort_order?: number;
           standard_duration?: number | null;
           tenant_id?: string | null;
@@ -1091,7 +1086,6 @@ export type Database = {
           created_at?: string;
           id?: string;
           owner_team?: string;
-          stage?: string;
           sort_order?: number;
           standard_duration?: number | null;
           tenant_id?: string | null;

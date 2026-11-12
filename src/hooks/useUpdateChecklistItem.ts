@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ChecklistItemPatch {
-  stage?: string;
   start_date?: string | null;
   due_date?: string | null;
   status?: 'todo' | 'in_progress' | 'blocked' | 'done';

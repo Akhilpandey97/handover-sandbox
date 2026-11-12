@@ -51,7 +51,6 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
     `${internal} Time`,
     `${external} Time`,
     "Checklist Item",
-    "Item Stage",
     "Item Team",
     "Item Responsibility",
     `Item ${internal} Time`,
@@ -87,7 +86,6 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
           "",
           "",
           "",
-          "",
         ].map(escapeCSV),
       );
     } else {
@@ -107,7 +105,6 @@ export const exportProjectChecklistCSV = (projects: Project[], labels: Labels) =
             formatDuration(projectTime.gokwik),
             formatDuration(projectTime.merchant),
             item.title,
-            stageLabels[item.stage] || item.stage,
             teamLabels[item.ownerTeam] || item.ownerTeam,
             responsibilityLabels[item.currentResponsibility] || item.currentResponsibility,
             formatDuration(time.gokwik),

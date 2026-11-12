@@ -29,11 +29,11 @@ export const OperationalReports = ({ projects }: Props) => {
   const { teamLabels, getLabel, stateLabels } = useLabels();
   const [expandedSection, setExpandedSection] = useState<string | null>("stage");
 
-  // Stage Duration Analysis
+  // Task Duration Analysis
   const stageDuration = useMemo(() => {
     const stageMap = new Map<
       string,
-      { title: string; stage: string; totalTime: number; count: number }
+      { title: string; team: string; totalTime: number; count: number }
     >();
 
     projects.forEach((p) => {
@@ -41,10 +41,10 @@ export const OperationalReports = ({ projects }: Props) => {
         const time = calculateTimeByParty(item.responsibilityLog);
         const totalMs = time.gokwik + time.merchant;
         if (totalMs > 0) {
-          const key = `${item.stage}|${item.title}`;
+          const key = `${item.ownerTeam}|${item.title}`;
           const existing = stageMap.get(key) || {
             title: item.title,
-            stage: item.stage,
+            team: item.ownerTeam,
             totalTime: 0,
             count: 0,
           };
@@ -120,7 +120,7 @@ export const OperationalReports = ({ projects }: Props) => {
               <div className="flex items-center justify-between">
                 <CardTitle className="portal-heading flex items-center gap-2">
                   <Clock className="h-4 w-4 text-info-strong" />
-                  Stage Duration Analysis (Bottleneck Detector)
+                  Task Duration Analysis (Bottleneck Detector)
                 </CardTitle>
                 {expandedSection === "stage" ? (
                   <ChevronDown className="h-4 w-4" />
@@ -129,7 +129,7 @@ export const OperationalReports = ({ projects }: Props) => {
                 )}
               </div>
               <CardDescription>
-                Average time spent in each sub-stage across all projects
+                Average time spent on each checklist task across all projects
               </CardDescription>
             </CardHeader>
           </CollapsibleTrigger>

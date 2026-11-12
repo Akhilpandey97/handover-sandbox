@@ -59,12 +59,11 @@ function kpiStats(project: Project) {
 }
 
 function exportCsv(project: Project) {
-  const headers = ["Title", "Stage", "Team", "Responsibility", "Status", "Start Date", "Due Date", "SLA Days", "Completed", "Completed By", "Completed At", "Comment"];
+  const headers = ["Title", "Team", "Responsibility", "Status", "Start Date", "Due Date", "SLA Days", "Completed", "Completed By", "Completed At", "Comment"];
   const rows = project.checklist
     .filter((i) => !i.isTask)
     .map((i) => [
       i.title,
-      i.stage,
       i.ownerTeam,
       i.currentResponsibility,
       i.status ?? "todo",
@@ -100,7 +99,6 @@ function exportExcel(project: Project) {
     const slaVariance = i.slaDays != null && actualDays != null ? actualDays - i.slaDays : null;
     return {
       Title: i.title,
-      Stage: i.stage,
       Team: i.ownerTeam,
       Responsibility: i.currentResponsibility,
       Status: i.status ?? "todo",
@@ -126,7 +124,7 @@ function exportExcel(project: Project) {
   const tasks = project.checklist.filter((i) => i.isTask);
   const taskRows = tasks.map((t) => ({
     Title: t.title,
-    "Parent Stage": t.stage,
+    "Parent Team": t.ownerTeam,
     Status: t.status ?? "todo",
     Completed: t.completed ? "Yes" : "No",
     "Completed By": t.completedBy ?? "",
@@ -159,9 +157,9 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6p
 th{background:#f4f4f4}h1{font-size:18px;margin-bottom:16px}
 </style></head><body>
 <h1>${project.merchantName} — Checklist</h1>
-<table><thead><tr><th>#</th><th>Title</th><th>Stage</th><th>Status</th><th>Start</th><th>Due</th><th>Done</th></tr></thead>
+<table><thead><tr><th>#</th><th>Title</th><th>Team</th><th>Status</th><th>Start</th><th>Due</th><th>Done</th></tr></thead>
 <tbody>${items.map((i, n) => `<tr>
-<td>${n + 1}</td><td>${i.title}</td><td>${i.stage}</td><td>${i.status ?? "todo"}</td>
+<td>${n + 1}</td><td>${i.title}</td><td>${i.ownerTeam}</td><td>${i.status ?? "todo"}</td>
 <td>${i.startDate ?? ""}</td><td>${i.dueDate ?? ""}</td><td>${i.completed ? "✓" : ""}</td>
 </tr>`).join("")}</tbody></table></body></html>`;
   const w = window.open("", "_blank");
@@ -187,7 +185,7 @@ function generateGoLiveReport(project: Project) {
     .map((i) => {
       const actual = differenceInCalendarDays(new Date(i.completedAt!), new Date(i.startDate!));
       const variance = actual - i.slaDays!;
-      return { title: i.title, stage: i.stage, sla: i.slaDays!, actual, variance };
+      return { title: i.title, team: i.ownerTeam, sla: i.slaDays!, actual, variance };
     });
 
   const html = `<!DOCTYPE html>
@@ -229,9 +227,9 @@ function generateGoLiveReport(project: Project) {
 ${completedItems.length > 0 ? `
 <h2>Completion Timeline</h2>
 <table>
-  <thead><tr><th>Item</th><th>Stage</th><th>Completed By</th><th>Completed At</th></tr></thead>
+  <thead><tr><th>Item</th><th>Team</th><th>Completed By</th><th>Completed At</th></tr></thead>
   <tbody>${completedItems.map(i => `<tr>
-    <td>${i.title}</td><td>${i.stage}</td><td>${i.completedBy || "—"}</td>
+    <td>${i.title}</td><td>${i.ownerTeam}</td><td>${i.completedBy || "—"}</td>
     <td>${i.completedAt ? format(new Date(i.completedAt), "d MMM yyyy") : "—"}</td>
   </tr>`).join("")}</tbody>
 </table>` : ""}
@@ -239,11 +237,11 @@ ${completedItems.length > 0 ? `
 ${overdueItems.length > 0 ? `
 <h2 style="color:#b91c1c">⚠ Overdue Items (${overdueItems.length})</h2>
 <table>
-  <thead><tr><th>Item</th><th>Stage</th><th>Due Date</th><th>Days Overdue</th></tr></thead>
+  <thead><tr><th>Item</th><th>Team</th><th>Due Date</th><th>Days Overdue</th></tr></thead>
   <tbody>${overdueItems.map(i => {
     const days = i.dueDate ? differenceInCalendarDays(now, new Date(i.dueDate)) : 0;
     return `<tr>
-    <td>${i.title}</td><td>${i.stage}</td>
+    <td>${i.title}</td><td>${i.ownerTeam}</td>
     <td>${i.dueDate ? format(new Date(i.dueDate), "d MMM yyyy") : "—"}</td>
     <td class="late">+${days}d</td>
   </tr>`;
@@ -253,9 +251,9 @@ ${overdueItems.length > 0 ? `
 ${slaRows.length > 0 ? `
 <h2>SLA Performance</h2>
 <table>
-  <thead><tr><th>Item</th><th>Stage</th><th>SLA (days)</th><th>Actual (days)</th><th>Variance</th></tr></thead>
+  <thead><tr><th>Item</th><th>Team</th><th>SLA (days)</th><th>Actual (days)</th><th>Variance</th></tr></thead>
   <tbody>${slaRows.map(r => `<tr>
-    <td>${r.title}</td><td>${r.stage}</td><td>${r.sla}</td><td>${r.actual}</td>
+    <td>${r.title}</td><td>${r.team}</td><td>${r.sla}</td><td>${r.actual}</td>
     <td class="${r.variance <= 0 ? "early" : "late"}">${r.variance <= 0 ? `${Math.abs(r.variance)}d early` : `${r.variance}d late`}</td>
   </tr>`).join("")}</tbody>
 </table>` : ""}
@@ -307,7 +305,6 @@ function SaveAsTemplateDialog({
           checklist_set_id: setId,
           tenant_id: tenantId,
           title: item.title,
-          stage: item.stage as string,
           owner_team: item.ownerTeam as string,
           sort_order: idx,
           standard_duration: slaDays,

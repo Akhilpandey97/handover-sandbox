@@ -15,7 +15,6 @@ import { Upload, AlertCircle } from "lucide-react";
 
 interface CsvRow {
   title: string;
-  stage: string;
   owner_team: string;
   start_date?: string;
   due_date?: string;
@@ -44,7 +43,7 @@ function parseCSV(text: string): CsvRow[] {
 export function ChecklistCsvImportDialog({ open, onOpenChange, projectId, tenantId }: Props) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { stageLabels, teamLabels } = useLabels();
+  const { teamLabels } = useLabels();
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<CsvRow[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -83,7 +82,6 @@ export function ChecklistCsvImportDialog({ open, onOpenChange, projectId, tenant
         project_id: projectId,
         tenant_id: tenantId,
         title: r.title,
-        stage: r.stage || "mint",
         owner_team: r.owner_team || "mint",
         start_date: r.start_date || null,
         due_date: r.due_date || null,
@@ -106,8 +104,6 @@ export function ChecklistCsvImportDialog({ open, onOpenChange, projectId, tenant
     },
   });
 
-  const STAGE_OPTIONS = ["mint", "integration", "ms", "completed"];
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
@@ -121,8 +117,8 @@ export function ChecklistCsvImportDialog({ open, onOpenChange, projectId, tenant
         </div>
 
         <div className="text-xs text-muted-foreground mb-2">
-          Required column: <code>title</code>. Optional: <code>stage</code> ({STAGE_OPTIONS.join("|")}),{" "}
-          <code>owner_team</code>, <code>start_date</code> (YYYY-MM-DD), <code>due_date</code> (YYYY-MM-DD).
+          Required column: <code>title</code>. Optional: <code>owner_team</code>,{" "}
+          <code>start_date</code> (YYYY-MM-DD), <code>due_date</code> (YYYY-MM-DD).
         </div>
 
         <div
@@ -148,7 +144,6 @@ export function ChecklistCsvImportDialog({ open, onOpenChange, projectId, tenant
                 <tr>
                   <th className="p-2 text-left">#</th>
                   <th className="p-2 text-left">Title</th>
-                  <th className="p-2 text-left">Stage</th>
                   <th className="p-2 text-left">Team</th>
                   <th className="p-2 text-left">Start</th>
                   <th className="p-2 text-left">Due</th>
@@ -159,7 +154,6 @@ export function ChecklistCsvImportDialog({ open, onOpenChange, projectId, tenant
                   <tr key={i} className="border-t hover:bg-muted/30">
                     <td className="p-2 text-muted-foreground">{i + 1}</td>
                     <td className="p-2 font-medium">{r.title}</td>
-                    <td className="p-2">{stageLabels[r.stage] || r.stage || stageLabels["mint"] || "mint"}</td>
                     <td className="p-2">{teamLabels[r.owner_team] || r.owner_team || teamLabels["mint"] || "mint"}</td>
                     <td className="p-2">{r.start_date || "—"}</td>
                     <td className="p-2">{r.due_date || "—"}</td>

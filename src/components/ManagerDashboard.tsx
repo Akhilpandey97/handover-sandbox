@@ -591,7 +591,6 @@ export const ManagerDashboard = () => {
             id: item.id,
             checklistTitle: item.title,
             team: item.ownerTeam,
-            stage: item.stage,
             gokwikTime: time.gokwik,
             merchantTime: time.merchant,
             totalTime: time.gokwik + time.merchant,
