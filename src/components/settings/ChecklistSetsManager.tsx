@@ -1,4 +1,19 @@
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useCallback } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   useChecklistSets,
   RULE_FIELDS,
@@ -34,7 +49,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, Star, StarOff, ChevronRight, X, Upload } from "lucide-react";
+import { Plus, Trash2, Star, StarOff, ChevronRight, X, Upload, GripVertical } from "lucide-react";
 
 // ─── Rule row ────────────────────────────────────────────────────────────────
 
@@ -140,6 +155,10 @@ const TemplateRow = ({
   );
   const [saving, setSaving] = useState(false);
 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: template.id,
+  });
+
   const isDirty =
     title !== template.title ||
     ownerTeam !== template.owner_team ||
@@ -159,7 +178,20 @@ const TemplateRow = ({
   };
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-2">
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}
+      className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-2"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab shrink-0 text-muted-foreground/40 hover:text-muted-foreground active:cursor-grabbing"
+        tabIndex={-1}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+
       <Input
         className="h-7 min-w-0 flex-1 text-xs"
         placeholder="Item title"
@@ -271,6 +303,26 @@ const SetDetail = ({
   const [newItemTeam, setNewItemTeam] = useState<string>(teamOptions[0]?.value ?? "mint");
   const [newItemDuration, setNewItemDuration] = useState("");
   const [addingItem, setAddingItem] = useState(false);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleTemplateDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIndex = templates.findIndex((t) => t.id === active.id);
+      const newIndex = templates.findIndex((t) => t.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const reordered = arrayMove(templates, oldIndex, newIndex);
+      // Persist new sort_orders
+      await Promise.all(
+        reordered.map((t, i) =>
+          t.sort_order !== i ? onUpdateTemplate(t.id, { sort_order: i }) : Promise.resolve(),
+        ),
+      );
+    },
+    [templates, onUpdateTemplate],
+  );
 
   const [csvPreview, setCsvPreview] = useState<
     { title: string; team: string; duration: number | null }[]
@@ -517,22 +569,26 @@ const SetDetail = ({
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          {templates.length === 0 && (
-            <p className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
-              No items yet — add below or upload a CSV.
-            </p>
-          )}
-          {templates.map((t) => (
-            <TemplateRow
-              key={t.id}
-              template={t}
-              onUpdate={onUpdateTemplate}
-              onDelete={onDeleteTemplate}
-              teamOptions={teamOptions}
-            />
-          ))}
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTemplateDragEnd}>
+          <SortableContext items={templates.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+            <div className="flex flex-col gap-1.5">
+              {templates.length === 0 && (
+                <p className="rounded-md border border-dashed border-border px-3 py-2 text-xs text-muted-foreground">
+                  No items yet — add below or upload a CSV.
+                </p>
+              )}
+              {templates.map((t) => (
+                <TemplateRow
+                  key={t.id}
+                  template={t}
+                  onUpdate={onUpdateTemplate}
+                  onDelete={onDeleteTemplate}
+                  teamOptions={teamOptions}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
 
         {/* Add item row */}
         <div className="mt-2 flex items-center gap-2">

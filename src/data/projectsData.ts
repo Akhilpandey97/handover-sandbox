@@ -73,6 +73,7 @@ export interface ProjectChecklist {
   status?: 'todo' | 'in_progress' | 'blocked' | 'done';
   slaDays?: number;
   dependsOn?: string[];
+  sort_order?: number;
 }
 
 export interface ProjectLinks {

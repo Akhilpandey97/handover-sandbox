@@ -1,4 +1,19 @@
-import { useMemo, useEffect, useRef, useState, Fragment } from "react";
+import React, { useMemo, useEffect, useRef, useState, Fragment, useCallback } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Project,
@@ -81,6 +96,7 @@ import {
   GitBranch,
   CalendarPlus,
   Tag,
+  GripVertical,
 } from "lucide-react";
 
 /** "9 Sep 2026" */
@@ -333,6 +349,39 @@ interface ChecklistDialogProps {
   initialExpandedItemId?: string;
 }
 
+function SortableTr({
+  id,
+  children,
+  className,
+  onClick,
+  style,
+  ...rest
+}: React.HTMLAttributes<HTMLTableRowElement> & { id: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <tr
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, ...style }}
+      className={className}
+      onClick={onClick}
+      {...rest}
+    >
+      <td className="w-6 px-1 align-middle">
+        <button
+          {...attributes}
+          {...listeners}
+          onClick={(e) => e.stopPropagation()}
+          className="cursor-grab text-muted-foreground/30 hover:text-muted-foreground active:cursor-grabbing"
+          tabIndex={-1}
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+      </td>
+      {children}
+    </tr>
+  );
+}
+
 export const ChecklistDialog = ({
   project,
   open,
@@ -346,6 +395,7 @@ export const ChecklistDialog = ({
   const { updateChecklist, toggleChecklistResponsibility, updateProject } = useProjects();
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
+  const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const { teamLabels, responsibilityLabels, stageLabels } = useLabels();
   const { assignments } = useFormAssignments();
   const { templates: formTemplates } = useFormTemplates();
@@ -641,6 +691,27 @@ export const ChecklistDialog = ({
   };
 
   const filteredItems = useMemo(() => selectedGroupData?.items || [], [selectedGroupData]);
+
+  const handleItemDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id || !project) return;
+      const oldIndex = filteredItems.findIndex((i) => i.id === active.id);
+      const newIndex = filteredItems.findIndex((i) => i.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const reordered = arrayMove(filteredItems, oldIndex, newIndex);
+      // Persist sort_order for changed rows only
+      await Promise.all(
+        reordered.map((item, i) =>
+          item.sort_order !== i
+            ? supabase.from("checklist_items").update({ sort_order: i }).eq("id", item.id)
+            : Promise.resolve(),
+        ),
+      );
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
+    [filteredItems, project, queryClient],
+  );
 
   // Next action for the right panel
   const nextStep = useMemo(() => {
@@ -1421,6 +1492,7 @@ export const ChecklistDialog = ({
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-muted border-b border-border/50">
               <tr className="border-b border-border/50">
+                <th className="w-6" />
                 <th className="w-10 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
                   #
                 </th>
@@ -1441,6 +1513,8 @@ export const ChecklistDialog = ({
                 </th>
               </tr>
             </thead>
+            <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleItemDragEnd}>
+              <SortableContext items={filteredItems.map((i) => i.id)} strategy={verticalListSortingStrategy}>
             <tbody>
               {filteredItems.map((item, index) => {
                 const status = getItemStatus(item);
@@ -1456,8 +1530,9 @@ export const ChecklistDialog = ({
 
                 return (
                   <Fragment key={item.id}>
-                    <tr
-                      id={`checklist-item-${item.id}`}
+                    <SortableTr
+                      id={item.id}
+                      data-id={`checklist-item-${item.id}`}
                       onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
                       className={cn(
                         "group border-b border-border/30 transition-colors scroll-mt-24 cursor-pointer",
@@ -1571,7 +1646,7 @@ export const ChecklistDialog = ({
                         <StatusBadge status={status} />
                       </td>
 
-                    </tr>
+                    </SortableTr>
 
                     {/* Expanded detail row */}
                     {isExpanded && (
@@ -2000,6 +2075,8 @@ export const ChecklistDialog = ({
                 </td>
               </tr>
             </tbody>
+              </SortableContext>
+            </DndContext>
           </table>
         </ScrollArea>
       </div>

@@ -214,7 +214,7 @@ export const useChecklistSets = () => {
     async (
       id: string,
       patch: Partial<
-        Pick<ChecklistTemplate, "title" | "owner_team" | "standard_duration" | "stage">
+        Pick<ChecklistTemplate, "title" | "owner_team" | "standard_duration" | "stage" | "sort_order">
       >,
     ) => {
       const updates = { ...patch, updated_at: new Date().toISOString() };
