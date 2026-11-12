@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Project,
   ProjectLinks,
@@ -66,6 +67,7 @@ export const EditProjectDialog = ({
 }: EditProjectDialogProps) => {
   const { getLabel } = useLabels();
   const { currentUser } = useAuth();
+  const queryClient = useQueryClient();
   const canManageCredentials =
     !!currentUser && ["admin", "super_admin", "superadmin"].includes(currentUser.team);
   const canManageChecklist =
@@ -235,8 +237,8 @@ export const EditProjectDialog = ({
         toast({ title: "Failed to apply checklist", description: json.error, variant: "destructive" });
       } else {
         toast({ title: "Checklist applied", description: `${json.seeded} items seeded from selected set.` });
-        // Persist the set id on the project object so the outer save picks it up
         updateField("checklistSetId", setId);
+        queryClient.invalidateQueries({ queryKey: ["projects"] });
       }
     } finally {
       setSeedingChecklist(false);
