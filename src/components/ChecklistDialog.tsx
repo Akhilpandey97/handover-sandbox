@@ -349,6 +349,44 @@ interface ChecklistDialogProps {
   initialExpandedItemId?: string;
 }
 
+function SortableGroupButton({
+  id,
+  children,
+  className,
+  onClick,
+}: {
+  id: string;
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}
+      className="relative group/grip"
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        className={className}
+      >
+        {children}
+      </button>
+      <button
+        {...attributes}
+        {...listeners}
+        className="absolute left-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/grip:opacity-100 cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground transition-opacity px-0.5"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GripVertical className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
 function SortableTr({
   id,
   children,
@@ -471,6 +509,7 @@ export const ChecklistDialog = ({
   // ── Inline-specific state ──
   const [groupBy, setGroupBy] = useState<"teams" | "stages">("teams");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [groupOrder, setGroupOrder] = useState<string[]>([]);
   const [detailsTab, setDetailsTab] = useState<"details" | "people" | "activity">("details");
   const [expandedItemId, setExpandedItemId] = useState<string | null>(initialExpandedItemId ?? null);
 
@@ -635,6 +674,8 @@ export const ChecklistDialog = ({
   const activeGroups: GroupData[] = useMemo(() => {
     const items = checklist.filter((i) => !i.isTask);
 
+    let groups: GroupData[];
+
     if (groupBy === "stages") {
       const map: Record<string, typeof items> = {};
       items.forEach((item) => {
@@ -642,13 +683,13 @@ export const ChecklistDialog = ({
         if (!map[key]) map[key] = [];
         map[key].push(item);
       });
-      // Sort: named stages alphabetically, Ungrouped last
-      const keys = Object.keys(map).sort((a, b) => {
+      // Default: named stages alphabetically, Ungrouped last
+      const defaultKeys = Object.keys(map).sort((a, b) => {
         if (a === "Ungrouped") return 1;
         if (b === "Ungrouped") return -1;
         return a.localeCompare(b);
       });
-      return keys.map((key) => ({
+      groups = defaultKeys.map((key) => ({
         key,
         label: key,
         color: "#6b7280",
@@ -656,17 +697,57 @@ export const ChecklistDialog = ({
         completed: map[key].filter((i) => i.completed).length,
         total: map[key].length,
       }));
+    } else {
+      groups = orderedTeams.map((team) => ({
+        key: team,
+        label: getTeamLabel(team),
+        color: getTeamColor(team),
+        items: (groupedByTeam[team] || []).filter((i) => !i.isTask),
+        completed: (groupedByTeam[team] || []).filter((i) => !i.isTask && i.completed).length,
+        total: (groupedByTeam[team] || []).filter((i) => !i.isTask).length,
+      }));
     }
 
-    return orderedTeams.map((team) => ({
-      key: team,
-      label: getTeamLabel(team),
-      color: getTeamColor(team),
-      items: (groupedByTeam[team] || []).filter((i) => !i.isTask),
-      completed: (groupedByTeam[team] || []).filter((i) => !i.isTask && i.completed).length,
-      total: (groupedByTeam[team] || []).filter((i) => !i.isTask).length,
-    }));
-  }, [groupBy, checklist, orderedTeams, groupedByTeam]);
+    // Apply user-defined order if present (only reorder known keys; append new ones at end)
+    if (groupOrder.length > 0) {
+      const byKey = Object.fromEntries(groups.map((g) => [g.key, g]));
+      const ordered = groupOrder.filter((k) => byKey[k]).map((k) => byKey[k]);
+      const rest = groups.filter((g) => !groupOrder.includes(g.key));
+      return [...ordered, ...rest];
+    }
+    return groups;
+  }, [groupBy, checklist, orderedTeams, groupedByTeam, groupOrder]);
+
+  const handleGroupDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const keys = activeGroups.map((g) => g.key);
+      const oldIdx = keys.indexOf(active.id as string);
+      const newIdx = keys.indexOf(over.id as string);
+      if (oldIdx === -1 || newIdx === -1) return;
+      const newOrder = arrayMove(keys, oldIdx, newIdx);
+      setGroupOrder(newOrder);
+      try {
+        localStorage.setItem(
+          `checklist_group_order_${project?.id}_${groupBy}`,
+          JSON.stringify(newOrder),
+        );
+      } catch {}
+    },
+    [activeGroups, project?.id, groupBy],
+  );
+
+  // Restore saved group order from localStorage when project or groupBy changes
+  useEffect(() => {
+    if (!project?.id) return;
+    try {
+      const saved = localStorage.getItem(`checklist_group_order_${project.id}_${groupBy}`);
+      setGroupOrder(saved ? JSON.parse(saved) : []);
+    } catch {
+      setGroupOrder([]);
+    }
+  }, [project?.id, groupBy]);
 
   // When a deep-link item id arrives (or changes), switch to the group that contains it
   // and open the item panel. This handles both first load and navigating to a second
@@ -1404,6 +1485,8 @@ export const ChecklistDialog = ({
 
         {/* Group list */}
         <ScrollArea className="flex-1">
+          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
+            <SortableContext items={activeGroups.map((g) => g.key)} strategy={verticalListSortingStrategy}>
           <div className="py-1">
             {activeGroups.map((group) => {
               const isSelected = group.key === effectiveSelectedGroup;
@@ -1413,9 +1496,9 @@ export const ChecklistDialog = ({
               const allDone = group.completed === group.total && group.total > 0;
 
               return (
-                <button
+                <SortableGroupButton
                   key={group.key}
-                  type="button"
+                  id={group.key}
                   onClick={() => setSelectedGroup(group.key)}
                   className={cn(
                     "w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors border-l-2",
@@ -1478,10 +1561,12 @@ export const ChecklistDialog = ({
                       isSelected && "rotate-180",
                     )}
                   />
-                </button>
+                </SortableGroupButton>
               );
             })}
           </div>
+            </SortableContext>
+          </DndContext>
         </ScrollArea>
       </div>
 
