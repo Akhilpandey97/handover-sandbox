@@ -1661,88 +1661,96 @@ function TaskActionItem({
   };
 
   return (
-    <div className="py-3">
-      <div className="flex items-start gap-3">
-        <button
-          onClick={onToggle}
-          className="flex-shrink-0 mt-0.5 transition-opacity hover:opacity-70 focus:outline-none"
-          aria-label={isDone ? "Mark as not done" : "Mark as done"}
-        >
-          <CheckCircle2
-            className="w-4 h-4"
-            style={{ color: isDone ? BRAND.green : "#cbd5e1" }}
-          />
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className={cn("text-sm font-medium", isDone && "text-muted-foreground line-through")}>
-            {task.title}
-          </p>
-          {task.description && (
-            <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
-          )}
-          {task.assigned_to_ext && (
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Owner: <span className="font-medium text-foreground">{task.assigned_to_ext}</span>
+    <tr>
+      {/* Task title + description + comments */}
+      <td className="py-2.5 pr-4 align-top">
+        <div className="flex items-start gap-2.5 min-w-0">
+          <button
+            onClick={onToggle}
+            className="flex-shrink-0 mt-0.5 transition-opacity hover:opacity-70 focus:outline-none"
+            aria-label={isDone ? "Mark as not done" : "Mark as done"}
+          >
+            <CheckCircle2
+              className="w-4 h-4"
+              style={{ color: isDone ? BRAND.green : "#cbd5e1" }}
+            />
+          </button>
+          <div className="flex-1 min-w-0">
+            <p className={cn("text-sm font-medium", isDone && "text-muted-foreground line-through")}>
+              {task.title}
             </p>
-          )}
-          {/* Existing comments */}
-          {comments.length > 0 && (
-            <div className="mt-2 space-y-1.5">
-              {comments.map((c) => {
-                const isCustomer = !c.user_id;
-                return (
-                  <div key={c.id} className={cn("flex gap-2 text-xs rounded-lg px-2.5 py-1.5", isCustomer ? "bg-primary/[0.06]" : "bg-muted/50")}>
-                    <span className={cn("font-semibold shrink-0", isCustomer ? "text-primary" : "text-foreground")}>
-                      {isCustomer ? `${c.user_name} (you)` : c.user_name}:
-                    </span>
-                    <span className="text-muted-foreground leading-relaxed">{c.comment}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {/* Comment input */}
-          {showComment ? (
-            <div className="mt-2 flex gap-2 items-center">
-              <input
-                type="text"
-                className="flex-1 text-xs border border-border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="Add a comment…"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
-                autoFocus
-              />
+            {task.description && (
+              <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
+            )}
+            {/* Existing comments */}
+            {comments.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                {comments.map((c) => {
+                  const isCustomer = !c.user_id;
+                  return (
+                    <div key={c.id} className={cn("flex gap-2 text-xs rounded-lg px-2.5 py-1.5", isCustomer ? "bg-primary/[0.06]" : "bg-muted/50")}>
+                      <span className={cn("font-semibold shrink-0", isCustomer ? "text-primary" : "text-foreground")}>
+                        {isCustomer ? `${c.user_name} (you)` : c.user_name}:
+                      </span>
+                      <span className="text-muted-foreground leading-relaxed">{c.comment}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {/* Comment input */}
+            {showComment ? (
+              <div className="mt-2 flex gap-2 items-center">
+                <input
+                  type="text"
+                  className="flex-1 text-xs border border-border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  placeholder="Add a comment…"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
+                  autoFocus
+                />
+                <button
+                  onClick={handleSubmit}
+                  disabled={submitting || !commentText.trim()}
+                  className="text-xs px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+                >
+                  {submitting ? "…" : "Send"}
+                </button>
+                <button
+                  onClick={() => setShowComment(false)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={handleSubmit}
-                disabled={submitting || !commentText.trim()}
-                className="text-xs px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+                onClick={() => setShowComment(true)}
+                className="mt-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
               >
-                {submitting ? "…" : "Send"}
+                + Add comment
               </button>
-              <button
-                onClick={() => setShowComment(false)}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowComment(true)}
-              className="mt-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              + Add comment
-            </button>
-          )}
+            )}
+          </div>
         </div>
-        {task.due_date && (
-          <span className={cn("text-xs whitespace-nowrap font-semibold flex-shrink-0", overdue ? "text-destructive-strong" : "text-muted-foreground")}>
-            Due {formatDate(task.due_date)}
+      </td>
+      {/* Owner */}
+      <td className="py-2.5 pr-4 align-top text-xs text-foreground font-medium whitespace-nowrap">
+        {task.assigned_to_ext || <span className="text-muted-foreground">—</span>}
+      </td>
+      {/* Due date */}
+      <td className="py-2.5 align-top text-right text-xs whitespace-nowrap font-semibold">
+        {task.due_date ? (
+          <span className={overdue ? "text-destructive" : "text-muted-foreground"}>
+            {formatDate(task.due_date)}
+            {overdue && <span className="ml-1 font-normal text-2xs">(overdue)</span>}
           </span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
         )}
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 }
 
@@ -1965,12 +1973,17 @@ function IntegrationPage({
             {checklist_progress.completed} of {checklist_progress.total} complete
           </span>
         </div>
-        <table className="w-full text-sm">
+        <table className="w-full text-sm table-fixed">
+          <colgroup>
+            <col className="w-auto" />
+            <col style={{ width: "7.5rem" }} />
+            <col style={{ width: "7.5rem" }} />
+          </colgroup>
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5 w-full">Task</th>
-              <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap pl-6">Start Date</th>
-              <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap pl-6">Due Date</th>
+              <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5">Task</th>
+              <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Start Date</th>
+              <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Due Date</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -1997,10 +2010,10 @@ function IntegrationPage({
                         </span>
                       </div>
                     </td>
-                    <td className="py-2.5 pl-6 text-right whitespace-nowrap text-xs text-muted-foreground">
+                    <td className="py-2.5 text-right whitespace-nowrap text-xs text-muted-foreground">
                       {item.start_date ? formatDate(item.start_date) : "—"}
                     </td>
-                    <td className={cn("py-2.5 pl-6 text-right whitespace-nowrap text-xs font-semibold", overdue ? "text-destructive" : "text-muted-foreground")}>
+                    <td className={cn("py-2.5 text-right whitespace-nowrap text-xs font-semibold", overdue ? "text-destructive" : "text-muted-foreground")}>
                       {item.due_date ? formatDate(item.due_date) : "—"}
                       {overdue && <span className="ml-1 font-normal text-2xs">(overdue)</span>}
                     </td>
@@ -2020,17 +2033,33 @@ function IntegrationPage({
       {data.tasks && data.tasks.length > 0 && (
         <Card className="p-6">
           <h2 className="heading-section text-foreground mb-4">Your Action Items</h2>
-          <div className="max-h-[400px] overflow-y-auto divide-y divide-border">
-            {data.tasks.map((task) => (
-              <TaskActionItem
-                key={task.id}
-                task={task}
-                status={taskStatuses[task.id] ?? task.status}
-                comments={taskComments.filter((c) => c.checklist_task_id === task.id)}
-                onToggle={() => onToggleTask(task.id)}
-                onComment={(text) => onSubmitTaskComment(task.id, text)}
-              />
-            ))}
+          <div className="max-h-[400px] overflow-y-auto">
+            <table className="w-full text-sm table-fixed">
+              <colgroup>
+                <col className="w-auto" />
+                <col style={{ width: "8rem" }} />
+                <col style={{ width: "7.5rem" }} />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5">Task</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5">Owner</th>
+                  <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Due Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.tasks.map((task) => (
+                  <TaskActionItem
+                    key={task.id}
+                    task={task}
+                    status={taskStatuses[task.id] ?? task.status}
+                    comments={taskComments.filter((c) => c.checklist_task_id === task.id)}
+                    onToggle={() => onToggleTask(task.id)}
+                    onComment={(text) => onSubmitTaskComment(task.id, text)}
+                  />
+                ))}
+              </tbody>
+            </table>
           </div>
         </Card>
       )}
