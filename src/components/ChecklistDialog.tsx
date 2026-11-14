@@ -97,6 +97,8 @@ import {
   CalendarPlus,
   Tag,
   GripVertical,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 /** "9 Sep 2026" */
@@ -1860,7 +1862,8 @@ export const ChecklistDialog = ({
                                     <MoreHorizontal className="h-4 w-4" />
                                   </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56 p-2">
+                                <DropdownMenuContent align="end" className="w-60 p-2 space-y-1">
+                                  {/* Stage */}
                                   <div className="flex items-center gap-2 px-1 py-1">
                                     <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                     <span className="text-xs text-muted-foreground whitespace-nowrap">Stage</span>
@@ -1880,6 +1883,26 @@ export const ChecklistDialog = ({
                                       <span className="text-xs font-medium">{item.stage || "—"}</span>
                                     )}
                                   </div>
+                                  {/* Customer portal visibility */}
+                                  {canEdit && (
+                                    <button
+                                      type="button"
+                                      className="flex items-center gap-2 px-1 py-1 w-full rounded hover:bg-muted/40 transition-colors"
+                                      onClick={async () => {
+                                        const next = item.isClientVisible === false ? null : false;
+                                        await supabase.from("checklist_items").update({ is_client_visible: next }).eq("id", item.id);
+                                        queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                      }}
+                                    >
+                                      {item.isClientVisible === false
+                                        ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        : <Eye className="h-3.5 w-3.5 text-primary shrink-0" />
+                                      }
+                                      <span className="text-xs whitespace-nowrap">
+                                        {item.isClientVisible === false ? "Hidden from portal" : "Visible in portal"}
+                                      </span>
+                                    </button>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>

@@ -74,6 +74,7 @@ export interface ProjectChecklist {
   slaDays?: number;
   dependsOn?: string[];
   sort_order?: number;
+  isClientVisible?: boolean | null;
 }
 
 export interface ProjectLinks {

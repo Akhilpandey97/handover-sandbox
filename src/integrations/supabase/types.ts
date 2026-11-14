@@ -743,6 +743,7 @@ export type Database = {
           current_responsibility: Database["public"]["Enums"]["responsibility_party"] | null;
           due_date: string | null;
           id: string;
+          is_client_visible: boolean | null;
           is_task: boolean;
           owner_team: string;
           stage: string | null;
@@ -767,6 +768,7 @@ export type Database = {
           depends_on?: string[] | null;
           due_date?: string | null;
           id?: string;
+          is_client_visible?: boolean | null;
           is_task?: boolean;
           owner_team: string;
           stage?: string | null;
@@ -790,6 +792,7 @@ export type Database = {
           depends_on?: string[] | null;
           due_date?: string | null;
           id?: string;
+          is_client_visible?: boolean | null;
           is_task?: boolean;
           owner_team?: string;
           stage?: string | null;

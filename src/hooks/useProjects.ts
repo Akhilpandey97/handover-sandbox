@@ -106,6 +106,7 @@ const transformDbChecklistItem = (row: any): ProjectChecklist => ({
   slaDays: row.sla_days ?? undefined,
   dependsOn: Array.isArray(row.depends_on) && row.depends_on.length > 0 ? row.depends_on : undefined,
   sort_order: row.sort_order ?? 0,
+  isClientVisible: row.is_client_visible ?? null,
 });
 
 // Optimistic-cache helpers: the projects query key is ["projects", userId],
