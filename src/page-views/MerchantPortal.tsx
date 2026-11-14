@@ -1385,7 +1385,7 @@ export default function MerchantPortal() {
             />
           )}
           {activePage === "credentials" && (
-            <CredentialsPage project={project} credentials={data.credentials} />
+            <CredentialsPage project={project} credentials={data.credentials} labels={data.labels ?? {}} />
           )}
           {activePage === "documents" && (
             <DocumentsPage data={data} setActivePage={setActivePage} token={token!} onUploaded={refreshData} />
@@ -2228,12 +2228,20 @@ function OverviewRow({ label, value }: { label: string; value: string }) {
 function CredentialsPage({
   project,
   credentials,
+  labels = {},
 }: {
   project: PortalData["project"];
   credentials: PortalData["credentials"];
+  labels?: Record<string, string>;
 }) {
   const [env, setEnv] = useState<"sandbox" | "production">("sandbox");
   const creds = env === "sandbox" ? credentials?.sandbox : credentials?.production;
+  const prefix = env === "sandbox" ? "sandbox" : "prod";
+  const midLabel = labels[`field_${prefix}_mid`] || "Merchant ID (MID)";
+  const appIdLabel = labels[`field_${prefix}_app_id`] || "App ID";
+  const appSecretLabel = labels[`field_${prefix}_app_secret`] || "App Secret";
+  const baseUrlLabel = labels[`field_${prefix}_base_url`] || "Base URL";
+  const configIdLabel = labels[`field_${prefix}_config_id`] || "Config ID (Merchant Validator)";
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-5">
       <div>
@@ -2263,9 +2271,9 @@ function CredentialsPage({
         <h3 className="heading-card text-foreground">
           {env === "sandbox" ? "Sandbox" : "Production"} Credentials
         </h3>
-        <CredentialField label="MERCHANT ID (MID)" value={creds?.mid || project.mid || "NA"} />
+        <CredentialField label={midLabel} value={creds?.mid || project.mid || "NA"} />
         <CredentialField
-          label="APP ID"
+          label={appIdLabel}
           value={
             creds?.app_id ||
             "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
@@ -2274,7 +2282,7 @@ function CredentialsPage({
           sensitive={!!creds?.app_id}
         />
         <CredentialField
-          label="APP SECRET"
+          label={appSecretLabel}
           value={
             creds?.app_secret ||
             "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
@@ -2283,14 +2291,14 @@ function CredentialsPage({
           sensitive={!!creds?.app_secret}
         />
         <CredentialField
-          label="BASE URL"
+          label={baseUrlLabel}
           value={
             creds?.base_url ||
             (env === "sandbox" ? "https://sandbox.api.gokwik.co" : "https://api.gokwik.co")
           }
         />
         <CredentialField
-          label="CONFIG ID (MERCHANT VALIDATOR)"
+          label={configIdLabel}
           value={
             project.config_id ||
             credentials?.sandbox?.config_id ||
