@@ -73,6 +73,7 @@ import {
   Minus,
   Calendar,
   ListTodo,
+  Tag,
 } from "lucide-react";
 import { format, parseISO, isValid, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -610,6 +611,27 @@ function ItemDetailDialog({
                   <span className="text-muted-foreground">{responsibilityLabels.merchant}:</span>
                   <span className="font-semibold text-amber-600">{formatDuration(ts.merchant)}</span>
                 </span>
+              </div>
+
+              {/* Stage */}
+              <div className="flex items-center gap-2 px-3 py-2">
+                <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Stage</span>
+                {!item.completed ? (
+                  <Input
+                    type="text"
+                    defaultValue={item.stage ?? ""}
+                    placeholder="e.g. Pre Sales"
+                    className="h-6 w-28 text-xs px-1.5 border-border/50"
+                    onBlur={async (e) => {
+                      const val = e.target.value.trim() || null;
+                      await supabase.from("checklist_items").update({ stage: val }).eq("id", item.id);
+                      queryClient.invalidateQueries({ queryKey: ["projects"] });
+                    }}
+                  />
+                ) : (
+                  <span className="text-xs font-medium">{item.stage || "—"}</span>
+                )}
               </div>
             </div>
 
