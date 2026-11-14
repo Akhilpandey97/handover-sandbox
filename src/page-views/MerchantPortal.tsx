@@ -1977,10 +1977,10 @@ function IntegrationPage({
         </div>
         <table className="w-full text-sm table-fixed">
           <colgroup>
-            <col className="w-auto" />
-            <col style={{ width: "7rem" }} />
-            <col style={{ width: "7.5rem" }} />
-            <col style={{ width: "7.5rem" }} />
+            <col style={{ width: "40%" }} />
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "20%" }} />
           </colgroup>
           <thead>
             <tr className="border-b border-border">
