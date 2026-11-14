@@ -1019,6 +1019,7 @@ function KanbanTaskCard({
               </div>
             )}
             {task.due_date && <span className="text-2xs text-muted-foreground/60">{fmtDate(task.due_date)}</span>}
+            {task.is_client_visible && <span title="Visible to customer in portal"><Globe className="h-3 w-3 text-primary" /></span>}
           </div>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
