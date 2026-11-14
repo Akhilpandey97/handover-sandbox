@@ -21,6 +21,7 @@ import {
   Bell,
   Plug,
   ListChecks,
+  Users,
 } from "lucide-react";
 import { LogoUpload } from "./LogoUpload";
 import { CustomFieldsManager } from "./settings/CustomFieldsManager";
@@ -38,6 +39,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { NoAccessCard } from "@/components/NoAccessCard";
 import { BuddySettings } from "@/components/buddy/BuddySettings";
 import { BrandColorSettings } from "@/components/settings/BrandColorSettings";
+import { ChecklistManagement } from "@/components/ChecklistManagement";
 
 interface LabelGroup {
   title: string;
@@ -394,6 +396,10 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
               <ListChecks className="h-3.5 w-3.5" />
               Checklist Sets
             </TabsTrigger>
+            <TabsTrigger value="teams" className="gap-1.5">
+              <Users className="h-3.5 w-3.5" />
+              Teams
+            </TabsTrigger>
             <TabsTrigger value="email" className="gap-1.5">
               <Mail className="h-3.5 w-3.5" />
               Add New Projects
@@ -491,6 +497,11 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
         {/* Checklist Sets Tab */}
         <TabsContent value="checklist-sets">
           <ChecklistSetsManager />
+        </TabsContent>
+
+        {/* Teams Tab */}
+        <TabsContent value="teams">
+          <ChecklistManagement />
         </TabsContent>
 
         {/* Email Tab */}
