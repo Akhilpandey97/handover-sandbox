@@ -20,6 +20,7 @@
 6. **"All places X appears" means enumerate first.** For any task that says "add Y to every place X is rendered": run two greps — (a) every file that renders the data type, (b) every file that already has the action — then diff the lists and name every location out loud before writing code. Never search only for files that already have the action; that misses components with no prior actions.
 7. **Rename/remove means grep all files first.** Before renaming or removing any string (label, field name, constant), run a codebase-wide grep across `src/` — not just the file you're editing. The same string often appears in route definitions, nav configs, dashboard panels, and comments in unrelated files.
 8. **"Make X configurable" means audit the full block.** When replacing a hardcoded value, scan the entire component for other hardcoded brand/product-specific strings (URLs, names, defaults) in the same pass. At the end of the task, explicitly disclose anything still hardcoded that probably shouldn't be.
+9. **Use codebase nomenclature.** Never invent business labels, state names, or category names. Use the exact strings from the codebase (`ProjectState`, enum values, `projectStateLabels`, etc.). If a human-readable label is needed, derive it from the existing label map — do not coin one.
 
 ## Deploy
 
