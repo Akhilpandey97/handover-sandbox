@@ -55,7 +55,7 @@ export const RevenueArrDashlet = ({ projects, riskVerdicts, onDrillDown }: Props
     {
       id: "pipeline",
       label: "Pipeline ARR",
-      sublabel: "Pre-sales · In Progress · On Hold",
+      sublabel: "not_started · in_progress · on_hold",
       icon: FolderKanban,
       arr: sumArrCrore(pipeline.map((p) => p.arr)),
       count: pipeline.length,
