@@ -1607,7 +1607,7 @@ export const ChecklistDialog = ({
                   Due date
                 </th>
                 <th className="w-36 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
-                  Assignee
+                  Owner
                 </th>
                 <th className="w-24 text-left px-3 py-2.5 text-xs font-medium text-muted-foreground">
                   Status
@@ -1918,7 +1918,7 @@ export const ChecklistDialog = ({
                                     {/* Column headers */}
                                     <div className="grid grid-cols-[1fr_6rem_6rem_1.5rem] gap-x-2 px-3 py-1.5 text-2xs font-medium text-muted-foreground border-b border-border/30 bg-muted/20">
                                       <span>Task</span>
-                                      <span>Assignee</span>
+                                      <span>Owner</span>
                                       <span>Due date</span>
                                       <span />
                                     </div>
