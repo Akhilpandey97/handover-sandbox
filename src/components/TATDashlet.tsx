@@ -4,7 +4,7 @@ import { useLabels } from "@/contexts/LabelsContext";
 import { useFunnelConfig } from "@/hooks/useFunnelConfig";
 import type { FunnelStageRule } from "@/data/funnelConfig";
 
-import { formatArrCrRupee, formatCrRupee } from "@/lib/arr";
+import { formatArrCrRupee } from "@/lib/arr";
 
 const diffDays = (from: number, to: number) =>
   Math.max(0, Math.round((to - from) / (1000 * 60 * 60 * 24)));
@@ -122,7 +122,7 @@ export const TATDashlet = ({ projects }: Props) => {
               Total {arrLabel}
             </p>
             <p className="mt-0.5 truncate text-xl font-semibold leading-tight tabular-nums text-foreground">
-              {formatCrRupee(overall.totalArr)}
+              {formatArrCrRupee(overall.totalArr)}
             </p>
           </div>
           <div className="rounded-md bg-success-soft p-2">

@@ -1,14 +1,10 @@
 /**
- * ARR helpers.
- *
- * ARR is stored in raw rupees for imported/synced data, but some legacy rows
- * were entered directly in Crores. Anything at or above 1 lakh is treated as
- * rupees; smaller values are assumed to already be Crores.
+ * ARR is always stored as absolute INR. Divide by 1e7 to get Crores.
  */
 export const arrToCrore = (value: number | null | undefined): number => {
   const n = Number(value ?? 0);
   if (!Number.isFinite(n)) return 0;
-  return Math.abs(n) >= 100000 ? n / 1e7 : n;
+  return n / 1e7;
 };
 
 /** Indian number format: values < 1 Cr display as Lakhs ("5 L"), ≥ 1 Cr as Crores ("1.5 Cr"). */
