@@ -1808,10 +1808,9 @@ function IntegrationPage({
         <div className="flex items-start justify-between">
           <div>
             <h1 className="heading-page text-foreground">{project.merchant_name}</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {project.brand_url || "—"} · {project.platform} ·{" "}
-              {project.integration_type || "Standard"}
-            </p>
+            {project.brand_url && (
+              <p className="text-sm text-muted-foreground mt-0.5">{project.brand_url}</p>
+            )}
           </div>
         </div>
         {(owner || project.expected_go_live_date || project.go_live_date) && (
@@ -1822,10 +1821,10 @@ function IntegrationPage({
                 {owner.name}
               </span>
             )}
-            {(project.expected_go_live_date || project.go_live_date) && (
+            {project.expected_go_live_date && (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground">
-                <span className="text-muted-foreground">Go-Live</span>
-                {formatDate(project.expected_go_live_date || project.go_live_date)}
+                <span className="text-muted-foreground">Expected Go-Live</span>
+                {formatDate(project.expected_go_live_date)}
               </span>
             )}
           </div>
