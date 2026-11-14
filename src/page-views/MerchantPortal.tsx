@@ -1986,8 +1986,8 @@ function IntegrationPage({
             <tr className="border-b border-border">
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3">Task</th>
               <th className="text-left text-xs font-semibold text-muted-foreground pb-3 pl-4 whitespace-nowrap">Waiting on</th>
-              <th className="text-right text-xs font-semibold text-muted-foreground pb-3 whitespace-nowrap">Start Date</th>
-              <th className="text-right text-xs font-semibold text-muted-foreground pb-3 whitespace-nowrap">Due Date</th>
+              <th className="text-right text-xs font-semibold text-muted-foreground pb-3 pl-6 whitespace-nowrap">Start Date</th>
+              <th className="text-right text-xs font-semibold text-muted-foreground pb-3 pl-6 whitespace-nowrap">Due Date</th>
             </tr>
           </thead>
           <tbody>
@@ -2025,10 +2025,10 @@ function IntegrationPage({
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="py-3 text-right whitespace-nowrap text-xs text-muted-foreground">
+                    <td className="py-3 pl-6 text-right whitespace-nowrap text-xs text-muted-foreground">
                       {item.start_date ? formatDate(item.start_date) : "—"}
                     </td>
-                    <td className={cn("py-3 text-right whitespace-nowrap text-xs font-semibold", overdue ? "text-destructive" : "text-muted-foreground")}>
+                    <td className={cn("py-3 pl-6 text-right whitespace-nowrap text-xs font-semibold", overdue ? "text-destructive" : "text-muted-foreground")}>
                       {item.due_date ? formatDate(item.due_date) : "—"}
                       {overdue && <span className="ml-1 font-normal text-2xs">(overdue)</span>}
                     </td>
