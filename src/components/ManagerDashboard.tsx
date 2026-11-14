@@ -180,6 +180,7 @@ import { ReportsBuilder } from "./reports/ReportsBuilder";
 import { ReportScheduler } from "./reports/ReportScheduler";
 import { PivotTableSettings } from "./settings/PivotTableSettings";
 import { ChecklistSetsManager } from "./settings/ChecklistSetsManager";
+import { ChecklistManagement } from "./ChecklistManagement";
 import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
@@ -1219,6 +1220,11 @@ export const ManagerDashboard = () => {
       label: "Checklist Sets",
       icon: ListChecks,
       description: "Define checklist templates for each project type. The Default set is the global checklist applied to every new project.",
+    },
+    teams: {
+      label: "Teams",
+      icon: Users,
+      description: "Manage team categories used to assign checklist ownership.",
     },
     users: {
       label: "Users",
@@ -3610,6 +3616,7 @@ export const ManagerDashboard = () => {
                           "funnel",
                           "checklist-forms",
                           "checklist-sets",
+                          "teams",
                         ],
                       },
                       {
@@ -3627,6 +3634,10 @@ export const ManagerDashboard = () => {
                 ) : settingsSubTab === "checklist-sets" ? (
                   <div className="p-6">
                     <ChecklistSetsManager />
+                  </div>
+                ) : settingsSubTab === "teams" ? (
+                  <div className="p-6">
+                    <ChecklistManagement />
                   </div>
                 ) : settingsSubTab === "users" ? (
                   <UserManagement />
