@@ -99,6 +99,7 @@ import {
   GripVertical,
   Eye,
   EyeOff,
+  Globe,
 } from "lucide-react";
 
 /** "9 Sep 2026" */
@@ -1281,6 +1282,11 @@ export const ChecklistDialog = ({
                                             >
                                               {task.title}
                                             </span>
+                                            {task.is_client_visible && (
+                                              <span title="Visible to customer in portal">
+                                                <Globe className="h-3 w-3 shrink-0 text-primary" />
+                                              </span>
+                                            )}
                                             {task.assigned_to && (
                                               <span className="shrink-0 text-2xs text-muted-foreground">
                                                 {profiles.find((p) => p.id === task.assigned_to)
