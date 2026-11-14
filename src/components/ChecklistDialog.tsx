@@ -1955,10 +1955,11 @@ export const ChecklistDialog = ({
                                       />
                                     </div>
                                     {/* Column headers */}
-                                    <div className="grid grid-cols-[1fr_6rem_6rem_1.5rem] gap-x-2 px-3 py-1.5 text-2xs font-medium text-muted-foreground border-b border-border/30 bg-muted/20">
+                                    <div className="grid grid-cols-[1fr_6rem_6rem_2rem_1.5rem] gap-x-2 px-3 py-1.5 text-2xs font-medium text-muted-foreground border-b border-border/30 bg-muted/20">
                                       <span>Task</span>
                                       <span>Owner</span>
                                       <span>Due date</span>
+                                      <span className="text-center" title="Customer visible in portal"><Globe className="h-3 w-3 mx-auto" /></span>
                                       <span />
                                     </div>
                                     <div className="flex-1 overflow-y-auto max-h-[160px] divide-y divide-border/20">
@@ -1973,7 +1974,7 @@ export const ChecklistDialog = ({
                                           : "—";
                                         return (
                                           <div key={task.id} id={`task-${task.id}`}>
-                                            <div className="group grid grid-cols-[1fr_6rem_6rem_1.5rem] gap-x-2 items-center px-3 py-2 hover:bg-muted/30">
+                                            <div className="group grid grid-cols-[1fr_6rem_6rem_2rem_1.5rem] gap-x-2 items-center px-3 py-2 hover:bg-muted/30">
                                               <div className="flex items-center gap-2 min-w-0">
                                                 <Checkbox
                                                   checked={task.status === "done"}
@@ -2009,6 +2010,11 @@ export const ChecklistDialog = ({
                                               </span>
                                               <span className="text-2xs text-muted-foreground whitespace-nowrap">
                                                 {task.due_date ? shortDate(task.due_date) : "—"}
+                                              </span>
+                                              <span className="flex justify-center" title={task.is_client_visible ? "Visible to customer in portal" : "Not shown in portal"}>
+                                                {task.is_client_visible
+                                                  ? <Globe className="h-3 w-3 text-primary" />
+                                                  : <span className="text-2xs text-muted-foreground/40">—</span>}
                                               </span>
                                               <Button
                                                 variant="ghost"
