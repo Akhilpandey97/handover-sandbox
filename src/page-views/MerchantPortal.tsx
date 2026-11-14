@@ -1661,98 +1661,114 @@ function TaskActionItem({
     setShowComment(false);
   };
 
+  const hasActivity = comments.length > 0 || showComment;
+
   return (
-    <tr>
-      {/* Task title + comments */}
-      <td className="py-2.5 pr-4 align-top">
-        <div className="flex items-start gap-2.5 min-w-0">
-          <button
-            onClick={onToggle}
-            className="flex-shrink-0 mt-0.5 transition-opacity hover:opacity-70 focus:outline-none"
-            aria-label={isDone ? "Mark as not done" : "Mark as done"}
-          >
-            <CheckCircle2
-              className="w-4 h-4"
-              style={{ color: isDone ? BRAND.green : "#cbd5e1" }}
-            />
-          </button>
-          <div className="flex-1 min-w-0">
-            <p className={cn("text-sm font-medium", isDone && "text-muted-foreground line-through")}>
-              {task.title}
-            </p>
-            {/* Existing comments */}
-            {comments.length > 0 && (
-              <div className="mt-2 space-y-1.5">
-                {comments.map((c) => {
-                  const isCustomer = !c.user_id;
-                  return (
-                    <div key={c.id} className={cn("flex gap-2 text-xs rounded-lg px-2.5 py-1.5", isCustomer ? "bg-primary/[0.06]" : "bg-muted/50")}>
-                      <span className={cn("font-semibold shrink-0", isCustomer ? "text-primary" : "text-foreground")}>
-                        {isCustomer ? `${c.user_name} (you)` : c.user_name}:
-                      </span>
-                      <span className="text-muted-foreground leading-relaxed">{c.comment}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            {/* Comment input */}
-            {showComment ? (
-              <div className="mt-2 flex gap-2 items-center">
-                <input
-                  type="text"
-                  className="flex-1 text-xs border border-border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                  placeholder="Add a comment…"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
-                  autoFocus
-                />
+    <>
+      <tr>
+        {/* Task title */}
+        <td className="py-2.5 pr-4 align-top">
+          <div className="flex items-start gap-2.5 min-w-0">
+            <button
+              onClick={onToggle}
+              className="flex-shrink-0 mt-0.5 transition-opacity hover:opacity-70 focus:outline-none"
+              aria-label={isDone ? "Mark as not done" : "Mark as done"}
+            >
+              <CheckCircle2
+                className="w-4 h-4"
+                style={{ color: isDone ? BRAND.green : "#cbd5e1" }}
+              />
+            </button>
+            <div className="min-w-0">
+              <p className={cn("text-sm font-medium", isDone && "text-muted-foreground line-through")}>
+                {task.title}
+              </p>
+              {!hasActivity && (
                 <button
-                  onClick={handleSubmit}
-                  disabled={submitting || !commentText.trim()}
-                  className="text-xs px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+                  onClick={() => setShowComment(true)}
+                  className="mt-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
-                  {submitting ? "…" : "Send"}
+                  + Add comment
                 </button>
-                <button
-                  onClick={() => setShowComment(false)}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowComment(true)}
-                className="mt-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-              >
-                + Add comment
-              </button>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      </td>
-      {/* Description */}
-      <td className="py-2.5 pl-4 pr-4 align-top text-xs text-muted-foreground">
-        {task.description || <span className="text-muted-foreground/40">—</span>}
-      </td>
-      {/* Owner */}
-      <td className="py-2.5 pl-4 pr-4 align-top text-xs text-foreground font-medium whitespace-nowrap">
-        {task.assigned_to_ext || <span className="text-muted-foreground">—</span>}
-      </td>
-      {/* Due date */}
-      <td className="py-2.5 align-top text-right text-xs whitespace-nowrap font-semibold">
-        {task.due_date ? (
-          <span className={overdue ? "text-destructive" : "text-muted-foreground"}>
-            {formatDate(task.due_date)}
-            {overdue && <span className="ml-1 font-normal text-2xs">(overdue)</span>}
-          </span>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        )}
-      </td>
-    </tr>
+        </td>
+        {/* Description */}
+        <td className="py-2.5 pl-4 pr-4 align-top text-xs text-muted-foreground">
+          {task.description || <span className="text-muted-foreground/40">—</span>}
+        </td>
+        {/* Owner */}
+        <td className="py-2.5 pl-4 pr-4 align-top text-xs text-foreground font-medium whitespace-nowrap">
+          {task.assigned_to_ext || <span className="text-muted-foreground">—</span>}
+        </td>
+        {/* Due date */}
+        <td className="py-2.5 align-top text-right text-xs whitespace-nowrap font-semibold">
+          {task.due_date ? (
+            <span className={overdue ? "text-destructive" : "text-muted-foreground"}>
+              {formatDate(task.due_date)}
+              {overdue && <span className="ml-1 font-normal text-2xs">(overdue)</span>}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+        </td>
+      </tr>
+
+      {/* Comments + input — full-width row */}
+      {hasActivity && (
+        <tr>
+          <td colSpan={4} className="pb-3 pt-0 pl-7">
+            <div className="space-y-1.5">
+              {comments.map((c) => {
+                const isCustomer = !c.user_id;
+                return (
+                  <div key={c.id} className={cn("flex gap-2 text-xs rounded-lg px-2.5 py-1.5", isCustomer ? "bg-primary/[0.06]" : "bg-muted/50")}>
+                    <span className={cn("font-semibold shrink-0", isCustomer ? "text-primary" : "text-foreground")}>
+                      {isCustomer ? `${c.user_name} (you)` : c.user_name}:
+                    </span>
+                    <span className="text-muted-foreground leading-relaxed">{c.comment}</span>
+                  </div>
+                );
+              })}
+              {showComment ? (
+                <div className="flex gap-2 items-center mt-1">
+                  <input
+                    type="text"
+                    className="flex-1 text-xs border border-border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                    placeholder="Add a comment…"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSubmit()}
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSubmit}
+                    disabled={submitting || !commentText.trim()}
+                    className="text-xs px-2.5 py-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-50"
+                  >
+                    {submitting ? "…" : "Send"}
+                  </button>
+                  <button
+                    onClick={() => setShowComment(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowComment(true)}
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  + Add comment
+                </button>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
