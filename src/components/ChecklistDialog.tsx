@@ -1799,27 +1799,6 @@ export const ChecklistDialog = ({
                                 </ToggleGroup>
                               </div>
 
-                              {/* Stage */}
-                              <div className="flex items-center gap-2 px-3 py-2">
-                                <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                <span className="text-xs text-muted-foreground whitespace-nowrap">Stage</span>
-                                {canEdit && !item.completed ? (
-                                  <Input
-                                    type="text"
-                                    defaultValue={item.stage ?? ""}
-                                    placeholder="e.g. Pre Sales"
-                                    className="h-6 text-xs px-1.5 border-border/50"
-                                    onBlur={async (e) => {
-                                      const val = e.target.value.trim() || null;
-                                      await supabase.from("checklist_items").update({ stage: val }).eq("id", item.id);
-                                      queryClient.invalidateQueries({ queryKey: ["projects"] });
-                                    }}
-                                  />
-                                ) : (
-                                  <span className="text-xs font-medium">{item.stage || "—"}</span>
-                                )}
-                              </div>
-
                               {/* Timeline */}
                               <div className="flex items-center gap-2 px-3 py-2">
                                 <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -1873,6 +1852,36 @@ export const ChecklistDialog = ({
                                   </div>
                                 );
                               })()}
+
+                              {/* More options (⋯) */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="flex items-center px-2.5 py-2 text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-56 p-2">
+                                  <div className="flex items-center gap-2 px-1 py-1">
+                                    <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                    <span className="text-xs text-muted-foreground whitespace-nowrap">Stage</span>
+                                    {canEdit && !item.completed ? (
+                                      <Input
+                                        type="text"
+                                        defaultValue={item.stage ?? ""}
+                                        placeholder="e.g. Pre Sales"
+                                        className="h-6 flex-1 text-xs px-1.5 border-border/50"
+                                        onBlur={async (e) => {
+                                          const val = e.target.value.trim() || null;
+                                          await supabase.from("checklist_items").update({ stage: val }).eq("id", item.id);
+                                          queryClient.invalidateQueries({ queryKey: ["projects"] });
+                                        }}
+                                      />
+                                    ) : (
+                                      <span className="text-xs font-medium">{item.stage || "—"}</span>
+                                    )}
+                                  </div>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
 
                             {/* Tasks + Meetings side-by-side — always shown */}
