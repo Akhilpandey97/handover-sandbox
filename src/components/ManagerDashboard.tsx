@@ -2088,7 +2088,7 @@ export const ManagerDashboard = () => {
                         onDrillDown={(title, projects) => setDrillDown({ title, projects })}
                       />
                     ),
-                    "revenue-slippage": <RevenueSlippageDashlet projects={displayProjects} />,
+                    "revenue-slippage": <RevenueSlippageDashlet projects={displayProjects} onDrillDown={(title, projects) => setDrillDown({ title, projects })} />,
                     "revenue-risk": <RevenueAtRiskDashlet projects={displayProjects} />,
                     tat: <TATDashlet projects={displayProjects} />,
                     attention: <AttentionRequiredDashlet />,

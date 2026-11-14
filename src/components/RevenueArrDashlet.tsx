@@ -141,8 +141,9 @@ export const RevenueArrDashlet = ({ projects, riskVerdicts, onDrillDown }: Props
               onDragOver={(e) => { e.preventDefault(); handleDragOver(tile.id); }}
               onDrop={() => handleDrop(tile.id)}
               onDragEnd={handleDragEnd}
+              onClick={() => onDrillDown?.(tile.label, tile.projects)}
               className={[
-                "group relative flex flex-col gap-2 bg-card px-4 py-3 transition-colors",
+                "group relative flex flex-col gap-2 bg-card px-4 py-3 transition-colors cursor-pointer hover:bg-muted/40",
                 isDragging ? "opacity-40" : "",
                 isOver ? "ring-2 ring-inset ring-primary/40" : "",
               ].join(" ")}
@@ -158,15 +159,9 @@ export const RevenueArrDashlet = ({ projects, riskVerdicts, onDrillDown }: Props
               </div>
 
               <div>
-                <button
-                  type="button"
-                  onClick={() => onDrillDown?.(tile.label, tile.projects)}
-                  className="text-left"
-                >
-                  <p className="text-lg font-semibold tabular-nums leading-tight text-foreground">
-                    {formatCrRupee(tile.arr)}
-                  </p>
-                </button>
+                <p className="text-lg font-semibold tabular-nums leading-tight text-foreground">
+                  {formatCrRupee(tile.arr)}
+                </p>
                 <p className="mt-0.5 text-2xs text-muted-foreground">
                   MRR {formatCrRupee(mrr)} · {tile.count} project{tile.count !== 1 ? "s" : ""}
                 </p>

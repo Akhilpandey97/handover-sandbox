@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { CalendarX } from "lucide-react";
 import { formatCrRupee, sumArrCrore } from "@/lib/arr";
 import type { Project } from "@/data/projectsData";
-import { openProjectInNewTab } from "@/lib/open-project";
 import {
   Table,
   TableBody,
@@ -32,7 +31,10 @@ function formatMonth(yyyyMm: string) {
   return `${MONTH_LABELS[month!] ?? month} ${year}`;
 }
 
-export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = {}) => {
+export const RevenueSlippageDashlet = ({
+  projects,
+  onDrillDown,
+}: { projects?: Project[]; onDrillDown?: (title: string, projects: Project[]) => void } = {}) => {
   const today = new Date().toISOString().slice(0, 10);
   const thisMonth = today.slice(0, 7);
 
@@ -134,10 +136,7 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
                   <TableRow
                     key={month}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {
-                      // open first project as a proxy — a future drill-down dialog can list all
-                      if (ps[0]) openProjectInNewTab(ps[0].id);
-                    }}
+                    onClick={() => onDrillDown?.(`Slippage · ${formatMonth(month)}`, ps)}
                   >
                     <TableCell className="text-xs font-medium">
                       {formatMonth(month)}
