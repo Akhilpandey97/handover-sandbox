@@ -2292,10 +2292,7 @@ function CredentialsPage({
         />
         <CredentialField
           label={baseUrlLabel}
-          value={
-            creds?.base_url ||
-            (env === "sandbox" ? "https://sandbox.api.gokwik.co" : "https://api.gokwik.co")
-          }
+          value={creds?.base_url || "NA"}
         />
         <CredentialField
           label={configIdLabel}
