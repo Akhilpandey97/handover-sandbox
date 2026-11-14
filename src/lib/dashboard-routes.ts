@@ -37,6 +37,7 @@ export const SETTINGS_SUB_TABS = [
   "custom-fields",
   "checklist-forms",
   "checklist-sets",
+  "teams",
   "users",
   "email",
   "workflows",
