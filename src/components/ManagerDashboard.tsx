@@ -183,7 +183,7 @@ import { ChecklistSetsManager } from "./settings/ChecklistSetsManager";
 import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
-import { arrToCrore, formatArrCr, formatCr, sumArrCrore } from "@/lib/arr";
+import { arrToCrore, formatArrCrRupee, formatCrRupee, sumArrCrore } from "@/lib/arr";
 import { openProjectInNewTab } from "@/lib/open-project";
 
 // All nav items that can be toggled
@@ -1898,7 +1898,7 @@ export const ManagerDashboard = () => {
                           key: "all",
                           label: "All projects",
                           value: totalProjects,
-                          sub: `Pipeline ${arrLabel}: ${formatCr(totalArr)}`,
+                          sub: `Pipeline ${arrLabel}: ${formatCrRupee(totalArr)}`,
                           icon: FolderKanban,
                           tone: "bg-muted text-foreground/70",
                           onClick: () =>
@@ -1912,7 +1912,7 @@ export const ManagerDashboard = () => {
                             key,
                             label: state === "in_progress" ? "In Progress" : label,
                             value: list.length,
-                            sub: `${arrLabel}: ${formatCr(list.reduce((s, p) => s + arrToCrore(p.arr), 0))}`,
+                            sub: `${arrLabel}: ${formatCrRupee(list.reduce((s, p) => s + arrToCrore(p.arr), 0))}`,
                             icon,
                             tone,
                             onClick: () =>
@@ -3840,7 +3840,7 @@ export const ManagerDashboard = () => {
                                   </div>
                                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                     <span>
-                                      {arrLabel}: {formatArrCr(project.arr)}
+                                      {arrLabel}: {formatArrCrRupee(project.arr)}
                                     </span>
                                     {project.assignedOwnerName && (
                                       <span>Owner: {project.assignedOwnerName}</span>

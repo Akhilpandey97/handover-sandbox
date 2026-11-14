@@ -37,6 +37,10 @@ export const arrCroreValue = (value: number | null | undefined, digits = 2): str
 export const formatArrCr = (value: number | null | undefined): string =>
   formatIndian(arrToCrore(value));
 
+/** Same as formatArrCr but prefixed with ₹ — e.g. "₹1.5 Cr", "₹50 L". */
+export const formatArrCrRupee = (value: number | null | undefined): string =>
+  `₹${formatIndian(arrToCrore(value))}`;
+
 /** Sum a list of raw ARR values and return Crores. */
 export const sumArrCrore = (values: Array<number | null | undefined>): number =>
   values.reduce<number>((sum, v) => sum + arrToCrore(v), 0);

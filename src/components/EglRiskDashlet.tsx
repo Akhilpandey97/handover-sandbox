@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/data/projectsData";
 import { openProjectInNewTab } from "@/lib/open-project";
-import { formatCr, sumArrCrore } from "@/lib/arr";
+import { formatCrRupee, sumArrCrore } from "@/lib/arr";
 
 const WINDOWS: { key: EglWindow; label: string }[] = [
   { key: "week", label: "This week" },
@@ -119,8 +119,8 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
                       )}
                     </TableCell>
                     <TableCell className="text-xs whitespace-nowrap tabular-nums text-muted-foreground">
-                      <span className="font-medium text-foreground">{formatCr(projectArr)}</span>
-                      <span className="ml-1 text-2xs">/ {formatCr(projectMrr)} MRR</span>
+                      <span className="font-medium text-foreground">{formatCrRupee(projectArr)}</span>
+                      <span className="ml-1 text-2xs">/ {formatCrRupee(projectMrr)} MRR</span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground align-top">
                       {showAi ? (
@@ -147,11 +147,11 @@ export const EglRiskDashlet = ({ projects }: { projects?: Project[] } = {}) => {
           <span className="font-medium text-foreground">{rows.length} projects</span>
           <span>·</span>
           <span>
-            ARR <span className="font-medium text-foreground">{formatCr(totalArr)}</span>
+            ARR <span className="font-medium text-foreground">{formatCrRupee(totalArr)}</span>
           </span>
           <span>·</span>
           <span>
-            MRR <span className="font-medium text-foreground">{formatCr(totalMrr)}</span>
+            MRR <span className="font-medium text-foreground">{formatCrRupee(totalMrr)}</span>
           </span>
         </div>
       )}

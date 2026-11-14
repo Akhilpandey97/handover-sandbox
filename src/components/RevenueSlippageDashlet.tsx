@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { CalendarX } from "lucide-react";
-import { formatCr, sumArrCrore } from "@/lib/arr";
+import { formatCrRupee, sumArrCrore } from "@/lib/arr";
 import type { Project } from "@/data/projectsData";
 import { openProjectInNewTab } from "@/lib/open-project";
 import {
@@ -76,10 +76,10 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
             Total slippage
           </div>
           <p className="text-lg font-semibold leading-tight tabular-nums">
-            {formatCr(totalArr)}
+            {formatCrRupee(totalArr)}
           </p>
           <p className="text-2xs opacity-70">
-            MRR {formatCr(totalMrr)} · {slipped.length} project
+            MRR {formatCrRupee(totalMrr)} · {slipped.length} project
             {slipped.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -89,10 +89,10 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
             This month
           </div>
           <p className="text-lg font-semibold leading-tight tabular-nums">
-            {formatCr(thisMonthArr)}
+            {formatCrRupee(thisMonthArr)}
           </p>
           <p className="text-2xs opacity-70">
-            MRR {formatCr(thisMonthMrr)} · {thisMonthSlipped.length} project
+            MRR {formatCrRupee(thisMonthMrr)} · {thisMonthSlipped.length} project
             {thisMonthSlipped.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -149,10 +149,10 @@ export const RevenueSlippageDashlet = ({ projects }: { projects?: Project[] } = 
                     </TableCell>
                     <TableCell className="text-right text-xs tabular-nums">{ps.length}</TableCell>
                     <TableCell className="text-right text-xs font-medium tabular-nums">
-                      {formatCr(mArr)}
+                      {formatCrRupee(mArr)}
                     </TableCell>
                     <TableCell className="text-right text-xs tabular-nums text-muted-foreground">
-                      {formatCr(mMrr)}
+                      {formatCrRupee(mMrr)}
                     </TableCell>
                   </TableRow>
                 );

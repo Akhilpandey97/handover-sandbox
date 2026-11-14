@@ -43,7 +43,7 @@ import {
 } from "@/data/projectsData";
 import { getActiveFunnelStages } from "@/data/funnelConfig";
 import { formatGoLiveDate } from "./GoLiveDate";
-import { arrToCrore, formatArrCr, formatCr } from "@/lib/arr";
+import { arrToCrore, formatArrCrRupee, formatCrRupee } from "@/lib/arr";
 import { cn, greeting } from "@/lib/utils";
 import { parseDashboardPath, projectViewPath } from "@/lib/dashboard-routes";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
@@ -333,7 +333,7 @@ export const TeamDashboard = () => {
       key: "all",
       label: "All projects",
       value: visibleProjects.length,
-      sub: `${formatCr(visibleProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0))} ${arrLabel}`,
+      sub: `${formatCrRupee(visibleProjects.reduce((sum, p) => sum + arrToCrore(p.arr), 0))} ${arrLabel}`,
       icon: FolderKanban,
       tone: "bg-muted text-foreground/70",
       onClick: () => setDrillDown({ title: "All projects", projects: visibleProjects }),
@@ -345,7 +345,7 @@ export const TeamDashboard = () => {
         key,
         label: state === "in_progress" ? "In Progress" : label,
         value: list.length,
-        sub: `${formatCr(list.reduce((sum, p) => sum + arrToCrore(p.arr), 0))} ${arrLabel}`,
+        sub: `${formatCrRupee(list.reduce((sum, p) => sum + arrToCrore(p.arr), 0))} ${arrLabel}`,
         icon,
         tone,
         onClick: () => setDrillDown({ title: label, description: "Project state", projects: list }),
@@ -422,7 +422,7 @@ export const TeamDashboard = () => {
                       </button>
                       <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-2xs text-muted-foreground">
                         <span>
-                          {arrLabel}: {formatArrCr(project.arr)}
+                          {arrLabel}: {formatArrCrRupee(project.arr)}
                         </span>
                         <span>
                           · {getLabel("field_project_state")}:{" "}
@@ -495,7 +495,7 @@ export const TeamDashboard = () => {
                     {project.merchantName}
                   </button>
                   <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-2xs text-muted-foreground">
-                    <span>{arrLabel}: {formatArrCr(project.arr)}</span>
+                    <span>{arrLabel}: {formatArrCrRupee(project.arr)}</span>
                     <span>· Now with: <span className="font-medium">{teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam}</span></span>
                     <span>· {getLabel("field_expected_go_live_date")}: {formatGoLiveDate(project)}</span>
                   </p>
@@ -1309,7 +1309,7 @@ export const TeamDashboard = () => {
                                               />
                                             </span>
                                           ) : colKey === "arr" ? (
-                                            formatArrCr(project.arr)
+                                            formatArrCrRupee(project.arr)
                                           ) : ["mintNotes", "projectNotes"].includes(colKey) ? (
                                             <span
                                               className="truncate block max-w-[200px]"
