@@ -180,7 +180,7 @@ import { ReportsBuilder } from "./reports/ReportsBuilder";
 import { ReportScheduler } from "./reports/ReportScheduler";
 import { PivotTableSettings } from "./settings/PivotTableSettings";
 import { ChecklistSetsManager } from "./settings/ChecklistSetsManager";
-import { ChecklistManagement } from "./ChecklistManagement";
+import { TeamManagementSettings } from "./ChecklistManagement";
 import { PortalVisitsReport } from "./reports/PortalVisitsReport";
 import { MovementReport } from "./reports/MovementReport";
 import { RiskDashboard } from "./RiskDashboard";
@@ -3637,7 +3637,7 @@ export const ManagerDashboard = () => {
                   </div>
                 ) : settingsSubTab === "teams" ? (
                   <div className="p-6">
-                    <ChecklistManagement />
+                    <TeamManagementSettings />
                   </div>
                 ) : settingsSubTab === "users" ? (
                   <UserManagement />

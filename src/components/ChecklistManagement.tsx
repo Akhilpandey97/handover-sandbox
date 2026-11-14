@@ -1278,3 +1278,202 @@ export const ChecklistManagement = () => {
     </Card>
   );
 };
+
+// ─── Standalone Team Management (used by Settings → Teams) ───────────────────
+export const TeamManagementSettings = () => {
+  const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
+  const { teamLabels } = useLabels();
+  const { checklistTeamSlugs, teamLabelMap, customTeams, allTeams } = useTeams();
+  const teams = checklistTeamSlugs.length > 0 ? checklistTeamSlugs : ["mint", "integration", "ms"];
+  const getLabel = (slug: string) =>
+    teamLabels[slug as keyof typeof teamLabels] || teamLabelMap[slug] || slug;
+
+  const [addTeamOpen, setAddTeamOpen] = useState(false);
+  const [newTeamName, setNewTeamName] = useState("");
+  const [newTeamColor, setNewTeamColor] = useState("#3b82f6");
+  const [deleteTeamConfirm, setDeleteTeamConfirm] = useState<{ id: string; name: string; slug: string } | null>(null);
+  const [editTeam, setEditTeam] = useState<{ id: string; slug: string; name: string; color: string; isSystem: boolean; sortOrder: number } | null>(null);
+
+  const addTeamMutation = useMutation({
+    mutationFn: async ({ name, color }: { name: string; color: string }) => {
+      const slug = name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+      const { error } = await supabase.from("teams").insert({ name, slug, color, is_system: false, sort_order: customTeams.length, tenant_id: currentUser?.tenantId });
+      if (error) throw error;
+    },
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["teams"] }); toast.success("Team added"); setAddTeamOpen(false); setNewTeamName(""); },
+    onError: (e: Error) => toast.error(e.message || "Failed to add team"),
+  });
+
+  const deleteTeamMutation = useMutation({
+    mutationFn: async ({ id, slug }: { id: string; slug: string }) => {
+      const { error } = await supabase.rpc("delete_team_cascade", { _slug: slug, _team_id: id });
+      if (error) throw error;
+    },
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["teams"] }); toast.success("Team removed"); setDeleteTeamConfirm(null); },
+    onError: (e: Error) => toast.error(e.message || "Failed to delete team"),
+  });
+
+  const editTeamMutation = useMutation({
+    mutationFn: async (team: NonNullable<typeof editTeam>) => {
+      const name = team.name.trim();
+      if (!name) throw new Error("A team needs a name");
+      const { error } = team.id.startsWith("system-")
+        ? await supabase.from("teams").insert({ name, slug: team.slug, color: team.color, is_system: true, sort_order: team.sortOrder, tenant_id: currentUser?.tenantId })
+        : await supabase.from("teams").update({ name, color: team.color }).eq("id", team.id);
+      if (error) throw error;
+    },
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["teams"] }); toast.success("Team updated"); setEditTeam(null); },
+    onError: (e: Error) => toast.error(e.message || "Failed to update team"),
+  });
+
+  const openTeamEditor = (slug: string) => {
+    const t = allTeams.find((x) => x.slug === slug);
+    if (!t) return;
+    setEditTeam({ id: t.id, slug: t.slug, name: t.name, color: t.color, isSystem: t.is_system, sortOrder: t.sort_order });
+  };
+
+  return (
+    <>
+      <Card className="shadow-sm border-border">
+        <CardHeader className="border-b bg-muted/30">
+          <div className="flex items-center justify-between">
+            <CardTitle className="portal-heading flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Team Management
+            </CardTitle>
+            <Button onClick={() => setAddTeamOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Team
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage team categories for checklist organization.
+          </p>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">System Teams</p>
+            <div className="space-y-2">
+              {teams.map((team) => (
+                <div key={team} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: team === "mint" ? "#3b82f6" : team === "integration" ? "#a855f7" : "#10b981" }}>
+                    {(getLabel(team)).charAt(0)}
+                  </div>
+                  <span className="font-medium flex-1">{getLabel(team)}</span>
+                  <Badge variant="secondary" className="text-xs">System</Badge>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => openTeamEditor(team)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+          {customTeams.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">Custom Teams</p>
+              <div className="space-y-2">
+                {customTeams.map((team) => (
+                  <div key={team.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50 group">
+                    <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: team.color }}>
+                      {team.name.charAt(0)}
+                    </div>
+                    <span className="font-medium flex-1">{team.name}</span>
+                    <Badge variant="outline" className="text-xs">{team.slug}</Badge>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => openTeamEditor(team.slug)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:text-destructive" onClick={() => setDeleteTeamConfirm({ id: team.id, name: team.name, slug: team.slug })}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {customTeams.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">No custom teams yet. Click "Add Team" to create one.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={addTeamOpen} onOpenChange={setAddTeamOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Team</DialogTitle>
+            <DialogDescription>Create a new team category for checklist organization.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Team Name</label>
+              <Input value={newTeamName} onChange={(e) => setNewTeamName(e.target.value)} placeholder="e.g. QA Team" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Color</label>
+              <div className="flex items-center gap-3">
+                <input type="color" value={newTeamColor} onChange={(e) => setNewTeamColor(e.target.value)} className="h-10 w-14 rounded border cursor-pointer" />
+                <Input value={newTeamColor} onChange={(e) => setNewTeamColor(e.target.value)} className="flex-1" />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddTeamOpen(false)}>Cancel</Button>
+            <Button onClick={() => addTeamMutation.mutate({ name: newTeamName.trim(), color: newTeamColor })} disabled={!newTeamName.trim() || addTeamMutation.isPending}>
+              {addTeamMutation.isPending ? "Adding…" : "Add Team"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editTeam} onOpenChange={(open) => { if (!open) setEditTeam(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit team</DialogTitle>
+            <DialogDescription>The new name shows everywhere: dashboards, checklists, transfers and exports.</DialogDescription>
+          </DialogHeader>
+          {editTeam && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="edit-team-name">Team name</label>
+                <Input id="edit-team-name" value={editTeam.name} onChange={(e) => setEditTeam({ ...editTeam, name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="edit-team-color">Colour</label>
+                <div className="flex items-center gap-3">
+                  <input type="color" value={editTeam.color} onChange={(e) => setEditTeam({ ...editTeam, color: e.target.value })} className="h-10 w-14 rounded border cursor-pointer" />
+                  <Input id="edit-team-color" value={editTeam.color} onChange={(e) => setEditTeam({ ...editTeam, color: e.target.value })} className="flex-1" />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTeam(null)}>Cancel</Button>
+            <Button onClick={() => editTeam && editTeamMutation.mutate(editTeam)} disabled={!editTeam?.name.trim() || editTeamMutation.isPending}>
+              {editTeamMutation.isPending ? "Saving…" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteTeamConfirm} onOpenChange={() => setDeleteTeamConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Team
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{deleteTeamConfirm?.name}"? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTeamConfirm(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deleteTeamConfirm && deleteTeamMutation.mutate({ id: deleteTeamConfirm.id, slug: deleteTeamConfirm.slug })} disabled={deleteTeamMutation.isPending}>
+              {deleteTeamMutation.isPending ? "Deleting…" : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};

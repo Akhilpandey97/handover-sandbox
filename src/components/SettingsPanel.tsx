@@ -39,7 +39,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { NoAccessCard } from "@/components/NoAccessCard";
 import { BuddySettings } from "@/components/buddy/BuddySettings";
 import { BrandColorSettings } from "@/components/settings/BrandColorSettings";
-import { ChecklistManagement } from "@/components/ChecklistManagement";
+import { TeamManagementSettings } from "@/components/ChecklistManagement";
 
 interface LabelGroup {
   title: string;
@@ -501,7 +501,7 @@ export const SettingsPanel = ({ activeSubTab }: SettingsPanelProps) => {
 
         {/* Teams Tab */}
         <TabsContent value="teams">
-          <ChecklistManagement />
+          <TeamManagementSettings />
         </TabsContent>
 
         {/* Email Tab */}
