@@ -305,13 +305,14 @@ const SetDetail = ({
   const [addingItem, setAddingItem] = useState(false);
 
   const [localTemplates, setLocalTemplates] = useState(templates);
-  // Sync from parent when templates change (e.g. after add/delete/DB refresh)
-  // but skip if we just reordered locally to avoid snap-back
-  const prevTemplateIds = useRef(templates.map((t) => t.id).join(","));
+  // Sync from parent when the SET of IDs changes (add/delete), but not when
+  // only sort_order values update — otherwise a reorder triggers snap-back
+  // because onUpdateTemplate mutates `templates` in place (old order, new sort_order).
+  const prevTemplateIdSet = useRef([...templates.map((t) => t.id)].sort().join(","));
   useEffect(() => {
-    const ids = templates.map((t) => t.id).join(",");
-    if (ids !== prevTemplateIds.current) {
-      prevTemplateIds.current = ids;
+    const ids = [...templates.map((t) => t.id)].sort().join(",");
+    if (ids !== prevTemplateIdSet.current) {
+      prevTemplateIdSet.current = ids;
       setLocalTemplates(templates);
     }
   }, [templates]);
@@ -328,7 +329,7 @@ const SetDetail = ({
       const reordered = arrayMove(localTemplates, oldIndex, newIndex);
       // Update UI immediately
       setLocalTemplates(reordered);
-      prevTemplateIds.current = reordered.map((t) => t.id).join(",");
+      prevTemplateIdSet.current = [...reordered.map((t) => t.id)].sort().join(",");
       // Persist new sort_orders
       await Promise.all(
         reordered.map((t, i) =>
