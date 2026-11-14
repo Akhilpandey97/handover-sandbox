@@ -931,7 +931,7 @@ async function handler(req: Request): Promise<Response> {
           )
           .eq("project_id", projectId)
           .eq("is_task", false)
-          .neq("is_client_visible", false)
+          .or("is_client_visible.is.null,is_client_visible.eq.true")
           .order("sort_order", { ascending: true }),
         project.assigned_owner
           ? supabase
