@@ -1680,6 +1680,11 @@ function TaskActionItem({
           {task.description && (
             <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
           )}
+          {task.assigned_to_ext && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Owner: <span className="font-medium text-foreground">{task.assigned_to_ext}</span>
+            </p>
+          )}
           {/* Existing comments */}
           {comments.length > 0 && (
             <div className="mt-2 space-y-1.5">
