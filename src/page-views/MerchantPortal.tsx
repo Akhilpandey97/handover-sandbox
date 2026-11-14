@@ -2085,7 +2085,7 @@ function IntegrationPage({
       <div>
         <Card className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="heading-card text-foreground">Notes & Updates</h3>
+            <h3 className="heading-card text-foreground">Message, Notes & Updates</h3>
             <button
               onClick={onSaveNote}
               disabled={!noteText.trim()}
