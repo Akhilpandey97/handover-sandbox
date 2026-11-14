@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { CheckCircle2, FolderKanban, ShieldAlert, Ban, GripVertical } from "lucide-react";
-import { formatIndianRupees, sumArrCrore } from "@/lib/arr";
+import { formatCrRupee, sumArrCrore } from "@/lib/arr";
 import type { Project } from "@/data/projectsData";
 import type { RiskVerdict } from "@/data/riskRules";
 
@@ -164,11 +164,11 @@ export const RevenueArrDashlet = ({ projects, riskVerdicts, onDrillDown }: Props
                   className="text-left"
                 >
                   <p className="text-lg font-semibold tabular-nums leading-tight text-foreground">
-                    {formatIndianRupees(tile.arr)}
+                    {formatCrRupee(tile.arr)}
                   </p>
                 </button>
                 <p className="mt-0.5 text-2xs text-muted-foreground">
-                  MRR {formatIndianRupees(mrr)} · {tile.count} project{tile.count !== 1 ? "s" : ""}
+                  MRR {formatCrRupee(mrr)} · {tile.count} project{tile.count !== 1 ? "s" : ""}
                 </p>
                 <p className="mt-1 text-2xs text-muted-foreground/60 italic">{tile.sublabel}</p>
               </div>

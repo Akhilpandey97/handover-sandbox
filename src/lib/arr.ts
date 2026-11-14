@@ -51,6 +51,13 @@ export const formatCr = (crores: number | null | undefined): string => {
   return formatIndian(n);
 };
 
+/** Same as formatCr but prefixed with ₹ — e.g. "₹1.5 Cr", "₹50 L". */
+export const formatCrRupee = (crores: number | null | undefined): string => {
+  const n = Number(crores ?? 0);
+  if (!Number.isFinite(n)) return "₹0";
+  return `₹${formatIndian(n)}`;
+};
+
 /**
  * Format a crore value as full Indian rupees with ₹ symbol and Indian comma grouping.
  * e.g. 1.5 Cr → ₹1,50,00,000
