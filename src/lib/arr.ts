@@ -50,3 +50,18 @@ export const formatCr = (crores: number | null | undefined): string => {
   if (!Number.isFinite(n)) return "0";
   return formatIndian(n);
 };
+
+/**
+ * Format a crore value as full Indian rupees with ₹ symbol and Indian comma grouping.
+ * e.g. 1.5 Cr → ₹1,50,00,000
+ */
+export const formatIndianRupees = (crores: number | null | undefined): string => {
+  const n = Number(crores ?? 0);
+  if (!Number.isFinite(n)) return "₹0";
+  const rupees = Math.round(n * 1e7);
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(rupees);
+};
