@@ -74,6 +74,7 @@ import {
   Calendar,
   ListTodo,
   Tag,
+  Globe,
 } from "lucide-react";
 import { format, parseISO, isValid, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -374,6 +375,7 @@ function TaskRow({
               <Badge variant="outline" className="text-2xs px-1.5 py-0 font-normal">{TASK_STATUS_LABEL[task.status]}</Badge>
               {task.due_date && <span className="flex items-center gap-1 text-2xs text-muted-foreground"><CalendarDays className="h-3 w-3" />{fmtDate(task.due_date)}</span>}
               {task.estimated_hours && <span className="flex items-center gap-1 text-2xs text-muted-foreground"><Timer className="h-3 w-3" />{task.estimated_hours}h</span>}
+              {task.is_client_visible && <span title="Visible to customer in portal"><Globe className="h-3 w-3 text-primary" /></span>}
             </div>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
@@ -649,10 +651,11 @@ function ItemDetailDialog({
                 <div className="h-0.5 bg-border/30">
                   <div className="h-full bg-primary transition-all" style={{ width: `${pct}%` }} />
                 </div>
-                <div className="grid grid-cols-[1fr_5rem_5rem_4rem] gap-x-2 px-3 py-1.5 text-2xs font-medium text-muted-foreground border-b border-border/30 bg-muted/20">
+                <div className="grid grid-cols-[1fr_5rem_5rem_2rem_4rem] gap-x-2 px-3 py-1.5 text-2xs font-medium text-muted-foreground border-b border-border/30 bg-muted/20">
                   <span>Task</span>
                   <span>Owner</span>
                   <span>Due date</span>
+                  <span className="text-center" title="Customer visible in portal"><Globe className="h-3 w-3 mx-auto" /></span>
                   <span />
                 </div>
                 <div className="flex-1 overflow-y-auto max-h-[160px] divide-y divide-border/20">
@@ -661,7 +664,7 @@ function ItemDetailDialog({
                     return (
                     <div
                       key={task.id}
-                      className="group grid grid-cols-[1fr_5rem_5rem_4rem] gap-x-2 items-center px-3 py-2 hover:bg-muted/30"
+                      className="group grid grid-cols-[1fr_5rem_5rem_2rem_4rem] gap-x-2 items-center px-3 py-2 hover:bg-muted/30"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <button
@@ -690,6 +693,11 @@ function ItemDetailDialog({
                       </div>
                       <span className="text-2xs text-muted-foreground whitespace-nowrap">
                         {task.due_date ? shortDate(task.due_date) : "—"}
+                      </span>
+                      <span className="flex justify-center" title={task.is_client_visible ? "Visible to customer in portal" : "Not shown in portal"}>
+                        {task.is_client_visible
+                          ? <Globe className="h-3 w-3 text-primary" />
+                          : <span className="text-2xs text-muted-foreground/40">—</span>}
                       </span>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
