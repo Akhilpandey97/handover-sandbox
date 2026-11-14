@@ -113,7 +113,7 @@ type ItemStatus = "completed" | "overdue" | "in_progress" | "upcoming" | "todo";
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; className: string }> = {
   completed: { label: "Completed", className: "bg-success/15 text-success-strong" },
-  overdue: { label: "Overdue", className: "bg-destructive/10 text-destructive" },
+  overdue: { label: "Overdue", className: "bg-destructive/15 text-destructive font-medium" },
   in_progress: { label: "In Progress", className: "bg-info/10 text-info-strong" },
   upcoming: { label: "Upcoming", className: "bg-muted text-muted-foreground" },
   todo: { label: "To do", className: "bg-muted text-muted-foreground" },
@@ -1754,7 +1754,7 @@ export const ChecklistDialog = ({
                     {/* Expanded detail row */}
                     {isExpanded && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-3 border-b border-border/30 bg-muted/5">
+                        <td colSpan={7} className="px-4 py-3 border-b border-border/30 bg-muted/5">
                           <div className="space-y-3">
                             {/* Metadata bar: Waiting on | Timeline | Time tracking */}
                             <div className="flex items-center gap-0 rounded-lg border border-border/40 bg-background divide-x divide-border/40 overflow-hidden">
