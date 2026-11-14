@@ -984,10 +984,10 @@ async function handler(req: Request): Promise<Response> {
     }));
 
     // Show every checklist item (non-task) for the project
-    const stageOrder: Record<string, number> = { mint: 0, integration: 1, ms: 2, completed: 3 };
+    const teamOrder: Record<string, number> = { mint: 0, integration: 1, ms: 2, completed: 3 };
     const checklist = [...(checklistRes.data ?? [])].sort((a: any, b: any) => {
-      const pa = stageOrder[a.stage] ?? 99;
-      const pb = stageOrder[b.stage] ?? 99;
+      const pa = teamOrder[a.owner_team] ?? 99;
+      const pb = teamOrder[b.owner_team] ?? 99;
       if (pa !== pb) return pa - pb;
       return (a.sort_order ?? 0) - (b.sort_order ?? 0);
     });
