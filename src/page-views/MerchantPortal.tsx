@@ -1662,15 +1662,19 @@ function TaskActionItem({
   };
 
   const hasActivity = comments.length > 0 || showComment;
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <>
-      <tr>
+      <tr
+        className="cursor-pointer"
+        onClick={() => hasActivity && setExpanded((v) => !v)}
+      >
         {/* Task title */}
         <td className="py-2.5 pr-4 align-top">
           <div className="flex items-start gap-2.5 min-w-0">
             <button
-              onClick={onToggle}
+              onClick={(e) => { e.stopPropagation(); onToggle(); }}
               className="flex-shrink-0 mt-0.5 transition-opacity hover:opacity-70 focus:outline-none"
               aria-label={isDone ? "Mark as not done" : "Mark as done"}
             >
@@ -1685,7 +1689,7 @@ function TaskActionItem({
               </p>
               {!hasActivity && (
                 <button
-                  onClick={() => setShowComment(true)}
+                  onClick={(e) => { e.stopPropagation(); setShowComment(true); }}
                   className="mt-1 text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
                   + Add comment
@@ -1715,10 +1719,10 @@ function TaskActionItem({
         </td>
       </tr>
 
-      {/* Comments + input — full-width row */}
-      {hasActivity && (
+      {/* Comments + input — full-width row, collapsible */}
+      {hasActivity && expanded && (
         <tr>
-          <td colSpan={4} className="pb-3 pt-0 pl-7">
+          <td colSpan={4} className="pb-3 pt-2 pl-7">
             <div className="space-y-1.5">
               {comments.map((c) => {
                 const isCustomer = !c.user_id;
@@ -1732,7 +1736,7 @@ function TaskActionItem({
                 );
               })}
               {showComment ? (
-                <div className="flex gap-2 items-center mt-1">
+                <div className="flex gap-2 items-center mt-1" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="text"
                     className="flex-1 text-xs border border-border rounded-md px-2.5 py-1.5 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
@@ -1758,7 +1762,7 @@ function TaskActionItem({
                 </div>
               ) : (
                 <button
-                  onClick={() => setShowComment(true)}
+                  onClick={(e) => { e.stopPropagation(); setShowComment(true); }}
                   className="text-xs text-muted-foreground hover:text-primary transition-colors"
                 >
                   + Add comment
