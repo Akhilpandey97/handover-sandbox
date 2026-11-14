@@ -1662,7 +1662,7 @@ function TaskActionItem({
 
   return (
     <tr>
-      {/* Task title + description + comments */}
+      {/* Task title + comments */}
       <td className="py-2.5 pr-4 align-top">
         <div className="flex items-start gap-2.5 min-w-0">
           <button
@@ -1679,9 +1679,6 @@ function TaskActionItem({
             <p className={cn("text-sm font-medium", isDone && "text-muted-foreground line-through")}>
               {task.title}
             </p>
-            {task.description && (
-              <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
-            )}
             {/* Existing comments */}
             {comments.length > 0 && (
               <div className="mt-2 space-y-1.5">
@@ -1735,8 +1732,12 @@ function TaskActionItem({
           </div>
         </div>
       </td>
+      {/* Description */}
+      <td className="py-2.5 pl-4 pr-4 align-top text-xs text-muted-foreground">
+        {task.description || <span className="text-muted-foreground/40">—</span>}
+      </td>
       {/* Owner */}
-      <td className="py-2.5 pr-4 align-top text-xs text-foreground font-medium whitespace-nowrap">
+      <td className="py-2.5 pl-4 pr-4 align-top text-xs text-foreground font-medium whitespace-nowrap">
         {task.assigned_to_ext || <span className="text-muted-foreground">—</span>}
       </td>
       {/* Due date */}
@@ -2036,6 +2037,7 @@ function IntegrationPage({
           <div className="max-h-[400px] overflow-y-auto">
             <table className="w-full text-sm table-fixed">
               <colgroup>
+                <col style={{ width: "30%" }} />
                 <col className="w-auto" />
                 <col style={{ width: "8rem" }} />
                 <col style={{ width: "7.5rem" }} />
@@ -2043,7 +2045,8 @@ function IntegrationPage({
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5">Task</th>
-                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5">Owner</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5 pl-4">Description</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5 pl-4">Owner</th>
                   <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Due Date</th>
                 </tr>
               </thead>
