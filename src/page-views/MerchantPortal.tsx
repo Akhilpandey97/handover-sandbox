@@ -1999,8 +1999,8 @@ function IntegrationPage({
                 const resp = item.current_responsibility;
                 const waitingLabel = resp === "merchant" ? "Customer" : resp === "gokwik" ? "Callify" : "—";
                 return (
-                  <tr key={`${item.title}-${i}`} className="border-b border-border last:border-0">
-                    <td className="py-3 pr-4">
+                  <tr key={`${item.title}-${i}`} className="border-b border-border last:border-0 h-14">
+                    <td className="pr-4 align-middle">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <CheckCircle2
                           className="w-4 h-4 flex-shrink-0"
@@ -2016,7 +2016,7 @@ function IntegrationPage({
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 pl-4 text-xs whitespace-nowrap">
+                    <td className="pl-4 text-xs whitespace-nowrap align-middle">
                       {resp === "merchant" ? (
                         <span className="font-medium text-amber-600">{waitingLabel}</span>
                       ) : resp === "gokwik" ? (
@@ -2025,10 +2025,10 @@ function IntegrationPage({
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="py-3 pl-6 text-right whitespace-nowrap text-xs text-muted-foreground">
+                    <td className="pl-6 text-right whitespace-nowrap text-xs text-muted-foreground align-middle">
                       {item.start_date ? formatDate(item.start_date) : "—"}
                     </td>
-                    <td className={cn("py-3 pl-6 text-right whitespace-nowrap text-xs font-semibold", overdue ? "text-destructive" : "text-muted-foreground")}>
+                    <td className={cn("pl-6 text-right whitespace-nowrap text-xs font-semibold align-middle", overdue ? "text-destructive" : "text-muted-foreground")}>
                       {item.due_date ? formatDate(item.due_date) : "—"}
                       {overdue && <span className="ml-1 font-normal text-2xs">(overdue)</span>}
                     </td>
