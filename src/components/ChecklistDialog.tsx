@@ -1246,6 +1246,15 @@ export const ChecklistDialog = ({
                                       Add task
                                     </Button>
                                   </div>
+                                  {/* Column headers */}
+                                  <div className="mb-0.5 flex items-center gap-2 px-2 text-2xs font-medium text-muted-foreground/60 uppercase tracking-wide">
+                                    <span className="h-4 w-4 shrink-0" />
+                                    <span className="flex-1">Task</span>
+                                    <span className="w-20 shrink-0">Owner</span>
+                                    <span className="w-20 shrink-0">Due</span>
+                                    <span className="w-14 shrink-0 text-center">Portal</span>
+                                    <span className="w-5 shrink-0" />
+                                  </div>
                                   <div className="space-y-1">
                                     {itemTasks.map((task) => {
                                       const od =
@@ -1282,25 +1291,26 @@ export const ChecklistDialog = ({
                                             >
                                               {task.title}
                                             </span>
-                                            {task.is_client_visible && (
-                                              <span title="Visible to customer in portal">
-                                                <Globe className="h-3 w-3 shrink-0 text-primary" />
-                                              </span>
-                                            )}
-                                            {task.assigned_to && (
-                                              <span className="shrink-0 text-2xs text-muted-foreground">
-                                                {profiles.find((p) => p.id === task.assigned_to)
-                                                  ?.name || task.assigned_to}
-                                              </span>
-                                            )}
-                                            {task.due_date && (
-                                              <span
-                                                className={`flex shrink-0 items-center gap-0.5 text-2xs ${od ? "font-medium text-destructive" : "text-muted-foreground"}`}
-                                              >
-                                                <Calendar className="h-2.5 w-2.5" />
-                                                {shortDate(task.due_date)}
-                                              </span>
-                                            )}
+                                            {/* Owner */}
+                                            <span className="w-20 shrink-0 truncate text-2xs text-muted-foreground">
+                                              {task.assigned_to
+                                                ? profiles.find((p) => p.id === task.assigned_to)?.name || task.assigned_to
+                                                : <span className="text-muted-foreground/40">—</span>}
+                                            </span>
+                                            {/* Due date */}
+                                            <span className={`w-20 shrink-0 flex items-center gap-0.5 text-2xs ${od ? "font-medium text-destructive" : "text-muted-foreground"}`}>
+                                              {task.due_date ? (
+                                                <><Calendar className="h-2.5 w-2.5" />{shortDate(task.due_date)}</>
+                                              ) : (
+                                                <span className="text-muted-foreground/40">—</span>
+                                              )}
+                                            </span>
+                                            {/* Portal visibility */}
+                                            <span className="w-14 shrink-0 flex justify-center" title={task.is_client_visible ? "Visible to customer in portal" : "Not shown in portal"}>
+                                              {task.is_client_visible
+                                                ? <Globe className="h-3 w-3 text-primary" />
+                                                : <span className="text-2xs text-muted-foreground/40">—</span>}
+                                            </span>
                                             <Button
                                               variant="ghost"
                                               size="sm"
