@@ -128,6 +128,7 @@ interface PortalData {
     owner_team: string;
     due_date: string | null;
     start_date: string | null;
+    current_responsibility: string | null;
   }[];
   custom_fields: { key: string; label: string; type: string; value: string | null }[];
   recent_activity: {
@@ -1977,25 +1978,29 @@ function IntegrationPage({
         <table className="w-full text-sm table-fixed">
           <colgroup>
             <col className="w-auto" />
+            <col style={{ width: "7rem" }} />
             <col style={{ width: "7.5rem" }} />
             <col style={{ width: "7.5rem" }} />
           </colgroup>
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5">Task</th>
-              <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Start Date</th>
-              <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Due Date</th>
+              <th className="text-left text-xs font-semibold text-muted-foreground pb-3">Task</th>
+              <th className="text-left text-xs font-semibold text-muted-foreground pb-3 pl-4 whitespace-nowrap">Waiting on</th>
+              <th className="text-right text-xs font-semibold text-muted-foreground pb-3 whitespace-nowrap">Start Date</th>
+              <th className="text-right text-xs font-semibold text-muted-foreground pb-3 whitespace-nowrap">Due Date</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody>
             {data.checklist
               .filter((item) => item.title.toLowerCase().includes(searchQuery.trim().toLowerCase()))
               .map((item, i) => {
                 const overdue =
                   !item.completed && item.due_date ? new Date(item.due_date) < new Date() : false;
+                const resp = item.current_responsibility;
+                const waitingLabel = resp === "merchant" ? "Customer" : resp === "gokwik" ? "Callify" : "—";
                 return (
-                  <tr key={`${item.title}-${i}`}>
-                    <td className="py-2.5 pr-4">
+                  <tr key={`${item.title}-${i}`} className="border-b border-border last:border-0">
+                    <td className="py-3 pr-4">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <CheckCircle2
                           className="w-4 h-4 flex-shrink-0"
@@ -2011,10 +2016,19 @@ function IntegrationPage({
                         </span>
                       </div>
                     </td>
-                    <td className="py-2.5 text-right whitespace-nowrap text-xs text-muted-foreground">
+                    <td className="py-3 pl-4 text-xs whitespace-nowrap">
+                      {resp === "merchant" ? (
+                        <span className="font-medium text-amber-600">{waitingLabel}</span>
+                      ) : resp === "gokwik" ? (
+                        <span className="font-medium text-primary">{waitingLabel}</span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="py-3 text-right whitespace-nowrap text-xs text-muted-foreground">
                       {item.start_date ? formatDate(item.start_date) : "—"}
                     </td>
-                    <td className={cn("py-2.5 text-right whitespace-nowrap text-xs font-semibold", overdue ? "text-destructive" : "text-muted-foreground")}>
+                    <td className={cn("py-3 text-right whitespace-nowrap text-xs font-semibold", overdue ? "text-destructive" : "text-muted-foreground")}>
                       {item.due_date ? formatDate(item.due_date) : "—"}
                       {overdue && <span className="ml-1 font-normal text-2xs">(overdue)</span>}
                     </td>
@@ -2023,7 +2037,7 @@ function IntegrationPage({
               })}
             {data.checklist.length === 0 && (
               <tr>
-                <td colSpan={3} className="py-4 text-sm text-muted-foreground">No checklist items yet.</td>
+                <td colSpan={4} className="py-4 text-sm text-muted-foreground">No checklist items yet.</td>
               </tr>
             )}
           </tbody>

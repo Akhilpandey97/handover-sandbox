@@ -927,7 +927,7 @@ async function handler(req: Request): Promise<Response> {
         supabase
           .from("checklist_items")
           .select(
-            "id, title, completed, completed_at, stage, owner_team, sort_order, due_date, start_date, is_task",
+            "id, title, completed, completed_at, stage, owner_team, sort_order, due_date, start_date, is_task, current_responsibility",
           )
           .eq("project_id", projectId)
           .eq("is_task", false)
@@ -1160,6 +1160,7 @@ async function handler(req: Request): Promise<Response> {
         owner_team: c.owner_team,
         due_date: c.due_date,
         start_date: c.start_date,
+        current_responsibility: c.current_responsibility,
       })),
       custom_fields: customFields,
       recent_activity: (activityLogs ?? []).map((a: any) => ({
