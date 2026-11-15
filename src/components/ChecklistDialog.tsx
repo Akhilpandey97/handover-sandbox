@@ -402,7 +402,7 @@ function SortableTr({
   return (
     <tr
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1, ...style }}
+      style={{ transform: CSS.Transform.toString(transform), transition, ...(isDragging ? { opacity: 0.4 } : {}), ...style }}
       className={className}
       onClick={onClick}
       {...rest}
