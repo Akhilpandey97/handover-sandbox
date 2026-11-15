@@ -139,6 +139,7 @@ import {
   Wrench,
   Eye,
   CalendarRange,
+  Globe,
   type LucideIcon,
 } from "lucide-react";
 import { exportProjectsToCSV } from "@/utils/exportProjects";
@@ -1281,6 +1282,11 @@ export const ManagerDashboard = () => {
       icon: LayoutDashboard,
       description: "Which items the sidebar shows.",
     },
+    "customer-portal": {
+      label: "Customer Portal",
+      icon: Globe,
+      description: "Which tabs are visible in the merchant-facing portal.",
+    },
   };
 
   const REPORTS_SUB_CONFIG: Record<
@@ -1370,6 +1376,27 @@ export const ManagerDashboard = () => {
     const current = getNavVisibility();
     current[navKey] = enabled;
     await updateLabels({ nav_visibility: JSON.stringify(current) });
+  };
+
+  const PORTAL_TAB_ITEMS: { key: string; label: string }[] = [
+    { key: "credentials", label: "Credentials" },
+    { key: "my-actions", label: "My Actions" },
+    { key: "faq", label: "FAQ & Help" },
+  ];
+
+  const getPortalTabVisibility = (): Record<string, boolean> => {
+    try {
+      const saved = appLabels.portal_tab_visibility;
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return Object.fromEntries(PORTAL_TAB_ITEMS.map((t) => [t.key, true]));
+  };
+  const portalTabVisibility = getPortalTabVisibility();
+
+  const handlePortalTabToggle = async (tabKey: string, enabled: boolean) => {
+    const current = getPortalTabVisibility();
+    current[tabKey] = enabled;
+    await updateLabels({ portal_tab_visibility: JSON.stringify(current) });
   };
 
   const fetchProjectAiInsight = async () => {
@@ -3607,7 +3634,7 @@ export const ManagerDashboard = () => {
                       navigate({ to: pathForTab("settings", { settingsSubTab: key }) })
                     }
                     groups={[
-                      { label: "Workspace", keys: ["general", "navigation", "users"] },
+                      { label: "Workspace", keys: ["general", "navigation", "customer-portal", "users"] },
                       {
                         label: "Data model",
                         keys: [
@@ -3748,6 +3775,38 @@ export const ManagerDashboard = () => {
                           })}
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                ) : settingsSubTab === "customer-portal" ? (
+                  <Card className="flex min-h-0 flex-1 flex-col overflow-hidden shadow-sm border-border">
+                    <CardHeader className="border-b bg-muted/30">
+                      <CardTitle className="portal-heading flex items-center gap-2">
+                        <Globe className="h-5 w-5 text-primary" />
+                        Customer Portal Tabs
+                      </CardTitle>
+                      <CardDescription>
+                        Enable or disable tabs in the merchant-facing portal. "My Integration" is always visible.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/40">
+                          <span className="text-sm font-medium">My Integration</span>
+                          <Badge variant="outline" className="text-2xs px-1.5 py-0">Always Visible</Badge>
+                        </div>
+                        {PORTAL_TAB_ITEMS.map(({ key, label }) => (
+                          <div key={key} className="flex items-center justify-between p-3 border rounded-lg">
+                            <span className="text-sm font-medium">{label}</span>
+                            <Checkbox
+                              checked={portalTabVisibility[key] !== false}
+                              onCheckedChange={(checked) => handlePortalTabToggle(key, !!checked)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-4 text-xs text-muted-foreground">
+                        BRD Form and Payment Simulator appear automatically when configured for a project.
+                      </p>
                     </CardContent>
                   </Card>
                 ) : (

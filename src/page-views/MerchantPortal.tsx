@@ -220,7 +220,7 @@ function deriveCurrentStage(data: PortalData): number {
 }
 
 type NavPage =
-  "integration" | "credentials" | "documents" | "faq" | "simulator" | "brd";
+  "integration" | "credentials" | "my-actions" | "faq" | "simulator" | "brd";
 
 // ========== COPY BUTTON ==========
 function CopyButton({ text }: { text: string }) {
@@ -1076,7 +1076,7 @@ export default function MerchantPortal() {
   // Only customer-assigned tasks count as "pending actions" for the customer
   const pendingItems = (data.tasks || []).filter((t) => t.status !== "done");
 
-  const navItems: { key: NavPage; label: string; icon: any; tour: string }[] = [
+  const navItems = ([
     {
       key: "integration",
       label: "My Integration",
@@ -1084,7 +1084,7 @@ export default function MerchantPortal() {
       tour: "tour-integration",
     },
     { key: "credentials", label: "Credentials", icon: Lock, tour: "tour-credentials" },
-    { key: "documents", label: "Documents", icon: FileText, tour: "tour-documents" },
+    { key: "my-actions", label: "My Actions", icon: ListTodo, tour: "tour-my-actions" },
     // Offered only when this tenant has a BRD form. It used to be listed
     // unconditionally, so merchants saw a form nobody had set up for them.
     ...(data.brd_configured
@@ -1108,7 +1108,17 @@ export default function MerchantPortal() {
           },
         ]
       : []),
-  ];
+  ] as { key: NavPage; label: string; icon: any; tour: string }[]).filter((item) => {
+    if (item.key === "integration") return true;
+    try {
+      const saved = data?.labels?.portal_tab_visibility;
+      if (saved) {
+        const vis = JSON.parse(saved) as Record<string, boolean>;
+        return vis[item.key] !== false;
+      }
+    } catch {}
+    return true;
+  }) as { key: NavPage; label: string; icon: any; tour: string }[];
 
   return (
     <div className="flex h-screen overflow-hidden bg-[hsl(var(--surface-2))] text-foreground">
@@ -1368,17 +1378,7 @@ export default function MerchantPortal() {
               owner={owner}
               checklist_progress={checklist_progress}
               currentStage={currentStage}
-              noteText={noteText}
-              setNoteText={setNoteText}
               orgName={orgName}
-              savedNotes={savedNotes}
-              onSaveNote={saveNote}
-              onEditNote={editNote}
-              onDeleteNote={deleteNote}
-              taskStatuses={taskStatuses}
-              taskComments={taskComments}
-              onToggleTask={toggleTask}
-              onSubmitTaskComment={submitTaskComment}
               brdProgress={data.brd_progress}
               searchQuery={searchQuery}
               onOpenBrd={() => setActivePage("brd")}
@@ -1387,8 +1387,22 @@ export default function MerchantPortal() {
           {activePage === "credentials" && (
             <CredentialsPage project={project} credentials={data.credentials} labels={data.labels ?? {}} />
           )}
-          {activePage === "documents" && (
-            <DocumentsPage data={data} setActivePage={setActivePage} token={token!} onUploaded={refreshData} />
+          {activePage === "my-actions" && (
+            <MyActionsPage
+              data={data}
+              token={token!}
+              onUploaded={refreshData}
+              noteText={noteText}
+              setNoteText={setNoteText}
+              savedNotes={savedNotes}
+              onSaveNote={saveNote}
+              onEditNote={editNote}
+              onDeleteNote={deleteNote}
+              taskStatuses={taskStatuses}
+              taskComments={taskComments}
+              onToggleTask={toggleTask}
+              onSubmitTaskComment={submitTaskComment}
+            />
           )}
           {activePage === "brd" && <BrdPage token={token!} onProgress={refreshData} />}
 
@@ -1782,17 +1796,7 @@ function IntegrationPage({
   owner,
   checklist_progress,
   currentStage,
-  noteText,
-  setNoteText,
   orgName,
-  savedNotes,
-  onSaveNote,
-  onEditNote,
-  onDeleteNote,
-  taskStatuses,
-  taskComments,
-  onToggleTask,
-  onSubmitTaskComment,
   brdProgress,
   onOpenBrd,
   searchQuery = "",
@@ -1803,17 +1807,7 @@ function IntegrationPage({
   owner: PortalData["owner"];
   checklist_progress: PortalData["checklist_progress"];
   currentStage: number;
-  noteText: string;
-  setNoteText: (v: string) => void;
   orgName: string;
-  savedNotes: MerchantNote[];
-  onSaveNote: () => void;
-  onEditNote: (idx: number, text: string) => void;
-  onDeleteNote: (idx: number) => void;
-  taskStatuses: Record<string, string>;
-  taskComments: PortalData["task_comments"];
-  onToggleTask: (taskId: string) => void;
-  onSubmitTaskComment: (taskId: string, comment: string) => Promise<any>;
   brdProgress?: PortalData["brd_progress"];
   onOpenBrd?: () => void;
 }) {
@@ -2063,78 +2057,6 @@ function IntegrationPage({
         </table>
       </Card>
 
-      {/* Customer-visible tasks */}
-      {data.tasks && data.tasks.length > 0 && (
-        <Card className="p-6">
-          <h2 className="heading-section text-foreground mb-4">Your Action Items</h2>
-          <div className="max-h-[400px] overflow-y-auto">
-            <table className="w-full text-sm table-fixed">
-              <colgroup>
-                <col style={{ width: "30%" }} />
-                <col className="w-auto" />
-                <col style={{ width: "8rem" }} />
-                <col style={{ width: "7.5rem" }} />
-              </colgroup>
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5">Task</th>
-                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5 pl-4">Description</th>
-                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5 pl-4">Owner</th>
-                  <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Due Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {data.tasks.map((task) => (
-                  <TaskActionItem
-                    key={task.id}
-                    task={task}
-                    status={taskStatuses[task.id] ?? task.status}
-                    comments={taskComments.filter((c) => c.checklist_task_id === task.id)}
-                    onToggle={() => onToggleTask(task.id)}
-                    onComment={(text) => onSubmitTaskComment(task.id, text)}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
-
-      {/* Notes & Updates (full width — Project Overview removed) */}
-      <div>
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="heading-card text-foreground">Message, Notes & Updates</h3>
-            <button
-              onClick={onSaveNote}
-              disabled={!noteText.trim()}
-              className="text-xs font-bold text-white px-4 py-1.5 rounded transition-colors disabled:opacity-40"
-              style={{ background: BRAND.primary }}
-            >
-              Save
-            </button>
-          </div>
-          <textarea
-            value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            placeholder="Add a note for your SE..."
-            className="w-full bg-muted/40 border border-border rounded-lg p-3 text-sm text-foreground placeholder:text-muted-foreground resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-ring/30"
-          />
-          {savedNotes.length > 0 && (
-            <div className="mt-4 space-y-2 max-h-[320px] overflow-y-auto">
-              {savedNotes.map((note, i) => (
-                <NoteRow
-                  key={i}
-                  note={note}
-                  onEdit={(text) => onEditNote(i, text)}
-                  onDelete={() => onDeleteNote(i)}
-                />
-              ))}
-            </div>
-          )}
-        </Card>
-      </div>
-
       <Card
         className="px-5 py-3 flex items-center gap-3"
         style={{ borderLeft: `3px solid ${BRAND.accent}` }}
@@ -2374,6 +2296,278 @@ function CredentialField({
           )}
           <CopyButton text={value} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===================== MY ACTIONS PAGE ===================== */
+function MyActionsPage({
+  data,
+  token,
+  onUploaded,
+  noteText,
+  setNoteText,
+  savedNotes,
+  onSaveNote,
+  onEditNote,
+  onDeleteNote,
+  taskStatuses,
+  taskComments,
+  onToggleTask,
+  onSubmitTaskComment,
+}: {
+  data: PortalData;
+  token: string;
+  onUploaded: () => void;
+  noteText: string;
+  setNoteText: (v: string) => void;
+  savedNotes: MerchantNote[];
+  onSaveNote: () => void;
+  onEditNote: (idx: number, text: string) => void;
+  onDeleteNote: (idx: number) => void;
+  taskStatuses: Record<string, string>;
+  taskComments: PortalData["task_comments"];
+  onToggleTask: (taskId: string) => void;
+  onSubmitTaskComment: (taskId: string, comment: string) => Promise<any>;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [localUploads, setLocalUploads] = useState<PortalUpload[]>([]);
+
+  const serverUploads = (data.uploads || []).filter(
+    (u) => u.upload_type === "customer_document" || u.uploaded_by === "merchant",
+  );
+  const serverIds = new Set(serverUploads.map((u) => u.id));
+  const customerUploads = [
+    ...serverUploads,
+    ...localUploads.filter((u) => !serverIds.has(u.id)),
+  ];
+
+  const handleFileUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("token", token);
+      form.append("upload_type", "customer_document");
+      const res = await fetch(`${API_URL}/upload`, { method: "POST", body: form });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || "Upload failed");
+      setLocalUploads((prev) => [
+        {
+          id: `local-${Date.now()}`,
+          upload_type: "customer_document",
+          file_name: file.name,
+          file_url: json.file_url,
+          uploaded_by: "merchant",
+          created_at: new Date().toISOString(),
+        } as PortalUpload,
+        ...prev,
+      ]);
+      onUploaded();
+    } catch (err: any) {
+      alert(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const docs: {
+    icon: React.ReactNode;
+    title: string;
+    desc: string;
+    badge: string;
+    link?: string | null;
+    onClick?: () => void;
+    badgeColor?: string;
+  }[] = [];
+
+  if (data.project.brd_link) {
+    docs.push({ icon: <FileText className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "BRD Document", desc: "Business Requirements Document", badge: "Available", link: data.project.brd_link });
+  }
+  if (data.project.sow_link) {
+    docs.push({ icon: <BookOpen className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "SOW / Merchant Playbook", desc: "Statement of Work & Integration Playbook", badge: "Available", link: data.project.sow_link });
+  }
+  if (data.project.mint_checklist_link) {
+    docs.push({ icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Onboarding Checklist", desc: "Pre-integration checklist for your onboarding", badge: "Available", link: data.project.mint_checklist_link });
+  }
+  if (data.project.integration_checklist_link) {
+    docs.push({ icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Integration Checklist", desc: "Technical checklist for your integration", badge: "Available", link: data.project.integration_checklist_link });
+  }
+  if (data.project.jira_link) {
+    docs.push({ icon: <ExternalLink className="w-5 h-5" style={{ color: BRAND.primary }} />, title: "Project Tracker", desc: "Live ticket board for this integration", badge: "Available", link: data.project.jira_link });
+  }
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
+      <div>
+        <h1 className="heading-page text-foreground">My Actions</h1>
+        <p className="text-sm text-muted-foreground">Your tasks, messages, and documents in one place.</p>
+      </div>
+
+      {/* Your Action Items */}
+      {data.tasks && data.tasks.length > 0 && (
+        <Card className="p-6">
+          <h2 className="heading-section text-foreground mb-4">Your Action Items</h2>
+          <div className="max-h-[400px] overflow-y-auto">
+            <table className="w-full text-sm table-fixed">
+              <colgroup>
+                <col style={{ width: "30%" }} />
+                <col className="w-auto" />
+                <col style={{ width: "8rem" }} />
+                <col style={{ width: "7.5rem" }} />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5">Task</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5 pl-4">Description</th>
+                  <th className="text-left text-xs font-semibold text-muted-foreground pb-2.5 pl-4">Owner</th>
+                  <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Due Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.tasks.map((task) => (
+                  <TaskActionItem
+                    key={task.id}
+                    task={task}
+                    status={taskStatuses[task.id] ?? task.status}
+                    comments={taskComments.filter((c) => c.checklist_task_id === task.id)}
+                    onToggle={() => onToggleTask(task.id)}
+                    onComment={(text) => onSubmitTaskComment(task.id, text)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Message, Notes & Updates */}
+      <Card className="p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="heading-card text-foreground">Message, Notes & Updates</h3>
+          <button
+            onClick={onSaveNote}
+            disabled={!noteText.trim()}
+            className="text-xs font-bold text-white px-4 py-1.5 rounded transition-colors disabled:opacity-40"
+            style={{ background: BRAND.primary }}
+          >
+            Save
+          </button>
+        </div>
+        <textarea
+          value={noteText}
+          onChange={(e) => setNoteText(e.target.value)}
+          placeholder="Add a note for your SE..."
+          className="w-full bg-muted/40 border border-border rounded-lg p-3 text-sm text-foreground placeholder:text-muted-foreground resize-y min-h-[80px] focus:outline-none focus:ring-2 focus:ring-ring/30"
+        />
+        {savedNotes.length > 0 && (
+          <div className="mt-4 space-y-2 max-h-[320px] overflow-y-auto">
+            {savedNotes.map((note, i) => (
+              <NoteRow
+                key={i}
+                note={note}
+                onEdit={(text) => onEditNote(i, text)}
+                onDelete={() => onDeleteNote(i)}
+              />
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* Documents & Resources */}
+      {docs.length > 0 && (
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">Documents & Resources</h2>
+          <div className="space-y-3">
+            {docs.map((doc, i) => {
+              const inner = (
+                <Card className="p-5 flex items-center gap-4 hover:border-primary/40 transition-colors cursor-pointer">
+                  <div className="w-10 h-10 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
+                    {doc.icon}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-foreground">{doc.title}</p>
+                    <p className="text-xs text-muted-foreground">{doc.desc}</p>
+                  </div>
+                  <span
+                    className={cn(
+                      "text-2xs font-bold px-2.5 py-1 rounded",
+                      doc.badgeColor === "blue"
+                        ? "bg-info-soft text-info-strong"
+                        : "bg-success-soft text-success-strong",
+                    )}
+                  >
+                    {doc.badge}
+                  </span>
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                </Card>
+              );
+              return (
+                <a key={i} href={doc.link || "#"} target="_blank" rel="noopener noreferrer" className="block">
+                  {inner}
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Your Documents */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Your Documents</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Upload documents you'd like to share with the team.</p>
+          </div>
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-60"
+            style={{ background: BRAND.primary }}
+          >
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {uploading ? "Uploading…" : "Upload document"}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) { handleFileUpload(f); e.target.value = ""; }
+            }}
+          />
+        </div>
+
+        {customerUploads.length > 0 ? (
+          <div className="space-y-3">
+            {customerUploads.map((u) => (
+              <Card key={u.id} className="p-4 flex items-center gap-4">
+                <div className="w-9 h-9 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{u.file_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(u.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                </div>
+                <a href={u.file_url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs font-medium text-primary hover:underline flex-shrink-0">
+                  View <ExternalLink className="w-3 h-3" />
+                </a>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="p-6 text-center">
+            <Upload className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
+          </Card>
+        )}
       </div>
     </div>
   );

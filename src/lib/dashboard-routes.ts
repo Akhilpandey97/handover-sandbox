@@ -48,6 +48,7 @@ export const SETTINGS_SUB_TABS = [
   "slack-alerts",
   "integrations",
   "navigation",
+  "customer-portal",
   "buddy",
 ] as const;
 

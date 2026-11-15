@@ -1013,6 +1013,7 @@ async function handler(req: Request): Promise<Response> {
         if (["org_name", "primary_color", "logo_url", "org_logo_url"].includes(s.key))
           branding[s.key] = s.value;
         if (s.key.startsWith("field_")) labels[s.key] = s.value;
+        if (s.key === "portal_tab_visibility") labels["portal_tab_visibility"] = s.value;
       });
     }
 
