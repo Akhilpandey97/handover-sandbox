@@ -688,7 +688,7 @@ async function handler(req: Request): Promise<Response> {
 
       // The bucket is private: keep the object path on the record and hand back
       // a short-lived signed link for the merchant's immediate download.
-      await supabase.from("merchant_portal_uploads").insert({
+      const { error: insertErr } = await supabase.from("merchant_portal_uploads").insert({
         project_id: projectId,
         tenant_id: tenantId,
         upload_type: uploadType,
@@ -696,6 +696,7 @@ async function handler(req: Request): Promise<Response> {
         file_url: storagePath,
         uploaded_by: "merchant",
       });
+      if (insertErr) return json({ error: insertErr.message }, 500);
 
       const signedUpload = await signStorageUrl("merchant-portal-files", storagePath);
       return json({ success: true, file_url: signedUpload, file_name: file.name });
