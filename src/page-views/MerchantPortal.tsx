@@ -1817,7 +1817,7 @@ function IntegrationPage({
   const portalLabel = (key: string, fallback: string) => data.labels?.[key] || fallback;
 
   return (
-    <div className="px-8 py-7 max-w-6xl mx-auto space-y-6">
+    <div className="px-8 py-7 space-y-6">
       <div>
         <div className="flex items-start justify-between">
           <div>
@@ -2185,7 +2185,7 @@ function CredentialsPage({
   const baseUrlLabel = labels[`field_${prefix}_base_url`] || "Base URL";
   const configIdLabel = labels[`field_${prefix}_config_id`] || "Config ID (Merchant Validator)";
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
+    <div className="px-8 py-7 space-y-5">
       <div>
         <h1 className="heading-page text-foreground">My Credentials</h1>
         <p className="text-sm text-muted-foreground">
@@ -2692,7 +2692,7 @@ function DocumentsPage({
 
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
+    <div className="px-8 py-7 space-y-5">
       <div>
         <h1 className="heading-page text-foreground">Documents & Resources</h1>
         <p className="text-sm text-muted-foreground">
@@ -2810,7 +2810,7 @@ function DocumentsPage({
 /* ===================== PAYMENT SIMULATOR PAGE ===================== */
 function PaymentSimulatorPage({ link }: { link: string }) {
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
+    <div className="px-8 py-7 space-y-5">
       <div>
         <h1 className="heading-page text-foreground">Payment Simulator</h1>
         <p className="text-sm text-muted-foreground">
@@ -2873,7 +2873,7 @@ function FAQPage({ faqs: managedFaqs = [] }: { faqs?: PortalFaq[] }) {
     .map((f) => ({ q: f.question, a: f.answer }));
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
+    <div className="px-8 py-7 space-y-5">
       <div>
         <h1 className="heading-page text-foreground">FAQ & Help</h1>
         <p className="text-sm text-muted-foreground">Answers shared by your project team.</p>
