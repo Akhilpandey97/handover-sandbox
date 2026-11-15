@@ -521,6 +521,7 @@ export default function MerchantPortal() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [readNotifIds, setReadNotifIds] = useState<Set<string>>(new Set());
+  const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768) setSidebarCollapsed(true);
@@ -1223,7 +1224,12 @@ export default function MerchantPortal() {
                                     <button
                                       key={task.id}
                                       type="button"
-                                      onClick={() => { setActivePage("integration"); setNotifOpen(false); }}
+                                      onClick={() => {
+                                        setReadNotifIds((prev) => new Set([...prev, task.id]));
+                                        setFocusedTaskId(task.id);
+                                        setActivePage("my-actions");
+                                        setNotifOpen(false);
+                                      }}
                                       className="flex w-full gap-2.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/60 bg-primary/5"
                                     >
                                       <span className="mt-0.5 shrink-0 text-primary"><ListTodo className="h-3.5 w-3.5" /></span>
@@ -1407,6 +1413,8 @@ export default function MerchantPortal() {
               taskComments={taskComments}
               onToggleTask={toggleTask}
               onSubmitTaskComment={submitTaskComment}
+              focusedTaskId={focusedTaskId}
+              onFocusCleared={() => setFocusedTaskId(null)}
             />
           )}
           {activePage === "brd" && <BrdPage token={token!} onProgress={refreshData} />}
@@ -2321,6 +2329,8 @@ function MyActionsPage({
   taskComments,
   onToggleTask,
   onSubmitTaskComment,
+  focusedTaskId,
+  onFocusCleared,
 }: {
   data: PortalData;
   token: string;
@@ -2335,10 +2345,27 @@ function MyActionsPage({
   taskComments: PortalData["task_comments"];
   onToggleTask: (taskId: string) => void;
   onSubmitTaskComment: (taskId: string, comment: string) => Promise<any>;
+  focusedTaskId?: string | null;
+  onFocusCleared?: () => void;
 }) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localUploads, setLocalUploads] = useState<PortalUpload[]>([]);
+  const taskRowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  useEffect(() => {
+    if (!focusedTaskId) return;
+    const el = taskRowRefs.current[focusedTaskId];
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("ring-2", "ring-primary", "ring-offset-1", "rounded");
+      const t = setTimeout(() => {
+        el.classList.remove("ring-2", "ring-primary", "ring-offset-1", "rounded");
+        onFocusCleared?.();
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [focusedTaskId]);
 
   const serverUploads = (data.uploads || []).filter(
     (u) => u.upload_type === "customer_document" || u.uploaded_by === "merchant",
@@ -2435,18 +2462,23 @@ function MyActionsPage({
                       <th className="text-right text-xs font-semibold text-muted-foreground pb-2.5 whitespace-nowrap">Due Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
-                    {data.tasks.map((task) => (
+                  {data.tasks.map((task) => (
+                    <tbody
+                      key={task.id}
+                      className="divide-y divide-border"
+                      ref={(el) => {
+                        taskRowRefs.current[task.id] = el?.querySelector("tr") ?? null;
+                      }}
+                    >
                       <TaskActionItem
-                        key={task.id}
                         task={task}
                         status={taskStatuses[task.id] ?? task.status}
                         comments={taskComments.filter((c) => c.checklist_task_id === task.id)}
                         onToggle={() => onToggleTask(task.id)}
                         onComment={(text) => onSubmitTaskComment(task.id, text)}
                       />
-                    ))}
-                  </tbody>
+                    </tbody>
+                  ))}
                 </table>
               </div>
             </Card>
