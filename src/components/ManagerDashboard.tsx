@@ -1378,10 +1378,12 @@ export const ManagerDashboard = () => {
     await updateLabels({ nav_visibility: JSON.stringify(current) });
   };
 
-  const PORTAL_TAB_ITEMS: { key: string; label: string }[] = [
+  const PORTAL_TAB_ITEMS: { key: string; label: string; note?: string }[] = [
     { key: "credentials", label: "Credentials" },
     { key: "my-actions", label: "My Actions" },
     { key: "faq", label: "FAQ & Help" },
+    { key: "brd", label: "BRD Form", note: "Only appears when BRD is configured for a project" },
+    { key: "simulator", label: "Payment Simulator", note: "Only appears when a simulator link is set on the project" },
   ];
 
   const getPortalTabVisibility = (): Record<string, boolean> => {
@@ -3794,9 +3796,12 @@ export const ManagerDashboard = () => {
                           <span className="text-sm font-medium">My Integration</span>
                           <Badge variant="outline" className="text-2xs px-1.5 py-0">Always Visible</Badge>
                         </div>
-                        {PORTAL_TAB_ITEMS.map(({ key, label }) => (
+                        {PORTAL_TAB_ITEMS.map(({ key, label, note }) => (
                           <div key={key} className="flex items-center justify-between p-3 border rounded-lg">
-                            <span className="text-sm font-medium">{label}</span>
+                            <div>
+                              <span className="text-sm font-medium">{label}</span>
+                              {note && <p className="text-xs text-muted-foreground mt-0.5">{note}</p>}
+                            </div>
                             <Checkbox
                               checked={portalTabVisibility[key] !== false}
                               onCheckedChange={(checked) => handlePortalTabToggle(key, !!checked)}
@@ -3804,9 +3809,6 @@ export const ManagerDashboard = () => {
                           </div>
                         ))}
                       </div>
-                      <p className="mt-4 text-xs text-muted-foreground">
-                        BRD Form and Payment Simulator appear automatically when configured for a project.
-                      </p>
                     </CardContent>
                   </Card>
                 ) : (
