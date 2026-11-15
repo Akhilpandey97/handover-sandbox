@@ -1753,7 +1753,7 @@ export const ChecklistDialog = ({
                         <div className="flex items-center gap-1.5">
                           <UserAvatar
                             name={assignee}
-                            avatarUrl={profiles.find((p) => p.id === project?.assignedOwner)?.avatar_url}
+                            avatarUrl={profiles.find((p) => p.name === assignee)?.avatar_url}
                             size="xs"
                           />
                           <span className="text-xs truncate max-w-24">{assignee}</span>
