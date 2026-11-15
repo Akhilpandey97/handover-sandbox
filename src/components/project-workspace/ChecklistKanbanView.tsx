@@ -445,12 +445,14 @@ function ItemDetailDialog({
   teamLabel,
   open,
   onOpenChange,
+  canEdit = true,
 }: {
   item: ProjectChecklist;
   project: Project;
   teamLabel: string;
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  canEdit?: boolean;
 }) {
   const queryClient = useQueryClient();
   const { toggleChecklistResponsibility } = useProjects();
@@ -549,7 +551,7 @@ function ItemDetailDialog({
                   type="single"
                   value={item.currentResponsibility}
                   onValueChange={handleResponsibility}
-                  disabled={item.completed}
+                  disabled={item.completed || !canEdit}
                   className="gap-0 rounded-md overflow-hidden border border-border/50"
                 >
                   <ToggleGroupItem
@@ -579,7 +581,7 @@ function ItemDetailDialog({
               <div className="flex items-center gap-2 px-3 py-2">
                 <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="text-xs text-muted-foreground whitespace-nowrap">Start</span>
-                {!item.completed ? (
+                {!item.completed && canEdit ? (
                   <Input
                     type="date"
                     defaultValue={item.startDate || ""}
@@ -590,7 +592,7 @@ function ItemDetailDialog({
                   <span className="text-xs font-medium">{item.startDate ? shortDate(item.startDate) : "—"}</span>
                 )}
                 <span className="text-xs text-muted-foreground whitespace-nowrap">→ Due</span>
-                {!item.completed ? (
+                {!item.completed && canEdit ? (
                   <Input
                     type="date"
                     defaultValue={item.dueDate || ""}
@@ -620,7 +622,7 @@ function ItemDetailDialog({
               <div className="flex items-center gap-2 px-3 py-2">
                 <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="text-xs text-muted-foreground whitespace-nowrap">Stage</span>
-                {!item.completed ? (
+                {!item.completed && canEdit ? (
                   <Input
                     type="text"
                     defaultValue={item.stage ?? ""}
@@ -670,8 +672,8 @@ function ItemDetailDialog({
                       <div className="flex items-center gap-2 min-w-0">
                         <button
                           type="button"
-                          onClick={() => updateTask.mutate({ id: task.id, status: task.status === "done" ? "open" : "done" })}
-                          className="flex-shrink-0"
+                          onClick={() => { if (canEdit) updateTask.mutate({ id: task.id, status: task.status === "done" ? "open" : "done" }); }}
+                          className={cn("flex-shrink-0", !canEdit && "cursor-default")}
                         >
                           {task.status === "done"
                             ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
@@ -700,19 +702,19 @@ function ItemDetailDialog({
                           ? <Globe className="h-3 w-3 text-primary" />
                           : <span className="text-2xs text-muted-foreground/40">—</span>}
                       </span>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className={cn("flex items-center gap-1 transition-opacity", canEdit ? "opacity-0 group-hover:opacity-100" : "opacity-40")}>
                         <button
                           type="button"
-                          onClick={() => { setEditingTask(task); setTaskDialogOpen(true); }}
-                          className="text-muted-foreground/40 hover:text-primary transition-colors"
+                          onClick={() => { if (canEdit) { setEditingTask(task); setTaskDialogOpen(true); } }}
+                          className={cn("text-muted-foreground/40 transition-colors", canEdit ? "hover:text-primary" : "cursor-not-allowed")}
                           title="Edit task"
                         >
                           <Pencil className="h-3 w-3" />
                         </button>
                         <button
                           type="button"
-                          onClick={() => deleteTask.mutate(task.id, { onError: () => toast.error("Failed to delete") })}
-                          className="text-muted-foreground/40 hover:text-destructive transition-colors"
+                          onClick={() => { if (canEdit) deleteTask.mutate(task.id, { onError: () => toast.error("Failed to delete") }); }}
+                          className={cn("text-muted-foreground/40 transition-colors", canEdit ? "hover:text-destructive" : "cursor-not-allowed")}
                           title="Delete task"
                         >
                           <Trash2 className="h-3 w-3" />
@@ -728,8 +730,8 @@ function ItemDetailDialog({
 
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30 w-full"
-                  onClick={() => setTaskDialogOpen(true)}
+                  className={cn("flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground transition-colors border-t border-border/30 w-full", canEdit ? "hover:text-foreground hover:bg-muted/30" : "cursor-not-allowed opacity-40")}
+                  onClick={() => { if (canEdit) setTaskDialogOpen(true); }}
                 >
                   <Plus className="h-3.5 w-3.5" /> Add task
                 </button>
@@ -771,11 +773,11 @@ function ItemDetailDialog({
                             <Sparkles className="h-3 w-3" />
                             {m.analysis_status === "done" ? "Re-analyse" : "Analyse"}
                           </button>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button type="button" title="Edit" onClick={() => setEditingMeeting(m)} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                          <div className={cn("flex items-center gap-1 transition-opacity", canEdit ? "opacity-0 group-hover:opacity-100" : "opacity-40")}>
+                            <button type="button" title="Edit" onClick={() => { if (canEdit) setEditingMeeting(m); }} className={cn("text-muted-foreground/40 transition-colors", canEdit ? "hover:text-primary" : "cursor-not-allowed")}>
                               <Pencil className="h-3 w-3" />
                             </button>
-                            <button type="button" title="Delete" onClick={() => deleteMeeting.mutate(m.id)} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+                            <button type="button" title="Delete" onClick={() => { if (canEdit) deleteMeeting.mutate(m.id); }} className={cn("text-muted-foreground/40 transition-colors", canEdit ? "hover:text-destructive" : "cursor-not-allowed")}>
                               <Trash2 className="h-3 w-3" />
                             </button>
                           </div>
@@ -786,8 +788,8 @@ function ItemDetailDialog({
                 </div>
                 <button
                   type="button"
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border-t border-border/30 w-full"
-                  onClick={() => setMeetingDialogOpen(true)}
+                  className={cn("flex items-center gap-1.5 px-3 py-2 text-xs text-muted-foreground transition-colors border-t border-border/30 w-full", canEdit ? "hover:text-foreground hover:bg-muted/30" : "cursor-not-allowed opacity-40")}
+                  onClick={() => { if (canEdit) setMeetingDialogOpen(true); }}
                 >
                   <Plus className="h-3.5 w-3.5" /> Schedule meeting
                 </button>
@@ -958,12 +960,14 @@ function KanbanTaskCard({
   onCycle,
   onDelete,
   onEdit,
+  canEdit = true,
 }: {
   task: ChecklistTask;
   itemId: string;
   onCycle: () => void;
   onDelete: () => void;
   onEdit: () => void;
+  canEdit?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -997,9 +1001,9 @@ function KanbanTaskCard({
         {/* Status icon stops propagation so it only cycles, doesn't expand */}
         <button
           type="button"
-          title={`${TASK_STATUS_LABEL[task.status]} — click to advance`}
-          onClick={(e) => { e.stopPropagation(); onCycle(); }}
-          className="flex-shrink-0 mt-0.5"
+          title={`${TASK_STATUS_LABEL[task.status]}${canEdit ? " — click to advance" : ""}`}
+          onClick={(e) => { e.stopPropagation(); if (canEdit) onCycle(); }}
+          className={cn("flex-shrink-0 mt-0.5", !canEdit && "cursor-default")}
         >
           {task.status === "done"
             ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
@@ -1032,16 +1036,16 @@ function KanbanTaskCard({
           <button
             type="button"
             title="Edit task"
-            onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="text-muted-foreground/30 hover:text-primary transition-colors"
+            onClick={(e) => { e.stopPropagation(); if (canEdit) onEdit(); }}
+            className={cn("text-muted-foreground/30 transition-colors", canEdit ? "hover:text-primary" : "cursor-not-allowed opacity-40")}
           >
             <Pencil className="h-3 w-3" />
           </button>
           <button
             type="button"
             title="Delete task"
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="text-muted-foreground/30 hover:text-destructive transition-colors"
+            onClick={(e) => { e.stopPropagation(); if (canEdit) onDelete(); }}
+            className={cn("text-muted-foreground/30 transition-colors", canEdit ? "hover:text-destructive" : "cursor-not-allowed opacity-40")}
           >
             <Trash2 className="h-3 w-3" />
           </button>
@@ -1097,6 +1101,7 @@ function ItemCard({
   project,
   teamLabel,
   onCycleTask,
+  canEdit = true,
 }: {
   item: ProjectChecklist;
   tasks: ChecklistTask[];
@@ -1104,6 +1109,7 @@ function ItemCard({
   project: Project;
   teamLabel: string;
   onCycleTask: (taskId: string, next: ChecklistTask["status"]) => void;
+  canEdit?: boolean;
 }) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [addTaskOpen, setAddTaskOpen] = useState(false);
@@ -1113,6 +1119,7 @@ function ItemCard({
   const deleteTask = useDeleteChecklistTask();
   const deleteMeetingCard = useDeleteChecklistMeeting();
   const { profiles } = useProfilesLookup();
+  const { updateChecklist } = useProjects();
   const doneTasks = tasks.filter((t) => t.status === "done").length;
 
   return (
@@ -1127,12 +1134,20 @@ function ItemCard({
           className="rounded-xl border border-border bg-white dark:bg-card shadow-sm px-3.5 pt-3.5 pb-3 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all min-h-[90px] flex flex-col justify-between"
         >
           <div className="flex items-start gap-2.5">
-            <div className="mt-0.5 flex-shrink-0">
+            <button
+              type="button"
+              className={cn("mt-0.5 flex-shrink-0", canEdit ? "hover:scale-110 transition-transform" : "cursor-default")}
+              title={canEdit ? (item.completed ? "Mark as open" : "Mark as completed") : undefined}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (canEdit) updateChecklist(project.id, item.id, !item.completed);
+              }}
+            >
               {item.completed
                 ? <CheckCircle2 className="h-4 w-4 text-green-500" />
                 : <Circle       className="h-4 w-4 text-muted-foreground/30" />
               }
-            </div>
+            </button>
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-semibold leading-snug line-clamp-2 ${item.completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
                 {item.title}
@@ -1168,13 +1183,14 @@ function ItemCard({
             onCycle={() => onCycleTask(t.id, TASK_STATUS_CYCLE[t.status] || "open")}
             onDelete={() => deleteTask.mutate(t.id)}
             onEdit={() => setEditingTask(t)}
+            canEdit={canEdit}
           />
         ))}
 
         <button
           type="button"
-          onClick={() => setAddTaskOpen(true)}
-          className="flex items-center gap-1 text-xs text-muted-foreground/50 hover:text-primary transition-colors px-1"
+          onClick={() => { if (canEdit) setAddTaskOpen(true); }}
+          className={cn("flex items-center gap-1 text-xs text-muted-foreground/50 transition-colors px-1", canEdit ? "hover:text-primary" : "cursor-not-allowed opacity-40")}
         >
           <Plus className="h-3.5 w-3.5" /> Add task
         </button>
@@ -1207,11 +1223,11 @@ function ItemCard({
                     Join <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button type="button" onClick={(e) => { e.stopPropagation(); setEditingMeetingCard(m); }} className="text-muted-foreground/40 hover:text-primary transition-colors">
+                <div className={cn("flex items-center gap-1 transition-opacity", canEdit ? "opacity-0 group-hover:opacity-100" : "opacity-40")}>
+                  <button type="button" onClick={(e) => { e.stopPropagation(); if (canEdit) setEditingMeetingCard(m); }} className={cn("text-muted-foreground/40 transition-colors", canEdit ? "hover:text-primary" : "cursor-not-allowed")}>
                     <Pencil className="h-3 w-3" />
                   </button>
-                  <button type="button" onClick={(e) => { e.stopPropagation(); deleteMeetingCard.mutate(m.id); }} className="text-muted-foreground/40 hover:text-destructive transition-colors">
+                  <button type="button" onClick={(e) => { e.stopPropagation(); if (canEdit) deleteMeetingCard.mutate(m.id); }} className={cn("text-muted-foreground/40 transition-colors", canEdit ? "hover:text-destructive" : "cursor-not-allowed")}>
                     <Trash2 className="h-3 w-3" />
                   </button>
                 </div>
@@ -1222,8 +1238,8 @@ function ItemCard({
 
         <button
           type="button"
-          onClick={() => setAddMeetingOpen(true)}
-          className="flex items-center gap-1 text-xs text-muted-foreground/50 hover:text-primary transition-colors px-1"
+          onClick={() => { if (canEdit) setAddMeetingOpen(true); }}
+          className={cn("flex items-center gap-1 text-xs text-muted-foreground/50 transition-colors px-1", canEdit ? "hover:text-primary" : "cursor-not-allowed opacity-40")}
         >
           <Plus className="h-3.5 w-3.5" /> Schedule meeting
         </button>
@@ -1237,6 +1253,7 @@ function ItemCard({
           teamLabel={teamLabel}
           open={detailOpen}
           onOpenChange={setDetailOpen}
+          canEdit={canEdit}
         />
       )}
 
@@ -1443,6 +1460,7 @@ export function ChecklistKanbanView({ project }: Props) {
                       project={project}
                       teamLabel={teamLabels[item.ownerTeam] || item.ownerTeam}
                       onCycleTask={(taskId, next) => updateTask.mutate({ id: taskId, status: next })}
+                      canEdit={canEdit}
                     />
                   ))}
                   {col.items.length === 0 && (
