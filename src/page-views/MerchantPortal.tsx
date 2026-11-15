@@ -1193,7 +1193,7 @@ export default function MerchantPortal() {
                             className="flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-foreground hover:bg-muted transition-colors"
                           >
                             <CheckCheck className="h-3.5 w-3.5" />
-                            Mark all done
+                            Mark all read
                           </button>
                         )}
                       </div>
