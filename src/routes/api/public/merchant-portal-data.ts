@@ -698,6 +698,18 @@ async function handler(req: Request): Promise<Response> {
       });
       if (insertErr) return json({ error: insertErr.message }, 500);
 
+      await supabase.from("activity_logs").insert({
+        tenant_id: tenantId,
+        user_name: "Customer",
+        action_type: "document_upload",
+        category: "portal",
+        description: `Customer uploaded a document: ${file.name}`,
+        entity_type: "project",
+        entity_id: projectId,
+        metadata: { file_name: file.name, upload_type: uploadType },
+        status: "success",
+      });
+
       const signedUpload = (await signStorageUrl("merchant-portal-files", storagePath)) ?? storagePath;
       return json({ success: true, file_url: signedUpload, file_name: file.name });
     } catch (err) {
