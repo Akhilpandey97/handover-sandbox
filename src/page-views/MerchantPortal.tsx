@@ -2350,7 +2350,6 @@ function MyActionsPage({
 }) {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [localUploads, setLocalUploads] = useState<PortalUpload[]>([]);
   const taskRowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
 
   useEffect(() => {
@@ -2367,15 +2366,10 @@ function MyActionsPage({
     }
   }, [focusedTaskId]);
 
-  const serverUploads = (data.uploads || []).filter(
+  // Read directly from portal data — same pattern as Documents & Resources
+  const customerUploads = (data.uploads || []).filter(
     (u) => u.upload_type === "customer_document" || u.uploaded_by === "merchant",
   );
-  const serverFileNames = new Set(serverUploads.map((u) => u.file_name));
-  // Drop optimistic entries the server has already confirmed (matched by filename)
-  const customerUploads = [
-    ...serverUploads,
-    ...localUploads.filter((u) => !serverFileNames.has(u.file_name)),
-  ];
 
   const handleFileUpload = async (file: File) => {
     setUploading(true);
@@ -2387,17 +2381,7 @@ function MyActionsPage({
       const res = await fetch(`${API_URL}/upload`, { method: "POST", body: form });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || "Upload failed");
-      setLocalUploads((prev) => [
-        {
-          id: `local-${Date.now()}`,
-          upload_type: "customer_document",
-          file_name: file.name,
-          file_url: json.file_url,
-          uploaded_by: "merchant",
-          created_at: new Date().toISOString(),
-        } as PortalUpload,
-        ...prev,
-      ]);
+      // Refresh portal data — customerUploads derives from data.uploads, so it updates automatically
       onUploaded();
     } catch (err: any) {
       alert(err.message || "Upload failed");
