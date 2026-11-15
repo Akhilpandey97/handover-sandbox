@@ -6,7 +6,7 @@ import {
   resendReplyTo,
 } from "@/lib/tenant-integrations.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
-import { portalUrl } from "@/lib/app-links.server";
+import { portalUrl, projectUrl } from "@/lib/app-links.server";
 
 import { createClient } from "@supabase/supabase-js";
 import { signStorageUrl, storageObjectPath } from "@/lib/storage-sign.server";
@@ -158,6 +158,13 @@ async function notifyTeamOfPortalAction(
       .select("id, name, email")
       .in("id", Array.from(recipients));
 
+    const link = projectUrl(tenantCreds, project.id, { tab: "activity" });
+    const viewProjectBtn = link
+      ? `<div style="margin-top:20px;text-align:center;">
+           <a href="${link}" style="display:inline-block;background:${brandColor};color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:15px;font-weight:600;">View Project →</a>
+         </div>`
+      : "";
+
     for (const p of ((profiles ?? []) as { id: string; name: string; email: string }[])) {
       if (!p.email) continue;
       const html = `
@@ -169,6 +176,7 @@ async function notifyTeamOfPortalAction(
             <p style="margin:0 0 16px;">Hi <strong>${p.name || "there"}</strong>,</p>
             <p style="margin:0 0 16px;"><strong>${opts.actorName}</strong> ${opts.title.toLowerCase().replace(`merchant `, "").replace(project.merchant_name, "").trim()} on <strong>${project.merchant_name}</strong>:</p>
             <div style="background:white;border-left:3px solid ${brandColor};padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:16px;color:#546978;font-size:14px;">${opts.body}</div>
+            ${viewProjectBtn}
           </div>
         </div>`;
       fetch("https://api.resend.com/emails", {
@@ -709,6 +717,20 @@ async function handler(req: Request): Promise<Response> {
         metadata: { file_name: file.name, upload_type: uploadType },
         status: "success",
       });
+
+      const { data: project } = await supabase
+        .from("projects")
+        .select("id, tenant_id, merchant_name, assigned_owner, created_by")
+        .eq("id", projectId)
+        .maybeSingle();
+      if (project) {
+        await notifyTeamOfPortalAction(supabase, project, {
+          type: "document_upload",
+          title: `Customer uploaded a document on ${project.merchant_name}`,
+          body: file.name,
+          actorName: "Customer",
+        });
+      }
 
       const signedUpload = (await signStorageUrl("merchant-portal-files", storagePath)) ?? storagePath;
       return json({ success: true, file_url: signedUpload, file_name: file.name });

@@ -64,11 +64,12 @@ export const NotificationCenter = () => {
     if (!n.read_at) markRead.mutate([n.id]);
     setOpen(false);
     if (!n.project_id) return;
+    const isPortalAction = n.type === "merchant_note" || n.type === "document_upload";
     navigate({
       to: "/projects/$projectId",
       params: { projectId: n.project_id },
       search: {
-        tab: "checklists",
+        tab: isPortalAction ? "activity" : "checklists",
         ...(n.checklist_item_id ? { item: n.checklist_item_id } : {}),
         ...(n.task_id ? { task: n.task_id } : {}),
         ...(n.comment_id ? { comment: n.comment_id } : {}),
