@@ -1,4 +1,5 @@
 import { useState, useMemo, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { Project, ProjectChecklist, calculateTimeByParty, formatDuration, ResponsibilityParty } from "@/data/projectsData";
 import { useUpdateChecklistItem } from "@/hooks/useUpdateChecklistItem";
@@ -1291,6 +1292,10 @@ function ItemCard({
 export function ChecklistKanbanView({ project }: Props) {
   const updateTask = useUpdateChecklistTask();
   const { stageLabels, teamLabels, responsibilityLabels } = useLabels();
+  const { currentUser } = useAuth();
+  const userTeam = (currentUser?.team || "").toLowerCase();
+  const hasFullChecklistAccess = ["manager", "admin", "super_admin", "superadmin"].includes(userTeam);
+  const canEditTeam = (ownerTeam: string) => hasFullChecklistAccess || userTeam === (ownerTeam || "").toLowerCase();
 
   const { data: allTasks = [] } = useChecklistTasks(project.id);
   const { data: allMeetings = [] } = useChecklistMeetings(project.id);
@@ -1412,8 +1417,10 @@ export function ChecklistKanbanView({ project }: Props) {
             const colDone = colTasks.filter(t => t.status === "done").length;
             const accent = col.accent;
 
+            const canEdit = canEditTeam(col.key);
+
             return (
-              <div key={col.key} className="flex flex-col flex-shrink-0" style={{ width: Math.max(320, col.items.length * 256 + 24) }}>
+              <div key={col.key} className={cn("flex flex-col flex-shrink-0", !canEdit && "opacity-50")} style={{ width: Math.max(320, col.items.length * 256 + 24) }}>
                 {/* Column header */}
                 <div className={`flex items-center gap-2 px-4 py-3 border-b ${accent.border} ${accent.headerBg} sticky top-0 z-10`}>
                   <span className={`flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full text-2xs font-bold ${accent.badge} ${accent.badgeText}`}>
