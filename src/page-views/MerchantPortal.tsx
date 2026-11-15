@@ -1435,8 +1435,15 @@ export default function MerchantPortal() {
         brandColor={BRAND.primary}
       />
 
-      {/* AI Chatbot */}
-      <AiChatWidget merchantName={project.merchant_name} token={token!} faqs={project.faq_help} />
+      {/* AI Chatbot — opt-in via portal settings */}
+      {(() => {
+        try {
+          const vis = JSON.parse(data?.labels?.portal_tab_visibility || "{}");
+          return vis.ai_chatbot === true;
+        } catch { return false; }
+      })() && (
+        <AiChatWidget merchantName={project.merchant_name} token={token!} faqs={project.faq_help} />
+      )}
     </div>
   );
 }

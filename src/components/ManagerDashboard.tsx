@@ -1378,12 +1378,13 @@ export const ManagerDashboard = () => {
     await updateLabels({ nav_visibility: JSON.stringify(current) });
   };
 
-  const PORTAL_TAB_ITEMS: { key: string; label: string; note?: string }[] = [
+  const PORTAL_TAB_ITEMS: { key: string; label: string; note?: string; defaultOff?: boolean }[] = [
     { key: "credentials", label: "Credentials" },
     { key: "my-actions", label: "My Actions" },
     { key: "faq", label: "FAQ & Help" },
     { key: "brd", label: "BRD Form", note: "Only appears when BRD is configured for a project" },
     { key: "simulator", label: "Payment Simulator", note: "Only appears when a simulator link is set on the project" },
+    { key: "ai_chatbot", label: "AI Chatbot", note: "Floating assistant in the portal — off by default", defaultOff: true },
   ];
 
   const getPortalTabVisibility = (): Record<string, boolean> => {
@@ -1391,7 +1392,7 @@ export const ManagerDashboard = () => {
       const saved = appLabels.portal_tab_visibility;
       if (saved) return JSON.parse(saved);
     } catch {}
-    return Object.fromEntries(PORTAL_TAB_ITEMS.map((t) => [t.key, true]));
+    return Object.fromEntries(PORTAL_TAB_ITEMS.map((t) => [t.key, !t.defaultOff]));
   };
   const portalTabVisibility = getPortalTabVisibility();
 
