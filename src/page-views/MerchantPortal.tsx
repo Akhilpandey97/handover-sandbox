@@ -2400,7 +2400,7 @@ function MyActionsPage({
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="px-8 py-7 space-y-6">
       <div>
         <h1 className="heading-page text-foreground">My Actions</h1>
         <p className="text-sm text-muted-foreground">Your tasks, messages, and documents in one place.</p>
