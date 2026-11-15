@@ -520,6 +520,7 @@ export default function MerchantPortal() {
   const [searchQuery, setSearchQuery] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [readNotifIds, setReadNotifIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768) setSidebarCollapsed(true);
@@ -1075,6 +1076,7 @@ export default function MerchantPortal() {
 
   // Only customer-assigned tasks count as "pending actions" for the customer
   const pendingItems = (data.tasks || []).filter((t) => t.status !== "done");
+  const unreadNotifCount = pendingItems.filter((t) => !readNotifIds.has(t.id)).length;
 
   const navItems = ([
     {
@@ -1174,9 +1176,9 @@ export default function MerchantPortal() {
                         className="relative flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                       >
                         <Bell className="h-4 w-4" />
-                        {pendingItems.length > 0 && (
+                        {unreadNotifCount > 0 && (
                           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-2xs font-bold text-destructive-foreground">
-                            {pendingItems.length > 9 ? "9+" : pendingItems.length}
+                            {unreadNotifCount > 9 ? "9+" : unreadNotifCount}
                           </span>
                         )}
                       </button>
@@ -1187,9 +1189,12 @@ export default function MerchantPortal() {
                           <p className="text-base font-semibold">Your Action Items</p>
                           <p className="text-xs text-muted-foreground">{pendingItems.length} pending</p>
                         </div>
-                        {pendingItems.length > 0 && (
+                        {unreadNotifCount > 0 && (
                           <button
-                            onClick={() => { pendingItems.forEach((t) => toggleTask(t.id)); setNotifOpen(false); }}
+                            onClick={() => {
+                              setReadNotifIds((prev) => new Set([...prev, ...pendingItems.map((t) => t.id)]));
+                              setNotifOpen(false);
+                            }}
                             className="flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium text-foreground hover:bg-muted transition-colors"
                           >
                             <CheckCheck className="h-3.5 w-3.5" />
@@ -1275,7 +1280,7 @@ export default function MerchantPortal() {
                 className="relative flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
               >
                 <Bell className="h-4 w-4" />
-                {pendingItems.length > 0 && (
+                {unreadNotifCount > 0 && (
                   <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-destructive" />
                 )}
               </button>
