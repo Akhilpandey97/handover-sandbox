@@ -1529,6 +1529,8 @@ export const ChecklistDialog = ({
               const dash = (group.completed / Math.max(group.total, 1)) * circ;
               const allDone = group.completed === group.total && group.total > 0;
 
+              const isOwnGroup = hasFullChecklistAccess || group.key === userTeam || groupBy === "stages";
+
               return (
                 <SortableGroupButton
                   key={group.key}
@@ -1537,6 +1539,7 @@ export const ChecklistDialog = ({
                   className={cn(
                     "w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors border-l-2",
                     isSelected ? "border-primary" : "border-transparent hover:bg-muted/50",
+                    !isOwnGroup && !isSelected && "opacity-50",
                   )}
                 >
                   {/* Circle progress */}
@@ -1656,6 +1659,7 @@ export const ChecklistDialog = ({
                       className={cn(
                         "group border-b border-border/30 transition-colors scroll-mt-24 cursor-pointer",
                         "hover:bg-muted/10",
+                        !canEdit && "opacity-50",
                       )}
                     >
                       {/* Row number / bulk checkbox */}
