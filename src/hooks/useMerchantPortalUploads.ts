@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface MerchantPortalUpload {
@@ -13,7 +14,9 @@ export interface MerchantPortalUpload {
 }
 
 export const useMerchantPortalUploads = (projectId?: string) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["merchant-portal-uploads", projectId],
     enabled: !!projectId,
     queryFn: async () => {
@@ -37,6 +40,31 @@ export const useMerchantPortalUploads = (projectId?: string) => {
       );
     },
   });
+
+  // Invalidate cache when a portal user inserts or deletes an upload for this project
+  useEffect(() => {
+    if (!projectId) return;
+    const channel = supabase
+      .channel(`portal-uploads-${projectId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "merchant_portal_uploads",
+          filter: `project_id=eq.${projectId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["merchant-portal-uploads", projectId] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, queryClient]);
+
+  return query;
 };
 
 export const useDeleteMerchantPortalUpload = () => {

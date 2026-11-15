@@ -2370,10 +2370,11 @@ function MyActionsPage({
   const serverUploads = (data.uploads || []).filter(
     (u) => u.upload_type === "customer_document" || u.uploaded_by === "merchant",
   );
-  const serverIds = new Set(serverUploads.map((u) => u.id));
+  const serverFileNames = new Set(serverUploads.map((u) => u.file_name));
+  // Drop optimistic entries the server has already confirmed (matched by filename)
   const customerUploads = [
     ...serverUploads,
-    ...localUploads.filter((u) => !serverIds.has(u.id)),
+    ...localUploads.filter((u) => !serverFileNames.has(u.file_name)),
   ];
 
   const handleFileUpload = async (file: File) => {
