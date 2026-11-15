@@ -698,7 +698,7 @@ async function handler(req: Request): Promise<Response> {
       });
       if (insertErr) return json({ error: insertErr.message }, 500);
 
-      const signedUpload = await signStorageUrl("merchant-portal-files", storagePath);
+      const signedUpload = (await signStorageUrl("merchant-portal-files", storagePath)) ?? storagePath;
       return json({ success: true, file_url: signedUpload, file_name: file.name });
     } catch (err) {
       return json({ error: (err as Error).message }, 500);
@@ -1086,7 +1086,7 @@ async function handler(req: Request): Promise<Response> {
         upload_type: u.upload_type,
         file_name: u.file_name,
         // Private bucket — every listing hands out a fresh, expiring link.
-        file_url: await signStorageUrl("merchant-portal-files", u.file_url),
+        file_url: (await signStorageUrl("merchant-portal-files", u.file_url)) ?? u.file_url,
         uploaded_by: u.uploaded_by,
         created_at: u.created_at,
       })),

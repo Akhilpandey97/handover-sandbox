@@ -2538,21 +2538,20 @@ function MyActionsPage({
             {customerUploads.length > 0 ? (
               <div className="space-y-3">
                 {customerUploads.map((u) => (
-                  <Card key={u.id} className="p-4 flex items-center gap-4">
-                    <div className="w-9 h-9 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{u.file_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(u.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                      </p>
-                    </div>
-                    <a href={u.file_url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs font-medium text-primary hover:underline flex-shrink-0">
-                      View <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </Card>
+                  <a key={u.id} href={u.file_url || "#"} target="_blank" rel="noopener noreferrer" className="block">
+                    <Card className="p-4 flex items-center gap-4 hover:border-primary/40 transition-colors cursor-pointer">
+                      <div className="w-9 h-9 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{u.file_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(u.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        </p>
+                      </div>
+                      <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                    </Card>
+                  </a>
                 ))}
               </div>
             ) : (
@@ -2603,238 +2602,6 @@ function MyActionsPage({
   );
 }
 
-/* ===================== DOCUMENTS PAGE ===================== */
-function DocumentsPage({
-  data,
-  setActivePage,
-  token,
-  onUploaded,
-}: {
-  data: PortalData;
-  setActivePage: (p: NavPage) => void;
-  token: string;
-  onUploaded: () => void;
-}) {
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [localUploads, setLocalUploads] = useState<PortalUpload[]>([]);
-
-  const serverUploads = (data.uploads || []).filter(
-    (u) => u.upload_type === "customer_document" || u.uploaded_by === "merchant",
-  );
-  // Merge optimistic local uploads — drop any that the server has already returned
-  const serverIds = new Set(serverUploads.map((u) => u.id));
-  const customerUploads = [
-    ...serverUploads,
-    ...localUploads.filter((u) => !serverIds.has(u.id)),
-  ];
-
-  const handleFileUpload = async (file: File) => {
-    setUploading(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      form.append("token", token);
-      form.append("upload_type", "customer_document");
-      const res = await fetch(`${API_URL}/upload`, { method: "POST", body: form });
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error || "Upload failed");
-      // Optimistically show the file immediately
-      setLocalUploads((prev) => [
-        {
-          id: `local-${Date.now()}`,
-          upload_type: "customer_document",
-          file_name: file.name,
-          file_url: json.file_url,
-          uploaded_by: "merchant",
-          created_at: new Date().toISOString(),
-        } as PortalUpload,
-        ...prev,
-      ]);
-      onUploaded();
-    } catch (err: any) {
-      alert(err.message || "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  };
-  const docs: {
-    icon: React.ReactNode;
-    title: string;
-    desc: string;
-    badge: string;
-    link?: string | null;
-    onClick?: () => void;
-    badgeColor?: string;
-  }[] = [];
-
-  if (data.project.brd_link) {
-    docs.push({
-      icon: <FileText className="w-5 h-5" style={{ color: BRAND.primary }} />,
-      title: "BRD Document",
-      desc: "Business Requirements Document",
-      badge: "Available",
-      link: data.project.brd_link,
-    });
-  }
-
-  if (data.project.sow_link) {
-    docs.push({
-      icon: <BookOpen className="w-5 h-5" style={{ color: BRAND.primary }} />,
-      title: "SOW / Merchant Playbook",
-      desc: "Statement of Work & Integration Playbook",
-      badge: "Available",
-      link: data.project.sow_link,
-    });
-  }
-
-  // The remaining link fields from Settings → Links. Anything filled in on the
-  // project belongs in front of the merchant, not only BRD and SOW.
-  if (data.project.mint_checklist_link) {
-    docs.push({
-      icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />,
-      title: "Onboarding Checklist",
-      desc: "Pre-integration checklist for your onboarding",
-      badge: "Available",
-      link: data.project.mint_checklist_link,
-    });
-  }
-
-  if (data.project.integration_checklist_link) {
-    docs.push({
-      icon: <ListChecks className="w-5 h-5" style={{ color: BRAND.primary }} />,
-      title: "Integration Checklist",
-      desc: "Technical checklist for your integration",
-      badge: "Available",
-      link: data.project.integration_checklist_link,
-    });
-  }
-
-  if (data.project.jira_link) {
-    docs.push({
-      icon: <ExternalLink className="w-5 h-5" style={{ color: BRAND.primary }} />,
-      title: "Project Tracker",
-      desc: "Live ticket board for this integration",
-      badge: "Available",
-      link: data.project.jira_link,
-    });
-  }
-
-
-  return (
-    <div className="px-8 py-7 space-y-5">
-      <div>
-        <h1 className="heading-page text-foreground">Documents & Resources</h1>
-        <p className="text-sm text-muted-foreground">
-          Access your integration documents and resources.
-        </p>
-      </div>
-      <div className="space-y-3">
-        {docs.map((doc, i) => {
-          const inner = (
-            <Card className="p-5 flex items-center gap-4 hover:border-primary/40 transition-colors cursor-pointer">
-              <div className="w-10 h-10 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
-                {doc.icon}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-foreground">{doc.title}</p>
-                <p className="text-xs text-muted-foreground">{doc.desc}</p>
-              </div>
-              <span
-                className={cn(
-                  "text-2xs font-bold px-2.5 py-1 rounded",
-                  doc.badgeColor === "blue"
-                    ? "bg-info-soft text-info-strong"
-                    : "bg-success-soft text-success-strong",
-                )}
-              >
-                {doc.badge}
-              </span>
-              <ExternalLink className="w-4 h-4 text-muted-foreground" />
-            </Card>
-          );
-          return doc.onClick ? (
-            <button key={i} type="button" onClick={doc.onClick} className="block w-full text-left">
-              {inner}
-            </button>
-          ) : (
-            <a
-              key={i}
-              href={doc.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
-              {inner}
-            </a>
-          );
-        })}
-      </div>
-
-      {docs.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">No documents shared yet</p>
-        </Card>
-      )}
-
-      {/* ── Customer document uploads ── */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Your Documents</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Upload documents you'd like to share with the team.</p>
-          </div>
-          <button
-            type="button"
-            disabled={uploading}
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-60"
-            style={{ background: BRAND.primary }}
-          >
-            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            {uploading ? "Uploading…" : "Upload document"}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) { handleFileUpload(f); e.target.value = ""; }
-            }}
-          />
-        </div>
-
-        {customerUploads.length > 0 ? (
-          <div className="space-y-3">
-            {customerUploads.map((u) => (
-              <Card key={u.id} className="p-4 flex items-center gap-4">
-                <div className="w-9 h-9 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{u.file_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(u.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                  </p>
-                </div>
-                <a href={u.file_url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs font-medium text-primary hover:underline flex-shrink-0">
-                  View <ExternalLink className="w-3 h-3" />
-                </a>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card className="p-6 text-center">
-            <Upload className="w-6 h-6 text-muted-foreground/40 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
-          </Card>
-        )}
-      </div>
-    </div>
-  );
-}
 
 
 /* ===================== PAYMENT SIMULATOR PAGE ===================== */
