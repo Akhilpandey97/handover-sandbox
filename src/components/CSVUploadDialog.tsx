@@ -28,8 +28,8 @@ interface ImportResult {
   error?: string;
 }
 
-// Map CSV stage to valid enum values
-const mapStageToEnum = (stage: string): string => {
+// Map CSV stage to valid enum values; fallbackSlug is the tenant's first pipeline team
+const mapStageToEnum = (stage: string, fallbackSlug = "mint"): string => {
   const stageMap: Record<string, string> = {
     "feasibility analysis": "mint",
     scoping: "mint",
@@ -44,14 +44,13 @@ const mapStageToEnum = (stage: string): string => {
     completed: "completed",
   };
   const normalized = stage.toLowerCase().trim();
-  return stageMap[normalized] || "mint";
+  return stageMap[normalized] || fallbackSlug;
 };
 
-const mapStageToTeam = (stage: string): string => {
-  const mapped = mapStageToEnum(stage);
-  if (mapped === "integration") return "integration";
-  if (mapped === "ms" || mapped === "completed") return "ms";
-  return "mint";
+const mapStageToTeam = (stage: string, fallbackSlug = "mint"): string => {
+  const mapped = mapStageToEnum(stage, fallbackSlug);
+  if (mapped === "completed") return fallbackSlug;
+  return mapped;
 };
 
 // Parse a single CSV line handling quoted fields

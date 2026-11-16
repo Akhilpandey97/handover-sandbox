@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Project } from "@/data/projectsData";
 import { TeamRole } from "@/data/teams";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { tenantScope } from "@/lib/tenant-scope";
@@ -46,10 +47,11 @@ export const AssignOwnerDialog = ({
 }: AssignOwnerDialogProps) => {
   const queryClient = useQueryClient();
   const { teamLabels } = useLabels();
+  const { checklistTeamSlugs, firstTeamSlug } = useTeams();
   const { currentUser } = useAuth();
   const tenantId = tenantScope(currentUser?.tenantId);
   const isBulk = !!projectIds && projectIds.length > 0;
-  const [targetTeam, setTargetTeam] = useState<TeamRole>(project?.currentOwnerTeam || "mint");
+  const [targetTeam, setTargetTeam] = useState<TeamRole>(project?.currentOwnerTeam || firstTeamSlug);
   const [targetOwner, setTargetOwner] = useState<string>(project?.assignedOwner || "");
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +63,7 @@ export const AssignOwnerDialog = ({
       setTargetTeam(project.currentOwnerTeam);
       setTargetOwner(project.assignedOwner || "");
     } else {
-      setTargetTeam("mint");
+      setTargetTeam(firstTeamSlug);
       setTargetOwner("");
     }
   }, [open, project]);
@@ -242,9 +244,9 @@ export const AssignOwnerDialog = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="mint">{teamLabels.mint}</SelectItem>
-                <SelectItem value="integration">{teamLabels.integration}</SelectItem>
-                <SelectItem value="ms">{teamLabels.ms}</SelectItem>
+                {checklistTeamSlugs.map((slug) => (
+                  <SelectItem key={slug} value={slug}>{teamLabels[slug] || slug}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

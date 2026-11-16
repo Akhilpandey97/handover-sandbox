@@ -60,8 +60,6 @@ interface BriefItem {
 const DAY = 86_400_000;
 const MAX_ITEMS = 5;
 
-/** Same handoff order as TransferDialog; no other transfer exists in the app. */
-const NEXT_TEAM: Record<string, string> = { mint: "integration", integration: "ms" };
 /** useTeams' fallback names, used until a workspace saves its own. */
 const DEFAULT_TEAM_NAMES: Record<string, string> = {
   mint: "Sales",
@@ -91,11 +89,25 @@ async function loadTeamNames(caller: BuddyCaller): Promise<Record<string, string
   const { data } = await caller.client
     .from("teams")
     .select("slug, name")
-    .eq("tenant_id", caller.tenantId);
+    .eq("tenant_id", caller.tenantId)
+    .order("sort_order");
   const names = { ...DEFAULT_TEAM_NAMES };
   for (const t of (data || []) as { slug: string; name: string }[])
     if (t.name) names[t.slug] = t.name;
   return names;
+}
+
+async function loadNextTeamMap(caller: BuddyCaller): Promise<Record<string, string>> {
+  const { data } = await caller.client
+    .from("teams")
+    .select("slug")
+    .eq("tenant_id", caller.tenantId)
+    .order("sort_order");
+  const slugs = (data || []).map((t: any) => t.slug as string);
+  if (slugs.length === 0) return { mint: "integration", integration: "ms" };
+  const map: Record<string, string> = {};
+  for (let i = 0; i < slugs.length - 1; i++) map[slugs[i]] = slugs[i + 1];
+  return map;
 }
 
 /** Latest checklist comment per project — the dashboard's activity signal. */
@@ -141,7 +153,7 @@ async function handler(req: Request): Promise<Response> {
       return json({ summary: null, suggestions: [] }, 200, corsHeaders);
     }
 
-    const [items, meetings, risks, teamNames] = await Promise.all([
+    const [items, meetings, risks, teamNames, nextTeamMap] = await Promise.all([
       c
         .from("checklist_items")
         .select("completed, due_date, current_responsibility, owner_team")
@@ -161,6 +173,7 @@ async function handler(req: Request): Promise<Response> {
         .eq("project_id", p.id)
         .in("status", ["open", "mitigating"]),
       loadTeamNames(caller),
+      loadNextTeamMap(caller),
     ]);
     const list = (items.data || []) as any[];
     const overdue = list.filter((i) => !i.completed && i.due_date && i.due_date < today);
@@ -214,7 +227,7 @@ async function handler(req: Request): Promise<Response> {
         label: "Recap the last meeting",
         prompt: "Recap the last meeting on this project and list the follow-ups with owners.",
       });
-    const nextTeam = NEXT_TEAM[p.current_owner_team];
+    const nextTeam = nextTeamMap[p.current_owner_team];
     if (teamDone && nextTeam) {
       const nextName = teamNames[nextTeam];
       suggestions.push({
@@ -256,12 +269,13 @@ async function handler(req: Request): Promise<Response> {
     .eq("archived", false);
   if (!caller.portfolio) q = q.eq("assigned_owner", caller.userId);
 
-  const [{ data: projectRows }, riskRaw, eglRaw, lastActivity, teamNames] = await Promise.all([
+  const [{ data: projectRows }, riskRaw, eglRaw, lastActivity, teamNames, nextTeamMap] = await Promise.all([
     q.limit(2000),
     loadSetting(caller, RISK_SETTINGS_KEY),
     loadSetting(caller, EGL_SETTINGS_KEY),
     loadLastActivity(caller),
     loadTeamNames(caller),
+    loadNextTeamMap(caller),
   ]);
   const projects = (projectRows || []) as any[];
   const ids = projects.map((p) => p.id);
@@ -447,9 +461,9 @@ async function handler(req: Request): Promise<Response> {
       r.p.project_state !== "live" &&
       r.open > 0 &&
       r.teamOpen === 0 &&
-      NEXT_TEAM[r.p.current_owner_team]
+      nextTeamMap[r.p.current_owner_team]
     ) {
-      const nextName = teamNames[NEXT_TEAM[r.p.current_owner_team]];
+      const nextName = teamNames[nextTeamMap[r.p.current_owner_team]];
       candidates.push({
         rank: 0,
         soon: Number.MAX_SAFE_INTEGER,

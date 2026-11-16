@@ -120,14 +120,8 @@ async function terminologyLine(
   const renamed = ((data || []) as { key: string; value: string }[])
     .filter((r) => r.value && r.value !== DEFAULT_LABELS[r.key])
     .map((r) => `"${DEFAULT_LABELS[r.key] || r.key}" is called "${r.value}"`);
-  const teamLine = `Teams, in handoff order: ${["mint", "integration", "ms"].map((s) => teams[s]).join(" → ")}${
-    Object.keys(teams).length > 3
-      ? `; other teams: ${Object.entries(teams)
-          .filter(([s]) => !["mint", "integration", "ms"].includes(s))
-          .map(([, n]) => n)
-          .join(", ")}`
-      : ""
-  }.`;
+  const allSlugs = Object.keys(teams);
+  const teamLine = `Teams, in handoff order: ${allSlugs.map((s) => teams[s]).join(" → ")}.`;
   return `This workspace's own words — use them in answers instead of the defaults. ${teamLine}${renamed.length ? ` ${renamed.join("; ")}.` : ""}`;
 }
 

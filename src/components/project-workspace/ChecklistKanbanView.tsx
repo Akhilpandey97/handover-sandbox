@@ -80,12 +80,11 @@ import {
 import { format, parseISO, isValid, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTeams } from "@/hooks/useTeams";
 
 interface Props {
   project: Project;
 }
-
-type KanbanStage = "mint" | "integration" | "ms" | "completed";
 
 const COLUMN_ACCENT: Record<string, { border: string; badge: string; badgeText: string; headerBg: string }> = {
   mint:        { border: "border-emerald-200 dark:border-emerald-900", badge: "bg-emerald-500", badgeText: "text-white", headerBg: "bg-emerald-50 dark:bg-emerald-950/40" },
@@ -93,6 +92,8 @@ const COLUMN_ACCENT: Record<string, { border: string; badge: string; badgeText: 
   ms:          { border: "border-amber-200 dark:border-amber-900",      badge: "bg-amber-500",   badgeText: "text-white", headerBg: "bg-amber-50 dark:bg-amber-950/40" },
   completed:   { border: "border-slate-200 dark:border-slate-700",      badge: "bg-slate-400",   badgeText: "text-white", headerBg: "bg-slate-50 dark:bg-slate-800/40" },
 };
+
+const DEFAULT_ACCENT = { border: "border-violet-200 dark:border-violet-900", badge: "bg-violet-500", badgeText: "text-white", headerBg: "bg-violet-50 dark:bg-violet-950/40" };
 
 const TASK_STATUS_ICON: Record<string, ReactNode> = {
   done:        <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />,
@@ -1309,6 +1310,7 @@ function ItemCard({
 export function ChecklistKanbanView({ project }: Props) {
   const updateTask = useUpdateChecklistTask();
   const { stageLabels, teamLabels, responsibilityLabels } = useLabels();
+  const { checklistTeamSlugs } = useTeams();
   const { currentUser } = useAuth();
   const userTeam = (currentUser?.team || "").toLowerCase();
   const hasFullChecklistAccess = ["manager", "admin", "super_admin", "superadmin"].includes(userTeam);
@@ -1329,12 +1331,11 @@ export function ChecklistKanbanView({ project }: Props) {
       return acc;
     }, {}), [allMeetings]);
 
-  // Groups are by ownerTeam; completed is a special row for done items regardless of team
-  const TEAM_ROWS = (["mint", "integration", "ms"] as const).map((key) => ({
+  const TEAM_ROWS = useMemo(() => checklistTeamSlugs.map((key) => ({
     key,
     label: teamLabels[key] || stageLabels[key] || key,
-    accent: COLUMN_ACCENT[key] ?? COLUMN_ACCENT.completed,
-  }));
+    accent: COLUMN_ACCENT[key] ?? DEFAULT_ACCENT,
+  })), [checklistTeamSlugs, teamLabels, stageLabels]);
 
   const allTeams = [...new Set(project.checklist.filter(i => !i.isTask).map(i => i.ownerTeam))];
   const [filterTeams, setFilterTeams] = useState<string[]>([]);

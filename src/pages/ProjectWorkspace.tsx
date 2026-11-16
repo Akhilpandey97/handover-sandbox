@@ -30,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
 import {
@@ -146,6 +147,7 @@ export const ProjectWorkspaceView = ({
   const { isAuthenticated, isLoading, currentUser } = useAuth();
   const { projects, updateProject, deleteProject, transferProject } = useProjects();
   const { teamLabels, stateLabels } = useLabels();
+  const { getNextTeam } = useTeams();
 
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("checklists");
   const [tabOrder, setTabOrder] = useState<WorkspaceTab[]>(() => tabOptions.map((t) => t.value));
@@ -252,7 +254,7 @@ export const ProjectWorkspaceView = ({
       ? "The receiving team hasn't accepted the last handover yet"
       : project.currentStage === "completed"
         ? "This project is complete"
-        : project.currentOwnerTeam === "ms"
+        : getNextTeam(project.currentOwnerTeam) === null
           ? `${teamLabels[project.currentOwnerTeam] || project.currentOwnerTeam} is the last team`
           : !canTransfer
             ? "Only this team, or a manager, can transfer it"
@@ -317,7 +319,7 @@ export const ProjectWorkspaceView = ({
   };
 
   const handleTransfer = (assigneeId: string, assigneeName: string, notes: string) => {
-    const nextTeamKey = project.currentOwnerTeam === "mint" ? "integration" : "ms";
+    const nextTeamKey = getNextTeam(project.currentOwnerTeam) || project.currentOwnerTeam;
     const nextTeam = teamLabels[nextTeamKey] || nextTeamKey;
     transferProject(
       project.id,

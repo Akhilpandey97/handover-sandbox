@@ -4,6 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ChevronDown, X } from "lucide-react";
 import { projectStateLabels, ProjectState } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { cn } from "@/lib/utils";
 import type { useReportFilters } from "@/hooks/useReportFilters";
 
@@ -55,6 +56,7 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
   } = props;
 
   const { teamLabels, responsibilityLabels, stateLabels } = useLabels();
+  const { checklistTeamSlugs } = useTeams();
 
   const stateOptions = (Object.keys(projectStateLabels) as ProjectState[]).map((s) => ({
     value: s,
@@ -66,11 +68,7 @@ export const ReportFilterBar = (props: ReportFilterBarProps) => {
       label: "Team",
       values: teamFilter,
       setter: setTeamFilter,
-      options: [
-        { value: "mint", label: teamLabels?.mint || "mint" },
-        { value: "integration", label: teamLabels?.integration || "integration" },
-        { value: "ms", label: teamLabels?.ms || "ms" },
-      ],
+      options: checklistTeamSlugs.map((slug) => ({ value: slug, label: teamLabels?.[slug] || slug })),
     },
     {
       label: "Owner",

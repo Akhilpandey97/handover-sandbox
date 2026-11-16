@@ -7,6 +7,7 @@ import {
   ProjectState,
 } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -27,10 +28,10 @@ interface Props {
   projects: Project[];
 }
 
-const stageOrder = ["mint", "integration", "ms", "completed"];
-
 export const ExecutiveDashboard = ({ projects }: Props) => {
   const { stageLabels, getLabel } = useLabels();
+  const { checklistTeamSlugs } = useTeams();
+  const stageOrder = [...checklistTeamSlugs, "completed"];
   const [expandedSection, setExpandedSection] = useState<string | null>("revenue");
 
   // Revenue Realization Forecast

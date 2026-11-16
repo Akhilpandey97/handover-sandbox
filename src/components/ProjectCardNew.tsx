@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +112,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
   const { acceptProject, transferProject, updateProject, deleteProject, rejectProject } =
     useProjects();
   const { teamLabels, responsibilityLabels, getLabel, stateLabels } = useLabels();
+  const { getNextTeam, checklistTeamSlugs } = useTeams();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const navigate = useNavigate();
   const [checklistOpen, setChecklistOpen] = useState(false);
@@ -124,13 +126,6 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
   const [aiResult, setAiResult] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-
-  // Calculate checklist per team
-  const mintChecklist = project.checklist.filter((c) => c.ownerTeam === "mint");
-  const integrationChecklist = project.checklist.filter((c) => c.ownerTeam === "integration");
-
-  const mintCompleted = mintChecklist.filter((c) => c.completed).length;
-  const integrationCompleted = integrationChecklist.filter((c) => c.completed).length;
 
   const computedResponsibility = calculateProjectResponsibilityFromChecklist(project.checklist);
   const timeByParty = calculateTimeFromChecklist(project.checklist);
@@ -175,7 +170,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
     currentUser?.team === project.currentOwnerTeam &&
     !project.pendingAcceptance &&
     project.currentStage !== "completed" &&
-    project.currentOwnerTeam !== "ms" &&
+    getNextTeam(project.currentOwnerTeam) !== null &&
     currentUser?.team !== "manager";
 
   const isTransferReady = canTransfer && allCurrentTeamChecklistCompleted;
@@ -196,7 +191,7 @@ export const ProjectCardNew = ({ project, riskVerdict }: ProjectCardNewProps) =>
   };
 
   const handleTransfer = (assigneeId: string, assigneeName: string, notes: string) => {
-    const nextTeamKey = project.currentOwnerTeam === "mint" ? "integration" : "ms";
+    const nextTeamKey = getNextTeam(project.currentOwnerTeam) || project.currentOwnerTeam;
     const nextTeam = teamLabels[nextTeamKey] || nextTeamKey;
     const transferNote = notes || `Transferred to ${nextTeam} team`;
     transferProject(project.id, `${transferNote} (Assigned to: ${assigneeName})`, assigneeId);

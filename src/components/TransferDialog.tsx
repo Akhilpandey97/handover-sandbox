@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Project } from "@/data/projectsData";
 import { teamColorClass, TeamRole } from "@/data/teams";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { tenantScope } from "@/lib/tenant-scope";
@@ -33,12 +34,6 @@ interface ProfileUser {
   team: string;
 }
 
-const getNextTeam = (current: TeamRole): TeamRole | null => {
-  if (current === "mint") return "integration";
-  if (current === "integration") return "ms";
-  return null;
-};
-
 export const TransferDialog = ({
   project,
   open,
@@ -50,6 +45,7 @@ export const TransferDialog = ({
   const [teamMembers, setTeamMembers] = useState<ProfileUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { teamLabels } = useLabels();
+  const { getNextTeam } = useTeams();
   const { currentUser } = useAuth();
   const tenantId = tenantScope(currentUser?.tenantId);
 

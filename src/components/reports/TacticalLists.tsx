@@ -23,6 +23,7 @@ import { ChevronDown, ChevronRight, AlertCircle, Trophy } from "lucide-react";
 import { useProjectRiskVerdicts } from "@/hooks/useProjectRiskVerdicts";
 import { describeVerdict } from "@/data/riskRules";
 import { formatArrCr } from "@/lib/arr";
+import { useTeams } from "@/hooks/useTeams";
 
 interface Props {
   projects: Project[];
@@ -30,6 +31,7 @@ interface Props {
 
 export const TacticalLists = ({ projects }: Props) => {
   const { teamLabels, getLabel, stageLabels, stateLabels } = useLabels();
+  const { checklistTeamSlugs } = useTeams();
   const [expandedSection, setExpandedSection] = useState<string | null>("atrisk");
 
   // At Risk Watchlist — same verdict as the Risks tab and the project workspace.
@@ -57,10 +59,12 @@ export const TacticalLists = ({ projects }: Props) => {
     return projects
       .filter((p) => p.projectState !== "live" && p.currentStage !== "completed")
       .map((p) => {
-        const mintTasks = p.checklist.filter((c) => c.ownerTeam === "mint");
-        const intTasks = p.checklist.filter((c) => c.ownerTeam === "integration");
-        const mintDone = mintTasks.filter((c) => c.completed).length;
-        const intDone = intTasks.filter((c) => c.completed).length;
+        const teamProgress: Record<string, string> = {};
+        for (const slug of checklistTeamSlugs) {
+          const items = p.checklist.filter((c) => c.ownerTeam === slug);
+          const done = items.filter((c) => c.completed).length;
+          teamProgress[slug] = items.length > 0 ? `${done}/${items.length}` : "—";
+        }
         const totalDone = p.checklist.filter((c) => c.completed).length;
         const total = p.checklist.length;
         const pct = total > 0 ? Math.round((totalDone / total) * 100) : 0;
@@ -70,15 +74,14 @@ export const TacticalLists = ({ projects }: Props) => {
           name: p.merchantName,
           stage: p.currentStage,
           state: p.projectState,
-          mintProgress: mintTasks.length > 0 ? `${mintDone}/${mintTasks.length}` : "—",
-          intProgress: intTasks.length > 0 ? `${intDone}/${intTasks.length}` : "—",
+          teamProgress,
           overallProgress: `${totalDone}/${total}`,
           pct,
           owner: p.assignedOwnerName || "Unassigned",
         };
       })
       .sort((a, b) => b.pct - a.pct);
-  }, [projects]);
+  }, [projects, checklistTeamSlugs]);
 
   return (
     <div className="space-y-6">
@@ -177,7 +180,7 @@ export const TacticalLists = ({ projects }: Props) => {
                 )}
               </div>
               <CardDescription>
-                {teamLabels.mint} & {teamLabels.integration} task completion — how close each
+                {checklistTeamSlugs.map(s => teamLabels[s] || s).join(" & ")} task completion — how close each
                 project is to the next stage
               </CardDescription>
             </CardHeader>
@@ -189,8 +192,9 @@ export const TacticalLists = ({ projects }: Props) => {
                   <TableRow>
                     <TableHead>{getLabel("field_merchant_name")}</TableHead>
                     <TableHead>{getLabel("field_assigned_owner")}</TableHead>
-                    <TableHead>{teamLabels.mint} Tasks</TableHead>
-                    <TableHead>{teamLabels.integration} Tasks</TableHead>
+                    {checklistTeamSlugs.map(slug => (
+                      <TableHead key={slug}>{teamLabels[slug] || slug} Tasks</TableHead>
+                    ))}
                     <TableHead>Overall</TableHead>
                     <TableHead>Progress</TableHead>
                   </TableRow>
@@ -200,8 +204,9 @@ export const TacticalLists = ({ projects }: Props) => {
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">{p.name}</TableCell>
                       <TableCell>{p.owner}</TableCell>
-                      <TableCell>{p.mintProgress}</TableCell>
-                      <TableCell>{p.intProgress}</TableCell>
+                      {checklistTeamSlugs.map(slug => (
+                        <TableCell key={slug}>{p.teamProgress[slug] || "—"}</TableCell>
+                      ))}
                       <TableCell>{p.overallProgress}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

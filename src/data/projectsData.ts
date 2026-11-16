@@ -7,7 +7,7 @@ export type ProjectStage = "mint" | "integration" | "ms" | "completed";
 export const teamToProjectStage = (team: string): ProjectStage => {
   if (team === "mint" || team === "integration" || team === "ms") return team;
   if (team === "completed") return "completed";
-  return "integration";
+  return team as ProjectStage;
 };
 export type ResponsibilityParty = "gokwik" | "merchant" | "neutral";
 export type ProjectState = "not_started" | "on_hold" | "in_progress" | "live" | "blocked";

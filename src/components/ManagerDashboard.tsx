@@ -15,6 +15,7 @@ import { NoAccessCard } from "@/components/NoAccessCard";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useLabels } from "@/contexts/LabelsContext";
 import { teamColorClass, teamLabels as defaultTeamLabels, TeamRole } from "@/data/teams";
+import { useTeams } from "@/hooks/useTeams";
 import { UserManagement } from "./UserManagement";
 import { TenantManagement } from "./TenantManagement";
 import { SettingsPanel } from "./SettingsPanel";
@@ -287,6 +288,7 @@ export const ManagerDashboard = () => {
     stateLabels: stateLabelsFromCtx,
     updateLabels,
   } = useLabels();
+  const { checklistTeamSlugs, teamColorMap } = useTeams();
   const arrLabel = getLabel("field_arr");
   const { projects, isLoading, addProject, deleteProject, updateProject, archiveProject } =
     useProjects();
@@ -584,8 +586,11 @@ export const ManagerDashboard = () => {
     return projects
       .map((project) => {
         const stats = calculateProjectStats(project);
-        const mintTasks = project.checklist.filter((c) => c.ownerTeam === "mint");
-        const integrationTasks = project.checklist.filter((c) => c.ownerTeam === "integration");
+        const teamStats: Record<string, { completed: number; total: number }> = {};
+        for (const slug of checklistTeamSlugs) {
+          const items = project.checklist.filter((c) => c.ownerTeam === slug);
+          teamStats[slug] = { completed: items.filter((c) => c.completed).length, total: items.length };
+        }
 
         const checklistItems = project.checklist.map((item) => {
           const time = calculateTimeByParty(item.responsibilityLog);
@@ -604,10 +609,7 @@ export const ManagerDashboard = () => {
         return {
           ...project,
           stats,
-          mintCompleted: mintTasks.filter((c) => c.completed).length,
-          mintTotal: mintTasks.length,
-          integrationCompleted: integrationTasks.filter((c) => c.completed).length,
-          integrationTotal: integrationTasks.length,
+          teamStats,
           checklistItems,
         };
       })
@@ -621,7 +623,7 @@ export const ManagerDashboard = () => {
 
   // Merged Team + Owner Report
   const teamOwnerReport = useMemo(() => {
-    const teams: TeamRole[] = ["mint", "integration", "ms"];
+    const teams: TeamRole[] = checklistTeamSlugs as TeamRole[];
     return teams.map((team) => {
       const teamProjects = projects.filter((p) => p.currentOwnerTeam === team);
       let teamGokwikTime = 0;
@@ -1849,6 +1851,7 @@ export const ManagerDashboard = () => {
                             getLabel: (k: string) => appLabels[k] || k,
                           },
                           { fields: customFields, valuesMap: customValuesMap },
+                          checklistTeamSlugs,
                         )
                       }
                       variant="outline"
@@ -2028,13 +2031,8 @@ export const ManagerDashboard = () => {
                               >
                                 <div className="flex items-center gap-2.5">
                                   <div
-                                    className={cn(
-                                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-bold",
-                                      team.team === "mint" && "bg-pending-soft text-pending-strong",
-                                      team.team === "integration" &&
-                                        "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300",
-                                      team.team === "ms" && "bg-success-soft text-success-strong",
-                                    )}
+                                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-xs font-bold text-white"
+                                    style={{ backgroundColor: teamColorMap[team.team] || "#64748b" }}
                                   >
                                     {team.teamLabel.charAt(0)}
                                   </div>
@@ -2538,11 +2536,10 @@ export const ManagerDashboard = () => {
                           label: "Team",
                           values: lvTeamFilter,
                           setter: setLvTeamFilter,
-                          options: [
-                            { value: "mint", label: teamLabels.mint },
-                            { value: "integration", label: teamLabels.integration },
-                            { value: "ms", label: teamLabels.ms },
-                          ],
+                          options: checklistTeamSlugs.map((slug) => ({
+                            value: slug,
+                            label: teamLabels[slug] || slug,
+                          })),
                         },
                         {
                           label: "State",
@@ -3359,22 +3356,20 @@ export const ManagerDashboard = () => {
                             <CollapsibleContent>
                               <div className="mt-2 ml-8 space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
-                                  <div className="bg-muted/30 rounded-lg p-3">
-                                    <p className="text-xs text-muted-foreground mb-1">
-                                      {teamLabels.mint} Tasks
-                                    </p>
-                                    <p className="font-semibold">
-                                      {project.mintCompleted}/{project.mintTotal}
-                                    </p>
-                                  </div>
-                                  <div className="bg-muted/30 rounded-lg p-3">
-                                    <p className="text-xs text-muted-foreground mb-1">
-                                      {teamLabels.integration} Tasks
-                                    </p>
-                                    <p className="font-semibold">
-                                      {project.integrationCompleted}/{project.integrationTotal}
-                                    </p>
-                                  </div>
+                                  {checklistTeamSlugs.map((slug) => {
+                                    const ts = project.teamStats[slug];
+                                    if (!ts || ts.total === 0) return null;
+                                    return (
+                                      <div key={slug} className="bg-muted/30 rounded-lg p-3">
+                                        <p className="text-xs text-muted-foreground mb-1">
+                                          {teamLabels[slug] || slug} Tasks
+                                        </p>
+                                        <p className="font-semibold">
+                                          {ts.completed}/{ts.total}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                                 <div className="border rounded-lg overflow-hidden">
                                   <Table>

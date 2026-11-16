@@ -108,7 +108,7 @@ const shortDate = (value: string | Date) =>
 
 /** Stage slugs in display order */
 
-const STAGE_ORDER = ["mint", "integration", "ms", "completed"];
+const SYSTEM_STAGE_ORDER = ["mint", "integration", "ms", "completed"];
 
 type ItemStatus = "completed" | "overdue" | "in_progress" | "upcoming" | "todo";
 
@@ -444,7 +444,7 @@ export const ChecklistDialog = ({
   const checklistSetName = project?.checklistSetId
     ? (checklistSets.find((s) => s.id === project.checklistSetId)?.name ?? null)
     : null;
-  const { allTeams, teamLabelMap, teamColorMap, checklistTeamSlugs } = useTeams();
+  const { allTeams, teamLabelMap, teamColorMap, checklistTeamSlugs, getNextTeam } = useTeams();
   const { data: allTasks = [] } = useChecklistTasks(project?.id);
   const { data: allMeetings = [] } = useChecklistMeetings(project?.id);
   const { data: activityEvents = [] } = useChecklistActivity(project?.id);
@@ -631,7 +631,7 @@ export const ChecklistDialog = ({
     userTeam,
   );
 
-  const systemSlugs = ["mint", "integration", "ms"];
+  const systemSlugs = checklistTeamSlugs;
   const allSlugsInChecklist = Object.keys(groupedByTeam);
 
   const orderedTeams: string[] = [];
@@ -822,12 +822,7 @@ export const ChecklistDialog = ({
       (item) => (item.ownerTeam || "").toLowerCase() === project?.currentOwnerTeam,
     );
     if (ownTeam.length === 0) {
-      const next =
-        project?.currentOwnerTeam === "mint"
-          ? "integration"
-          : project?.currentOwnerTeam === "integration"
-            ? "ms"
-            : null;
+      const next = project?.currentOwnerTeam ? getNextTeam(project.currentOwnerTeam) : null;
       if (next) return { label: `Transfer to ${getTeamLabel(next)}`, hint: undefined };
     }
     const pool = ownTeam.length > 0 ? ownTeam : open;
@@ -2198,7 +2193,7 @@ export const ChecklistDialog = ({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          {(["mint", "integration", "ms"] as const).map((t) => (
+                          {checklistTeamSlugs.map((t) => (
                             <DropdownMenuItem key={t} onSelect={() => bulkChangeTeam(t)}>
                               {teamLabels[t] || t}
                             </DropdownMenuItem>
@@ -2228,11 +2223,11 @@ export const ChecklistDialog = ({
                         onChange={(e) => setAddItemTitle(e.target.value)}
                         className="h-7 text-xs flex-1"
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") handleAddItem(effectiveSelectedGroup || "mint", addItemTitle);
+                          if (e.key === "Enter") handleAddItem(effectiveSelectedGroup || checklistTeamSlugs[0] || "mint", addItemTitle);
                           if (e.key === "Escape") { setAddItemState(null); setAddItemTitle(""); }
                         }}
                       />
-                      <Button size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddItem(effectiveSelectedGroup || "mint", addItemTitle)} disabled={!addItemTitle.trim()}>Save</Button>
+                      <Button size="sm" className="h-7 px-2 text-xs" onClick={() => handleAddItem(effectiveSelectedGroup || checklistTeamSlugs[0] || "mint", addItemTitle)} disabled={!addItemTitle.trim()}>Save</Button>
                       <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => { setAddItemState(null); setAddItemTitle(""); }}>Cancel</Button>
                     </div>
                   ) : (

@@ -24,6 +24,7 @@ import {
   type ChecklistTemplate,
 } from "@/hooks/useChecklistSets";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -289,6 +290,9 @@ const SetDetail = ({
   onDeleteTemplate: (id: string) => Promise<void>;
   teamOptions: { value: string; label: string }[];
 }) => {
+  const teamSlugs = useMemo(() => teamOptions.map((t) => t.value), [teamOptions]);
+  const teamLabels = useMemo(() => Object.fromEntries(teamOptions.map((t) => [t.value, t.label])), [teamOptions]);
+
   const [name, setName] = useState(set.name);
   const [description, setDescription] = useState(set.description ?? "");
   const [nameDirty, setNameDirty] = useState(false);
@@ -387,21 +391,24 @@ const SetDetail = ({
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
       const lines = text.split("\n").filter((l) => l.trim());
-      const teamAliases: Record<string, string> = {
-        mint: "mint",
-        integration: "integration",
-        ms: "ms",
-        Mint: "mint",
-        Integration: "integration",
-        MS: "ms",
-      };
+      const teamAliases: Record<string, string> = {};
+      for (const slug of teamSlugs) {
+        teamAliases[slug] = slug;
+        teamAliases[slug.charAt(0).toUpperCase() + slug.slice(1)] = slug;
+        teamAliases[slug.toUpperCase()] = slug;
+        const label = teamLabels[slug];
+        if (label) {
+          teamAliases[label] = slug;
+          teamAliases[label.toLowerCase()] = slug;
+        }
+      }
       const startIdx = lines[0]?.toLowerCase().includes("title") ? 1 : 0;
       const items: { title: string; team: string; duration: number | null }[] = [];
       for (let i = startIdx; i < lines.length; i++) {
         const parts = lines[i].split(",").map((p) => p.trim().replace(/^"|"$/g, ""));
         const title = parts[0];
         if (!title) continue;
-        const team = teamAliases[parts[1]] ?? teamAliases[parts[2]] ?? "mint";
+        const team = teamAliases[parts[1]] ?? teamAliases[parts[2]] ?? (teamSlugs[0] || "mint");
         const durationRaw = parts[2] ? parseInt(parts[2], 10) : (parts[3] ? parseInt(parts[3], 10) : null);
         const duration = durationRaw && !Number.isNaN(durationRaw) ? durationRaw : null;
         items.push({ title, team, duration });
@@ -721,7 +728,8 @@ export const ChecklistSetsManager = () => {
   } = useChecklistSets();
 
   const { teamLabels } = useLabels();
-  const TEAM_OPTIONS = useMemo(() => getTeamOptions(teamLabels), [teamLabels]);
+  const { checklistTeamSlugs } = useTeams();
+  const TEAM_OPTIONS = useMemo(() => getTeamOptions(teamLabels, checklistTeamSlugs), [teamLabels, checklistTeamSlugs]);
 
   const defaultSet = sets.find((s) => s.is_default) ?? sets[0] ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(null);

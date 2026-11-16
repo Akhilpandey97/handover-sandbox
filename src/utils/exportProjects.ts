@@ -27,6 +27,7 @@ export const exportProjectsToCSV = (
   projects: Project[],
   labels?: ExportLabels,
   customFieldsData?: ExportCustomFields,
+  teamSlugs?: string[],
 ) => {
   const teamLbls = labels?.teamLabels || defaultTeamLabels;
   const stateLbls = labels?.stateLabels || defaultStateLabels;
@@ -75,8 +76,7 @@ export const exportProjectsToCSV = (
     });
   });
 
-  const mintLabel = teamLbls.mint || "MINT";
-  const intLabel = teamLbls.integration || "Integration";
+  const exportTeamSlugs = teamSlugs || ["mint", "integration", "ms"];
   const gokwikLabel = respLbls.gokwik || "GoKwik";
   const merchantLabel = respLbls.merchant || "Merchant";
 
@@ -114,14 +114,15 @@ export const exportProjectsToCSV = (
     "Transfer Count",
     `Project ${gokwikLabel} Time`,
     `Project ${merchantLabel} Time`,
-    `${mintLabel} Tasks Completed`,
-    `${mintLabel} Tasks Total`,
-    `${mintLabel} ${gokwikLabel} Time`,
-    `${mintLabel} ${merchantLabel} Time`,
-    `${intLabel} Tasks Completed`,
-    `${intLabel} Tasks Total`,
-    `${intLabel} ${gokwikLabel} Time`,
-    `${intLabel} ${merchantLabel} Time`,
+    ...exportTeamSlugs.flatMap((slug) => {
+      const label = teamLbls[slug] || slug;
+      return [
+        `${label} Tasks Completed`,
+        `${label} Tasks Total`,
+        `${label} ${gokwikLabel} Time`,
+        `${label} ${merchantLabel} Time`,
+      ];
+    }),
     ...allChecklistTitles.flatMap((key) => {
       const [, title] = key.split("|");
       return [
@@ -137,26 +138,16 @@ export const exportProjectsToCSV = (
     const completedChecklist = p.checklist.filter((c) => c.completed).length;
     const projectTime = calculateTimeByParty(p.responsibilityLog);
 
-    const mintItems = p.checklist.filter((c) => c.ownerTeam === "mint");
-    const intItems = p.checklist.filter((c) => c.ownerTeam === "integration");
-
-    const mintCompleted = mintItems.filter((c) => c.completed).length;
-    const intCompleted = intItems.filter((c) => c.completed).length;
-
-    let mintGokwik = 0,
-      mintMerchant = 0;
-    mintItems.forEach((item) => {
-      const t = calculateTimeByParty(item.responsibilityLog);
-      mintGokwik += t.gokwik;
-      mintMerchant += t.merchant;
-    });
-
-    let intGokwik = 0,
-      intMerchant = 0;
-    intItems.forEach((item) => {
-      const t = calculateTimeByParty(item.responsibilityLog);
-      intGokwik += t.gokwik;
-      intMerchant += t.merchant;
+    const teamStats = exportTeamSlugs.map((slug) => {
+      const items = p.checklist.filter((c) => c.ownerTeam === slug);
+      const completed = items.filter((c) => c.completed).length;
+      let gokwik = 0, merchant = 0;
+      items.forEach((item) => {
+        const t = calculateTimeByParty(item.responsibilityLog);
+        gokwik += t.gokwik;
+        merchant += t.merchant;
+      });
+      return { completed, total: items.length, gokwik, merchant };
     });
 
     const checklistMap = new Map<string, (typeof p.checklist)[0]>();
@@ -217,14 +208,12 @@ export const exportProjectsToCSV = (
       p.transferHistory.length,
       formatDuration(projectTime.gokwik),
       formatDuration(projectTime.merchant),
-      mintCompleted,
-      mintItems.length,
-      formatDuration(mintGokwik),
-      formatDuration(mintMerchant),
-      intCompleted,
-      intItems.length,
-      formatDuration(intGokwik),
-      formatDuration(intMerchant),
+      ...teamStats.flatMap((ts) => [
+        ts.completed,
+        ts.total,
+        formatDuration(ts.gokwik),
+        formatDuration(ts.merchant),
+      ]),
       ...checklistColumns,
     ].map(escapeCSV);
   });

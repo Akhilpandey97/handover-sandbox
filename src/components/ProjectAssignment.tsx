@@ -28,6 +28,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, CheckCircle2, FolderKanban, User } from "lucide-react";
 import { TeamRole } from "@/data/teams";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import type { Database } from "@/integrations/supabase/types";
 
 interface TeamMember {
@@ -41,10 +42,11 @@ export const ProjectAssignment = () => {
   const { projects } = useProjects();
   const queryClient = useQueryClient();
   const { teamLabels } = useLabels();
+  const { checklistTeamSlugs, firstTeamSlug } = useTeams();
   const { currentUser } = useAuth();
   const tenantId = tenantScope(currentUser?.tenantId);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
-  const [targetTeam, setTargetTeam] = useState<TeamRole>("mint");
+  const [targetTeam, setTargetTeam] = useState<TeamRole>(firstTeamSlug);
   const [targetOwner, setTargetOwner] = useState<string>("");
   const [isAssigning, setIsAssigning] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -226,9 +228,9 @@ export const ProjectAssignment = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="mint">{teamLabels.mint}</SelectItem>
-                <SelectItem value="integration">{teamLabels.integration}</SelectItem>
-                <SelectItem value="ms">{teamLabels.ms}</SelectItem>
+                {checklistTeamSlugs.map((slug) => (
+                  <SelectItem key={slug} value={slug}>{teamLabels[slug] || slug}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

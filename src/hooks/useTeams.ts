@@ -85,6 +85,20 @@ export const useTeams = () => {
   // All team slugs for checklists
   const checklistTeamSlugs = checklistTeams.map((t) => t.slug);
 
+  const firstTeamSlug = checklistTeamSlugs[0] || "mint";
+
+  const getNextTeam = (current: string): string | null => {
+    const idx = checklistTeamSlugs.indexOf(current);
+    return idx >= 0 && idx < checklistTeamSlugs.length - 1
+      ? checklistTeamSlugs[idx + 1]
+      : null;
+  };
+
+  const getPreviousTeam = (current: string): string | null => {
+    const idx = checklistTeamSlugs.indexOf(current);
+    return idx > 0 ? checklistTeamSlugs[idx - 1] : null;
+  };
+
   return {
     allTeams: checklistTeams,
     customTeams,
@@ -92,6 +106,9 @@ export const useTeams = () => {
     teamLabelMap,
     teamColorMap,
     checklistTeamSlugs,
+    firstTeamSlug,
+    getNextTeam,
+    getPreviousTeam,
     isLoading,
   };
 };

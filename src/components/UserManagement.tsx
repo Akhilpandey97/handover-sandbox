@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { tenantScope } from "@/lib/tenant-scope";
@@ -68,6 +69,7 @@ const teamColors: Record<string, string> = {
 
 export const UserManagement = () => {
   const { teamLabels } = useLabels();
+  const { firstTeamSlug } = useTeams();
   const { currentUser } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +80,7 @@ export const UserManagement = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [team, setTeam] = useState<string>("mint");
+  const [team, setTeam] = useState<string>(firstTeamSlug);
   const [importOpen, setImportOpen] = useState(false);
 
   // Set password dialog state
@@ -94,7 +96,7 @@ export const UserManagement = () => {
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
-  const [editTeam, setEditTeam] = useState<string>("mint");
+  const [editTeam, setEditTeam] = useState<string>(firstTeamSlug);
   const [isEditing, setIsEditing] = useState(false);
 
   // Delete dialog state
@@ -177,7 +179,7 @@ export const UserManagement = () => {
       setEmail("");
       setPassword("");
       setName("");
-      setTeam("mint");
+      setTeam(firstTeamSlug);
       setTimeout(() => fetchUsers(), 500);
     } catch (error: any) {
       toast.error(error.message || "Failed to create user");

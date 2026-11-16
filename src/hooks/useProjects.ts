@@ -15,8 +15,29 @@ import type {
   ProjectState,
 } from "@/data/projectsData";
 import type { TeamRole } from "@/data/teams";
+import { SYSTEM_TEAMS } from "@/hooks/useTeams";
 import { sendNotification } from "@/utils/sendNotification";
 import { logActivity } from "@/hooks/useActivityLogs";
+
+async function fetchTeamPipeline(tenantId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from("teams")
+    .select("slug, sort_order")
+    .eq("tenant_id", tenantId)
+    .order("sort_order");
+  if (data && data.length > 0) return data.map((t: any) => t.slug);
+  return SYSTEM_TEAMS.map((t) => t.slug);
+}
+
+function pipelineNextTeam(pipeline: string[], current: string): string | null {
+  const idx = pipeline.indexOf(current);
+  return idx >= 0 && idx < pipeline.length - 1 ? pipeline[idx + 1] : null;
+}
+
+function pipelinePrevTeam(pipeline: string[], current: string): string | null {
+  const idx = pipeline.indexOf(current);
+  return idx > 0 ? pipeline[idx - 1] : null;
+}
 
 // Transform database row to Project type
 const transformDbProject = (row: any): Project => ({
@@ -753,6 +774,7 @@ export const useAcceptProject = () => {
 export const useTransferProject = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const teamLabels = useLabelsOptional()?.teamLabels ?? {};
 
   return useMutation({
@@ -767,11 +789,7 @@ export const useTransferProject = () => {
     }) => {
       if (!currentUser) throw new Error("Not authenticated");
 
-      const getNextTeam = (current: TeamRole): TeamRole | null => {
-        if (current === "mint") return "integration";
-        if (current === "integration") return "ms";
-        return null;
-      };
+      const pipeline = await fetchTeamPipeline(tenantId);
 
       // Always use the project's actual current team, not the user's role
       const { data: projectRow } = await supabase
@@ -781,18 +799,17 @@ export const useTransferProject = () => {
         .single();
       const projectCurrentTeam = (projectRow?.current_owner_team || currentUser.team) as TeamRole;
 
-      const nextTeam = getNextTeam(projectCurrentTeam);
+      const nextTeam = pipelineNextTeam(pipeline, projectCurrentTeam);
       if (!nextTeam) throw new Error("Cannot transfer from this team");
 
-      const nextStage =
-        nextTeam === "integration" ? "integration" : nextTeam === "ms" ? "ms" : undefined;
+      const nextStage = nextTeam;
 
       // Update project with new owner
       const { error: projectError } = await supabase
         .from("projects")
         .update({
-          current_owner_team: nextTeam,
-          current_stage: nextStage,
+          current_owner_team: nextTeam as any,
+          current_stage: nextStage as any,
           pending_acceptance: true,
           assigned_owner: assigneeId || null,
         })
@@ -868,6 +885,7 @@ export const useTransferProject = () => {
 export const useRejectProject = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
+  const tenantId = tenantScope(currentUser?.tenantId);
   const teamLabels = useLabelsOptional()?.teamLabels ?? {};
 
   return useMutation({
@@ -895,17 +913,13 @@ export const useRejectProject = () => {
         .limit(1)
         .maybeSingle();
 
-      const fallbackPreviousTeam = (current: TeamRole): TeamRole | null => {
-        if (current === "integration") return "mint";
-        if (current === "ms") return "integration";
-        return null;
-      };
+      const pipeline = await fetchTeamPipeline(tenantId);
 
       const previousTeam = ((lastTransfer?.from_team as TeamRole | undefined) ||
-        fallbackPreviousTeam(currentTeam)) as TeamRole | null;
+        pipelinePrevTeam(pipeline, currentTeam)) as TeamRole | null;
       if (!previousTeam) throw new Error("No previous team to send this project back to");
 
-      const previousStage = previousTeam as "mint" | "integration" | "ms";
+      const previousStage = previousTeam;
 
       // Look up the previous assigned_owner from the project's history
       let previousOwnerId: string | null = null;
@@ -925,8 +939,8 @@ export const useRejectProject = () => {
       const { error: projectError } = await supabase
         .from("projects")
         .update({
-          current_owner_team: previousTeam,
-          current_stage: previousStage,
+          current_owner_team: previousTeam as any,
+          current_stage: previousStage as any,
           pending_acceptance: false,
           assigned_owner: previousOwnerId,
         })

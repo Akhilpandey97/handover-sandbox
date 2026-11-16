@@ -104,14 +104,23 @@ async function POST({ request }: { request: Request }): Promise<Response> {
     }
   }
 
+  // Resolve the first pipeline team for new projects
+  const { data: pipelineTeams } = await admin
+    .from("teams")
+    .select("slug")
+    .eq("tenant_id", auth.tenantId)
+    .order("sort_order")
+    .limit(1);
+  const firstTeam = (pipelineTeams as { slug: string }[] | null)?.[0]?.slug || "mint";
+
   const row = {
     ...toProjectRow(input, ownerId),
     tenant_id: auth.tenantId,
     mid: input.mid || slugMid(input.merchant_name),
     kick_off_date: input.kick_off_date || new Date().toISOString().slice(0, 10),
     project_state: "not_started",
-    current_stage: "mint",
-    current_owner_team: "mint",
+    current_stage: firstTeam,
+    current_owner_team: firstTeam,
   };
 
   const { data: created, error } = await admin

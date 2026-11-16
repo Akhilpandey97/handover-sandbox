@@ -90,6 +90,7 @@ export const ChecklistManagement = () => {
     tenantScope(currentUser?.tenantId),
   );
   const { teamLabels } = useLabels();
+  const { checklistTeamSlugs, teamLabelMap, teamColorMap, customTeams, allTeams } = useTeams();
 
   // Tenants this admin may write to: all tenants for super admins, own tenant otherwise.
   const resolveTargetTenantIds = async (): Promise<string[]> => {
@@ -104,7 +105,7 @@ export const ChecklistManagement = () => {
   const setNameById = new Map(sets.map((s) => [s.id, s.name]));
   const defaultSetId = sets.find((s) => s.is_default)?.id ?? sets[0]?.id ?? null;
 
-  const [activeTeam, setActiveTeam] = useState<TeamRole>("mint");
+  const [activeTeam, setActiveTeam] = useState<TeamRole>(checklistTeamSlugs[0] || "mint");
   const [editingItem, setEditingItem] = useState<ChecklistTemplate | null>(null);
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemDuration, setNewItemDuration] = useState("");
@@ -366,14 +367,14 @@ export const ChecklistManagement = () => {
       const text = event.target?.result as string;
       const lines = text.split("\n").filter((l) => l.trim());
       // Expect CSV: title,team (team is optional, defaults to activeTeam)
-      const teamAliases: Record<string, TeamRole> = {
-        mint: "mint",
-        integration: "integration",
-        ms: "ms",
-        MINT: "mint",
-        Integration: "integration",
-        MS: "ms",
-      };
+      const teamAliases: Record<string, string> = {};
+      for (const slug of checklistTeamSlugs) {
+        teamAliases[slug] = slug;
+        teamAliases[slug.toUpperCase()] = slug;
+        teamAliases[slug.charAt(0).toUpperCase() + slug.slice(1)] = slug;
+        const label = teamLabelMap[slug];
+        if (label) { teamAliases[label] = slug; teamAliases[label.toLowerCase()] = slug; }
+      }
       const items: { title: string; team: TeamRole }[] = [];
       const startIdx = lines[0]?.toLowerCase().includes("title") ? 1 : 0;
       for (let i = startIdx; i < lines.length; i++) {
@@ -614,8 +615,7 @@ export const ChecklistManagement = () => {
     });
   };
 
-  const { checklistTeamSlugs, teamLabelMap, customTeams, allTeams } = useTeams();
-  const teams = checklistTeamSlugs.length > 0 ? checklistTeamSlugs : ["mint", "integration", "ms"];
+  const teams = checklistTeamSlugs;
   const getLabel = (slug: string) =>
     teamLabels[slug as keyof typeof teamLabels] || teamLabelMap[slug] || slug;
 
@@ -1045,14 +1045,7 @@ export const ChecklistManagement = () => {
                 >
                   <div
                     className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                    style={{
-                      backgroundColor:
-                        team === "mint"
-                          ? "#3b82f6"
-                          : team === "integration"
-                            ? "#a855f7"
-                            : "#10b981",
-                    }}
+                    style={{ backgroundColor: teamColorMap[team] || "#64748b" }}
                   >
                     {(teamLabels[team] || team).charAt(0)}
                   </div>
@@ -1284,8 +1277,8 @@ export const TeamManagementSettings = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
   const { teamLabels } = useLabels();
-  const { checklistTeamSlugs, teamLabelMap, customTeams, allTeams } = useTeams();
-  const teams = checklistTeamSlugs.length > 0 ? checklistTeamSlugs : ["mint", "integration", "ms"];
+  const { checklistTeamSlugs, teamLabelMap, teamColorMap: teamColors2, customTeams, allTeams } = useTeams();
+  const teams = checklistTeamSlugs;
   const getLabel = (slug: string) =>
     teamLabels[slug as keyof typeof teamLabels] || teamLabelMap[slug] || slug;
 
@@ -1357,7 +1350,7 @@ export const TeamManagementSettings = () => {
             <div className="space-y-2">
               {teams.map((team) => (
                 <div key={team} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-                  <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: team === "mint" ? "#3b82f6" : team === "integration" ? "#a855f7" : "#10b981" }}>
+                  <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: teamColors2[team] || "#64748b" }}>
                     {(getLabel(team)).charAt(0)}
                   </div>
                   <span className="font-medium flex-1">{getLabel(team)}</span>

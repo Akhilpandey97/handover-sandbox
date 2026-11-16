@@ -23,6 +23,7 @@ import { Project, createDefaultChecklist } from "@/data/projectsData";
 import { useProjects } from "@/contexts/ProjectContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLabels } from "@/contexts/LabelsContext";
+import { useTeams } from "@/hooks/useTeams";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { apiAuthHeaders } from "@/lib/api-invoke";
@@ -124,6 +125,7 @@ export const EmailToProjectDialog = ({
   const { addProject } = useProjects();
   const { currentUser } = useAuth();
   const { getLabel } = useLabels();
+  const { firstTeamSlug } = useTeams();
 
   const emailFields = getAllEmailFields(email);
 
@@ -246,9 +248,9 @@ export const EmailToProjectDialog = ({
       id: crypto.randomUUID(),
       merchantName,
       mid: getFinalValue("mid") || `EMAIL-${email.gmail_message_id.substring(0, 8)}`,
-      currentStage: "mint",
-      currentOwnerTeam: "mint",
-      teamHistory: ["mint"],
+      currentStage: firstTeamSlug as any,
+      currentOwnerTeam: firstTeamSlug as any,
+      teamHistory: [firstTeamSlug] as any,
       arr: Number(getFinalValue("arr")) || 0,
       txnsPerDay: Number(getFinalValue("txnsPerDay")) || 0,
       aov: Number(getFinalValue("aov")) || 0,
@@ -286,7 +288,7 @@ export const EmailToProjectDialog = ({
           id: `r-${Date.now()}`,
           party: "gokwik" as const,
           startedAt: new Date().toISOString(),
-          stage: "mint" as const,
+          stage: firstTeamSlug as any,
         },
       ],
       assignedOwner: undefined,

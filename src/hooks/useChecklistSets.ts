@@ -59,8 +59,9 @@ export function getStageOptions(stageLabels: Record<string, string>) {
   return STAGE_SLUGS.map((v) => ({ value: v, label: stageLabels[v] || v }));
 }
 
-export function getTeamOptions(teamLabels: Record<string, string>) {
-  return TEAM_SLUGS.map((v) => ({ value: v, label: teamLabels[v] || v }));
+export function getTeamOptions(teamLabels: Record<string, string>, slugs?: string[]) {
+  const keys = slugs ?? (TEAM_SLUGS as readonly string[]);
+  return keys.map((v) => ({ value: v, label: teamLabels[v] || v }));
 }
 
 /** @deprecated use getStageOptions(stageLabels) for dynamic labels */

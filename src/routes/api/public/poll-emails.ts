@@ -275,6 +275,15 @@ async function handler(req: Request): Promise<Response> {
       profByEmail.set(String(p.email).toLowerCase(), { id: p.id, name: p.name }),
     );
 
+    // Resolve the first pipeline team for new projects (falls back to "mint")
+    const { data: pipelineTeams } = await supabase
+      .from("teams")
+      .select("slug")
+      .eq("tenant_id", tenantId)
+      .order("sort_order")
+      .limit(1);
+    const firstTeam = (pipelineTeams as { slug: string }[] | null)?.[0]?.slug || "mint";
+
     const { data: existingProjects } = await supabase
       .from("projects")
       .select("merchant_name")
@@ -413,8 +422,8 @@ async function handler(req: Request): Promise<Response> {
             txns_per_day: txnsPerDay || 0,
             aov: aov || 0,
             category: category || null,
-            current_stage: "mint",
-            current_owner_team: "mint",
+            current_stage: firstTeam,
+            current_owner_team: firstTeam,
             current_responsibility: "neutral",
             pending_acceptance: false,
             project_state: "not_started",
