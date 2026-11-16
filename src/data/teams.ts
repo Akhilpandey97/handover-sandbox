@@ -66,3 +66,7 @@ export const teamColors: Record<TeamRole, string> = {
 /** Safe colour class for any team slug, including custom teams created in Settings. */
 export const teamColorClass = (slug?: string | null): string =>
   (slug && teamColors[slug]) || "bg-slate-500";
+
+/** Safe label for any team slug; falls back to the slug itself for custom teams. */
+export const teamLabelSafe = (slug?: string | null): string =>
+  (slug && teamLabels[slug]) || slug || "";

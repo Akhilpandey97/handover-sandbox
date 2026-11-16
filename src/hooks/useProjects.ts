@@ -114,7 +114,7 @@ const transformDbChecklistItem = (row: any): ProjectChecklist => ({
   completedBy: row.completed_by || undefined,
   completedAt: row.completed_at || undefined,
   stage: row.stage ?? null,
-  ownerTeam: (row.owner_team || "mint").toLowerCase() as TeamRole,
+  ownerTeam: (row.owner_team || "").toLowerCase() as TeamRole,
   currentResponsibility: (row.current_responsibility as ResponsibilityParty) || "neutral",
   responsibilityLog: row.responsibility_logs || [],
   comment: row.comment || undefined,
@@ -808,8 +808,8 @@ export const useTransferProject = () => {
       const { error: projectError } = await supabase
         .from("projects")
         .update({
-          current_owner_team: nextTeam as any,
-          current_stage: nextStage as any,
+          current_owner_team: nextTeam,
+          current_stage: nextStage,
           pending_acceptance: true,
           assigned_owner: assigneeId || null,
         })
@@ -939,8 +939,8 @@ export const useRejectProject = () => {
       const { error: projectError } = await supabase
         .from("projects")
         .update({
-          current_owner_team: previousTeam as any,
-          current_stage: previousStage as any,
+          current_owner_team: previousTeam,
+          current_stage: previousStage,
           pending_acceptance: false,
           assigned_owner: previousOwnerId,
         })

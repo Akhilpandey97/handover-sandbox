@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -15,6 +15,7 @@ import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertCircle } from "luc
 import { supabase } from "@/integrations/supabase/client";
 import { tenantScope } from "@/lib/tenant-scope";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTeams } from "@/hooks/useTeams";
 import { FieldMappingDialog } from "./FieldMappingDialog";
 
 interface CSVUploadDialogProps {
@@ -28,27 +29,37 @@ interface ImportResult {
   error?: string;
 }
 
-// Map CSV stage to valid enum values; fallbackSlug is the tenant's first pipeline team
-const mapStageToEnum = (stage: string, fallbackSlug = "mint"): string => {
-  const stageMap: Record<string, string> = {
-    "feasibility analysis": "mint",
-    scoping: "mint",
-    "api build": "mint",
-    "api validation": "mint",
-    integration: "integration",
-    "sandbox testing": "integration",
-    "production testing": "integration",
-    "prod testing": "integration",
-    "go-live": "ms",
-    golive: "ms",
-    completed: "completed",
-  };
+function buildStageAliases(
+  teamSlugs: string[],
+  teamLabels: Record<string, string>,
+): Record<string, string> {
+  const map: Record<string, string> = { completed: "completed" };
+  for (const slug of teamSlugs) {
+    map[slug] = slug;
+    map[slug.toLowerCase()] = slug;
+    const label = teamLabels[slug];
+    if (label) {
+      map[label.toLowerCase()] = slug;
+    }
+  }
+  return map;
+}
+
+const mapStageToEnum = (
+  stage: string,
+  aliases: Record<string, string>,
+  fallbackSlug: string,
+): string => {
   const normalized = stage.toLowerCase().trim();
-  return stageMap[normalized] || fallbackSlug;
+  return aliases[normalized] || fallbackSlug;
 };
 
-const mapStageToTeam = (stage: string, fallbackSlug = "mint"): string => {
-  const mapped = mapStageToEnum(stage, fallbackSlug);
+const mapStageToTeam = (
+  stage: string,
+  aliases: Record<string, string>,
+  fallbackSlug: string,
+): string => {
+  const mapped = mapStageToEnum(stage, aliases, fallbackSlug);
   if (mapped === "completed") return fallbackSlug;
   return mapped;
 };
@@ -104,7 +115,13 @@ const parseCSVRows = (content: string): { headers: string[]; rows: string[][] } 
 };
 
 // Build project from a row using the field mapping
-const buildProject = (row: string[], headers: string[], mapping: Record<string, string>) => {
+const buildProject = (
+  row: string[],
+  headers: string[],
+  mapping: Record<string, string>,
+  stageAliases: Record<string, string>,
+  fallbackSlug: string,
+) => {
   const getVal = (fieldKey: string): string => {
     const csvHeader = Object.entries(mapping).find(([, v]) => v === fieldKey)?.[0];
     if (!csvHeader) return "";
@@ -118,7 +135,7 @@ const buildProject = (row: string[], headers: string[], mapping: Record<string, 
   let mid = getVal("mid");
   if (!mid) mid = `mid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  const stage = getVal("current_stage") || "mint";
+  const stage = getVal("current_stage") || fallbackSlug;
 
   // Extract custom field values (keys starting with "custom_")
   const customFieldValues: Record<string, string> = {};
@@ -151,14 +168,19 @@ const buildProject = (row: string[], headers: string[], mapping: Record<string, 
     kick_off_date: getVal("kick_off_date") || new Date().toISOString().split("T")[0],
     expected_go_live_date: getVal("expected_go_live_date") || "",
     go_live_percent: parseInt(getVal("go_live_percent")) || 0,
-    current_stage: mapStageToEnum(stage),
-    current_owner_team: mapStageToTeam(stage),
+    current_stage: mapStageToEnum(stage, stageAliases, fallbackSlug),
+    current_owner_team: mapStageToTeam(stage, stageAliases, fallbackSlug),
     _customFieldValues: customFieldValues,
   };
 };
 
 export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) => {
   const { currentUser } = useAuth();
+  const { checklistTeamSlugs, teamLabelMap, firstTeamSlug } = useTeams();
+  const stageAliases = useMemo(
+    () => buildStageAliases(checklistTeamSlugs, teamLabelMap),
+    [checklistTeamSlugs, teamLabelMap],
+  );
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -208,7 +230,7 @@ export const CSVUploadDialog = ({ open, onOpenChange }: CSVUploadDialogProps) =>
     try {
       const { headers, rows } = parseCSVRows(parsedContent);
       const projects = rows
-        .map((row) => buildProject(row, headers, mapping))
+        .map((row) => buildProject(row, headers, mapping, stageAliases, firstTeamSlug))
         .filter(Boolean) as NonNullable<ReturnType<typeof buildProject>>[];
 
       if (projects.length === 0) {

@@ -1,14 +1,10 @@
 import { getActiveFunnelStages, resolveFunnelStage } from "@/data/funnelConfig";
 import { TeamRole } from "./teams";
 
-export type ProjectStage = "mint" | "integration" | "ms" | "completed";
+export type ProjectStage = "mint" | "integration" | "ms" | "completed" | (string & {});
 
 /** @deprecated stage column removed from checklist tables — kept only for ResponsibilityLog */
-export const teamToProjectStage = (team: string): ProjectStage => {
-  if (team === "mint" || team === "integration" || team === "ms") return team;
-  if (team === "completed") return "completed";
-  return team as ProjectStage;
-};
+export const teamToProjectStage = (team: string): ProjectStage => team;
 export type ResponsibilityParty = "gokwik" | "merchant" | "neutral";
 export type ProjectState = "not_started" | "on_hold" | "in_progress" | "live" | "blocked";
 

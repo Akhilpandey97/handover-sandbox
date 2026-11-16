@@ -8,6 +8,7 @@ import { getTenantIntegrations, resendFrom, resendReplyTo } from "@/lib/tenant-i
 import { brdUrl } from "@/lib/app-links.server";
 import { notifyAssignment } from "@/lib/notify.server";
 import { buddyLabels } from "@/lib/buddy/labels.server";
+import { teamNameMap } from "@/lib/buddy/setup-read.server";
 import { kickWorkflows } from "@/lib/workflows.server";
 
 /**
@@ -165,14 +166,13 @@ async function personName(c: BuddyCaller, id: string | null | undefined) {
   return (data as { name?: string } | null)?.name || null;
 }
 
-const FIELDS: Record<
-  string,
-  {
-    label: string;
-    kind: "enum" | "text" | "number" | "date" | "percent" | "note";
-    values?: Record<string, string>;
-  }
-> = {
+type FieldDef = {
+  label: string;
+  kind: "enum" | "text" | "number" | "date" | "percent" | "note";
+  values?: Record<string, string>;
+};
+
+const FIELDS: Record<string, FieldDef> = {
   project_state: { label: "State", kind: "enum", values: STATE_LABELS },
   current_stage: { label: "Stage", kind: "enum", values: STAGE_LABELS },
   platform: { label: "Platform", kind: "text" },
@@ -190,6 +190,12 @@ const FIELDS: Record<
   current_stage_comment: { label: "Stage comment", kind: "note" },
 };
 
+async function fieldsForCaller(c: BuddyCaller): Promise<Record<string, FieldDef>> {
+  const teamNames = await teamNameMap(c).catch(() => ({} as Record<string, string>));
+  const stageValues = { ...STAGE_LABELS, ...teamNames };
+  return { ...FIELDS, current_stage: { ...FIELDS.current_stage, values: stageValues } };
+}
+
 const fmtDate = (v: unknown) => {
   if (!v) return "Not set";
   const d = new Date(String(v));
@@ -198,8 +204,8 @@ const fmtDate = (v: unknown) => {
     : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 };
 
-function showValue(field: string, v: unknown): string {
-  const f = FIELDS[field];
+function showValue(field: string, v: unknown, fields: Record<string, FieldDef> = FIELDS): string {
+  const f = fields[field];
   if (v === null || v === undefined || v === "") return "Not set";
   if (!f) return String(v);
   if (f.kind === "enum") return f.values?.[String(v)] || String(v);
@@ -209,8 +215,8 @@ function showValue(field: string, v: unknown): string {
 }
 
 /** Validate and coerce a value for an updatable field. */
-function coerce(field: string, value: unknown): unknown {
-  const f = FIELDS[field];
+function coerce(field: string, value: unknown, fields: Record<string, FieldDef> = FIELDS): unknown {
+  const f = fields[field];
   if (!f) fail(`${field.replace(/_/g, " ")} can't be changed by Buddy.`);
   const s = value === null || value === undefined ? "" : String(value).trim();
   switch (f!.kind) {
@@ -444,9 +450,10 @@ const ACTIONS: Record<string, ActionDef> = {
   update_project_field: {
     label: "Update project",
     async preview(c, p) {
-      const f = FIELDS[p.field];
+      const fields = await fieldsForCaller(c);
+      const f = fields[p.field];
       if (!f) fail(`${String(p.field).replace(/_/g, " ")} can't be changed by Buddy.`);
-      const value = coerce(p.field, p.value);
+      const value = coerce(p.field, p.value, fields);
       const project = await loadProject(c, p.project_id, `id, merchant_name, ${p.field}`);
       if (f!.kind === "note") {
         return {
@@ -465,17 +472,18 @@ const ACTIONS: Record<string, ActionDef> = {
         rows: [
           {
             label: f!.label,
-            before: showValue(p.field, project[p.field]),
-            after: showValue(p.field, value),
+            before: showValue(p.field, project[p.field], fields),
+            after: showValue(p.field, value, fields),
           },
         ],
         undoable: true,
       };
     },
     async execute(c, p) {
-      const f = FIELDS[p.field];
+      const fields = await fieldsForCaller(c);
+      const f = fields[p.field];
       if (!f) fail(`${String(p.field).replace(/_/g, " ")} can't be changed by Buddy.`);
-      const value = coerce(p.field, p.value);
+      const value = coerce(p.field, p.value, fields);
       const project = await loadProject(c, p.project_id, `id, merchant_name, ${p.field}`);
       if (f!.kind === "note") {
         await c.client.from("project_comment_logs").insert({
@@ -515,7 +523,7 @@ const ACTIONS: Record<string, ActionDef> = {
         .eq("tenant_id", c.tenantId);
       if (error) throw error;
       return {
-        message: `${f!.label} on ${project.merchant_name} is now ${showValue(p.field, value)}.`,
+        message: `${f!.label} on ${project.merchant_name} is now ${showValue(p.field, value, fields)}.`,
         link: projectLink(project.id),
         undo: {
           table: "projects",
@@ -523,7 +531,7 @@ const ACTIONS: Record<string, ActionDef> = {
           rows: [{ id: project.id, before: { [p.field]: project[p.field] ?? null } }],
         },
         log: {
-          description: `Buddy changed ${f!.label.toLowerCase()} on ${project.merchant_name} from ${showValue(p.field, project[p.field])} to ${showValue(p.field, value)}`,
+          description: `Buddy changed ${f!.label.toLowerCase()} on ${project.merchant_name} from ${showValue(p.field, project[p.field], fields)} to ${showValue(p.field, value, fields)}`,
           category: "project",
           entityType: "project",
           entityId: project.id,
@@ -536,10 +544,11 @@ const ACTIONS: Record<string, ActionDef> = {
     label: "Update several projects",
     portfolioOnly: true,
     async preview(c, p, ctx) {
-      const f = FIELDS[p.field];
+      const fields = await fieldsForCaller(c);
+      const f = fields[p.field];
       if (!f || f.kind === "note")
         fail(`${String(p.field).replace(/_/g, " ")} can't be changed in bulk.`);
-      const value = coerce(p.field, p.value);
+      const value = coerce(p.field, p.value, fields);
       const ids = Array.isArray(p.project_ids) ? p.project_ids.map(String) : [];
       if (ids.length === 0) fail("No projects were given.");
       const { data } = await c.client
@@ -552,11 +561,11 @@ const ACTIONS: Record<string, ActionDef> = {
       return {
         action: "bulk_update_projects",
         title: `Change ${f!.label.toLowerCase()}`,
-        rows: [{ label: f!.label, after: showValue(p.field, value) }],
+        rows: [{ label: f!.label, after: showValue(p.field, value, fields) }],
         count: rows.length,
         items: rows
           .slice(0, 12)
-          .map((r) => ({ label: r.merchant_name, detail: showValue(p.field, r[p.field]) })),
+          .map((r) => ({ label: r.merchant_name, detail: showValue(p.field, r[p.field], fields) })),
         warnings: [
           ...(missing > 0
             ? [`${missing} of the requested projects aren't in this workspace and will be skipped.`]
@@ -572,10 +581,11 @@ const ACTIONS: Record<string, ActionDef> = {
       };
     },
     async execute(c, p, ctx) {
-      const f = FIELDS[p.field];
+      const fields = await fieldsForCaller(c);
+      const f = fields[p.field];
       if (!f || f.kind === "note")
         fail(`${String(p.field).replace(/_/g, " ")} can't be changed in bulk.`);
-      const value = coerce(p.field, p.value);
+      const value = coerce(p.field, p.value, fields);
       const ids = Array.isArray(p.project_ids) ? p.project_ids.map(String) : [];
       const { data } = await c.client
         .from("projects")
@@ -597,14 +607,14 @@ const ACTIONS: Record<string, ActionDef> = {
         );
       if (error) throw error;
       return {
-        message: `${f!.label} is now ${showValue(p.field, value)} on ${rows.length} projects.`,
+        message: `${f!.label} is now ${showValue(p.field, value, fields)} on ${rows.length} projects.`,
         undo: {
           table: "projects",
           op: "update",
           rows: rows.map((r) => ({ id: r.id, before: { [p.field]: r[p.field] ?? null } })),
         },
         log: {
-          description: `Buddy changed ${f!.label.toLowerCase()} to ${showValue(p.field, value)} on ${rows.length} projects`,
+          description: `Buddy changed ${f!.label.toLowerCase()} to ${showValue(p.field, value, fields)} on ${rows.length} projects`,
           category: "project",
           entityType: "project",
           entityId: rows.map((r) => r.id).join(","),

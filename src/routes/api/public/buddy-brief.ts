@@ -307,7 +307,7 @@ async function handler(req: Request): Promise<Response> {
           dueDate: i.due_date ?? null,
           isTask: !!i.is_task,
           merchant: i.current_responsibility === "merchant",
-          ownerTeam: (i.owner_team || "mint").toLowerCase(),
+          ownerTeam: (i.owner_team || "").toLowerCase(),
         });
       }
       if (!data || data.length < PAGE) break;

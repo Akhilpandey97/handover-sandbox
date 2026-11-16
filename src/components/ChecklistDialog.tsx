@@ -106,10 +106,6 @@ import {
 const shortDate = (value: string | Date) =>
   new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
-/** Stage slugs in display order */
-
-const SYSTEM_STAGE_ORDER = ["mint", "integration", "ms", "completed"];
-
 type ItemStatus = "completed" | "overdue" | "in_progress" | "upcoming" | "todo";
 
 const STATUS_CONFIG: Record<ItemStatus, { label: string; className: string }> = {

@@ -244,7 +244,7 @@ export const ProjectWorkspaceView = ({
     (userTeamSlug === project.currentOwnerTeam || crossTeamRoles.includes(userTeamSlug)) &&
     !project.pendingAcceptance &&
     project.currentStage !== "completed" &&
-    project.currentOwnerTeam !== "ms";
+    getNextTeam(project.currentOwnerTeam) !== null;
   const isTransferReady = canTransfer && allCurrentTeamChecklistCompleted;
   const canAssignOwner = crossTeamRoles.includes(userTeamSlug);
   const openCurrentTeamItems = currentTeamChecklist.filter((item) => !item.completed).length;

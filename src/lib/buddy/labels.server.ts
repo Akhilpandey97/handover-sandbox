@@ -28,6 +28,7 @@ export async function buddyLabels(caller: BuddyCaller): Promise<BuddyLabels> {
   ]);
   const stage: Record<string, string> = {
     ...STAGE_LABELS,
+    ...teams,
     mint: teams.mint || branding.label("stage_mint") || STAGE_LABELS.mint,
     integration:
       teams.integration || branding.label("stage_integration") || STAGE_LABELS.integration,

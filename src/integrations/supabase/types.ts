@@ -3418,10 +3418,10 @@ export type Database = {
     };
     Enums: {
       checklist_status: "todo" | "in_progress" | "blocked" | "done";
-      project_stage: "mint" | "integration" | "ms" | "completed";
+      project_stage: "mint" | "integration" | "ms" | "completed" | (string & {});
       project_state: "not_started" | "on_hold" | "in_progress" | "live" | "blocked";
       responsibility_party: "gokwik" | "merchant" | "neutral";
-      team_role: "mint" | "integration" | "ms" | "manager" | "super_admin" | "gokwik_general";
+      team_role: "mint" | "integration" | "ms" | "manager" | "super_admin" | "gokwik_general" | (string & {});
     };
     CompositeTypes: {
       [_ in never]: never;

@@ -127,7 +127,7 @@ const STAGE_RANK: Record<string, number> = {
 const stageRank = (v: string | undefined | null): number => {
   if (!v) return -1;
   const k = String(v).toLowerCase().trim();
-  return STAGE_RANK[k] ?? -1;
+  return STAGE_RANK[k] ?? 2;
 };
 const LOWLIGHT_KEYWORDS_RX =
   /\b(not getting any update|no response|no responses|unresponsive|following up|awaiting response|chasing|reminder sent|haven't heard|still waiting|no eta)\b/i;

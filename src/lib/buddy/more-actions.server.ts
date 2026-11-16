@@ -22,7 +22,19 @@ import { buddyLabels } from "@/lib/buddy/labels.server";
  */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const TEAM_ORDER: Record<string, string> = { mint: "integration", integration: "ms" };
+
+async function loadTeamOrder(c: BuddyCaller): Promise<Record<string, string>> {
+  const { data } = await c.client
+    .from("teams")
+    .select("slug")
+    .eq("tenant_id", c.tenantId)
+    .order("sort_order");
+  const slugs = (data || []).map((t: any) => t.slug as string);
+  if (slugs.length === 0) return { mint: "integration", integration: "ms" };
+  const map: Record<string, string> = {};
+  for (let i = 0; i < slugs.length - 1; i++) map[slugs[i]] = slugs[i + 1];
+  return map;
+}
 const RISK_CATEGORIES: Record<string, string> = {
   merchant_dependency: "Merchant dependency",
   external_dependency: "External dependency",
@@ -281,9 +293,8 @@ const MORE: Record<string, ActionDef> = {
         p.project_id,
         "id, merchant_name, current_owner_team, assigned_owner",
       );
-      // The workspace's own team names, not the built-in ones.
-      const TEAM_LABELS = await teamNameMap(c);
-      const next = TEAM_ORDER[project.current_owner_team];
+      const [TEAM_LABELS, teamOrder] = await Promise.all([teamNameMap(c), loadTeamOrder(c)]);
+      const next = teamOrder[project.current_owner_team];
       if (!next)
         fail(
           `${project.merchant_name} is with ${TEAM_LABELS[project.current_owner_team] || project.current_owner_team}, which has no next team.`,
@@ -311,8 +322,8 @@ const MORE: Record<string, ActionDef> = {
     },
     async execute(c, p, ctx) {
       const project = await loadProject(c, p.project_id, "id, merchant_name, current_owner_team");
-      const TEAM_LABELS = await teamNameMap(c);
-      const next = TEAM_ORDER[project.current_owner_team];
+      const [TEAM_LABELS, teamOrder] = await Promise.all([teamNameMap(c), loadTeamOrder(c)]);
+      const next = teamOrder[project.current_owner_team];
       if (!next) fail(`${project.merchant_name} has no next team to transfer to.`);
       const assignee = p.assignee_id ? await loadPerson(c, p.assignee_id) : null;
       const { error } = await c.client
