@@ -8,6 +8,7 @@ import {
 } from "@/data/projectsData";
 import { useLabels } from "@/contexts/LabelsContext";
 import { useCustomFields, useCustomFieldValues } from "@/hooks/useCustomFields";
+import { useTeams } from "@/hooks/useTeams";
 import {
   useChecklistSets,
   type ChecklistSet,
@@ -97,7 +98,8 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
   const { fields: customFields } = useCustomFields();
   const { saveValues } = useCustomFieldValues(undefined);
   const { sets, rules, templates: allTemplates } = useChecklistSets();
-  const [project, setProject] = useState<Project>(createDefaultProject());
+  const { firstTeamSlug } = useTeams();
+  const [project, setProject] = useState<Project>(createDefaultProject(undefined, firstTeamSlug));
   const [customDraft, setCustomDraft] = useState<Record<string, string>>({});
   const [checklistSetOverride, setChecklistSetOverride] = useState<string>("__auto__");
   const [excludedTemplateIds, setExcludedTemplateIds] = useState<Set<string>>(new Set());
@@ -207,7 +209,7 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
     if (Object.keys(customDraft).length > 0) {
       await saveValues(project.id, customDraft);
     }
-    setProject(createDefaultProject());
+    setProject(createDefaultProject(undefined, firstTeamSlug));
     setCustomDraft({});
     setChecklistSetOverride("__auto__");
     setExcludedTemplateIds(new Set());
@@ -215,7 +217,7 @@ export const AddProjectDialog = ({ open, onOpenChange, onSave }: AddProjectDialo
   };
 
   const handleCancel = () => {
-    setProject(createDefaultProject());
+    setProject(createDefaultProject(undefined, firstTeamSlug));
     setCustomDraft({});
     setChecklistSetOverride("__auto__");
     setExcludedTemplateIds(new Set());

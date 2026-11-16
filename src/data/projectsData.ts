@@ -366,7 +366,7 @@ export const createDefaultChecklist = (): ProjectChecklist[] => {
   return checklist;
 };
 
-export const createDefaultProject = (overrides?: Partial<Project>): Project => ({
+export const createDefaultProject = (overrides?: Partial<Project>, firstTeamSlug: string = "mint"): Project => ({
   id: `proj-${Date.now()}`,
   merchantName: "",
   mid: "",
@@ -375,9 +375,9 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
   txnsPerDay: 0,
   aov: 0,
   category: "",
-  currentStage: "mint",
-  currentOwnerTeam: "mint",
-  teamHistory: ["mint"],
+  currentStage: firstTeamSlug as ProjectStage,
+  currentOwnerTeam: firstTeamSlug,
+  teamHistory: [firstTeamSlug],
   pendingAcceptance: false,
   goLivePercent: 0,
   links: {
@@ -410,7 +410,7 @@ export const createDefaultProject = (overrides?: Partial<Project>): Project => (
       id: `r-${Date.now()}`,
       party: "gokwik",
       startedAt: new Date().toISOString(),
-      stage: "mint",
+      stage: firstTeamSlug,
     },
   ],
   ...overrides,
