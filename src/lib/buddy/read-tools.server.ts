@@ -27,9 +27,13 @@ export interface ReadToolResult {
   sources: BuddySource[];
 }
 
-export const READ_TOOL_DEFS = [
+const DEFAULT_STAGES = ["mint", "integration", "ms", "completed"];
+
+export function buildReadToolDefs(stageSlugs?: string[]) {
+  const stages = stageSlugs && stageSlugs.length > 0 ? stageSlugs : DEFAULT_STAGES;
+  return [
   {
-    type: "function",
+    type: "function" as const,
     function: {
       name: "search_projects",
       description:
@@ -42,7 +46,7 @@ export const READ_TOOL_DEFS = [
             type: "string",
             enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
           },
-          stage: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
+          stage: { type: "string", enum: stages },
           owner_id: { type: "string", description: "Only projects owned by this user id" },
           platform: { type: "string" },
           go_live_from: {
@@ -60,7 +64,7 @@ export const READ_TOOL_DEFS = [
     },
   },
   {
-    type: "function",
+    type: "function" as const,
     function: {
       name: "get_project",
       description:
@@ -73,7 +77,7 @@ export const READ_TOOL_DEFS = [
     },
   },
   {
-    type: "function",
+    type: "function" as const,
     function: {
       name: "portfolio_stats",
       description:
@@ -89,14 +93,14 @@ export const READ_TOOL_DEFS = [
             type: "string",
             enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
           },
-          stage: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
+          stage: { type: "string", enum: stages },
         },
         required: ["group_by"],
       },
     },
   },
   {
-    type: "function",
+    type: "function" as const,
     function: {
       name: "list_people",
       description:
@@ -110,7 +114,10 @@ export const READ_TOOL_DEFS = [
       },
     },
   },
-] as const;
+  ];
+}
+
+export const READ_TOOL_DEFS = buildReadToolDefs();
 
 export const READ_TOOL_NAMES = new Set<string>(READ_TOOL_DEFS.map((t) => t.function.name));
 

@@ -8,12 +8,12 @@ import {
   todayIso,
 } from "@/lib/buddy/scope.server";
 import {
-  READ_TOOL_DEFS,
+  buildReadToolDefs,
   READ_TOOL_NAMES,
   runReadTool,
   type BuddySource,
 } from "@/lib/buddy/read-tools.server";
-import { REPORT_TOOL_DEF, runReportTool } from "@/lib/buddy/report-tool.server";
+import { buildReportToolDef, runReportTool } from "@/lib/buddy/report-tool.server";
 import {
   ALL_ACTION_TOOL_DEFS as ACTION_TOOL_DEFS,
   actionRequires,
@@ -77,7 +77,7 @@ const PAGE_NAMES: Record<string, string> = {
 
 const isReadTool = (name: string) =>
   READ_TOOL_NAMES.has(name) ||
-  name === REPORT_TOOL_DEF.function.name ||
+  name === "build_report" ||
   name === SETUP_TOOL_DEF.function.name;
 
 /** Keys whose renamed values Buddy should use when it talks. */
@@ -191,8 +191,10 @@ async function handler(req: Request): Promise<Response> {
           !(caller.ownScopeOnly && actionIsPortfolioOnly(t.function.name)),
       )
     : [];
-  const tools = [...READ_TOOL_DEFS, SETUP_TOOL_DEF, REPORT_TOOL_DEF, ...allowedActions];
   const terms = await terminologyLine(caller).catch(() => "");
+  const teamNames = await teamNameMap(caller).catch(() => ({} as Record<string, string>));
+  const stageSlugs = [...Object.keys(teamNames), "completed"];
+  const tools = [...buildReadToolDefs(stageSlugs), SETUP_TOOL_DEF, buildReportToolDef(stageSlugs), ...allowedActions];
   const allowedToolNames = new Set<string>(tools.map((t) => t.function.name as string));
   // The tool definitions are written OpenAI-shaped; the Messages API wants name/input_schema.
   const anthropicTools: Anthropic.Tool[] = tools.map((t) => ({
@@ -382,7 +384,7 @@ Attached spreadsheets (a user message containing "[Attached spreadsheet …]" wi
           for (const call of parsed) {
             toolsUsed.push(call.name);
             const result =
-              call.name === REPORT_TOOL_DEF.function.name
+              call.name === "build_report"
                 ? await runReportTool(caller, call.args)
                 : call.name === SETUP_TOOL_DEF.function.name
                   ? await runSetupTool(caller, call.args)

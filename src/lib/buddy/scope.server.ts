@@ -109,6 +109,10 @@ export const STAGE_LABELS: Record<string, string> = {
   completed: "Completed",
 };
 
+export function stageLabel(slug: string): string {
+  return STAGE_LABELS[slug] || slug;
+}
+
 export const RESPONSIBILITY_LABELS: Record<string, string> = {
   gokwik: "Internal team",
   merchant: "Merchant",

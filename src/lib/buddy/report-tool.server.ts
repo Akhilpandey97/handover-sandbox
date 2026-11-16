@@ -6,6 +6,7 @@ import {
   STATE_LABELS,
   todayIso,
 } from "@/lib/buddy/scope.server";
+import { teamNameMap } from "@/lib/buddy/setup-read.server";
 import type { BuddySource, ReadToolResult } from "@/lib/buddy/read-tools.server";
 
 /**
@@ -91,7 +92,7 @@ const DIMENSION_LABELS: Record<Dimension, string> = {
 };
 
 /** Categories with a fixed order in the product keep it, so their colours stay put across charts. */
-const FIXED_ORDER: Partial<Record<Dimension, string[]>> = {
+let FIXED_ORDER: Partial<Record<Dimension, string[]>> = {
   state: ["Not started", "In progress", "On hold", "Blocked", "Live"],
   stage: ["Sales", "Integration", "Merchant Success", "Completed"],
   responsibility: ["Internal team", "Merchant", "Neutral"],
@@ -101,70 +102,77 @@ const TIME_DIMENSIONS = new Set<Dimension>(["go_live_month", "kick_off_month"]);
 const LONG_LABEL_DIMENSIONS = new Set<Dimension>(["owner", "platform", "category"]);
 const MAX_SERIES = 8; // categorical token ceiling: past it, fold into "Other"
 
-export const REPORT_TOOL_DEF = {
-  type: "function",
-  function: {
-    name: "build_report",
-    description:
-      "Build headline numbers, a chart and the table behind it, shown in the chat with a chart switcher, CSV download and save. Use for any report, chart, breakdown, trend or list the user wants to keep. kind=breakdown counts projects (or sums ARR) by group_by, optionally split by a second dimension; kind=projects lists projects with chosen columns. Pick chart by the job: line or area for a trend over months; column to compare a few categories; bar for many or long-named categories (owners, platforms); pie or donut for share of a whole with 6 or fewer groups; stacked or grouped columns, or multiline for months, when split_by is set. Reply with the one or two key takeaways only; don't repeat the table.",
-    parameters: {
-      type: "object",
-      properties: {
-        title: { type: "string" },
-        kind: { type: "string", enum: ["breakdown", "projects"] },
-        group_by: {
-          type: "string",
-          enum: [
-            "go_live_month",
-            "kick_off_month",
-            "state",
-            "stage",
-            "owner",
-            "platform",
-            "responsibility",
-            "category",
-          ],
+const DEFAULT_STAGES = ["mint", "integration", "ms", "completed"];
+
+export function buildReportToolDef(stageSlugs?: string[]) {
+  const stages = stageSlugs && stageSlugs.length > 0 ? stageSlugs : DEFAULT_STAGES;
+  return {
+    type: "function" as const,
+    function: {
+      name: "build_report",
+      description:
+        "Build headline numbers, a chart and the table behind it, shown in the chat with a chart switcher, CSV download and save. Use for any report, chart, breakdown, trend or list the user wants to keep. kind=breakdown counts projects (or sums ARR) by group_by, optionally split by a second dimension; kind=projects lists projects with chosen columns. Pick chart by the job: line or area for a trend over months; column to compare a few categories; bar for many or long-named categories (owners, platforms); pie or donut for share of a whole with 6 or fewer groups; stacked or grouped columns, or multiline for months, when split_by is set. Reply with the one or two key takeaways only; don't repeat the table.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          kind: { type: "string", enum: ["breakdown", "projects"] },
+          group_by: {
+            type: "string",
+            enum: [
+              "go_live_month",
+              "kick_off_month",
+              "state",
+              "stage",
+              "owner",
+              "platform",
+              "responsibility",
+              "category",
+            ],
+          },
+          split_by: {
+            type: "string",
+            enum: ["state", "stage", "owner", "platform", "responsibility", "category"],
+            description: "Second dimension for stacked, grouped or multi-line charts",
+          },
+          metric: {
+            type: "string",
+            enum: ["count", "arr"],
+            description: "Count projects (default) or sum ARR in ₹ Cr",
+          },
+          chart: {
+            type: "string",
+            enum: [
+              "column",
+              "bar",
+              "line",
+              "area",
+              "pie",
+              "donut",
+              "stacked",
+              "grouped",
+              "multiline",
+              "table",
+            ],
+          },
+          columns: { type: "array", items: { type: "string", enum: Object.keys(COLUMNS) } },
+          state: {
+            type: "string",
+            enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
+          },
+          stage: { type: "string", enum: stages },
+          platform: { type: "string" },
+          owner_id: { type: "string" },
+          go_live_from: { type: "string", description: "YYYY-MM-DD" },
+          go_live_to: { type: "string", description: "YYYY-MM-DD" },
         },
-        split_by: {
-          type: "string",
-          enum: ["state", "stage", "owner", "platform", "responsibility", "category"],
-          description: "Second dimension for stacked, grouped or multi-line charts",
-        },
-        metric: {
-          type: "string",
-          enum: ["count", "arr"],
-          description: "Count projects (default) or sum ARR in ₹ Cr",
-        },
-        chart: {
-          type: "string",
-          enum: [
-            "column",
-            "bar",
-            "line",
-            "area",
-            "pie",
-            "donut",
-            "stacked",
-            "grouped",
-            "multiline",
-            "table",
-          ],
-        },
-        columns: { type: "array", items: { type: "string", enum: Object.keys(COLUMNS) } },
-        state: {
-          type: "string",
-          enum: ["not_started", "on_hold", "in_progress", "live", "blocked"],
-        },
-        stage: { type: "string", enum: ["mint", "integration", "ms", "completed"] },
-        platform: { type: "string" },
-        owner_id: { type: "string" },
-        go_live_from: { type: "string", description: "YYYY-MM-DD" },
-        go_live_to: { type: "string", description: "YYYY-MM-DD" },
+        required: ["title", "kind"],
       },
-      required: ["title", "kind"],
     },
-  },
-} as const;
+  };
+}
+
+export const REPORT_TOOL_DEF = buildReportToolDef();
 
 const monthLabel = (ym: string) => {
   const [y, m] = ym.split("-");
@@ -183,7 +191,9 @@ export async function runReportTool(
 ): Promise<ReadToolResult & { report?: BuddyReport }> {
   try {
     // Column headings and category names in this workspace's own words.
-    const L = await buddyLabels(caller);
+    const [L, teamNames] = await Promise.all([buddyLabels(caller), teamNameMap(caller)]);
+    const stageLabels: Record<string, string> = { ...STAGE_LABELS, ...teamNames };
+    const stageOrder = Object.values(stageLabels);
     const columnLabel = (key: string) =>
       key === "merchantName"
         ? L.merchant
@@ -240,7 +250,7 @@ export async function runReportTool(
     const title = String(args.title || "Report");
     const filterBits = [
       args.state && STATE_LABELS[args.state],
-      args.stage && STAGE_LABELS[args.stage],
+      args.stage && stageLabels[args.stage],
       args.platform,
       args.go_live_from && `go-live from ${args.go_live_from}`,
       args.go_live_to && `to ${args.go_live_to}`,
@@ -264,7 +274,7 @@ export async function runReportTool(
         case "kick_off_month":
           return p.kick_off_date ? String(p.kick_off_date).slice(0, 7) : "No date";
         case "stage":
-          return STAGE_LABELS[p.current_stage] || p.current_stage || "None";
+          return stageLabels[p.current_stage] || p.current_stage || "None";
         case "owner":
           return ownerName.get(p.assigned_owner) || "Unassigned";
         case "platform":
@@ -282,6 +292,11 @@ export async function runReportTool(
     const valueLabel = metric === "arr" ? "ARR (₹ Cr)" : "Projects";
     const round = (n: number) => (metric === "arr" ? Math.round(n * 100) / 100 : n);
 
+    const fixedOrder: Partial<Record<Dimension, string[]>> = {
+      ...FIXED_ORDER,
+      stage: stageOrder,
+    };
+
     /** Order a dimension's keys: fixed product order, months ascending, otherwise largest first. */
     const orderKeys = (dim: Dimension, totals: Map<string, number>) => {
       const keys = Array.from(totals.keys());
@@ -289,7 +304,7 @@ export async function runReportTool(
         return keys.sort((a, b) =>
           a === "No date" ? 1 : b === "No date" ? -1 : a.localeCompare(b),
         );
-      const fixed = FIXED_ORDER[dim];
+      const fixed = fixedOrder[dim];
       if (fixed)
         return keys.sort((a, b) => (fixed.indexOf(a) + 1 || 99) - (fixed.indexOf(b) + 1 || 99));
       return keys.sort((a, b) => (totals.get(b) || 0) - (totals.get(a) || 0));

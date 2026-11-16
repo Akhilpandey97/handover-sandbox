@@ -59,13 +59,16 @@ const formatEgl = (d: string | null | undefined) => {
   return dt.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 };
 
+const FUNNEL_KNOWN_STAGES = new Set(["sales", "pre_integration", "completed"]);
+
 function getFunnelStage(p: any): string {
   const state = p.project_state;
   const stage = p.current_stage;
   if (state === "live") return "live";
-  if (stage === "mint" || stage === "integration") return "under_integration";
   if (stage === "sales") return "sales";
   if (stage === "pre_integration") return "pre_integration";
+  if (stage === "completed") return "none";
+  if (!FUNNEL_KNOWN_STAGES.has(stage)) return "under_integration";
   return "none";
 }
 
@@ -105,7 +108,7 @@ const STAGE_RANK: Record<string, number> = {
 };
 const stageRank = (v: any): number => {
   if (!v) return -1;
-  return STAGE_RANK[String(v).toLowerCase().trim()] ?? -1;
+  return STAGE_RANK[String(v).toLowerCase().trim()] ?? 2;
 };
 const LOWLIGHT_KW =
   /\b(not getting any update|no response|no responses|unresponsive|following up|awaiting response|chasing|reminder sent|haven't heard|still waiting|no eta)\b/i;
