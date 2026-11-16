@@ -27,7 +27,7 @@ const PROJECT_FIELDS = [
   { key: "kick_off_date", label: "Kick Off / Start Date" },
   { key: "expected_go_live_date", label: "Expected Go Live Date" },
   { key: "go_live_percent", label: "Go Live Percentage" },
-  { key: "current_stage", label: "Current Stage (mint/integration/ms/completed)" },
+  { key: "current_stage", label: "Current Stage (team slug from the workspace's teams)" },
 ];
 
 async function handler(req: Request): Promise<Response> {

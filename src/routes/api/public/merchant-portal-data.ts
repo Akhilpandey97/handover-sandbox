@@ -1019,7 +1019,15 @@ async function handler(req: Request): Promise<Response> {
     }));
 
     // Show every checklist item (non-task) for the project
-    const teamOrder: Record<string, number> = { mint: 0, integration: 1, ms: 2, completed: 3 };
+    const { data: pipelineTeams } = await supabase
+      .from("teams")
+      .select("slug")
+      .eq("tenant_id", tenantId)
+      .order("sort_order");
+    const teamOrder: Record<string, number> = {};
+    ((pipelineTeams || []) as { slug: string }[]).forEach((t, i) => { teamOrder[t.slug] = i; });
+    if (Object.keys(teamOrder).length === 0) Object.assign(teamOrder, { mint: 0, integration: 1, ms: 2 });
+    teamOrder.completed = Object.keys(teamOrder).length;
     const checklist = [...(checklistRes.data ?? [])].sort((a: any, b: any) => {
       const pa = teamOrder[a.owner_team] ?? 99;
       const pb = teamOrder[b.owner_team] ?? 99;

@@ -970,7 +970,7 @@ export const ChecklistManagement = () => {
               existing projects.
               <br />
               <span className="text-xs text-muted-foreground mt-1 block">
-                CSV format: <code>title,team</code> (team is optional — mint, integration, or ms)
+                CSV format: <code>title,team</code> (team is optional — {checklistTeamSlugs.join(", ")})
               </span>
             </DialogDescription>
           </DialogHeader>

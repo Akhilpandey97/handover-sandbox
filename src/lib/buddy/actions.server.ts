@@ -306,7 +306,7 @@ export const ACTION_TOOL_DEFS: any[] = [
     function: {
       name: "update_project_field",
       description:
-        "Change one field on a project. Fields: project_state (not_started|on_hold|in_progress|live|blocked), current_stage (mint|integration|ms|completed), platform, category, arr (₹ Cr), txns_per_day, aov, sales_spoc, integration_type, pg_onboarding, go_live_percent (0-100), expected_go_live_date (YYYY-MM-DD), project_notes, mint_notes, current_stage_comment (notes are appended).",
+        "Change one field on a project. Fields: project_state (not_started|on_hold|in_progress|live|blocked), current_stage (use a team slug from the workspace's teams), platform, category, arr (₹ Cr), txns_per_day, aov, sales_spoc, integration_type, pg_onboarding, go_live_percent (0-100), expected_go_live_date (YYYY-MM-DD), project_notes, mint_notes, current_stage_comment (notes are appended).",
       parameters: {
         type: "object",
         properties: {

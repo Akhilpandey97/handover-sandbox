@@ -5,6 +5,7 @@ import {
   requireCred,
   resendFrom,
   resendReplyTo,
+  adminClient,
 } from "@/lib/tenant-integrations.server";
 import { getTenantBranding } from "@/lib/tenant-branding.server";
 import { requireInternalCaller } from "@/lib/api-auth.server";
@@ -47,10 +48,17 @@ async function handler(req: Request): Promise<Response> {
     // Where merchants should reply: the tenant's configured Reply-To, then its
     // From Address, rather than a support inbox belonging to one company.
     const supportEmail = creds.reply_to || creds.from_email || "";
-    const branding = await getTenantBranding(await tenantIdFromRequest(req));
+    const tid = await tenantIdFromRequest(req);
+    const branding = await getTenantBranding(tid);
     const { orgName } = branding;
-    // The team that answers merchants is the third-stage team, named by the workspace.
-    const teamName = branding.teamLabel("ms");
+    const { data: pipelineTeams } = await adminClient()
+      .from("teams")
+      .select("slug")
+      .eq("tenant_id", tid)
+      .order("sort_order", { ascending: false })
+      .limit(1);
+    const lastTeamSlug = (pipelineTeams as { slug: string }[] | null)?.[0]?.slug || "ms";
+    const teamName = branding.teamLabel(lastTeamSlug);
     const to = (brandPocEmails as string[]).filter(Boolean);
     const ccSet = new Set<string>((platformPocEmails as string[]).filter(Boolean));
     if (csmEmail && typeof csmEmail === "string" && csmEmail.trim()) ccSet.add(csmEmail.trim());
