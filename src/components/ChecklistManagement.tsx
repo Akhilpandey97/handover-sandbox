@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TeamRole } from "@/data/teams";
@@ -45,6 +45,22 @@ import {
   Upload,
   Users,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { DynamicTeam } from "@/hooks/useTeams";
 
 interface ChecklistTemplate {
   id: string;
@@ -1273,14 +1289,68 @@ export const ChecklistManagement = () => {
 };
 
 // ─── Standalone Team Management (used by Settings → Teams) ───────────────────
+const SortableTeamRow = ({
+  team,
+  label,
+  onEdit,
+  onDelete,
+}: {
+  team: DynamicTeam;
+  label: string;
+  onEdit: (slug: string) => void;
+  onDelete?: (team: DynamicTeam) => void;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: team.id,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}
+      className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50 group"
+    >
+      <button type="button" className="cursor-grab touch-none text-muted-foreground hover:text-foreground" {...attributes} {...listeners}>
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: team.color || "#64748b" }}>
+        {label.charAt(0)}
+      </div>
+      <span className="font-medium flex-1">{label}</span>
+      {team.is_system ? (
+        <Badge variant="secondary" className="text-xs">System</Badge>
+      ) : (
+        <Badge variant="outline" className="text-xs">{team.slug}</Badge>
+      )}
+      <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => onEdit(team.slug)}>
+        <Pencil className="h-4 w-4" />
+      </Button>
+      {onDelete && (
+        <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:text-destructive" onClick={() => onDelete(team)}>
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
+};
+
 export const TeamManagementSettings = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
   const { teamLabels } = useLabels();
   const { checklistTeamSlugs, teamLabelMap, teamColorMap: teamColors2, customTeams, allTeams } = useTeams();
-  const teams = checklistTeamSlugs;
   const getLabel = (slug: string) =>
     teamLabels[slug as keyof typeof teamLabels] || teamLabelMap[slug] || slug;
+
+  const [localTeams, setLocalTeams] = useState<DynamicTeam[]>(allTeams);
+  const prevIdSet = useRef("");
+  useEffect(() => {
+    const key = allTeams.map((t) => t.id + t.sort_order).join(",");
+    if (key !== prevIdSet.current) {
+      prevIdSet.current = key;
+      setLocalTeams(allTeams);
+    }
+  }, [allTeams]);
 
   const [addTeamOpen, setAddTeamOpen] = useState(false);
   const [newTeamName, setNewTeamName] = useState("");
@@ -1288,10 +1358,48 @@ export const TeamManagementSettings = () => {
   const [deleteTeamConfirm, setDeleteTeamConfirm] = useState<{ id: string; name: string; slug: string } | null>(null);
   const [editTeam, setEditTeam] = useState<{ id: string; slug: string; name: string; color: string; isSystem: boolean; sortOrder: number } | null>(null);
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIndex = localTeams.findIndex((t) => t.id === active.id);
+      const newIndex = localTeams.findIndex((t) => t.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const reordered = arrayMove(localTeams, oldIndex, newIndex);
+      setLocalTeams(reordered);
+      prevIdSet.current = reordered.map((t) => t.id + t.sort_order).join(",");
+      const updates = reordered
+        .map((t, i) => ({ ...t, sort_order: i }))
+        .filter((t, i) => localTeams[i]?.id !== t.id || localTeams[i]?.sort_order !== t.sort_order);
+      prevIdSet.current = reordered.map((t, i) => t.id + i).join(",");
+      setLocalTeams(reordered.map((t, i) => ({ ...t, sort_order: i })));
+      await Promise.all(
+        updates.map(async (t) => {
+          if (t.id.startsWith("system-")) {
+            const { data: existing } = await supabase
+              .from("teams").select("id").eq("slug", t.slug).eq("tenant_id", currentUser?.tenantId!).maybeSingle();
+            if (existing) {
+              await supabase.from("teams").update({ sort_order: t.sort_order }).eq("id", existing.id);
+            } else {
+              await supabase.from("teams").insert({ slug: t.slug, name: t.name, color: t.color, is_system: true, sort_order: t.sort_order, tenant_id: currentUser?.tenantId });
+            }
+          } else {
+            const { error } = await supabase.from("teams").update({ sort_order: t.sort_order }).eq("id", t.id);
+            if (error) console.error("Failed to update team order:", error);
+          }
+        }),
+      );
+      await queryClient.invalidateQueries({ queryKey: ["teams"] });
+    },
+    [localTeams, currentUser?.tenantId, queryClient],
+  );
+
   const addTeamMutation = useMutation({
     mutationFn: async ({ name, color }: { name: string; color: string }) => {
       const slug = name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
-      const { error } = await supabase.from("teams").insert({ name, slug, color, is_system: false, sort_order: customTeams.length, tenant_id: currentUser?.tenantId });
+      const { error } = await supabase.from("teams").insert({ name, slug, color, is_system: false, sort_order: localTeams.length, tenant_id: currentUser?.tenantId });
       if (error) throw error;
     },
     onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ["teams"] }); toast.success("Team added"); setAddTeamOpen(false); setNewTeamName(""); },
@@ -1321,7 +1429,7 @@ export const TeamManagementSettings = () => {
   });
 
   const openTeamEditor = (slug: string) => {
-    const t = allTeams.find((x) => x.slug === slug);
+    const t = localTeams.find((x) => x.slug === slug);
     if (!t) return;
     setEditTeam({ id: t.id, slug: t.slug, name: t.name, color: t.color, isSystem: t.is_system, sortOrder: t.sort_order });
   };
@@ -1341,51 +1449,27 @@ export const TeamManagementSettings = () => {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage team categories for checklist organization.
+            Drag to set pipeline order. The last team hands off to Completed.
           </p>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="mb-4">
-            <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">System Teams</p>
-            <div className="space-y-2">
-              {teams.map((team) => (
-                <div key={team} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
-                  <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: teamColors2[team] || "#64748b" }}>
-                    {(getLabel(team)).charAt(0)}
-                  </div>
-                  <span className="font-medium flex-1">{getLabel(team)}</span>
-                  <Badge variant="secondary" className="text-xs">System</Badge>
-                  <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => openTeamEditor(team)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-          {customTeams.length > 0 && (
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-muted-foreground tracking-normal mb-2">Custom Teams</p>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={localTeams.map((t) => t.id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-2">
-                {customTeams.map((team) => (
-                  <div key={team.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border/50 group">
-                    <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm" style={{ backgroundColor: team.color }}>
-                      {team.name.charAt(0)}
-                    </div>
-                    <span className="font-medium flex-1">{team.name}</span>
-                    <Badge variant="outline" className="text-xs">{team.slug}</Badge>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Rename or recolour" onClick={() => openTeamEditor(team.slug)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:text-destructive" onClick={() => setDeleteTeamConfirm({ id: team.id, name: team.name, slug: team.slug })}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                {localTeams.map((team) => (
+                  <SortableTeamRow
+                    key={team.id}
+                    team={team}
+                    label={getLabel(team.slug)}
+                    onEdit={openTeamEditor}
+                    onDelete={team.is_system ? undefined : (t) => setDeleteTeamConfirm({ id: t.id, name: t.name, slug: t.slug })}
+                  />
                 ))}
               </div>
-            </div>
-          )}
-          {customTeams.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">No custom teams yet. Click "Add Team" to create one.</p>
+            </SortableContext>
+          </DndContext>
+          {localTeams.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">No teams configured.</p>
           )}
         </CardContent>
       </Card>

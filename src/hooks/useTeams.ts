@@ -67,8 +67,10 @@ export const useTeams = () => {
     return saved ? { ...fallback, ...saved } : fallback;
   });
 
-  // Checklist teams = system teams + custom teams (excludes manager/super_admin/gokwik_general)
-  const checklistTeams = [...systemTeams, ...customTeams];
+  // Checklist teams = system teams + custom teams, sorted by sort_order
+  const checklistTeams = [...systemTeams, ...customTeams].sort(
+    (a, b) => a.sort_order - b.sort_order,
+  );
 
   // Build slug→name lookup
   const teamLabelMap: Record<string, string> = {};
