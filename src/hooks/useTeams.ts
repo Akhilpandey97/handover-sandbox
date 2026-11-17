@@ -62,10 +62,15 @@ export const useTeams = () => {
 
   // Team Management (Settings → Checklist) is the single source of truth for
   // team names. A saved row always wins over the built-in fallback name.
-  const systemTeams: DynamicTeam[] = SYSTEM_TEAMS.map((fallback) => {
-    const saved = dbTeams.find((t) => t.slug === fallback.slug);
-    return saved ? { ...fallback, ...saved } : fallback;
-  });
+  const builtInSlugs = new Set(SYSTEM_TEAMS.map((t) => t.slug));
+  const systemTeams: DynamicTeam[] = [
+    ...SYSTEM_TEAMS.map((fallback) => {
+      const saved = dbTeams.find((t) => t.slug === fallback.slug);
+      return saved ? { ...fallback, ...saved } : fallback;
+    }),
+    // Include DB-only system teams (is_system=true but not in SYSTEM_TEAMS)
+    ...dbTeams.filter((t) => t.is_system && !builtInSlugs.has(t.slug)),
+  ];
 
   // Checklist teams = system teams + custom teams, sorted by sort_order
   const checklistTeams = [...systemTeams, ...customTeams].sort(
